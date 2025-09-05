@@ -6,6 +6,8 @@
 
 ```
 FIRMWARE_V3/
+├── Makefile                         ← 构建入口（目标/芯片/配置）
+├── build_helper.sh                  ← 构建辅助脚本
 ├── boards/                          ← 工程级项目/产品配置入口（头文件集中）
 │   ├── product_info.h               ← 产品信息与型号定义
 │   ├── project_config.h             ← 编译/功能开关/宏定义（顶层聚合）
@@ -39,10 +41,27 @@ FIRMWARE_V3/
 │
 ├── project/                         ← 构建产物与构建系统文件
 │   ├── bin/                         ← 可执行/固件镜像输出
-│   ├── build/                       ← 中间产物/临时文件
-│   ├── logs/                        ← 编译/运行日志
-│   ├── Makefile                     ← 构建入口（目标/芯片/配置）
-│   └── build_helper.sh              ← 构建辅助脚本
+│   │   ├── best1306p.bin            ← 固件二进制文件
+│   │   ├── best1306p.elf            ← ELF可执行文件
+│   │   └── best1306p.map            ← 内存映射文件
+│   └── build/                       ← 中间产物/临时文件
+│       ├── extra/                   ← 框架代码编译产物
+│       │   └── trunk/               ← 框架主干编译输出
+│       ├── lib/                     ← 静态库文件
+│       │   └── libextra.a           ← 框架静态库
+│       └── sdk/                     ← SDK编译产物
+│           ├── best1306p/           ← 目标芯片编译输出
+│           │   ├── apps/            ← 应用层编译产物
+│           │   ├── bthost/          ← 蓝牙主机栈编译产物
+│           │   ├── config/          ← 配置相关编译产物
+│           │   ├── multimedia/      ← 多媒体模块编译产物
+│           │   ├── platform/        ← 平台相关编译产物
+│           │   ├── rtos/            ← 实时操作系统编译产物
+│           │   ├── services/        ← 服务层编译产物
+│           │   └── utils/           ← 工具库编译产物
+│           └── os_base/             ← 操作系统基础编译产物
+│               ├── built-in.a       ← 内置库文件
+│               └── cmsis_os_log.o   ← CMSIS-OS日志对象文件
 │
 └── trunk/                           ← 框架主干（平台与核心业务）
     ├── include/                     ← 对外API头文件（管理器/服务接口）
@@ -50,17 +69,18 @@ FIRMWARE_V3/
     │   ├── algorithm_api.h          ← 算法框架接口
     │   ├── audio_manager_api.h      ← 音频管理接口
     │   ├── ble_manager_api.h        ← BLE管理接口
-    │   ├── broadcast_manager_api.h  ← 广播管理接口（新增）
+    │   ├── broadcast_manager_api.h  ← 广播管理接口
     │   ├── misc_manager_api.h       ← 杂项能力管理接口
     │   ├── motor_manager_api.h      ← 马达管理接口
     │   ├── ota_manager_api.h        ← OTA升级管理接口
-    │   ├── peripheral_bus_api.h     ← 外设总线接口（新增）
+    │   ├── peripheral_bus_api.h     ← 外设总线接口
     │   ├── power_manager_api.h      ← 电源管理接口
     │   ├── resource_manager_api.h   ← 资源管理接口
-    │   ├── root_common.h            ← 通用接口集合（新增）
-    │   ├── root_common_api copy.h   ← 通用接口集合（命名待统一）
+    │   ├── root_common.h            ← 通用接口集合
+    │   ├── root_common_api.h        ← 通用接口集合（已统一命名）
     │   ├── root_common_base.h       ← 公共基类/宏/类型
-    │   ├── root_log_define.h        ← 日志系统定义（新增）
+    │   ├── root_list_api.h          ← 链表管理接口（新增）
+    │   ├── root_log_define.h        ← 日志系统定义
     │   ├── storage_manager_api.h    ← 存储管理接口
     │   └── windows_manager_api.h    ← 窗口管理接口
     │
@@ -126,6 +146,10 @@ FIRMWARE_V3/
 - **文件**: `trunk/include/broadcast_manager_api.h`
 - **功能**: 系统级广播消息管理
 
+### 5. 链表管理接口
+- **文件**: `trunk/include/root_list_api.h`
+- **功能**: 通用链表数据结构管理接口
+
 ## 体系结构（逻辑分层）
 
 - **上层调用下层**，唯一与RTOS直接交互的应在平台/OS抽象处（若集成RTOS）
@@ -138,7 +162,7 @@ FIRMWARE_V3/
 - API面向`trunk/include/`对外暴露，内部实现放入`trunk/root_source/`
 - 芯片相关改动位于`trunk/platform_chip/`，避免渗透到上层逻辑
 - 资源与产品差异通过`overlay/`覆盖，引入统一初始化钩子
-- 构建仅修改`project/Makefile`与`boards/*.h`聚合配置
+- 构建仅修改根目录`Makefile`与`boards/*.h`聚合配置
 
 ### 依赖约束
 - `trunk/include` 被上层直接引用；实现仅在`root_source/`
@@ -149,7 +173,7 @@ FIRMWARE_V3/
 ## 构建说明
 
 ### 构建入口
-- 进入`project/`目录，使用`Makefile`或`build_helper.sh`进行编译与打包
+- 在根目录直接使用`Makefile`或`build_helper.sh`进行编译与打包
 - 产物默认输出到`project/bin/`，中间文件位于`project/build/`
 
 ### 编译命令

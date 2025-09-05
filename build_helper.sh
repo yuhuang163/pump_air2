@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT_DIR="$PROJECT_DIR/bin"
+OUTPUT_DIR="$PROJECT_DIR/project/bin"
 SHARE_DIR="/mnt/hgfs/ubuntu_share/v3_firmware"
 MAKE_ARGS=("T=best1306p" "-j16")
 
@@ -69,6 +69,20 @@ do_rebuild() {
 	echo "重新编译完成，总用时: $(duration_since "$t0")"
 }
 
+do_build_best1306p() {
+	local t0=$(date +%s)
+	echo "开始编译 best1306p 目标板..."
+	make -C "$PROJECT_DIR" T=best1306p -j16
+	echo "best1306p 编译完成，用时: $(duration_since "$t0")"
+}
+
+do_bear_best1306p() {
+	local t0=$(date +%s)
+	echo "开始使用 bear 编译 best1306p 目标板（生成编译数据库）..."
+	bear -- make -C "$PROJECT_DIR" T=best1306p -j16
+	echo "bear best1306p 编译完成，用时: $(duration_since "$t0")"
+}
+
 show_menu() {
 	cat <<EOF
 ================ 一键编译工具 ================
@@ -76,6 +90,8 @@ show_menu() {
 2) 清理
 3) 重新编译（清理后编译）
 4) 仅拷贝编译产物到共享目录
+5) bear -- make T=best1306p（生成编译数据库）
+6) 编译（不拷贝到共享目录）
 0) 退出
 ---------------------------------------------
 目标共享目录: $SHARE_DIR
@@ -94,17 +110,21 @@ main() {
 				do_clean ;;
 			rebuild)
 				do_rebuild && copy_artifacts ;;
+			best1306p)
+				do_bear_best1306p && copy_artifacts ;;
+			build-only)
+				do_build ;;
 			copy)
 				copy_artifacts ;;
 			*)
-				echo "用法: $0 --non-interactive [build|clean|rebuild|copy]" ; exit 2 ;;
+				echo "用法: $0 --non-interactive [build|clean|rebuild|best1306p|build-only|copy]" ; exit 2 ;;
 		esac
 		return 0
 	fi
 
-	while true; do
+			while true; do
 		show_menu
-		read -rp "请选择功能 [0-4]: " choice
+		read -rp "请选择功能 [0-6]: " choice
 		case "$choice" in
 			1)
 				do_build
@@ -119,6 +139,13 @@ main() {
 				;;
 			4)
 				copy_artifacts
+				;;
+			5)
+				do_bear_best1306p
+				copy_artifacts
+				;;
+			6)
+				do_build
 				;;
 			0)
 				echo "已退出"; exit 0 ;;

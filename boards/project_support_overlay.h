@@ -28,6 +28,7 @@ extern "C" {
 
 // module
 #define IS_SUPPORT_LOG_OUT                               (1)
+#define IS_SUPPORT_LOG_COLOR                             (0)
 #define IS_SUPPORT_MODULE_PBUS                           (1)
 #define IS_SUPPORT_MODULE_PM                             (1)
 #define IS_SUPPORT_MODULE_STORAGE                        (1)

@@ -1,5 +1,5 @@
-#ifndef __USER_LOG_DEFINE_H__
-#define __USER_LOG_DEFINE_H__
+#ifndef __ROOT_LOG_DEFINE_H__
+#define __ROOT_LOG_DEFINE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,11 +14,7 @@ extern "C" {
 #include <stddef.h>
 #include "project_log_filter.h"
 #include "project_support_overlay.h"
-
-/*@brief log define*/
-#ifndef PRINT_LOG
-#define PRINT_LOG(...) printf(__VA_ARGS__)
-#endif
+#include "cmsis_os_api.h"
 
 // 日志颜色.
 #if IS_SUPPORT_LOG_COLOR
@@ -51,8 +47,8 @@ extern "C" {
 extern uint16_t g_log_level_set;
 extern uint32_t g_log_filter;
 
-uint64_t get_utc_time_ms(void);
-uint32_t get_utc_time(void);
+// uint64_t get_utc_time_ms(void);
+// uint32_t get_utc_time(void);
 int __gettid(void);
 void reset_log_filter(uint32_t filter);
 void init_user_log_filter(void);
@@ -109,7 +105,8 @@ typedef enum{
 #endif
 
 #ifndef FORMAT_LOG_OUT_OBJ
-#define FORMAT_LOG_OUT_OBJ (get_utc_time_ms()), ((int)__gettid())
+// #define FORMAT_LOG_OUT_OBJ (get_utc_time_ms()), ((int)__gettid())
+#define FORMAT_LOG_OUT_OBJ ((0), (0))
 #endif
 
 #if 0
