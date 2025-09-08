@@ -12,6 +12,12 @@ extern "C" {
 #include "cmsis_os_base.h"
 #include "hal_trace.h"
 
+// log define
+#ifndef PRINT_LOG
+// #define PRINT_LOG(...)  hal_trace_printf(TR_ATTR_NO_ID|TR_ATTR_NO_TS|TR_ATTR_NO_LF, __VA_ARGS__)
+#define PRINT_LOG(...)  platform_printf(__VA_ARGS__)
+#endif
+
 #define IS_SUPPORT_QUEUE           1
 #define IS_SUPPORT_TIME            1
 #define IS_SUPPORT_MUTEX           1
@@ -19,13 +25,6 @@ extern "C" {
 #define IS_SUPPORT_SEM_T           1
 
 #define TO_STR(str)                #str
-
-void platform_logf(const char *fmt, ...);
-
-// log define
-#ifndef PRINT_LOG
-#define PRINT_LOG(...) platform_logf(__VA_ARGS__)
-#endif
 
 #if IS_SUPPORT_THREAD
 // 创建新线程
@@ -171,8 +170,6 @@ void platform_sysinfo_print(void *user_data);
 // 平台提供的获取UTC时间戳接口.
 uint32_t platform_get_utc_time(void);
 uint64_t platform_get_utc_time_ms(void);
-// 日志系统使用的UTC时间戳接口.
-uint64_t get_utc_time_ms(void);
 // 平台提供的设置UTC时间戳接口.
 void platform_set_utc_time(uint32_t timestemp, int timezone);
 // 平台提供的获取构建时间接口.

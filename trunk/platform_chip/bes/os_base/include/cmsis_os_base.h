@@ -91,6 +91,8 @@ os_status_e os_mutex_wait_wrapper (os_mutex_id mutex_id, uint32_t millisec);
 os_status_e os_mutex_release_wrapper (os_mutex_id mutex_id);
 os_status_e os_mutex_delete_wrapper (os_mutex_id mutex_id); 
 
+void platform_printf(const char *fmt, ...);
+
 #ifdef __cplusplus
 }
 #endif

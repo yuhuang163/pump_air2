@@ -12,6 +12,9 @@ CFLAGS ?= -O2 -g -std=$(CSTD) -fvisibility=default
 EXTRA_SDK_ARCH_FLAGS := -mthumb -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard
 EXTRA_CFLAGS ?= -std=gnu99 $(EXTRA_SDK_ARCH_FLAGS)
 
+# Release trace switch for both EXTRA_LIB and SDK build
+REL_TRACE_ENABLE ?= 1
+
 # SDK 头文件（最小必需集）
 SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/include \
@@ -25,10 +28,16 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/include \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/heap \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/libc/inc \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc \
 	-I$(PROJECT_ROOT)/boards \
 	-I$(PROJECT_ROOT)/trunk/include
 
 CPPFLAGS ?= -I$(PROJECT_ROOT) -I$(PROJECT_ROOT)/trunk $(SDK_INCLUDE_PATHS)
+
+ifeq ($(REL_TRACE_ENABLE),1)
+CPPFLAGS += -DREL_TRACE_ENABLE
+endif
 
 # 根据 T 映射芯片宏，确保与 SDK 头文件匹配
 ifeq ($(T),best1306p)
@@ -78,18 +87,11 @@ CPPFLAGS += $(CHIP_DEFINES)
 
 # 应用源码（满足链接 root_main 与 platform_prepare_init 等）
 EXTRA_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/*.c) \
 	$(PROJECT_ROOT)/trunk/root_source/base/root_list.c \
-	$(PROJECT_ROOT)/trunk/root_source/algorithm/algorithm_manager.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_os_queue.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_os_mutex.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_os_memery.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_os_semaphore.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_os_thread.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_os_base.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_misc.c \
-	$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/cmsis_rtos_timer.c \
 	$(PROJECT_ROOT)/trunk/root_source/base/root_main.c \
-	$(PROJECT_ROOT)/trunk/root_source/utils/log_utils.c
+	$(PROJECT_ROOT)/trunk/root_source/utils/log_utils.c \
+	$(PROJECT_ROOT)/trunk/root_source/algorithm/algorithm_manager.c 
 
 CC := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)gcc,gcc)
 AR := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)ar,ar)
@@ -104,7 +106,7 @@ all: extra sdk
 sdk: $(EXTRA_LIB) | $(BIN_DIR)
 	$(MAKE) -C $(SDK_SRCTREE) O=$(O) T=$(T) CONFIG_CROSS_COMPILE=$(CONFIG_CROSS_COMPILE) \
 	  C++_ONLY_FLAGS+=" -fno-threadsafe-statics " \
-	  LIB_LDFLAGS+=" $(EXTRA_LIB) -Wl,-defsym,__EXTRA_LIB_MTIME=$(shell stat -c %Y $(EXTRA_LIB)) "
+	  LIB_LDFLAGS+=" $(EXTRA_LIB) -Wl,-defsym,__EXTRA_LIB_MTIME=$(shell stat -c %Y $(EXTRA_LIB)) " REL_TRACE_ENABLE=$(REL_TRACE_ENABLE)
 	@set -e; \
 	  out_dir="$(O)/$(T)"; \
 	  for ext in elf bin map lst; do \
@@ -149,5 +151,6 @@ print-vars:
 	@echo CONFIG_CROSS_COMPILE=$(CONFIG_CROSS_COMPILE)
 	@echo EXTRA_LIB=$(EXTRA_LIB)
 	@echo EXTRA_OBJS=$(EXTRA_OBJS)
+	@echo REL_TRACE_ENABLE=$(REL_TRACE_ENABLE)
 
 
