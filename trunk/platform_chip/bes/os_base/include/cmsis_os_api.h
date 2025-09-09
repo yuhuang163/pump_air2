@@ -11,6 +11,7 @@ extern "C" {
  ******************************************************************************/
 #include "cmsis_os_base.h" // IWYU pragma: keep
 #include "hal_trace.h"
+#include "cmsis.h"
 
 // log define
 #ifndef PRINT_LOG
@@ -120,6 +121,8 @@ extern "C" {
 #define U_SEM_POST(sem_id)              do { ; } while (0)
 #define U_SEM_DELETE(sem_id)            do { ; } while (0)
 #endif
+
+typedef struct RTC_CALENDAR_FORMAT_T utc_time_t;
 
 /*
  * GLOBAL FUNCTION DECLARATION

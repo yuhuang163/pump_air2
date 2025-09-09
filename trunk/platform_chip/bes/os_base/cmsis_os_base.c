@@ -4,8 +4,8 @@
 */
 #include <stdint.h>
 #include <stdbool.h>
-#include "cmsis_os_api.h" 
-#include "rtx_lib.h" 
+#include "rtx_lib.h"  // IWYU pragma: keep
+#include "cmsis_os_api.h"  // IWYU pragma: keep
 
 /*
 * DEFINES

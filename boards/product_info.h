@@ -43,11 +43,18 @@ extern "C" {
 #define ALGO_TEST_FIRMWARE_TYPE                        'R'
 #define ALGO_TEST_FIRMWARE_VERSION                     100
 
-//产品外观色
+/**
+ * 产品外观色
+*/
 #define PRODUCT_COLOR_BLACK                            "00"
 #define PRODUCT_COLOR_GOLDEN                           "01"
 #define PRODUCT_COLOR_BLUE                             "02"
 #define PRODUCT_SUB_ID_INDEX                           48
+
+/**
+ * 产品固件编译时间戳
+*/
+#define PRODUCT_BUILD_TIMESTAMP   1757400154
 
 #ifdef __cplusplus
 }
