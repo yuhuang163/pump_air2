@@ -2,8 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "root_log_define.h"
 #include "stdio.h"
-#include "string.h"
+#include "string.h" // IWYU pragma: keep
 #include "pmu.h"
 #include "watchdog/watchdog.h"
 
@@ -53,19 +54,8 @@ void msleep(uint32_t time_ms)
 
 void platform_prepare_init(void)
 {
-    // u_heap_init();
-    // queue_module_init();
-    // mutex_module_init();
-    PRINT_LOG("*******22244*******\n");
-    PRINT_LOG("*******2228888*******\n");
-    PRINT_LOG("*******2225566*******\n");
-    PRINT_LOG("*******2225566*******\n");
-    msleep(1000);
-    LOGE("*******this is bes chip platform!*******\n");
-    msleep(1000);
-    char buf[100] = {0};
-    sprintf(buf, "*******2225566*******\n");
-    hal_trace_output(buf, strlen(buf));
+    u_heap_init();
+    os_mutex_module_init();
 }
 
 void platform_post_init(void) 
@@ -75,7 +65,7 @@ void platform_post_init(void)
 
 void platform_sysinfo_print(void *user_data)
 {
-    LOGE("dumpsys-memory:free(all):%lu", u_heap_free_size_get());
+    u_heap_info_output();
 }
 
 uint32_t get_timestamp(void)
@@ -85,8 +75,8 @@ uint32_t get_timestamp(void)
 
 int platform_get_tid(void)
 {
-    // return (int)os_thread_get_id_wrapper() % 1000;
-    return 0;
+    os_thread_id tid = os_thread_get_id_wrapper();
+    return ((int)tid) % 1000;
 }
 
 void platform_system_reboot(void)

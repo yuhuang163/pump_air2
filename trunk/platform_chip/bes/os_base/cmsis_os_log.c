@@ -5,6 +5,7 @@
 #include "stdio.h"
 #include "hal_trace.h"
 #include <stdarg.h>
+#include "cmsis_os_api.h"
 
 /*
 * DEFINES
@@ -65,4 +66,9 @@ void platform_printf(const char *fmt, ...)
     va_end(ap);
 }
 
-
+char *platform_log_header(void)
+{
+    static char log_header[32] = {0};
+    snprintf(log_header, sizeof(log_header), "[%lld][%d]", platform_get_utc_time_ms(), platform_get_tid());
+    return log_header;
+}

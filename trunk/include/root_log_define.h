@@ -100,22 +100,17 @@ typedef enum{
 #define IS_FILTER(x) if (g_log_filter & x)
 
 #ifndef FORMAT_LOG_OUT_SYMBOL
-#define FORMAT_LOG_OUT_SYMBOL "[%lld][%d]:"
-// #define FORMAT_LOG_OUT_SYMBOL "[%d]:"
+#define FORMAT_LOG_OUT_SYMBOL "[%d][%d]"
 #endif
 
 #ifndef FORMAT_LOG_OUT_OBJ
-#define FORMAT_LOG_OUT_OBJ (platform_get_utc_time_ms()), (platform_get_tid())
-// #define FORMAT_LOG_OUT_OBJ  (1), (2)
+#define FORMAT_LOG_OUT_OBJ platform_get_utc_time(), platform_get_tid()
 #endif
 
-#if 0
-#define PRINT_FORMAT(letter, format) LOG_COLOR_##letter #letter FORMAT_LOG_OUT_SYMBOL "[%s][%s]%s(): " format LOG_RESET_COLOR "\n"
-#define PRINT_WRAPPER(letter, format, TAG) PRINT_FORMAT(letter, format), FORMAT_LOG_OUT_OBJ, TAG, LOG_TAG, __func__
-#else
-#define PRINT_FORMAT(letter, format) LOG_COLOR_##letter #letter FORMAT_LOG_OUT_SYMBOL "[%s]%s(): " format LOG_RESET_COLOR "\n"
-#define PRINT_WRAPPER(letter, format, TAG) PRINT_FORMAT(letter, format), FORMAT_LOG_OUT_OBJ, TAG, __func__
-#endif 
+#define PRINT_FORMAT(letter, format) \
+  LOG_COLOR_##letter #letter FORMAT_LOG_OUT_SYMBOL "[%s][%s](): " format LOG_RESET_COLOR "\n"
+#define PRINT_WRAPPER(letter, format, TAG) \
+  PRINT_FORMAT(letter, format), FORMAT_LOG_OUT_OBJ, TAG, __func__
 
 /*
 * 基础日志输出.
