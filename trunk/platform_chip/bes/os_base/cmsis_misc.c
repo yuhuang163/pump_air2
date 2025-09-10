@@ -42,11 +42,6 @@ static void platform_wdt_refresh(void)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void msleep(uint32_t time_ms)
-{
-    os_delay_wrapper(time_ms);
-}
-
 void platform_prepare_init(void)
 {
     u_heap_init();
@@ -63,11 +58,6 @@ void platform_post_init(void)
 void platform_sysinfo_print(void *user_data)
 {
     u_heap_info_output();
-}
-
-uint32_t get_timestamp(void)
-{
-    return os_kernel_systick_wrapper();
 }
 
 int platform_get_tid(void)
