@@ -17,7 +17,7 @@ typedef struct {
     window_context_t args;
     broadcast_obj_t receiver;
     misc_manager_context_t *misc;
-    storage_context_t *st;
+    storage_manager_context_t *st;
     #if IS_SUPPORT_MODULE_RES
     resource_manager_context_t *res;
     #endif
@@ -60,11 +60,10 @@ static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reaso
     window_manager_context_t *wm = proc->args.wm;
     power_manager_context_t *pm =  (power_manager_context_t *)find_module(ID_MODULE_POWER);
     multi_func_msg_data_t msg = {0};
-    
     if (!(pm && pm->is_background_wakeup())) {
     }
 
-    if (!proc->st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG)) {
+    if (!proc->st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, NULL)) {
         LOG_UI("goto fac: true");
         msg.union_body.extra.window_id = ID_WINDOW_FACTORY_MODE;
         wm->dispatch_new_window_args(wm, &msg);
@@ -176,7 +175,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     wm->set_backlight(0);
     ui_proc_dummy_t *proc = u_malloz(sizeof(ui_proc_dummy_t));
     proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
-    proc->st = (storage_context_t *)find_module(ID_MODULE_STORAGE);
+    proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     #if IS_SUPPORT_MODULE_RES
     proc->res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
     #endif
