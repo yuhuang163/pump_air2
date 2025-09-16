@@ -30,9 +30,14 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/ana \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/include \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/log_section \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/norflash_api \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/factory_section \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/heap \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/libc/inc \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/hwtimer_list \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/apps/main \
 	-I$(PROJECT_ROOT)/boards \
 	-I$(PROJECT_ROOT)/drivers/audio \
 	-I$(PROJECT_ROOT)/drivers/base \
@@ -60,6 +65,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/windows/ota \
 	-I$(PROJECT_ROOT)/overlay/windows/pop_windows \
 	-I$(PROJECT_ROOT)/overlay/windows/setting \
+	-I$(PROJECT_ROOT)/overlay/windows \
 	-I$(PROJECT_ROOT)/overlay/sensor/imu \
 	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
@@ -177,6 +183,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/breath_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/breath_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/charge/*.c) \

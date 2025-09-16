@@ -68,6 +68,36 @@ static const window_context_handle_t g_process_handle_list[WINDOW_HANDLE_LIST_CO
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+const char *to_window_name(uint8_t window_id) 
+{
+    switch (window_id) {
+        case ID_WINDOW_DUMMY:
+            return "dummy";
+        case ID_WINDOW_LOGO:
+            return "logo";
+        case ID_WINDOW_GUIDE:
+            return "guide";
+        case ID_WINDOW_CHARGE:
+            return "charging";
+        case ID_WINDOW_BATTERY:
+            return "battery";
+        case ID_WINDOW_BREATH_PUMP:
+            return "breath_pump";
+        case ID_WINDOW_SETTINGS:
+            return "setting";
+        case ID_WINDOW_OTA_UPGRADE:
+            return "ota_upgrade";
+        case ID_WINDOW_FACTORY_MODE:
+            return "factory_mode";
+        case ID_WINDOW_POPUP_WINDOW:
+            return "popup_window";
+        case ID_WINDOW_AIRPLANE_MODE:
+            return "airplane_mode";
+        default:
+            return "unknow";
+    }
+}
+
 void get_window_state_hdr_list(window_context_handle_t **list, uint16_t *list_len)
 {
     *list = (window_context_handle_t *)g_process_handle_list;
