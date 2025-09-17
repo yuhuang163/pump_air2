@@ -81,6 +81,8 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/storage\
 	-I$(PROJECT_ROOT)/trunk/include \
 	-I$(PROJECT_ROOT)/trunk/extern \
+	-I$(PROJECT_ROOT)/trunk/external/littlefs \
+	-I$(PROJECT_ROOT)/trunk/external/littlefs/fds \
 	-I$(PROJECT_ROOT)/trunk/root_source/airplane \
 	-I$(PROJECT_ROOT)/trunk/root_source/algorithm \
 	-I$(PROJECT_ROOT)/trunk/root_source/audio \
@@ -202,6 +204,8 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/ota/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/pop_windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/fds/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/airplane/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/audio/*.c) \
