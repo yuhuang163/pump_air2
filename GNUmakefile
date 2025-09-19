@@ -6,6 +6,11 @@ CHIP ?= best1306p
 CONFIG_CROSS_COMPILE ?= arm-none-eabi-
 CROSS_COMPILE ?= $(CONFIG_CROSS_COMPILE)
 
+# UART3 IOMUX 配置（传递给 SDK 的编译宏）
+UART3_IOMUX_INDEX ?= 24
+# UART1 IOMUX 配置（传递给 SDK 的编译宏）
+UART1_IOMUX_INDEX ?= 20
+
 # -------------- 应用源码与编译参数 --------------
 CSTD ?= gnu11
 CFLAGS ?= -O2 -g -std=$(CSTD) -fvisibility=default
@@ -69,8 +74,11 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/drivers/imu \
 	-I$(PROJECT_ROOT)/drivers/key \
 	-I$(PROJECT_ROOT)/drivers/lcd \
+	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart \
+	-I$(PROJECT_ROOT)/drivers/lcd/chip/uart_extension \
 	-I$(PROJECT_ROOT)/drivers/led \
 	-I$(PROJECT_ROOT)/drivers/motor \
+	-I$(PROJECT_ROOT)/drivers/uart \
 	-I$(PROJECT_ROOT)/drivers/wifi \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/algo \
@@ -211,8 +219,11 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/motor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/uart/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/wifi/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
@@ -269,6 +280,8 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		REL_TRACE_ENABLE=$(REL_TRACE_ENABLE) \
 		LITTLEFS_SECTION_SIZE=$(LITTLEFS_SECTION_SIZE) \
 		FACTORY_DATA_SECTION_SIZE=$(FACTORY_DATA_SECTION_SIZE) \
+		UART3_IOMUX_INDEX=$(UART3_IOMUX_INDEX) \
+		UART1_IOMUX_INDEX=$(UART1_IOMUX_INDEX) \
 		CFG_CUSTOM_BLE_SERVICE=$(CFG_CUSTOM_BLE_SERVICE)
 	#   RTC_CALENDAR=$(RTC_CALENDAR)
 	@set -e; \

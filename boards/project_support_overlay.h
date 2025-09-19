@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 // device
-#define IS_SUPPORT_DEVICE_LOG_UART                       (0)
+#define IS_SUPPORT_DEVICE_UART                           (1)
 #define IS_SUPPORT_DEVICE_IRQ                            (1)
 #define IS_SUPPORT_DEVICE_FLASH                          (1)
 #define IS_SUPPORT_DEVICE_DATABASE                       (1)
