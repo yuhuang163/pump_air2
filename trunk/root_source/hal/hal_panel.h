@@ -15,9 +15,9 @@ extern "C" {
  * @brief 描述面板操作码
 */
 typedef enum {
-    OP_CODE_PANEL_CLEAR = (1 << 1),
-    OP_CODE_PANEL_SET_BL = (1 << 2),
-    OP_CODE_PANEL_ADD_READY_CB = (1 << 3),
+    OP_CODE_PANEL_CLEAR = 1,
+    OP_CODE_PANEL_SET_BL = 2,
+    OP_CODE_PANEL_ADD_READY_CB = 3,
 } panel_dev_op_code_e;
 
 #ifdef __cplusplus
