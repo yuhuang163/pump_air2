@@ -47,6 +47,8 @@ extern "C" {
 #define LCD_UART_THREAD_STACKSIZE                      (TASK_SIZE_DEFAULT * 2 + 0)
 /// 工厂串口线程深度
 #define FACTORY_UART_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 2 + 0)
+/// 按键设备线程深度
+#define KEY_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 2 + 0)
 
 /// 中断消息队列数量定义
 #define INTERRUPT_MESQ_NUM                             (10)
@@ -60,6 +62,8 @@ extern "C" {
 #define PWM_FLOW_MESQ_NUM                              (2)
 /// 波形发生器消息队列数量定义
 #define WAVE_GENERATOR_MESQ_NUM                        (1)
+/// 按键设备消息队列数量定义
+#define KEY_DEVICE_MESQ_NUM                            (1)
 /// 挂起超时
 #define PM_SUSPEND_TIME_S                              (10)
 /// 屏幕串口消息队列数量定义

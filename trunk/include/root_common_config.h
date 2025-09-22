@@ -59,6 +59,10 @@ extern "C" {
 #define RT_PRIO_FACTORY_UART_THREAD                    OS_PRIORITY_REALTIME2
 #endif
 
+#ifndef RT_PRIO_KEY_DEVICE_THREAD
+#define RT_PRIO_KEY_DEVICE_THREAD                      OS_PRIORITY_REALTIME2
+#endif
+
 ///  各关键业务线程栈深度, 默认线程单位栈深1KB
 #ifndef TASK_SIZE_DEFAULT
 #define TASK_SIZE_DEFAULT                              (1024)
@@ -142,6 +146,10 @@ extern "C" {
 
 #ifndef FACTORY_UART_THREAD_STACKSIZE
 #define FACTORY_UART_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 1 + 0)
+#endif
+
+#ifndef KEY_DEVICE_THREAD_STACKSIZE
+#define KEY_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
 #endif
 
 /// 各关键业务消息队列数量定义.
