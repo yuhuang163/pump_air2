@@ -6,10 +6,11 @@ CHIP ?= best1306p
 CONFIG_CROSS_COMPILE ?= arm-none-eabi-
 CROSS_COMPILE ?= $(CONFIG_CROSS_COMPILE)
 
-# UART3 IOMUX 配置（传递给 SDK 的编译宏）
-UART3_IOMUX_INDEX ?= 24
+# -------------- 应用配置 --------------
 # UART1 IOMUX 配置（传递给 SDK 的编译宏）
 UART1_IOMUX_INDEX ?= 20
+# UART3 IOMUX 配置（传递给 SDK 的编译宏）
+UART3_IOMUX_INDEX ?= 24
 
 # -------------- 应用源码与编译参数 --------------
 CSTD ?= gnu11
@@ -71,8 +72,10 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/drivers/fatfs \
 	-I$(PROJECT_ROOT)/drivers/flash \
 	-I$(PROJECT_ROOT)/drivers/force_sensor \
+	-I$(PROJECT_ROOT)/drivers/i2c \
 	-I$(PROJECT_ROOT)/drivers/imu \
 	-I$(PROJECT_ROOT)/drivers/key \
+	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b \
 	-I$(PROJECT_ROOT)/drivers/lcd \
 	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart \
 	-I$(PROJECT_ROOT)/drivers/lcd/chip/uart_extension \
@@ -103,6 +106,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/extern \
 	-I$(PROJECT_ROOT)/trunk/external/littlefs \
 	-I$(PROJECT_ROOT)/trunk/external/littlefs/fds \
+	-I$(PROJECT_ROOT)/trunk/external/scan_key \
 	-I$(PROJECT_ROOT)/trunk/root_source/airplane \
 	-I$(PROJECT_ROOT)/trunk/root_source/algorithm \
 	-I$(PROJECT_ROOT)/trunk/root_source/audio \
@@ -218,6 +222,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/i2c/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c) \
@@ -246,6 +251,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/fds/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/airplane/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/audio/*.c) \
@@ -280,8 +286,8 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		REL_TRACE_ENABLE=$(REL_TRACE_ENABLE) \
 		LITTLEFS_SECTION_SIZE=$(LITTLEFS_SECTION_SIZE) \
 		FACTORY_DATA_SECTION_SIZE=$(FACTORY_DATA_SECTION_SIZE) \
-		UART3_IOMUX_INDEX=$(UART3_IOMUX_INDEX) \
 		UART1_IOMUX_INDEX=$(UART1_IOMUX_INDEX) \
+		UART3_IOMUX_INDEX=$(UART3_IOMUX_INDEX) \
 		CFG_CUSTOM_BLE_SERVICE=$(CFG_CUSTOM_BLE_SERVICE)
 	#   RTC_CALENDAR=$(RTC_CALENDAR)
 	@set -e; \
