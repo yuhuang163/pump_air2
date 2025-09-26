@@ -54,6 +54,7 @@ extern "C" {
 #define IS_SUPPORT_IMU_FIFO                              (0)
 
 // test
+#define IS_SUPPORT_PRESSURE_TEST                         (1)
 
 #ifdef __cplusplus
 }

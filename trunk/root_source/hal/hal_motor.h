@@ -55,6 +55,17 @@ typedef enum {
 } bldc_contorl_type_e;
 
 /**
+ * @brief 描述无刷/扫震电机控制类型
+*/
+typedef enum {
+    PWM_PUMP_1 = 0,
+    PWM_PUMP_2,
+    PWM_RELIEF_VALVE_1,
+    PWM_RELIEF_VALVE_2,
+    PWM_ID_MAX,
+} pwm_control_id_e;
+
+/**
  * @brief 描述无刷/扫震电机参数
 */
 typedef struct {
@@ -82,6 +93,11 @@ typedef struct {
     uint16_t climb_time;
 } dcm_cfg_t;
 
+typedef struct {
+    uint8_t duty;
+    uint16_t freq;
+} pwm_cfg_t;
+
 /**
  * @brief 描述电机混合参数
 */
@@ -90,7 +106,8 @@ typedef struct {
         bldc_para_t bldc;
         bldc_table_t table;
         dcm_cfg_t   dcm;
-    } item; 
+        pwm_cfg_t   pwm;
+    } un; 
 } motor_para_t;
 
 /**
