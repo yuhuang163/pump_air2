@@ -261,7 +261,7 @@ static int window_switch(window_manager_context_t *wm, multi_func_msg_data_t *ms
             LOG_WM("dispatch_window:invaild handle, ignore: %d", new_window_id);
             return -7;
         }
-        LOG_WM("(dispatch_window:name=%s)finish escaped: %ld ms", win_name, (get_timestamp() - t0));
+        LOG_WM("(dispatch_window:name=%s)finish escaped: %ld ms", win_name, get_timestamp_ms(t0));
     } else {
         LOG_WM("dispatch_window:invalid new_window_id: %d", new_window_id);
         return -8;
@@ -711,7 +711,7 @@ int dispatch_new_window(window_context_t *ctx)
     record->window_hdr = next;
     record->window_context = ctx;
     LOGE("LOG_KEYSTEP switch_windows finish: (%s/%d/z_order:%d), escaped: %ld ms", 
-        to_window_name(next->window_id), next->window_id, record->z_order, (get_timestamp() - t0));
+        to_window_name(next->window_id), next->window_id, record->z_order, get_timestamp_ms(t0));
 
     return 0;
 }

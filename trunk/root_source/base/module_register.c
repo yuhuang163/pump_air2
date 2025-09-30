@@ -164,7 +164,7 @@ int init_module(void)
         if (node->post_init) {
             // uint32_t t0 = get_timestamp();
             node->post_init(node->module_ptr);
-            // LOGI("node:[%s/%d],escaped: %lu ms",node->name, node->id, (get_timestamp() - t0));
+            // LOGI("node:[%s/%d],escaped: %lu ms",node->name, node->id, get_timestamp_ms(t0));
         }
     }
     return 0;

@@ -95,7 +95,7 @@ static void key_device_thread(void *arg)
     while (1) {
         // timestamp = get_timestamp();
         // ret = bsp_i2c_read_byte(I2C_MASTER_ID_0, &data);
-        // offset_time = get_timestamp() - timestamp;
+        // offset_time = get_timestamp_ms(timestamp);
         // LOG_PBUS("key device thread ret=%d, buf[0]=%d, offset_time=%d", ret, buf[0], offset_time);
         msleep(500);
     }
