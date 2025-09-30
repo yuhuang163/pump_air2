@@ -48,9 +48,9 @@ extern "C" {
 /// 工厂串口线程深度
 #define FACTORY_UART_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 2 + 0)
 /// 按键设备线程深度
-#define KEY_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 2 + 0)
+#define KEY_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
 /// led设备线程深度
-#define LED_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 2 + 0)
+#define LED_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
 
 /// 中断消息队列数量定义
 #define INTERRUPT_MESQ_NUM                             (10)

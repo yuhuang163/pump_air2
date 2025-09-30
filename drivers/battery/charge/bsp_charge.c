@@ -68,6 +68,11 @@ int get_charge_state(void)
     return 0;
 }
 
+int get_charging_temperature(void) 
+{
+    return 0;
+}
+
 int get_charge_full_debounce(void) 
 {
     return 0;
@@ -77,3 +82,4 @@ void charge_irq_event_callback(void)
 {
 
 }
+

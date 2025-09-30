@@ -2,7 +2,10 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "cmsis_os_api.h"
 #include "root_common_api.h"
+#include "root_log_define.h"
+#include <stdint.h>
 
 /*
 * DEFINES
@@ -189,13 +192,13 @@ static void misc_work_polling_thread(const void *args)
 
         /// 轮询充电状态
         if (ctx->priv.battery && ctx->priv.battery->ioctl) {
-            polling_charge_status(ctx, wm, pm, &is_plug_state_changed);
+            // polling_charge_status(ctx, wm, pm, &is_plug_state_changed);
         }
 
         EXECUTE_EVERY_X_DELAY(MISC_THD_POLLING_PERIOD, {
             /// 轮询电池状态.
             if (ctx->priv.battery && ctx->priv.battery->ioctl) {
-                polling_battery_status(ctx, wm, pm, is_plug_state_changed);
+                // polling_battery_status(ctx, wm, pm, is_plug_state_changed);
             }
         });
 
