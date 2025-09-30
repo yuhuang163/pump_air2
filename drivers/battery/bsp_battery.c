@@ -383,7 +383,7 @@ static int battery_voltage_poll(void)
     uint16_t batt_voltage =0; 
     static uint16_t voltage = 0; 
     int ret = BSP_OK;
-    uint32_t poll_interval = get_timestamp() - s_batt_poll_time;
+    uint32_t poll_interval = get_timestamp_ms(s_batt_poll_time);
     
     /// 避免过快调度
     if (poll_interval < 80) {
