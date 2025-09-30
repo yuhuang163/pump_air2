@@ -11,6 +11,7 @@ extern "C" {
 ******************************************************************************/
 #include <stdio.h> // IWYU pragma: keep
 #include <stdint.h> // IWYU pragma: keep
+#include "stdbool.h"
 
 /*
 * GLOBAL FUNCTION DECLARATION
@@ -20,6 +21,7 @@ void key_irq_event_callback(int index);
 void charge_irq_event_callback(void);
 void imu_irq_event_callback(void);
 void bsp_irq_msg_send(uint8_t index);
+bool is_full_load_running(void);
 
 #ifdef __cplusplus
 }

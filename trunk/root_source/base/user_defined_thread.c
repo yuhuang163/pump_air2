@@ -49,7 +49,7 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
 int run_user_thread_dispatch(void)
 {
 #if IS_SUPPORT_PRESSURE_TEST  
-    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test");
+    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test");
 #endif
     // window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     // if (wm) {

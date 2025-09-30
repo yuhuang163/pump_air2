@@ -79,7 +79,7 @@ typedef enum {
 /**
  * 产品固件编译时间戳
 */
-#define PRODUCT_BUILD_TIMESTAMP   1757400154
+#define PRODUCT_BUILD_TIMESTAMP                        1757400154
 
 #ifdef __cplusplus
 }

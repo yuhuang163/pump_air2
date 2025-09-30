@@ -72,6 +72,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/apps/main \
 	$(BLE_INC_FLAGS) \
 	-I$(PROJECT_ROOT)/boards \
+	-I$(PROJECT_ROOT)/drivers/adc \
 	-I$(PROJECT_ROOT)/drivers/audio \
 	-I$(PROJECT_ROOT)/drivers/base \
 	-I$(PROJECT_ROOT)/drivers/battery \
@@ -248,6 +249,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/base/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/adc/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/audio/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/base/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
