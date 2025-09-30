@@ -11,13 +11,16 @@
 #include "ble_core_common.h"
 #include "product_info.h"
 #include "factory_section.h"
+#include <string.h>
 
 /*
 * DEFINES
 *****************************************************************************************
 */
-#define CUSTOM_ADV_SLOW_INTERVAL 200
-#define CUSTOM_ADV_FAST_INTERVAL 100
+#define CUSTOM_ADV_SLOW_INTERVAL         200
+#define CUSTOM_ADV_FAST_INTERVAL         100
+
+#define IS_SUPPORT_OLD_ADV_DATA          1
 
 #if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
 #define ADV_MAC_OFFSET 8
@@ -31,6 +34,58 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_OLD_ADV_DATA
+#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
+static uint8_t s_adv_data_set[] = {
+    0x0C,                               // length
+    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
+    0x56, 0x33, 0x50, 0x52, 0x4F, // name, V3PRO
+    0x2D,                               // '-'
+    0x41, 0x41, 0x3A, 0x42, 0x42       // MAC, AA:BB
+};
+
+static uint8_t s_adv_rsp_data_set[] = {
+    0x0C,                               // length
+    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
+    0x56, 0x33, 0x50, 0x52, 0x4F, // name, V3PRO
+    0x2D,                               // '-'
+    0x41, 0x41, 0x3A, 0x42, 0x42       // MAC, AA:BB
+};
+#else
+static uint8_t s_adv_rsp_data_set[] = {
+    0x0A,                              /// length
+    0xFF,                              /// manufacturer type 1
+    0xAA,                              /// ROOT company flag
+    0x08,                              /// pump product code
+    0x30,                              /// pump model code
+    0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
+    0x03,
+    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
+    0x56, 0x33, // name, V3
+    0x0C,     /// length
+    0xFF,    /// manufacturer type 2
+    0x01,0x02,0x03,0x04,0x05,0x06,
+    0x07,0x08,0x09,0x0A,0x0B    /// reserved
+};
+
+static uint8_t s_adv_data_set[] = {
+    0x0A,                              /// length
+    0xFF,                              /// manufacturer type 1
+    0xAA,                              /// ROOT company flag
+    0x08,                              /// pump product code
+    0x30,                              /// pump model code
+    0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
+    0x03,
+    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
+    0x56, 0x33, // name, V3
+    0x0C,     /// length
+    0xFF,    /// manufacturer type 2
+    0x01,0x02,0x03,0x04,0x05,0x06,
+    0x07,0x08,0x09, 0x0A, 0x0B    /// reserved
+};
+#endif
+
+#else
 #if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
 static uint8_t s_adv_data_set[] = {
     0x0C,                               // length
@@ -62,6 +117,8 @@ static uint8_t s_adv_data_set[] = {
     0x2D,                               // '-'
     0x41, 0x41, 0x3A, 0x42, 0x42       // MAC, AA:BB
 };
+#endif
+
 #endif
 
 static uint8_t s_mac_addr[6] = {0x20, 0x19, 0x07, 0xEC, 0x01, 0xFF};
@@ -85,6 +142,11 @@ static void ble_custom_mac_sync(void)
 
 static void ble_custom_adv_data_update(void)
 {
+
+#if IS_SUPPORT_OLD_ADV_DATA
+    memcpy(&s_adv_data_set[5], s_mac_addr, sizeof(s_mac_addr));
+    // memcpy(&s_adv_rsp_data_set[5], s_mac_addr, sizeof(s_mac_addr));
+#else
     char ascii_mac[8] = {0};
     LOGI("local mac address: %02x:%02x:%02x:%02x:%02x:%02x", 
         s_mac_addr[0], s_mac_addr[1], s_mac_addr[2], s_mac_addr[3], s_mac_addr[4], s_mac_addr[5]);
@@ -100,6 +162,8 @@ static void ble_custom_adv_data_update(void)
     s_adv_rsp_data_set[RSP_MAC_OFFSET + 2] = ':';
     s_adv_rsp_data_set[RSP_MAC_OFFSET + 3] = ascii_mac[2];
     s_adv_rsp_data_set[RSP_MAC_OFFSET + 4] = ascii_mac[3];
+#endif
+
 }
 
 /*
@@ -127,7 +191,11 @@ void ble_custom_adv_init(gap_adv_param_t *adv_param, BLE_ADV_PARAM_T *legacy_par
     memcpy(legacy_param->advData, s_adv_data_set, sizeof(s_adv_data_set));
     legacy_param->advDataLen = sizeof(s_adv_data_set);
     memcpy(legacy_param->scanRspData, s_adv_rsp_data_set, sizeof(s_adv_rsp_data_set));
+    #if IS_SUPPORT_OLD_ADV_DATA
+    legacy_param->scanRspDataLen = 0;
+    #else
     legacy_param->scanRspDataLen = sizeof(s_adv_rsp_data_set);
+    #endif
 
 }
 
