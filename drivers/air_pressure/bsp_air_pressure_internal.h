@@ -9,7 +9,7 @@ extern "C" {
 /*******************************************************************************
 * Include files
 ******************************************************************************/
-#include "bsp_common.h"
+#include "bsp_common.h" // IWYU pragma: keep
 
 /**@brief Firmware information define*/
 

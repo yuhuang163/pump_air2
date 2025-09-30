@@ -224,7 +224,7 @@ static int pm_suspend_internal(power_manager_context_t *ctx)
     LOG_PM("=> START: %ld", t0);
     pbus->suspend();
     DEVICE_IOCTL_NO_RET(pmu_dev, OP_CODE_PMU_SET_SLEEP_MODE);
-    LOG_PM("=> END: %ld", get_timestamp() - t0);
+    LOG_PM("=> END: %ld", get_timestamp_ms(t0));
 
     return 0;
 }
@@ -238,7 +238,7 @@ static int pm_resume_internal(power_manager_context_t *ctx)
     LOG_PM("=> START: %ld", t0);
     pbus->resume();
     DEVICE_IOCTL_NO_RET(pmu_dev, OP_CODE_PMU_SET_ACTIVE_MODE);
-    LOG_PM("=> END: %ld", get_timestamp() - t0);
+    LOG_PM("=> END: %ld", get_timestamp_ms(t0));
 
     return 0;
 }
@@ -437,7 +437,7 @@ static void pm_sleep_thread(const void *args)
                         pm_suspend_prepare_enter(ctx);
                         pm_suspend_internal(ctx);
                         ctx->priv.user_set_to_sleep = false;
-                        set_pm_state_progress(__func__, PM_SUSPEND_FINISH, (get_timestamp() - t0));
+                        set_pm_state_progress(__func__, PM_SUSPEND_FINISH, get_timestamp_ms(t0));
                         #if IS_SUPPORT_DEEP_SLEEP_FUNCTION
                         dispatch_pmu_sleep_event(ctx);
                         #endif

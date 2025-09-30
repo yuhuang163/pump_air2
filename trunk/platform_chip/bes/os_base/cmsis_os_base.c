@@ -48,5 +48,12 @@ void msleep(uint32_t time_ms)
 
 uint32_t get_timestamp(void)
 {
-    return TICKS_TO_MS(osKernelGetSysTimerCount());
+    return osKernelGetSysTimerCount();
+}
+
+uint32_t get_timestamp_ms(uint32_t time_tick)
+{
+    uint32_t offset = get_timestamp() - time_tick;
+
+    return TICKS_TO_MS(offset);
 }

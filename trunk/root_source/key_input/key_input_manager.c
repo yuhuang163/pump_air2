@@ -103,7 +103,7 @@ static int on_spec_press_key_handler(void *user_data, uint16_t keycode, uint16_t
         down_time = get_timestamp();
         return 0;  
     } else if (keytype == CUST_KEY_EVENT_FORCE_RESET) {
-        diff_time = get_timestamp() - down_time;
+        diff_time = get_timestamp_ms(down_time);
         if (diff_time < 7000) {
             LOGE("ignore diff_time: %ld", diff_time);
             return 0;
