@@ -43,6 +43,7 @@ extern "C" {
 #include "hal_pmu.h" // IWYU pragma: keep
 #include "hal_power.h" // IWYU pragma: keep
 #include "hal_uarts.h" // IWYU pragma: keep
+#include "hal_air_pressure.h" // IWYU pragma: keep
 
 /// 内存申请宏定义.
 #define MALLOC_FOR_PTR(ptr, __struct_type) \

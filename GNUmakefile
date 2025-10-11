@@ -249,6 +249,8 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/base/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/adc/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/audio/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/base/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
