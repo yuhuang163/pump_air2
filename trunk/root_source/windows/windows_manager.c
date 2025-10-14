@@ -598,6 +598,24 @@ static int window_exit_state_change_cb(window_lift_cycle_e new_state,
     return ret;
 }
 
+static int go_back_to_history_wrapper(void *wm, window_entry_extra_t *__extra)
+{
+    window_manager_context_t *_wm = wm;
+    multi_func_msg_data_t msg = {0};
+
+    memcpy(&msg.union_body.extra, (__extra), sizeof(window_entry_extra_t));
+    msg.union_body.extra.window_id = pop_window_history();
+
+    if (get_current_window_id() == msg.union_body.extra.window_id) {
+        msg.union_body.extra.window_id = pop_window_history();
+    }
+
+    LOG_WM("GO_BACK_TO_HISTORY: %s\n", to_window_name(msg.union_body.extra.window_id));
+    _wm->dispatch_new_window_args(_wm, &(msg));
+
+    return 0;
+}
+
 static int on_post_wm_init(void *ptr)
 {
     window_manager_context_t *wm = ptr;
@@ -734,24 +752,6 @@ void window_dispatch_unlock(const char *tag)
     }
 }
 
-int go_back_to_history_wrapper(void *wm, window_entry_extra_t *__extra)
-{
-    window_manager_context_t *_wm = wm;
-    multi_func_msg_data_t msg = {0};
-
-    memcpy(&msg.union_body.extra, (__extra), sizeof(window_entry_extra_t));
-    msg.union_body.extra.window_id = pop_window_history();
-
-    if (get_current_window_id() == msg.union_body.extra.window_id) {
-        msg.union_body.extra.window_id = pop_window_history();
-    }
-
-    LOG_WM("GO_BACK_TO_HISTORY: %s\n", to_window_name(msg.union_body.extra.window_id));
-    _wm->dispatch_new_window_args(_wm, &(msg));
-
-    return 0;
-}
-
 uint8_t to_valid_window_id(void *disp, uint8_t window_id)
 {
     if (!(window_id > ID_WINDOW_BEGIN && window_id < ID_WINDOW_MAX)) {
@@ -786,6 +786,7 @@ void *register_module_for_window_manager_new(list_head_t *list_head)
     ptr->to_window_name = to_window_name;
     ptr->get_current_window_id = get_current_window_id;
     ptr->dispatch_new_window_args = dispatch_new_window_args;
+    ptr->go_back_to_history = go_back_to_history_wrapper;
 
     USE_INIT_LIST_HEAD(&ptr->priv.history_list);
     MUTEX_INIT(&ptr->priv.history_lock, history_stack_lock);

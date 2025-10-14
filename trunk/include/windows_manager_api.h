@@ -127,6 +127,7 @@ typedef struct window_manager_context {
     const char *(*to_window_name)(uint8_t window_id);
     uint8_t (*get_current_window_id)(void);
     int (*dispatch_new_window_args)(struct window_manager_context *wm, multi_func_msg_data_t *msg);
+    int (*go_back_to_history)(void *wm, window_entry_extra_t *__extra);
 } window_manager_context_t;
 
 #ifdef __cplusplus

@@ -24,7 +24,6 @@ extern "C" {
 
 /// 异常检查宏定义.
 #define LOG_EXCP      LOGW
-// #define LOG_EXCP(...)   do {} while (0)
 #define EXCEPTION_CHECK_VOID(x)     __EXCEPTION_POINTER_CHECK("", x, ;)
 #define EXCEPTION_CHECK_INT(x)      __EXCEPTION_POINTER_CHECK("", x, -1)
 #define EXCEPTION_CHECK_UINT(x)     __EXCEPTION_POINTER_CHECK("", x, 0)

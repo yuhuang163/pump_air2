@@ -149,7 +149,7 @@ struct broadcast_obj;
 /// 描述ble管理上下文对象
 typedef struct ble_manager_context {
 /// private
-    struct __airplane_private {
+    struct __ble_manager_private {
         thread_context_t ble_work_thd;
         struct broadcast_obj *bcreceiver;
         ble_opt_interface_t ble_opt_if;
