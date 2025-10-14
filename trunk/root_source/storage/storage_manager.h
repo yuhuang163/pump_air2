@@ -81,7 +81,7 @@ typedef struct {
 /// 描述刷牙信息
 typedef struct {
     uint32_t magic;
-    breath_pump_info_t pump_info;
+    breath_pump_cfg_t pump_info;
     uint16_t crc;
 } breath_pump_info_persist_data_t;
 

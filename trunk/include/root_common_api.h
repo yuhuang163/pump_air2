@@ -32,6 +32,10 @@ extern "C" {
 #include "airplane_mode_api.h" // IWYU pragma: keep
 #include "sensor_manager_api.h" // IWYU pragma: keep
 #include "tests_manager_api.h" // IWYU pragma: keep
+#include "motor_manager_api.h" // IWYU pragma: keep
+#include "breath_pump_manager_api.h" // IWYU pragma: keep
+#include "algorithm_manager_api.h" // IWYU pragma: keep
+#include "ble_manager_api.h" // IWYU pragma: keep
 
 #define ADD_MODULE(name, id, perpare_init_cb, post_init_cb, ptr, list_head, mem_usage) \
     add_new_module(name, id, perpare_init_cb, post_init_cb, ptr, list_head, mem_usage)
