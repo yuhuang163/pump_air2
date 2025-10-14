@@ -28,7 +28,7 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-
+int bsp_lcd_init(void);
 #ifdef __cplusplus
 }
 #endif

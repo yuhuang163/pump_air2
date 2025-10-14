@@ -3,9 +3,11 @@
 *****************************************************************************************
 */
 #include "bsp_common.h" // IWYU pragma: keep
-#include "trunk/platform_chip/bes/sdk/platform/hal/hal_uart.h" // IWYU pragma: keep
+#include "cmsis_os_api.h"
+#include "hal_uart.h" // IWYU pragma: keep
 #include "hal_timer.h" // IWYU pragma: keep
 #include "hal_iomux.h" // IWYU pragma: keep
+#include <stdint.h>
 #include "bsp_lcd_uart.h" // IWYU pragma: keep
 
 /*
@@ -16,6 +18,7 @@
 #define LCD_UART_ID                     HAL_UART_ID_3
 #define LCD_UART_IOMUX_SET()            hal_iomux_set_uart3()
 #define LCD_UART_RX_BUF_SIZE            (256)
+#define IS_SUPPORT_LCD_UART_ASYN_RECV   (0)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -25,9 +28,11 @@ static volatile uint8_t lcd_uart_rx_done = 0;
 static volatile uint8_t lcd_uart_tx_done = 0;
 static volatile uint16_t lcd_uart_rx_len = 0;
 static thread_context_t s_lcd_uart_thd = {0};
-static panel_recv_event_cb_func s_lcd_uart_event_cb = NULL;
+
 static os_message_id lcd_recv_msg_id = NULL;
 static os_message_id lcd_send_msg_id = NULL;
+static os_message_id lcd_rsp_msg_id  = NULL;
+static panel_recv_event_cb_func s_lcd_uart_event_cb = NULL;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -62,13 +67,14 @@ POSSIBLY_UNUSED static int lcd_uart_read(uint8_t *buf, uint32_t len)
         .BE  = 1,
         .OE  = 1,
     };
+
     int ret = hal_uart_dma_recv_mask((enum HAL_UART_ID_T)LCD_UART_ID, buf, len, NULL, NULL, &mask);
     if (ret) {
         LOGW("uart rx dma error: ret=%d", ret);
-        msleep(100);
         return msg;
     }
     MSG_QUEUE_RECV(lcd_recv_msg_id, &msg, OS_WAIT_FOREVER);
+
     return msg;
 }
 
@@ -103,9 +109,26 @@ static void lcd_uart_recv_handler(uint8_t *buf, uint16_t len)
         BSP_LOG_HEX("lcd rx", buf, len);
     }
 
-    if (s_lcd_uart_event_cb) {
-        s_lcd_uart_event_cb(0, 0, NULL);
+    if (buf == NULL || len < 5) {
+        LOGE("uart recv error");
+        return;
     }
+
+    lcd_uart_protocol_t *recv = (lcd_uart_protocol_t *)buf;
+    if (recv->sof != LCD_UART_SOF) {
+        LOGE("uart recv sof error");
+        return;
+    }
+
+    if (recv->type == LCD_RSP_ERROR_CODE && recv->data_size >= 2) {
+        uint16_t error_code = ((recv->data[0] & 0xFFFF) << 8) | recv->data[1];
+        MSG_QUEUE_SEND(lcd_rsp_msg_id, &error_code, 50);
+        return;
+    }
+
+    // if (s_lcd_uart_event_cb) {
+    //     s_lcd_uart_event_cb(0, 0, NULL);
+    // }
 }
 
 static void lcd_uart_event_thread(const void *args)
@@ -130,9 +153,41 @@ void bsp_lcd_uart_register_event_cb(panel_recv_event_cb_func cb)
     s_lcd_uart_event_cb = cb;
 }
 
-int bsp_lcd_uart_send_data(uint8_t *buf, uint32_t len)
+int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t tlvs) 
 {
-    return lcd_uart_write(buf, len);
+    uint16_t error_code = 0;
+    uint16_t data_size = tlvs.data_size + 8;
+    lcd_uart_protocol_t *lcd_data = u_malloz(data_size);
+
+    lcd_data->sof = LCD_UART_SOF;
+    lcd_data->lenght = tlvs.data_size + 3;
+    lcd_data->srv_id = srv_id;
+    lcd_data->type = tlvs.type;
+    lcd_data->data_size = tlvs.data_size;
+    memcpy(lcd_data->data, tlvs.data, tlvs.data_size);
+
+    uint16_t checksum = CRC16(lcd_data, data_size - 2);
+    lcd_data->data[tlvs.data_size] = checksum;
+    lcd_data->data[tlvs.data_size + 1] = checksum >> 8;
+    int ret = lcd_uart_write((uint8_t *)lcd_data, data_size);
+    if (ret != BSP_OK) {
+        LOGE("lcd uart send failed");
+        goto ERROR_EXIT;
+    }
+    ret = MSG_QUEUE_RECV(lcd_rsp_msg_id, &error_code, 100);
+    if (ret != BSP_OK) {
+        LOGE("lcd rsp timeout");
+        goto ERROR_EXIT;
+    }
+
+    if (error_code != LCD_RSP_SUCCESS) {
+        LOGE("lcd rsp error:%x", error_code);
+        ret = BSP_ERROR;
+    }
+
+ERROR_EXIT:
+    u_free(lcd_data);
+    return ret;
 }
 
 int bsp_lcd_uart_init(void)
@@ -152,6 +207,7 @@ int bsp_lcd_uart_init(void)
     };
     LCD_UART_IOMUX_SET();
     CREATE_MSG_TYPE_QUEUE(&lcd_recv_msg_id, 1, sizeof(uint16_t));
+    CREATE_MSG_TYPE_QUEUE(&lcd_rsp_msg_id, 1, sizeof(uint16_t));
     CREATE_MSG_TYPE_QUEUE(&lcd_send_msg_id, 1, 1);
     ret = hal_uart_open((enum HAL_UART_ID_T)LCD_UART_ID, &uart_cfg);
     if (ret) {
