@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "bsp_common.h"
 #include "bsp_lcd_internal.h"
 
 /*
@@ -33,7 +32,7 @@ static rt_device_node_t *node = NULL;
 */
 static int lcd_dev_open(struct rt_device_node *dev)
 {
-    return bsp_lcd_uart_init();
+    return bsp_lcd_init();
 }
 
 static int lcd_dev_close(struct rt_device_node *dev)
