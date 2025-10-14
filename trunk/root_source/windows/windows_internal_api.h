@@ -24,7 +24,6 @@ extern "C" {
 int dispatch_new_window(window_context_t *ctx);
 void window_dispatch_lock(const char *tag);
 void window_dispatch_unlock(const char *tag);
-int go_back_to_history_wrapper(void *wm, window_entry_extra_t *__extra);
 uint8_t to_valid_window_id(void *disp, uint8_t window_id);
 
 /// 历史记录相关.

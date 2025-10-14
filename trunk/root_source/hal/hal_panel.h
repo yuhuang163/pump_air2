@@ -18,6 +18,7 @@ typedef enum {
     OP_CODE_PANEL_CLEAR = 1,
     OP_CODE_PANEL_SET_BL = 2,
     OP_CODE_PANEL_ADD_READY_CB = 3,
+    OP_CODE_PANEL_EVENT_CB = 4,
 } panel_dev_op_code_e;
 
 typedef void (*panel_recv_event_cb_func)(uint8_t event, int args, void *param);

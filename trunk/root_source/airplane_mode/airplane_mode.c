@@ -9,10 +9,10 @@
 * DEFINES
 *****************************************************************************************
 */
-#define CONTINUOUS_MOVE_THRESHOLD               15         //连续移动判定阈值(unit : s)。
-#define CONTINUOUS_MOVE_MAX                     180        //连续移动判定阈值(unit : s)。默认 3分钟
-#define CHECK_PERIOD                            3600000    //被动进入后，间隔检查的时间间隔(unit : ms)。默认1h
-#define CHECK_TIME                              180000     //被动进入后，总检查时间。(uint : ms)默认3分钟。
+#define CONTINUOUS_MOVE_THRESHOLD               15         /// 连续移动判定阈值(unit : s)。
+#define CONTINUOUS_MOVE_MAX                     180        /// 连续移动判定阈值(unit : s)。默认 3分钟
+#define CHECK_PERIOD                            3600000    /// 被动进入后，间隔检查的时间间隔(unit : ms)。默认1h
+#define CHECK_TIME                              180000     /// 被动进入后，总检查时间。(uint : ms)默认3分钟。
 
 #define AIRPLANE_PM_LOCK                        "airplane_pm_wake_lock"
 /*
@@ -32,29 +32,17 @@ static airplane_mode_context_t *thiz = NULL;
 */
 static int play_notify(int on)
 {
-    LOG_AIR("on: %d", on);
-
-    #if 0
-    motor_manager_context_t *motor = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR); 
-    if (on) {
-        motor->play_vibrate_notify("enter airplane_mode", VIBRATE_TYPE_LONG_MELODY);
-    } else {
-        motor->play_vibrate_notify("exit airplane_mode", VIBRATE_TYPE_LONG_MELODY);
-    }
-    #endif
-    
+    LOG_AIR("on: %d", on);    
     return 0;
 }
 
 static int popup_exit_cb(void *user_data, int args1, int args2)
 {
-#if 0 
     airplane_mode_context_t *thiz = user_data;
-    power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
-    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    multi_func_msg_data_t msg = {0};
     int which_type = args1;
-    pm->release_wakelock(AIRPLANE_PM_LOCK);
+    thiz->priv.pm->release_wakelock(AIRPLANE_PM_LOCK);
 
     if (which_type == SETTINGS_AIRPLANE_MODE_ENTER) {
         LOG_AIR("popup_exit_cb: enter - %d -- %d", args1, args2);
@@ -65,28 +53,30 @@ static int popup_exit_cb(void *user_data, int args1, int args2)
         }
 
         thiz->set_airplane_mode(thiz->priv.enter_state);
-        // 发送状态切换同步广播，通知感兴趣的组件.
+        /// 发送状态切换同步广播，通知感兴趣的组件.
         SEND_BROADCAST_SYNC_ARGS1(ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE, SETTINGS_AIRPLANE_MODE_ENTER);
         if (ble_m->is_bt_connected()) {
             LOG_AIR("bt is connected");
-
-            DISPATCH_GO_NEW_WINDOW(wm, ID_WINDOW_AIRPLANE_MODE);
+            msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
+            thiz->priv.wm->dispatch_new_window_args(thiz->priv.wm, &msg);
         } else {
             LOG_AIR("bt is disconnected");
-            pm->enable_pmu_sleep("airplane sleep", true);
+            thiz->priv.pm->enable_pmu_sleep("airplane sleep", true);
             SEND_BROADCAST_ARGS0(ID_BROADCAST_REQ_PM_SUSPEND_BY_USER);
         }
     } else {
         LOG_AIR("popup_exit_cb: exit - %d -- %d", args1, args2);
-        // 发送状态切换同步广播，通知感兴趣的组件.
+        /// 发送状态切换同步广播，通知感兴趣的组件.
         SEND_BROADCAST_SYNC_ARGS1(ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE, SETTINGS_AIRPLANE_MODE_EXIT);
-        if (!st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG)) {
-            DISPATCH_GO_NEW_WINDOW(wm, ID_WINDOW_FACTORY_MODE);
+        if (!st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, NULL)) {
+            msg.union_body.extra.window_id = ID_WINDOW_FACTORY_MODE;
+            thiz->priv.wm->dispatch_new_window_args(thiz->priv.wm, &msg);
         } else {
-            GO_BACK_TO_HISTORY(wm);
+            window_entry_extra_t extra = {0};
+            thiz->priv.wm->go_back_to_history(thiz->priv.wm, &extra);
         }
     }
-#endif
+
     return 0;
 }
 
@@ -135,7 +125,7 @@ static int enter_airplane_mode_internal(int state)
     }
     /// 播放音频
     play_notify(true);
-    ///弹出画面
+    /// 弹出画面
     popup_airplane_screen(thiz->priv.wm, SETTINGS_AIRPLANE_MODE_ENTER);
 
     return 0;
@@ -293,8 +283,8 @@ static void on_imu_irq_callback(void *user_data)
             case AIRPLANE_DETECT_STATE_CONTINUOUS_MOVING:
                 irq_time_now = thiz->priv.time_sys->get_time();
                 LOG_AIR("wakeup_time_now: %lus", irq_time_now);
-                if (irq_time_now - irq_time_last < CONTINUOUS_MOVE_THRESHOLD) { //30S内算连续移动
-                    if (irq_time_now - wakeup_time_first_time > CONTINUOUS_MOVE_MAX) { // 连续移动超过 n S
+                if (irq_time_now - irq_time_last < CONTINUOUS_MOVE_THRESHOLD) { /// 30S内算连续移动
+                    if (irq_time_now - wakeup_time_first_time > CONTINUOUS_MOVE_MAX) { /// 连续移动超过 n S
                         LOG_AIR("is moving, more than three minutes");
                         state = AIRPLANE_DETECT_STATE_FIRST_TIME_IRQ;
                         if (thiz->priv.pbus->add_period_wakeup_cb) {
@@ -315,10 +305,10 @@ static void on_imu_irq_callback(void *user_data)
         }
     } else if (thiz->priv.is_backgroud_check) {
         thiz->priv.is_backgroud_check = false;
-        // 被动进入的，周期唤醒后，进入此处，则继续睡眠
+        /// 被动进入的，周期唤醒后，进入此处，则继续睡眠
         LOG_AIR("on_airplane_mode_but_imu_move, continue sleep");
         thiz->priv.pm->release_wakelock(AIRPLANE_PM_LOCK);
-        // 禁用IMU唤醒
+        /// 禁用IMU唤醒
         rt_device_node_t *pmu_dev = thiz->priv.pbus->find_device(ID_DEVICE_PMU);
         if (pmu_dev && pmu_dev->ioctl) {
             int agrs[1] = {false};
@@ -348,7 +338,6 @@ static void on_aiplane_mode_receive_internal(broadcast_mask_id_t id, void *conte
 static int on_post_airplane_init(void *ptr)
 {
     airplane_mode_context_t *airplane = (airplane_mode_context_t *)ptr;
-    input_dispatcher_context_t *input = (input_dispatcher_context_t *)find_module(ID_MODULE_INPUT);
 
     /// 广播监听泵状态改变.
     airplane->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
@@ -357,8 +346,12 @@ static int on_post_airplane_init(void *ptr)
     airplane->priv.bcd->id.code |= ID_BROADCAST_BREATH_PUMP_STATE_CHANGE;
     airplane->priv.bcd->receiver_cb = on_aiplane_mode_receive_internal;
     register_broadcast_receiver(airplane->priv.bcd);
-    sensor_input_context_t *sensor = input->get_sensor_obj();
-    sensor->add_imu_irq_callback(IRQ_EVENT_CB_AIRPLANE, airplane, on_imu_irq_callback);
+    
+    #if IS_SUPPORT_DEVICE_IMU
+    sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
+    sensor->imu.add_irq_callback(IMU_IRQ_EVENT_CB_AIRPLANE, airplane, on_imu_irq_callback);
+    #endif
+
     return 0;
 }
 
