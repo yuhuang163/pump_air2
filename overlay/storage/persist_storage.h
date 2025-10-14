@@ -80,14 +80,20 @@ typedef struct {
 
 /// 泵奶模式
 typedef enum {
-    SYS_BREATH_PUMP_MODE_INVALID = 0,
-    SYS_BREATH_PUMP_MODE_SMART,          /// 智能
-    SYS_BREATH_PUMP_MODE_SOFT,           /// 呵护
-    SYS_BREATH_PUMP_MODE_CLEAN,          /// 清洁
-    SYS_BREATH_PUMP_MODE_WHITE,          /// 亮白
-    SYS_BREATH_PUMP_MODE_MAX,
-    SYS_BREATH_PUMP_MODE_DEFAULT = SYS_BREATH_PUMP_MODE_SMART,
-} sys_breath_pump_mode_e;
+    BREATH_PUMP_MODE_INVALID = 0,
+    BREATH_PUMP_MODE_STIMULATION,          /// 刺激模式
+    BREATH_PUMP_MODE_BREASTFEEDING,        /// 吸乳模式
+    BREATH_PUMP_MODE_HYBRID,               /// 混合模式
+    BREATH_PUMP_MODE_PERSONALIZED,         /// 个性化模式
+    BREATH_PUMP_MODE_PP,                   /// PP追奶模式
+    BREATH_PUMP_MODE_UPGRADE,              /// 2+8奶量提升模式
+    BREATH_PUMP_MODE_MILK_INIT,            /// 开奶模式
+    BREATH_PUMP_MODE_MAX,
+    BREATH_PUMP_NORMAL_MODE_MAX = BREATH_PUMP_MODE_HYBRID - BREATH_PUMP_MODE_INVALID,
+    BREATH_PUMP_UP_MODE_MAX = BREATH_PUMP_MODE_MILK_INIT - BREATH_PUMP_MODE_HYBRID,
+    BREATH_PUMP_NORMAL_MODE_DEFAULT = BREATH_PUMP_MODE_STIMULATION, /// 默认常规模式
+    BREATH_PUMP_UP_MODE_DEFAULT = BREATH_PUMP_MODE_PERSONALIZED, /// 默认追奶模式
+} breath_pump_mode_e;
 
 /// 泵奶时长
 typedef enum {
@@ -121,10 +127,13 @@ typedef enum {
 } sys_breath_pump_order;
 
 typedef struct {
-    uint16_t smart_mode[MOTOR_SMART_MODE_LEN];
-    uint16_t clean_mode[MOTOR_CLEAN_MODE_LEN];
-    uint16_t white_mode[MOTOR_WHITE_MODE_LEN];
-    uint16_t soft_mode[MOTOR_SOFT_MODE_LEN];
+    uint16_t stimulation[STIMULATION_MODE_LEN];     /// 刺激
+    uint16_t breastfeeding[BREASTFEEDING_MODE_LEN]; /// 吸乳
+    uint16_t hybrid[HYBRID_MODE_LEN];               /// 混合
+    uint16_t personalized[PERSONALIZED_MODE_LEN];    /// 个性化默认
+    uint16_t pp_catch_up[PP_MODE_LEN];     /// PP追奶
+    uint16_t upgrade[UPGRADE_MODE_LEN];         /// 2+8奶量提升
+    uint16_t milk_initiation[MILK_INIT_MODE_LEN]; /// 开奶
 } breath_pump_level_info_t;
 
 /// 描述泵奶信息
@@ -136,9 +145,9 @@ typedef struct
     uint8_t is_over_pressure_led;         /// 过压LED提示
     uint8_t is_remind_breath_pump_finish; /// 泵奶完成提醒
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
-    breath_pump_level_info_t level_info;
+    // breath_pump_level_info_t level_info;
     uint16_t breath_pump_time;                  /// 泵奶时长 sys_breath_pumping_time_e 
-} breath_pump_info_t;
+} breath_pump_cfg_t;
 
 /**
  * 语音提醒主题枚举定义
@@ -219,7 +228,7 @@ typedef struct {
 typedef struct sys_persist_info {
     sys_config_info_t config;
     sys_state_info_t state;
-    breath_pump_info_t breath_pump_info;
+    breath_pump_cfg_t breath_pump_cfg;
     user_bind_info_t bind_info;
     audio_packet_info_t audio_packet;    /// 语音包
     theme_packet_info_t theme_packet;    /// 主题包

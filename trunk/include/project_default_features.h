@@ -73,20 +73,39 @@ extern "C" {
 /**
  * 马达模式参数配置
 */
-#ifndef MOTOR_SOFT_MODE_LEN
-#define MOTOR_SOFT_MODE_LEN                                         (1)
+/// 刺激模式参数长度，短吸
+#ifndef STIMULATION_MODE_LEN             
+#define STIMULATION_MODE_LEN                                        (1)
 #endif
 
-#ifndef MOTOR_CLEAN_MODE_LEN             
-#define MOTOR_CLEAN_MODE_LEN                                        (1)
+/// 吸乳模式参数长度，长吸
+#ifndef BREASTFEEDING_MODE_LEN
+#define BREASTFEEDING_MODE_LEN                                      (1)
 #endif
 
-#ifndef MOTOR_WHITE_MODE_LEN
-#define MOTOR_WHITE_MODE_LEN                                        (1)
+/// 混合模式参数长度，短吸 + 长吸
+#ifndef HYBRID_MODE_LEN
+#define HYBRID_MODE_LEN                                             (1 * 2)
 #endif
 
-#ifndef MOTOR_SMART_MODE_LEN 
-#define MOTOR_SMART_MODE_LEN                                        (6)
+/// 个性化模式默认参数长度，按摩 + 吸乳
+#ifndef PERSONALIZED_MODE_LEN 
+#define PERSONALIZED_MODE_LEN                                       (1 + 1)
+#endif
+
+/// PP追奶模式参数长度 吸乳 + 停顿
+#ifndef PP_MODE_LEN 
+#define PP_MODE_LEN                                                 (5 * 1)
+#endif
+
+/// 2+8奶量提升模式参数长度 吸乳 + 停顿
+#ifndef UPGRADE_MODE_LEN 
+#define UPGRADE_MODE_LEN                                            (2 * 1)
+#endif
+
+/// 开奶模式 吸乳 + 停顿
+#ifndef MILK_INIT_MODE_LEN 
+#define MILK_INIT_MODE_LEN                                          (2 * 1)
 #endif
 
 #ifndef OVER_PRESSURE_MODE_LEN

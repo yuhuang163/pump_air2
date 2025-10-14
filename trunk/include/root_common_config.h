@@ -171,7 +171,7 @@ extern "C" {
 #define MOTOR_IAP_DISPATCH_MESQ_NUM                   (2)
 #define MOTOR_PLAY_MESQ_NUM                           (2)
 
-#define BREATH_PUMP_WORK_DISPATCH_MESQ_NUM             (2)
+#define BREATH_PUMP_WORK_DISPATCH_MESQ_NUM            (2)
 #define PM_WORK_DISPATCH_MESQ_NUM                     (1)
 #define HDR_POST_MESQ_NUM                             (8)
 #define BCR_THD_MESQ_NUM                              (30)
