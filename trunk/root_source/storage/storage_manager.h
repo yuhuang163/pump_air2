@@ -46,11 +46,11 @@ typedef enum {
 
     PERSIST_KEY_UTC_TIMESTEMP = 150,             /// 系统时间戳
 
-    PERSIST_KEY_BREATH_PUMP_INFO = 180,
+    PERSIST_KEY_BREAST_PUMP_INFO = 180,
 
-    PERSIST_KEY_BREATH_PUMP_HEAD_DATA = 200,          /// 刷牙数据头
-    PERSIST_KEY_BREATH_PUMP_BODY_DATA_BEGIN,
-    PERSIST_KEY_BREATH_PUMP_BODY_DATA_END = PERSIST_KEY_BREATH_PUMP_BODY_DATA_BEGIN + ROOT_BREATH_PUMP_BODY_DATA_NUM,
+    PERSIST_KEY_BREAST_PUMP_HEAD_DATA = 200,          /// 泵奶数据头
+    PERSIST_KEY_BREAST_PUMP_BODY_DATA_BEGIN,
+    PERSIST_KEY_BREAST_PUMP_BODY_DATA_END = PERSIST_KEY_BREAST_PUMP_BODY_DATA_BEGIN + ROOT_BREAST_PUMP_BODY_DATA_NUM,
     PERSIST_KEY_USER_ID,
     PERSIST_KEY_MAX,
 } persist_key_id_enum_t;
@@ -78,12 +78,12 @@ typedef struct {
     uint16_t crc;
 } theme_packet_persist_data_t;
 
-/// 描述刷牙信息
+/// 描述泵奶信息
 typedef struct {
     uint32_t magic;
-    breath_pump_cfg_t pump_info;
+    breast_pump_cfg_t pump_info;
     uint16_t crc;
-} breath_pump_info_persist_data_t;
+} breast_pump_info_persist_data_t;
 
 /// 描述系统配置
 typedef struct {
@@ -123,16 +123,16 @@ typedef struct {
 /// 描述泵奶数据头
 typedef struct {
     uint32_t magic;
-    breath_pump_data_head_t pump_data_head;
+    breast_pump_data_head_t pump_data_head;
     uint16_t crc;
-} breath_pump_head_persist_data_t;
+} breast_pump_head_persist_data_t;
 
 /// 描述泵奶数据体
 typedef struct {
     uint32_t magic;
-    breath_pump_data_body_t pump_data_body;
+    breast_pump_data_body_t pump_data_body;
     uint16_t crc;
-} breath_pump_body_persist_data_t;
+} breast_pump_body_persist_data_t;
 
 /// 描述系统时间戳
 typedef struct {

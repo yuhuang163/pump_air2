@@ -1,5 +1,5 @@
-#ifndef __SERVO_MOTOR_TABLE_H__
-#define __SERVO_MOTOR_TABLE_H__
+#ifndef __PUMP_TABLE_H__
+#define __PUMP_TABLE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,7 +9,7 @@ extern "C" {
 /*******************************************************************************
  * Include files
  ******************************************************************************/
-#include "hal_motor.h"
+#include "motor_policy.h"
 
 /// 负压等级表，分别控制目标负压等级，目标负压生成速度
 const negative_pressure_para_t n_pressure_level[N_PRESSURE_LEVEL_MAX][N_PRESSURE_SPEED_MAX] = {

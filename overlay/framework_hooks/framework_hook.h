@@ -17,7 +17,7 @@ extern "C" {
  * GLOBAL FUNCTION DECLARATION
  *****************************************************************************************
  */
-
+ void register_motor_hook(motor_manager_context_t *ctx);
 #ifdef __cplusplus
 }
 #endif

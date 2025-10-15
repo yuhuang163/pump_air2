@@ -246,7 +246,7 @@ static void on_imu_irq_callback(void *user_data)
 {
     static airplane_detect_state_e state = AIRPLANE_DETECT_STATE_INIT;
 
-    if (thiz->priv.is_breath_pump_working) {
+    if (thiz->priv.is_breast_pump_working) {
         LOG_AIR("@brush is working"); 
         state = AIRPLANE_DETECT_STATE_INIT;
         return;
@@ -329,8 +329,8 @@ static void on_aiplane_mode_receive_internal(broadcast_mask_id_t id, void *conte
 {
     airplane_mode_context_t *airplane = (airplane_mode_context_t *)context;
 
-    if (id.code == ID_BROADCAST_BREATH_PUMP_STATE_CHANGE) {
-        airplane->priv.is_breath_pump_working = arg1;
+    if (id.code == ID_BROADCAST_BREAST_PUMP_STATE_CHANGE) {
+        airplane->priv.is_breast_pump_working = arg1;
         LOG_AIR("is_brush_working: %d, brush_state: %d", arg1, arg2);
     }
 }
@@ -343,7 +343,7 @@ static int on_post_airplane_init(void *ptr)
     airplane->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
     airplane->priv.bcd->context = airplane;
     airplane->priv.bcd->name = "aiplane_mode";
-    airplane->priv.bcd->id.code |= ID_BROADCAST_BREATH_PUMP_STATE_CHANGE;
+    airplane->priv.bcd->id.code |= ID_BROADCAST_BREAST_PUMP_STATE_CHANGE;
     airplane->priv.bcd->receiver_cb = on_aiplane_mode_receive_internal;
     register_broadcast_receiver(airplane->priv.bcd);
     

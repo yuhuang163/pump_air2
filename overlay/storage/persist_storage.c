@@ -42,7 +42,7 @@ const static get_store_process_handle_t get_store_process_list[] = {
 };
 
 // const static del_store_process_handle_t del_store_process_list[] = {
-//     {STORE_ID_BREATH_PUMP_DATA_BODY, storage_del_brush_data_body},
+//     {STORE_ID_BREAST_PUMP_DATA_BODY, storage_del_brush_data_body},
 // };
 
 const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
@@ -95,7 +95,7 @@ const static storage_manager_context_t *thiz = NULL;
 static int user_database_reset(void)
 {
     EXCEPTION_CHECK_INT(thiz);
-    // storage_reset_breath_pump_info(&ctx->priv.sys_info.breath_pump_info);
+    // storage_reset_breast_pump_info(&ctx->priv.sys_info.breast_pump_info);
     // msleep(10);
     // storage_reset_user_bind_info(&thiz->priv.sys_info.bind_info);
     // msleep(10);
@@ -103,7 +103,7 @@ static int user_database_reset(void)
     // msleep(10);
     // storage_reset_sys_state_info(&thiz->priv.sys_info.state);
     // msleep(10);
-    // storage_reset_breath_pump_data_head(&ctx->priv.breath_pump_data_head);
+    // storage_reset_breast_pump_data_head(&ctx->priv.breast_pump_data_head);
     
     return 0;
 }
@@ -123,7 +123,7 @@ void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, int arg1,
 {
     storage_manager_context_t *st = context;
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    breath_pump_data_body_t *user_data = NULL;
+    breast_pump_data_body_t *user_data = NULL;
     
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
@@ -136,7 +136,7 @@ void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, int arg1,
             POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 0, st, "persist_store_task2");
             break;
         case ID_BROADCAST_SYS_PERSIST_INFO_SAVE:
-                PRIV_DATA_TO_USER_DATA_V2(user_data, pdata, breath_pump_data_body_t);
+                PRIV_DATA_TO_USER_DATA_V2(user_data, pdata, breast_pump_data_body_t);
                 if (user_data) {
                     LOG_STORE("-->save insert_one");
                     POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 1, user_data, "persist_store_task3");

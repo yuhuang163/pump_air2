@@ -1,5 +1,5 @@
-#ifndef __BREATH_PUMP_MODE_H__
-#define __BREATH_PUMP_MODE_H__
+#ifndef __BREAST_PUMP_PERSIST_DATA_H__
+#define __BREAST_PUMP_PERSIST_DATA_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,6 +9,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
+#include "storage_manager.h" // IWYU pragma: keep
 
 /*
 * INTERNAL FUNCTION DECLARATION

@@ -48,14 +48,14 @@ typedef enum {
     ID_BROADCAST_SYS_PERSIST_INFO_SAVE = (1 << 8),          /// 持久化存储.
     ID_BROADCAST_REQ_PM_SUSPEND_BY_USER = (1 << 9),         /// User请求主动睡下去.
     ID_BROADCAST_FACTORY_TEST_CMD = (1 << 10),              /// 工厂测试指令.
-    ID_BROADCAST_BREATH_PUMP_MODE_CHANGE = (1 << 11),       /// 吸奶模式切换.
+    ID_BROADCAST_BREAST_PUMP_MODE_CHANGE = (1 << 11),       /// 吸奶模式切换.
     ID_BROADCAST_THEME_CHANGE = (1 << 12),                  /// 主题切换
     ID_BROADCAST_DELETE_MODE_UPDATE = (1 << 13),            /// 删除模式后刷新页面.
     ID_BROADCAST_OTA_UI_SCREEN_STATE_CHANGE = (1 << 14),    /// ota升级ui进入/退出
     ID_BROADCAST_SYS_SHUTDOWN = (1 << 16),                  /// 系统关机.
     ID_BROADCAST_SET_BLACKLIGHT_BY_USER = (1 << 17),        /// 设置背光状态.
     ID_BROADCAST_PM_FREEZE_STATE_CHANGE = (1 << 18),        /// PM freeze状态改变.
-    ID_BROADCAST_BREATH_PUMP_STATE_CHANGE = (1 << 21),      /// 吸奶状态改变.
+    ID_BROADCAST_BREAST_PUMP_STATE_CHANGE = (1 << 21),      /// 吸奶状态改变.
     ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE = (1 << 22),    /// 飞行模式状态改变.
     ID_BROADCAST_UPDATE_MOTOR_WORK_PARAMETER = (1 << 24),   /// 更新马达运行参数.
     

@@ -74,7 +74,7 @@ static void algo_on_receive_internal(broadcast_mask_id_t id, void *context, int 
                 }
             }
             break;
-        case ID_BROADCAST_BREATH_PUMP_STATE_CHANGE:
+        case ID_BROADCAST_BREAST_PUMP_STATE_CHANGE:
             {
                 LOGW("brush change: %d", args2);
             }
@@ -97,7 +97,7 @@ static int on_post_algo_init(void *ptr)
     broadcast_obj_t *bdc = &ctx->priv.m_bcd;
     bdc->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     bdc->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
-    bdc->id.code |= ID_BROADCAST_BREATH_PUMP_STATE_CHANGE;
+    bdc->id.code |= ID_BROADCAST_BREAST_PUMP_STATE_CHANGE;
     bdc->context = ctx;
     bdc->name = "algo_fusion";
     bdc->receiver_cb = algo_on_receive_internal;
@@ -106,10 +106,10 @@ static int on_post_algo_init(void *ptr)
     return 0;
 }
 
-static algo_breath_pump_data_t *get_breath_pump_info(int index)
+static algo_breast_pump_data_t *get_breast_pump_info(int index)
 {
-    if (index < ALGO_BREATH_PUMP_DATA_MAX) {
-        return &algo_obj->priv.algo_breath_pump[index];
+    if (index < ALGO_BREAST_PUMP_DATA_MAX) {
+        return &algo_obj->priv.algo_breast_pump[index];
     }
     LOGE("error input index: %d", index);
     return NULL;
@@ -126,7 +126,7 @@ void *register_module_for_algo_fusion_new(list_head_t *list_head)
     MALLOC_FOR_PTR(ptr, algo_manager_context_t);
 
     ptr->get_version = algo_version_get;
-    ptr->get_breath_pump_info = get_breath_pump_info;
+    ptr->get_breast_pump_info = get_breast_pump_info;
     ptr->priv.algo_inited = 0;
     algo_obj = ptr;
 

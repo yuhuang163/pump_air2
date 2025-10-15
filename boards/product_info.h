@@ -25,10 +25,10 @@ typedef enum {
 #endif
 
 #if (ROOT_PRODUCT_ID == 1)
-#define ROOT_FW_NAME                                  "BREATH_PUMP_V3PRO"
+#define ROOT_FW_NAME                                  "BREAST_PUMP_V3PRO"
 #define ROOT_DEVICE_NAME                              "V3PRO"
 #else
-#define ROOT_FW_NAME                                  "BREATH_PUMP_V3"
+#define ROOT_FW_NAME                                  "BREAST_PUMP_V3"
 #define ROOT_DEVICE_NAME                              "V3"
 #endif
 
