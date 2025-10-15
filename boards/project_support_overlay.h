@@ -41,7 +41,7 @@ extern "C" {
 #define IS_SUPPORT_MODULE_OTA                            (0)
 #define IS_SUPPORT_MODULE_MISC                           (1)
 #define IS_SUPPORT_MODULE_MOTOR                          (0)
-#define IS_SUPPORT_MODULE_BREATH_PUMP                    (0)
+#define IS_SUPPORT_MODULE_BREAST_PUMP                    (0)
 #define IS_SUPPORT_MODULE_TESTS                          (0)
 #define IS_SUPPORT_MODULE_US_ALGO                        (0)
 #define IS_SUPPORT_MODULE_AUDIO                          (0)
@@ -53,6 +53,8 @@ extern "C" {
 #define IS_SUPPORT_MOTOR_SHAKE                           (1)
 #define IS_USE_GYRO_ONLINE_CALI                          (1) 
 #define IS_SUPPORT_IMU_FIFO                              (0)
+
+#define IS_SUPPORT_DUAL_PUMP_CONTROL                     (1)
 
 // test
 #define IS_SUPPORT_PRESSURE_TEST                         (1)

@@ -79,6 +79,11 @@ extern "C" {
 /// IMU数据间隔
 #define US_IMU_DATA_INTERVAL                           (20)
 
+/// 吸奶器泵阀配置
+#define BREAST_PUMP_VALVE_FREQ                          (1000)
+#define BREAST_PUMP_VALVE_DUTY                          (100)
+#define BREAST_PUMP_PUMP_FREQ                           (1000)
+
 #ifdef __cplusplus
 }
 #endif

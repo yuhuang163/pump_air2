@@ -97,13 +97,13 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/drivers/motor/chip/motor_pwm \
 	-I$(PROJECT_ROOT)/drivers/uart \
 	-I$(PROJECT_ROOT)/drivers/wifi \
-	-I$(PROJECT_ROOT)/overlay/breath_pump/policy \
-	-I$(PROJECT_ROOT)/overlay/breath_pump/mode \
-	-I$(PROJECT_ROOT)/overlay/breath_pump/table \
+	-I$(PROJECT_ROOT)/overlay/breast_pump/policy \
+	-I$(PROJECT_ROOT)/overlay/breast_pump/mode \
+	-I$(PROJECT_ROOT)/overlay/breast_pump/table \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/algo \
 	-I$(PROJECT_ROOT)/overlay/windows/battery \
-	-I$(PROJECT_ROOT)/overlay/windows/breath_pump \
+	-I$(PROJECT_ROOT)/overlay/windows/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/windows/charge \
 	-I$(PROJECT_ROOT)/overlay/windows/dummy \
 	-I$(PROJECT_ROOT)/overlay/windows/home \
@@ -116,7 +116,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
 	-I$(PROJECT_ROOT)/overlay/storage/factory \
-	-I$(PROJECT_ROOT)/overlay/storage/breath_pump \
+	-I$(PROJECT_ROOT)/overlay/storage/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
 	-I$(PROJECT_ROOT)/overlay/storage\
 	-I$(PROJECT_ROOT)/trunk/include \
@@ -129,7 +129,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/root_source/audio \
 	-I$(PROJECT_ROOT)/trunk/root_source/base \
 	-I$(PROJECT_ROOT)/trunk/root_source/ble \
-	-I$(PROJECT_ROOT)/trunk/root_source/breath_pump \
+	-I$(PROJECT_ROOT)/trunk/root_source/breast_pump \
 	-I$(PROJECT_ROOT)/trunk/root_source/hal \
 	-I$(PROJECT_ROOT)/trunk/root_source/key_input \
 	-I$(PROJECT_ROOT)/trunk/root_source/misc \
@@ -282,20 +282,22 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/motor/chip/motor_pwm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/uart/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/wifi/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/breath_pump/mode/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/breath_pump/policy/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/mode/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/policy/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/table/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/motor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/storage/breath_pump/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/breath_pump/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/dummy/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/home/*.c) \
@@ -310,7 +312,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/audio/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ble/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/breath_pump/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/key_input/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/misc/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/motor/*.c) \

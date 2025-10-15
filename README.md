@@ -51,7 +51,7 @@ FIRMWARE_V3/
 │       ├── charge/                  ← 充电过程/满电提示窗口
 │       ├── ota/                     ← OTA升级流程窗口
 │       ├── setting/                 ← 设置/选项类窗口
-│       ├── breath_pump/             ← 吸奶泵业务相关窗口
+│       ├── breast_pump/             ← 吸奶泵业务相关窗口
 │       ├── logo/                    ← 开机Logo/品牌展示
 │       ├── pop_windows/             ← 通用弹窗集合（提示/确认/错误等）
 │       └── dummy/                   ← 占位/示例窗口（可根据产品裁剪）
@@ -98,7 +98,7 @@ FIRMWARE_V3/
     │   ├── audio/                   ← 音频子系统
     │   ├── base/                    ← 基础设施（初始化/错误码/工具）
     │   ├── ble/                     ← BLE主干（Host/Profile/Manager）
-    │   ├── breath_pump/             ← 吸奶泵示例模块（演示/占位）
+    │   ├── breast_pump/             ← 吸奶泵示例模块（演示/占位）
     │   ├── hal/                     ← 面向上层的硬件抽象
     │   ├── key_input/               ← 输入系统（按键/触摸）
     │   ├── misc/                    ← 杂项能力（时间/随机数/配置）
@@ -179,7 +179,7 @@ FIRMWARE_V3/
 - **功能**: 对接 FATFS，提供基础文件系统能力
 
 ### 10. 吸奶泵示例模块（Breath Pump）
-- **目录**: `trunk/root_source/breath_pump/`
+- **目录**: `trunk/root_source/breast_pump/`
 - **功能**: 示例子系统结构与接入方式（占位/演示）
 
 ### 11. 统一配置基座

@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h"
+#include "breast_pump_policy.h" // IWYU pragma: keep
 #include "motor_manager.h" // IWYU pragma: keep
 
 /*
@@ -30,18 +31,18 @@ static motor_manager_context_t *motor_obj = NULL;
 */
 static void motor_play_work_thread(void *args)
 {
-    motor_task_play_para_t play_para = {0};
+    motor_task_para_t task_para = {0};
     thread_context_t *thd = (thread_context_t *)args;
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
-    motor_manager_context_t *ctx = motor_obj;
-    CREATE_MSG_TYPE_QUEUE(&thd->msg_id, MOTOR_PLAY_MESQ_NUM, sizeof(motor_task_play_para_t));
+    CREATE_MSG_TYPE_QUEUE(&thd->msg_id, MOTOR_PLAY_MESQ_NUM, sizeof(motor_task_para_t));
     for (;;) {
         set_thread_running(thd, false);
         LOG_MOTOR("idle");
-        MSG_QUEUE_RECV(thd->msg_id, &play_para, OS_WAIT_FOREVER);
-        LOG_MOTOR("running timestamp: %ld, id: %d", play_para.timestamp, play_para.play_mask_id);
+        MSG_QUEUE_RECV(thd->msg_id, &task_para, OS_WAIT_FOREVER);
+        LOG_MOTOR("running timestamp: %ld, id: %d", task_para.timestamp, task_para.play_mask_id);
         set_thread_running(thd, true);
         if (pm->acquire_wakelock(MOTOR_PLAY_THD_WAKELOCK, (MOTOR_PLAY_WAKELOCK_TIMEOUT)) == 0) {
+            breast_pump_mode_policy_handler(motor_obj, &task_para);
         } else {
             LOGE("acquire wakelock fail");
         }
@@ -59,72 +60,38 @@ static void update_play_interrupt_reason(const char *reason)
     }
 }
 
-static int breath_pump_policy_register_internal(void)
+static int breast_pump_policy_register_internal(void)
 {
     return 0;
 }
 
-static void start_motor_with_user_para(pump_contorl_type_e type, void *user_data)
+static void start_motor_with_user_para(uint8_t id, int args, void *user_data)
 {
-    uint32_t *tmp = (uint32_t *)user_data;
-    uint32_t args[2] = {0};
-    EXCEPTION_CHECK_VOID(tmp);
-    DEVICE_IOCTL_ARGS(motor_obj->priv.motor_dev, OP_CODE_MOTOR_SET_PARAMETER, args);
+    // uint32_t *tmp = (uint32_t *)user_data;
+    // uint32_t args[2] = {0};
+    // EXCEPTION_CHECK_VOID(tmp);
+    // DEVICE_IOCTL_ARGS(motor_obj->priv.motor_dev, OP_CODE_MOTOR_SET_PARAMETER, args);
 }
 
-static int internal_common_mode_start()
-{
-    int ret = 0;
-    rt_device_node_t *m = motor_obj->priv.motor_dev;
-
-    if (m) {
-        LOG_MOTOR("start");
-        DEVICE_IOCTL(m, OP_CODE_MOTOR_START_PLAY);
-        // uint32_t args[] = {PUMP_DATA_CONTROL, (uint32_t) &motor_obj->priv.current_policy};
-        // ret = DEVICE_IOCTL_ARGS(m, OP_CODE_MOTOR_SET_PARAMETER, args);
-    }
-    return ret;
-}
-
-static int internal_policy_mode_start(uint8_t action)
+static int internal_start_motor(uint8_t action)
 {
     if (action >= MOTOR_POLICY_ACTION_MAX) {
         action = MOTOR_POLICY_START;
     }
     
-    motor_task_play_para_t play_para = {
+    motor_task_para_t task_para = {
         .timestamp = get_timestamp(),
-        .play_mask_id = ID_MASK_PLAY_BREATH_PUMP_POLICY,
-        .para.pump_policy.action_id = action, 
+        .play_mask_id = ID_MASK_PLAY_BREAST_PUMP_POLICY,
+        .action_id = action, 
     };
 
     os_message_id msg_id = motor_obj->priv.motor_play_thd.msg_id;
     update_play_interrupt_reason("play-new-task");
     if (msg_id) {
-        LOG_MOTOR("timestamp: %ld, id: %d", play_para.timestamp, play_para.play_mask_id);
-        MSG_QUEUE_SEND(msg_id, &play_para, 0);
+        LOG_MOTOR("timestamp: %ld, id: %d", task_para.timestamp, task_para.play_mask_id);
+        MSG_QUEUE_SEND(msg_id, &task_para, 0);
     }
 
-    return 0;
-}
- 
-static int internal_start_motor(uint8_t action)
-{
-    uint32_t curr_mode = motor_obj->priv.pump_ctx->get_breath_pump_mode();
-    switch (curr_mode) {
-        case BREATH_PUMP_MODE_STIMULATION:
-        case BREATH_PUMP_MODE_BREASTFEEDING:
-        case BREATH_PUMP_MODE_HYBRID:
-        case BREATH_PUMP_MODE_PERSONALIZED:
-        case BREATH_PUMP_MODE_PP:
-        case BREATH_PUMP_MODE_UPGRADE:
-        case BREATH_PUMP_MODE_MILK_INIT:
-            internal_policy_mode_start(action);
-            break;
-        default:
-            internal_common_mode_start();
-            break;
-    }
     return 0;
 }
  
@@ -144,8 +111,8 @@ static void on_motor_broadcast_receiver(broadcast_mask_id_t id, void *context, i
 {
     motor_manager_context_t *thiz = context;
     struct __motor_manager_hook *hook = thiz->hook;
-    int breath_pump_state = -1;
-    int breath_pump_mode = -1;
+    int breast_pump_state = -1;
+    int breast_pump_mode = -1;
 
     if (hook && hook->on_motor_receiver_route && (hook->on_motor_receiver_route(id, thiz, arg1, arg2, pdata))) {
         LOG_MOTOR("routed return: %lx", id.code);
@@ -153,17 +120,16 @@ static void on_motor_broadcast_receiver(broadcast_mask_id_t id, void *context, i
     }
 
     switch (id.code) {
-        case ID_BROADCAST_BREATH_PUMP_STATE_CHANGE:
+        case ID_BROADCAST_BREAST_PUMP_STATE_CHANGE:
             {
-                breath_pump_state = arg2;
-                LOG_MOTOR("state change: %d", breath_pump_state);
+                breast_pump_state = arg2;
+                LOG_MOTOR("state change: %d", breast_pump_state);
             }
             break;
-        case ID_BROADCAST_BREATH_PUMP_MODE_CHANGE:
+        case ID_BROADCAST_BREAST_PUMP_MODE_CHANGE:
             {
-                breath_pump_mode = arg1;
                 internal_start_motor(MOTOR_POLICY_CHANGE_MODE);
-                LOG_MOTOR("mode change: %d", breath_pump_mode);
+                LOG_MOTOR("mode change: %d", breast_pump_mode);
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE:
@@ -193,7 +159,7 @@ static int on_post_motor_init(void *ptr)
 {
     motor_manager_context_t *thiz = (motor_manager_context_t *)ptr;
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    thiz->priv.pump_ctx = (breath_pump_manager_context_t *)find_module(ID_MODULE_BREATH_PUMP);
+    thiz->priv.pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     thiz->priv.motor_dev = pbus->find_device(ID_DEVICE_MOTOR);
 
     /// 初始化模式配置参数
@@ -201,14 +167,11 @@ static int on_post_motor_init(void *ptr)
         thiz->hook->normal_mode_config_pasrse();
     }
 
-    // thiz->curr_motor_cfg = &thiz->motor_cfg.smart[0];
-    // brush_mode_config_init(thiz);      /// 各模式参数拆解
-
     /// 注册广播监听.
     thiz->priv.m_bdc.context = thiz;
     thiz->priv.m_bdc.name = "motor_manager";
-    thiz->priv.m_bdc.id.code |= ID_BROADCAST_BREATH_PUMP_STATE_CHANGE;
-    thiz->priv.m_bdc.id.code |= ID_BROADCAST_BREATH_PUMP_MODE_CHANGE;
+    thiz->priv.m_bdc.id.code |= ID_BROADCAST_BREAST_PUMP_STATE_CHANGE;
+    thiz->priv.m_bdc.id.code |= ID_BROADCAST_BREAST_PUMP_MODE_CHANGE;
     thiz->priv.m_bdc.id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     thiz->priv.m_bdc.id.code |= ID_BROADCAST_UPDATE_MOTOR_WORK_PARAMETER;
     thiz->priv.m_bdc.id.code |= ID_BROADCAST_REQ_PM_SUSPEND_BY_USER;
@@ -220,7 +183,7 @@ static int on_post_motor_init(void *ptr)
     sensor->add_sensor_evt_lisenser(thiz, F_SENSOR_EVT_POLLING, 1, on_sensor_data_motor_callback);
 
     /// 吸奶策略注册.
-    breath_pump_policy_register_internal();
+    breast_pump_policy_register_internal();
     MUTEX_INIT(&thiz->priv.motor_play_thd.lock_id, m_motor_play_lock);
     RUN_NEW_THREAD(&thiz->priv.motor_play_thd, "motor_play_thd", motor_play_work_thread, 
                    RT_PRIO_MOTOR_DISPATCH_THREAD, MOTOR_PLAY_THREAD_STACKSIZE);
@@ -253,18 +216,16 @@ static bool is_on_motor_task_running(motor_manager_context_t *ctx)
 
 int motor_is_can_play_now(void)
 {
-    int is_on_pumping = motor_obj->priv.pump_ctx->is_on_working();
-
     if (motor_obj->priv.interrupt_play_reason) {
         LOG_MOTOR("exit reason: %s", motor_obj->priv.interrupt_play_reason);
         return 0;
     }
 
-    if (is_on_pumping == 0) {
+    if (motor_obj->priv.pump_ctx->is_on_working() == 0) {
         LOG_MOTOR("exit reason: not on pumping");
         update_play_interrupt_reason("pumping_state:err");
-        return 0;
     }
+
     return 1;
 }
 

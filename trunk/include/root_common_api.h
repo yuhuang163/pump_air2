@@ -33,7 +33,7 @@ extern "C" {
 #include "sensor_manager_api.h" // IWYU pragma: keep
 #include "tests_manager_api.h" // IWYU pragma: keep
 #include "motor_manager_api.h" // IWYU pragma: keep
-#include "breath_pump_manager_api.h" // IWYU pragma: keep
+#include "breast_pump_manager_api.h" // IWYU pragma: keep
 #include "algorithm_manager_api.h" // IWYU pragma: keep
 #include "ble_manager_api.h" // IWYU pragma: keep
 
@@ -59,7 +59,7 @@ typedef enum {
 
     ID_MODULE_IOT,
     ID_MODULE_MISC,
-    ID_MODULE_BREATH_PUMP,
+    ID_MODULE_BREAST_PUMP,
     ID_MODULE_MOTOR,
     ID_MODULE_AUDIO,
 

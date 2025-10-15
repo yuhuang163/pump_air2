@@ -2,7 +2,7 @@
  * INCLUDE FILES
  *****************************************************************************************
  */
-#include "framework_hook.h"
+#include "framework_hook.h" // IWYU pragma: keep
 
 /*
  * DEFINES
@@ -28,5 +28,9 @@
 // hook点入口.
 void framework_extra_hook(void)
 {
+    motor_manager_context_t *mt_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    CHECK_IF_VALID(mt_ctx, {
+        register_motor_hook(mt_ctx);
+    });
 
 }

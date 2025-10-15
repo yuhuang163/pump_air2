@@ -58,13 +58,13 @@ typedef enum {
     BLE_MSG_ID_ROTAS_FLOW_CTRL,
     BLE_MSG_ID_ROTAS_PROGRESS,
     BLE_MSG_ID_ROTAS_FILE_CHECK,
-    BLE_MSG_ID_SEND_BREATH_PUMP_REALTIME_INFO,
+    BLE_MSG_ID_SEND_BREAST_PUMP_REALTIME_INFO,
     BLE_MSG_ID_SEND_ALGO_REMIND_DATA,
     BLE_MSG_ID_SEND_DEVICE_REMIND_DATA,
     BLE_MSG_ID_AIRPLANE_MODE_CHANGE,
     BLE_MSG_ID_VOICE_STATE_CHANGE,
-    BLE_MSG_ID_BREATH_PUMP_STATE_CHANGE,
-    BLE_MSG_ID_BREATH_PUMP_MODE_CHANGE,
+    BLE_MSG_ID_BREAST_PUMP_STATE_CHANGE,
+    BLE_MSG_ID_BREAST_PUMP_MODE_CHANGE,
 
     BLE_MSG_ID_NOTIY_APP_SETTINGS,  /// 提醒手柄收到了APP下发任意设置
 
@@ -180,9 +180,9 @@ typedef struct ble_manager_context {
     int (*get_adv_state)(void);
     int (*set_adv_state)(int state);
 
-    int (*upload_breath_pump_overpress)(int state, int count, int side);
+    int (*upload_breast_pump_overpress)(int state, int count, int side);
     int (*upload_voice_sw)(uint8_t state);
-    int (*upload_breath_pump_life)(void);
+    int (*upload_breast_pump_life)(void);
 
     /// 蓝牙连接/断开状态改变回调.
     void (*on_connect_status_change)(struct ble_manager_context *thiz, int new_status, int popup);
@@ -191,7 +191,7 @@ typedef struct ble_manager_context {
     struct __ble_manager_hook {
         int (*on_connect_change_route)(struct ble_manager_context *ctx, int new_status);
         int (*decode_msg_post_req)(const decode_msg_args_t *args);
-        int (*packet_get_breath_pump_report_route)(void *context, void *report, void *breath_pump_data);
+        int (*packet_get_breast_pump_report_route)(void *context, void *report, void *breast_pump_data);
         int (*protocol_encode_process_route)(void *context, int cmd, void *data);
         int (*msg_decode_process)(void *context, uint8_t *p_data, uint16_t length);
     } *hook;

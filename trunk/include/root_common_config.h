@@ -13,7 +13,7 @@ extern "C" {
 /// 各关键业务线程优先级定义.
 #define RT_PRIO_MAIN_THREAD                            OS_PRIORITY_REALTIME5
 #define RT_PRIO_MISC_DISPATCH_THREAD                   OS_PRIORITY_BELOW_NORMAL
-#define RT_PRIO_BREATH_PUMP_DISPATCH_THREAD            OS_PRIORITY_NORMAL
+#define RT_PRIO_BREAST_PUMP_DISPATCH_THREAD            OS_PRIORITY_NORMAL
 #define RT_PRIO_OTA_DISPATCH_THREAD                    OS_PRIORITY_REALTIME
 #define RT_PRIO_LVGL_HANDLER_THREAD                    OS_PRIORITY_REALTIME
 #define RT_PRIO_BRC_DISPATCH_THREAD                    OS_PRIORITY_REALTIME
@@ -171,7 +171,7 @@ extern "C" {
 #define MOTOR_IAP_DISPATCH_MESQ_NUM                   (2)
 #define MOTOR_PLAY_MESQ_NUM                           (2)
 
-#define BREATH_PUMP_WORK_DISPATCH_MESQ_NUM            (2)
+#define BREAST_PUMP_WORK_DISPATCH_MESQ_NUM            (2)
 #define PM_WORK_DISPATCH_MESQ_NUM                     (1)
 #define HDR_POST_MESQ_NUM                             (8)
 #define BCR_THD_MESQ_NUM                              (30)

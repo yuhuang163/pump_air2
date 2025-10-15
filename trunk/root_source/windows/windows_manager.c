@@ -763,7 +763,7 @@ uint8_t to_valid_window_id(void *disp, uint8_t window_id)
                 window_id = ID_WINDOW_CHARGE;
                 break;
             }
-            window_id = is_window_deployed() ? ID_WINDOW_BREATH_PUMP : ID_WINDOW_GUIDE;
+            window_id = is_window_deployed() ? ID_WINDOW_BREAST_PUMP : ID_WINDOW_GUIDE;
         } while (0);
     }
     return window_id;

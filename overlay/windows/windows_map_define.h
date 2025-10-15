@@ -23,7 +23,7 @@ window_enter_result_e enter_new_window_logo_screen(window_manager_context_t *wm,
 window_enter_result_e enter_new_window_home_screen(window_manager_context_t *wm, uint8_t window_id);
 window_enter_result_e enter_new_window_charge_screen(window_manager_context_t *wm, uint8_t window_id);
 window_enter_result_e enter_new_window_battery_screen(window_manager_context_t *wm, uint8_t window_id);
-window_enter_result_e enter_new_window_breath_pump_screen(window_manager_context_t *wm, uint8_t window_id);
+window_enter_result_e enter_new_window_breast_pump_screen(window_manager_context_t *wm, uint8_t window_id);
 window_enter_result_e enter_new_window_dental_plaque_screen(window_manager_context_t *wm, uint8_t window_id);
 window_enter_result_e enter_new_window_bt_connect_screen(window_manager_context_t *wm, uint8_t window_id);
 window_enter_result_e enter_new_window_settings_screen(window_manager_context_t *wm, uint8_t window_id);

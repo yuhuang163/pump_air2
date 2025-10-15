@@ -13,8 +13,8 @@ extern "C" {
 #include "app_algo.h"
 
 #define ROOT_WRITE_INFO_LEN                         64
-#define ROOT_BREATH_PUMP_TIME_VALID                 30000   /// 30s
-#define ROOT_BREATH_PUMP_BODY_DATA_NUM              60      /// 按天存储，每天最多 ROOT_BREATH_PUMP_BODY_DATA_NUM / 7
+#define ROOT_BREAST_PUMP_TIME_VALID                 30000   /// 30s
+#define ROOT_BREAST_PUMP_BODY_DATA_NUM              60      /// 按天存储，每天最多 ROOT_BREAST_PUMP_BODY_DATA_NUM / 7
 #define USER_BIND_UID_LEN                           8
 #define USER_BIND_RANDOM_LEN                        6
 #define USER_BIND_AES_KEY_LEN                       16
@@ -46,9 +46,9 @@ typedef enum  {
 
 typedef enum {
     SYS_STAT_DATA_BURIAL,
-    BREATH_PUMP_FINISH_REMIND,        /// 吸奶完成提醒
+    BREAST_PUMP_FINISH_REMIND,        /// 吸奶完成提醒
     MODE_CHANGE_REMIND,        /// 模式切换提醒
-    BREATH_PUMP_TIMING_REMIND,       /// 泵奶定时提醒
+    BREAST_PUMP_TIMING_REMIND,       /// 泵奶定时提醒
     ALL_VOICE_SW,              /// 全部语音开关
     INTERVAL_30S_REMIND,       /// 30S间隔提醒
     AI_LEARN_SW,               /// AI学习开关
@@ -80,51 +80,51 @@ typedef struct {
 
 /// 泵奶模式
 typedef enum {
-    BREATH_PUMP_MODE_INVALID = 0,
-    BREATH_PUMP_MODE_STIMULATION,          /// 刺激模式
-    BREATH_PUMP_MODE_BREASTFEEDING,        /// 吸乳模式
-    BREATH_PUMP_MODE_HYBRID,               /// 混合模式
-    BREATH_PUMP_MODE_PERSONALIZED,         /// 个性化模式
-    BREATH_PUMP_MODE_PP,                   /// PP追奶模式
-    BREATH_PUMP_MODE_UPGRADE,              /// 2+8奶量提升模式
-    BREATH_PUMP_MODE_MILK_INIT,            /// 开奶模式
-    BREATH_PUMP_MODE_MAX,
-    BREATH_PUMP_NORMAL_MODE_MAX = BREATH_PUMP_MODE_HYBRID - BREATH_PUMP_MODE_INVALID,
-    BREATH_PUMP_UP_MODE_MAX = BREATH_PUMP_MODE_MILK_INIT - BREATH_PUMP_MODE_HYBRID,
-    BREATH_PUMP_NORMAL_MODE_DEFAULT = BREATH_PUMP_MODE_STIMULATION, /// 默认常规模式
-    BREATH_PUMP_UP_MODE_DEFAULT = BREATH_PUMP_MODE_PERSONALIZED, /// 默认追奶模式
-} breath_pump_mode_e;
+    BREAST_PUMP_MODE_INVALID = 0,
+    BREAST_PUMP_MODE_STIMULATION,          /// 刺激模式
+    BREAST_PUMP_MODE_BREASTFEEDING,        /// 吸乳模式
+    BREAST_PUMP_MODE_HYBRID,               /// 混合模式
+    BREAST_PUMP_MODE_PERSONALIZED,         /// 个性化模式
+    BREAST_PUMP_MODE_PP,                   /// PP追奶模式
+    BREAST_PUMP_MODE_UPGRADE,              /// 2+8奶量提升模式
+    BREAST_PUMP_MODE_MILK_INIT,            /// 开奶模式
+    BREAST_PUMP_MODE_MAX,
+    BREAST_PUMP_NORMAL_MODE_MAX = BREAST_PUMP_MODE_HYBRID - BREAST_PUMP_MODE_INVALID,
+    BREAST_PUMP_UP_MODE_MAX = BREAST_PUMP_MODE_MILK_INIT - BREAST_PUMP_MODE_HYBRID,
+    BREAST_PUMP_NORMAL_MODE_DEFAULT = BREAST_PUMP_MODE_STIMULATION, /// 默认常规模式
+    BREAST_PUMP_UP_MODE_DEFAULT = BREAST_PUMP_MODE_PERSONALIZED, /// 默认追奶模式
+} breast_pump_mode_e;
 
 /// 泵奶时长
 typedef enum {
-    BREATH_PUMPING_TIME_ERROR = 0,
-    BREATH_PUMPING_ONE_MIN = 60,
-    BREATH_PUMPING_ONE_MIN_HALF = 90,
-    BREATH_PUMPING_TWO_MIN = 120,
-    BREATH_PUMPING_TWO_MIN_HALF = 150,
-    BREATH_PUMPING_THREE_MIN = 180,
-    BREATH_PUMPING_THREE_MIN_HALF = 210,
-    BREATH_PUMPING_FOUR_MIN = 240,
-    BREATH_PUMPING_FOUR_MIN_HALF = 270,
-    BREATH_PUMPING_FIVE_MIN = 300,
-    BREATH_PUMPING_DEFAULT_TIME = BREATH_PUMPING_TWO_MIN,
-} sys_breath_pumping_time_e;
+    BREAST_PUMPING_TIME_ERROR = 0,
+    BREAST_PUMPING_ONE_MIN = 60,
+    BREAST_PUMPING_ONE_MIN_HALF = 90,
+    BREAST_PUMPING_TWO_MIN = 120,
+    BREAST_PUMPING_TWO_MIN_HALF = 150,
+    BREAST_PUMPING_THREE_MIN = 180,
+    BREAST_PUMPING_THREE_MIN_HALF = 210,
+    BREAST_PUMPING_FOUR_MIN = 240,
+    BREAST_PUMPING_FOUR_MIN_HALF = 270,
+    BREAST_PUMPING_FIVE_MIN = 300,
+    BREAST_PUMPING_DEFAULT_TIME = BREAST_PUMPING_TWO_MIN,
+} sys_breast_pumping_time_e;
 
 /// 泵奶力度
 typedef enum {
-    SYS_BREATH_PUMP_LEVEL_1 = 111,
-    SYS_BREATH_PUMP_LEVEL_2,
-    SYS_BREATH_PUMP_LEVEL_3,
-    SYS_BREATH_PUMP_LEVEL_4,
-    SYS_BREATH_PUMP_LEVEL_5,
-    SYS_BREATH_PUMP_LEVEL_MAX,
-} sys_breath_pump_level_e;
+    SYS_BREAST_PUMP_LEVEL_1 = 111,
+    SYS_BREAST_PUMP_LEVEL_2,
+    SYS_BREAST_PUMP_LEVEL_3,
+    SYS_BREAST_PUMP_LEVEL_4,
+    SYS_BREAST_PUMP_LEVEL_5,
+    SYS_BREAST_PUMP_LEVEL_MAX,
+} sys_breast_pump_level_e;
 
 /// 泵奶方向
 typedef enum { 
-    BREATH_PUMPING_TEETH_CLOCKWISE= 0,  ///顺时针
-    BREATH_PUMPING_TEETH_ANTI_CLOCKWISE = 1  ///逆时针
-} sys_breath_pump_order;
+    BREAST_PUMPING_TEETH_CLOCKWISE= 0,  ///顺时针
+    BREAST_PUMPING_TEETH_ANTI_CLOCKWISE = 1  ///逆时针
+} sys_breast_pump_order;
 
 typedef struct {
     uint16_t stimulation[STIMULATION_MODE_LEN];     /// 刺激
@@ -134,7 +134,7 @@ typedef struct {
     uint16_t pp_catch_up[PP_MODE_LEN];     /// PP追奶
     uint16_t upgrade[UPGRADE_MODE_LEN];         /// 2+8奶量提升
     uint16_t milk_initiation[MILK_INIT_MODE_LEN]; /// 开奶
-} breath_pump_level_info_t;
+} breast_pump_level_info_t;
 
 /// 描述泵奶信息
 typedef struct
@@ -143,11 +143,11 @@ typedef struct
     uint8_t is_remind_mode_change;        /// 模式切换提醒
     uint8_t is_remind_over_pressure;      /// 过压音频提醒
     uint8_t is_over_pressure_led;         /// 过压LED提示
-    uint8_t is_remind_breath_pump_finish; /// 泵奶完成提醒
+    uint8_t is_remind_breast_pump_finish; /// 泵奶完成提醒
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
-    // breath_pump_level_info_t level_info;
-    uint16_t breath_pump_time;                  /// 泵奶时长 sys_breath_pumping_time_e 
-} breath_pump_cfg_t;
+    // breast_pump_level_info_t level_info;
+    uint16_t breast_pump_time;                  /// 泵奶时长 sys_breast_pumping_time_e 
+} breast_pump_cfg_t;
 
 /**
  * 语音提醒主题枚举定义
@@ -220,7 +220,7 @@ typedef struct {
     uint8_t guide_deployed;       /// 向导部署标志
     uint8_t battery_health;       /// 电池健康
     uint32_t log_filter;          /// 日志过滤
-    uint32_t breath_pump_header_life;   /// 泵奶头寿命
+    uint32_t breast_pump_header_life;   /// 泵奶头寿命
     uint32_t sync_sys_time;       /// 保存第一次同步系统时间时 本地经历的最终时间点 用于计算泵奶记录的差值.
 } sys_state_info_t;
 
@@ -228,7 +228,7 @@ typedef struct {
 typedef struct sys_persist_info {
     sys_config_info_t config;
     sys_state_info_t state;
-    breath_pump_cfg_t breath_pump_cfg;
+    breast_pump_cfg_t breast_pump_cfg;
     user_bind_info_t bind_info;
     audio_packet_info_t audio_packet;    /// 语音包
     theme_packet_info_t theme_packet;    /// 主题包
@@ -273,13 +273,13 @@ typedef struct {
     uint8_t head;  
     uint8_t tail;
     uint8_t resv;
-    uint16_t crc[ROOT_BREATH_PUMP_BODY_DATA_NUM + 1];  
-} breath_pump_data_head_t;
+    uint16_t crc[ROOT_BREAST_PUMP_BODY_DATA_NUM + 1];  
+} breast_pump_data_head_t;
 
 /// 泵奶数据体
 typedef struct {
-    algo_breath_pump_data_t body;
-} breath_pump_data_body_t;
+    algo_breast_pump_data_t body;
+} breast_pump_data_body_t;
 
 #ifdef __cplusplus
 }

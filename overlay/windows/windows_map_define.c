@@ -57,7 +57,7 @@ static const window_context_handle_t g_process_handle_list[WINDOW_HANDLE_LIST_CO
     // {ID_WINDOW_BATTERY,             WINDOW_PRIO_BATTERY,    PAGE_HANDLE_NAME(battery ), REFS_T(m_window_battery)},
     // {ID_WINDOW_OTA_UPGRADE,         WINDOW_PRIO_OTA,        PAGE_HANDLE_NAME(ota),      REFS_T(m_window_ota)},
     // {ID_WINDOW_POPUP_WINDOW,        WINDOW_PRIO_POPUP,      PAGE_HANDLE_NAME(popup),    REFS_T(m_window_popup)},
-    // {ID_WINDOW_BREATH_PUMP,          WINDOW_PRIO_BRUSH,      PAGE_HANDLE_NAME(brush),    REFS_T(m_window_brush)},
+    // {ID_WINDOW_BREAST_PUMP,          WINDOW_PRIO_BRUSH,      PAGE_HANDLE_NAME(brush),    REFS_T(m_window_brush)},
     // {ID_WINDOW_FACTORY_MODE,        WINDOW_PRIO_FAC,        PAGE_HANDLE_NAME(fac),      REFS_T(m_window_fac)},
     // {ID_WINDOW_SETTINGS,            WINDOW_PRIO_SETTING,    PAGE_HANDLE_NAME(setting),  REFS_T(m_window_setting)},
     // {ID_WINDOW_AIRPLANE_MODE,       WINDOW_PRIO_SETTING,    PAGE_HANDLE_NAME(apmode),   REFS_T(m_window_apmode)},
@@ -81,8 +81,8 @@ const char *to_window_name(uint8_t window_id)
             return "charging";
         case ID_WINDOW_BATTERY:
             return "battery";
-        case ID_WINDOW_BREATH_PUMP:
-            return "breath_pump";
+        case ID_WINDOW_BREAST_PUMP:
+            return "breast_pump";
         case ID_WINDOW_SETTINGS:
             return "setting";
         case ID_WINDOW_OTA_UPGRADE:

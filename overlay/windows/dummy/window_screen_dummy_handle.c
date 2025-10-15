@@ -110,7 +110,7 @@ static void on_dummy_receive_internal(broadcast_mask_id_t id, void *context,
     }
 
     msg.union_body.extra.pm_wakeup_reason = wakeup_reason;
-    msg.union_body.extra.window_id = ID_WINDOW_BREATH_PUMP;
+    msg.union_body.extra.window_id = ID_WINDOW_BREAST_PUMP;
     msg.union_body.extra.is_background = 1;
     wm->dispatch_new_window_args(wm, &msg);
 }
@@ -127,8 +127,8 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
                 on_dummy_receive_internal(id, context, pm_state, (pm_wakeup_reason_e)wakeup_reason, pdata);
             }
             break;
-            case ID_BROADCAST_BREATH_PUMP_MODE_CHANGE: {
-                LOG_UI("received BREATH_PUMP_MODE_CHANGE.");
+            case ID_BROADCAST_BREAST_PUMP_MODE_CHANGE: {
+                LOG_UI("received BREAST_PUMP_MODE_CHANGE.");
                 break;
             }
             default:

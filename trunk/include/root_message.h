@@ -30,8 +30,8 @@ typedef enum {
 typedef enum {
     ID_POPUP_WINDOW_BT_CONNECT,
     ID_POPUP_WINDOW_BT_DISCONNECT,
-    ID_POPUP_WINDOW_BREATH_PUMP_HEAD_REMIND,
-    ID_POPUP_WINDOW_BREATH_PUMP_HEAD_RESET,
+    ID_POPUP_WINDOW_BREAST_PUMP_HEAD_REMIND,
+    ID_POPUP_WINDOW_BREAST_PUMP_HEAD_RESET,
     ID_POPUP_WINDOW_DAMP,
     ID_POPUP_WINDOW_SMART_GENERATE_SUC,
     ID_POPUP_WINDOW_SMART_GENERATE,
@@ -44,10 +44,10 @@ typedef struct {
     uint8_t window_id;
     uint8_t pm_wakeup_reason;
     uint8_t set_bth_mode_flag;
-    uint8_t goto_breath_pump;
+    uint8_t goto_breast_pump;
     uint8_t setting_sub_menu_pos;
     uint8_t gretting_which_time;
-    uint8_t show_breath_pump_ui;
+    uint8_t show_breast_pump_ui;
     void *user_data;
     /**
      * 弹出框入参数参数描述.
@@ -57,7 +57,7 @@ typedef struct {
     uint32_t popup_exit_time;
     int (*popup_exit_cb)(void *user_data, int args1, int args2);
     /// 泵奶头显示index
-    uint8_t breath_pump_head_use_index;
+    uint8_t breast_pump_head_use_index;
     uint8_t is_background;
     /// 进入ota的异常类型.
     uint32_t ota_enter_exception_type;

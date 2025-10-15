@@ -34,19 +34,19 @@ typedef enum {
     STORE_ID_FACTORY_IMU_CALI_DATA,         /// 工厂陀螺仪校准数据
     STORE_ID_AUDIO_PACKET_INFO = 200,       /// 语音包信息
     STORE_ID_THEME_PACKET_INFO,             /// 主题包信息
-    STORE_ID_BREATH_PUMP_INFO = 300,               /// 吸奶信息
-    STORE_ID_BREATH_PUMP_TIME,                     /// 吸奶时间
-    STORE_ID_BREATH_PUMP_LEVEL,                    /// 吸奶力度
-    STORE_ID_REMIND_BREATH_PUMP_HEAD,              /// 吸奶刷头提醒
-    STORE_ID_REMIND_BREATH_PUMP_EXCEPTION,         /// 吸奶异常提醒
-    STORE_ID_REMIND_BREATH_PUMP_HORIZONTAL,        /// 吸奶水平提醒
-    STORE_ID_REMIND_BREATH_PUMP_MODE_CHANGE,       /// 吸奶模式切换提醒
-    STORE_ID_REMIND_BREATH_PUMP_AREA_CHANGE,       /// 吸奶区域切换提醒
-    STORE_ID_REMIND_BREATH_PUMP_OVER_PRESS,        /// 吸奶过压提醒
-    STORE_ID_REMIND_BREATH_PUMP_OVER_PRESS_LED,    /// 吸奶过压LED提示
-    STORE_ID_REMIND_BREATH_PUMP_FINISH,            /// 吸奶完成提醒
-    STORE_ID_BREATH_PUMP_DATA_HEAD,                /// 吸奶数据头
-    STORE_ID_BREATH_PUMP_DATA_BODY,                /// 吸奶数据体
+    STORE_ID_BREAST_PUMP_INFO = 300,               /// 吸奶信息
+    STORE_ID_BREAST_PUMP_TIME,                     /// 吸奶时间
+    STORE_ID_BREAST_PUMP_LEVEL,                    /// 吸奶力度
+    STORE_ID_REMIND_BREAST_PUMP_HEAD,              /// 吸奶刷头提醒
+    STORE_ID_REMIND_BREAST_PUMP_EXCEPTION,         /// 吸奶异常提醒
+    STORE_ID_REMIND_BREAST_PUMP_HORIZONTAL,        /// 吸奶水平提醒
+    STORE_ID_REMIND_BREAST_PUMP_MODE_CHANGE,       /// 吸奶模式切换提醒
+    STORE_ID_REMIND_BREAST_PUMP_AREA_CHANGE,       /// 吸奶区域切换提醒
+    STORE_ID_REMIND_BREAST_PUMP_OVER_PRESS,        /// 吸奶过压提醒
+    STORE_ID_REMIND_BREAST_PUMP_OVER_PRESS_LED,    /// 吸奶过压LED提示
+    STORE_ID_REMIND_BREAST_PUMP_FINISH,            /// 吸奶完成提醒
+    STORE_ID_BREAST_PUMP_DATA_HEAD,                /// 吸奶数据头
+    STORE_ID_BREAST_PUMP_DATA_BODY,                /// 吸奶数据体
     STORE_ID_SYS_CONFIG_INFO = 400,         /// 系统配置信息
     STORE_ID_SYS_TIME_ZONE,                 /// 系统时区
     STORE_ID_SYS_AP_MODE_ONOFF,             /// 系统飞航模式开关
@@ -61,7 +61,7 @@ typedef enum {
     STORE_ID_SYS_STATE_INFO = 500,          /// 系统状态信息
     STORE_ID_SYS_GUIDE_DEPLOYED,            /// 向导部署标志
     STORE_ID_SYS_BATTERY_HEALTH,            /// 电池健康
-    STORE_ID_SYS_BREATH_PUMP_HEADER_LIFE,          /// 吸嘴寿命
+    STORE_ID_SYS_BREAST_PUMP_HEADER_LIFE,          /// 吸嘴寿命
     STORE_ID_SYS_SYNC_SYS_TIME,             /// 保存第一次同步系统时间时 本地经历的最终时间点 用于计算吸奶记录的差值.
     STORE_ID_SYS_LOG_FILTER,                /// 系统日志过滤
     STORE_ID_USER_BIND_INFO = 600,          /// 用户绑定信息
@@ -71,7 +71,7 @@ typedef enum {
 typedef enum {
     STORE_CRC_TYPE_SYS_CONFIG = 0,
     STORE_CRC_TYPE_SYS_STATE,
-    STORE_CRC_TYPE_SYS_BREATH_PUMP_INFO,
+    STORE_CRC_TYPE_SYS_BREAST_PUMP_INFO,
     STORE_CRC_TYPE_MAX
 } store_crc_type_id_e;
 
@@ -172,7 +172,7 @@ typedef struct storage_manager_context {
         // struct extflash_interface *extflash_if;
         os_mutex_id db_rw_lock;
         os_mutex_id storage_rw_lock;
-        os_mutex_id breath_pump_data_rw_lock;
+        os_mutex_id breast_pump_data_rw_lock;
         /// 系统用户数据存储.
         sys_persist_info_t sys_info;
         /// 记录sys_info的crc,如果有改变则需要更新到flash.
@@ -181,7 +181,7 @@ typedef struct storage_manager_context {
         sec_sys_ver_t ver_info;
         /// 工厂数据集合.
         factory_data_store_t factory_data;
-        breath_pump_data_head_t pump_data_head;
+        breast_pump_data_head_t pump_data_head;
         /// 存储处理列表.
         const put_store_process_handle_t *put_store_process_list;
         const get_store_process_handle_t *get_store_process_list;

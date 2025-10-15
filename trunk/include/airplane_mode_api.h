@@ -35,7 +35,7 @@ typedef struct airplane_mode_context {
         bool is_on;
         bool is_backgroud_check;
         struct broadcast_obj *bcd;
-        uint8_t is_breath_pump_working;
+        uint8_t is_breast_pump_working;
         uint8_t enter_state;
         struct window_manager_context *wm;
         struct power_manager_context *pm;

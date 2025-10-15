@@ -296,7 +296,7 @@ void *register_module_for_storage_new(list_head_t *list_head)
  
     MUTEX_INIT(&ptr->priv.db_rw_lock, db_rw_lock);
     MUTEX_INIT(&ptr->priv.storage_rw_lock, storage_rw_lock);
-    MUTEX_INIT(&ptr->priv.breath_pump_data_rw_lock, breath_pump_data_rw_lock);
+    MUTEX_INIT(&ptr->priv.breast_pump_data_rw_lock, breast_pump_data_rw_lock);
     thiz = ptr;
     return ADD_MODULE("storage", ID_MODULE_STORAGE, on_perpare_storage_init, 
         on_post_storage_init, ptr, list_head, sizeof(storage_manager_context_t));
