@@ -54,8 +54,6 @@ extern "C" {
 #define IS_USE_GYRO_ONLINE_CALI                          (1) 
 #define IS_SUPPORT_IMU_FIFO                              (0)
 
-#define IS_SUPPORT_DUAL_PUMP_CONTROL                     (1)
-
 // test
 #define IS_SUPPORT_PRESSURE_TEST                         (1)
 

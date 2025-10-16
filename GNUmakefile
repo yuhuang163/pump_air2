@@ -97,7 +97,6 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/drivers/motor/chip/motor_pwm \
 	-I$(PROJECT_ROOT)/drivers/uart \
 	-I$(PROJECT_ROOT)/drivers/wifi \
-	-I$(PROJECT_ROOT)/overlay/breast_pump/policy \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/mode \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/table \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks \
@@ -134,6 +133,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/root_source/key_input \
 	-I$(PROJECT_ROOT)/trunk/root_source/misc \
 	-I$(PROJECT_ROOT)/trunk/root_source/motor \
+	-I$(PROJECT_ROOT)/trunk/root_source/motor/breast_pump_policy \
 	-I$(PROJECT_ROOT)/trunk/root_source/network \
 	-I$(PROJECT_ROOT)/trunk/root_source/ota \
 	-I$(PROJECT_ROOT)/trunk/root_source/pm \
@@ -283,7 +283,6 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/uart/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/wifi/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/mode/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/policy/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/table/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
@@ -316,6 +315,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/key_input/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/misc/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/motor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/motor/breast_pump_policy/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/network/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ota/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/pm/*.c) \

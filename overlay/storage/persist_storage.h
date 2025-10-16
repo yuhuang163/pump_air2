@@ -81,18 +81,18 @@ typedef struct {
 /// 泵奶模式
 typedef enum {
     BREAST_PUMP_MODE_INVALID = 0,
-    BREAST_PUMP_MODE_STIMULATION,          /// 刺激模式
-    BREAST_PUMP_MODE_BREASTFEEDING,        /// 吸乳模式
-    BREAST_PUMP_MODE_HYBRID,               /// 混合模式
-    BREAST_PUMP_MODE_PERSONALIZED,         /// 个性化模式
-    BREAST_PUMP_MODE_PP,                   /// PP追奶模式
-    BREAST_PUMP_MODE_UPGRADE,              /// 2+8奶量提升模式
-    BREAST_PUMP_MODE_MILK_INIT,            /// 开奶模式
+    BREAST_PUMP_STIMULATION_MODE,          /// 刺激模式
+    BREAST_PUMP_PUMP_MODE,        /// 吸乳模式
+    BREAST_PUMP_MIX_MODE,               /// 混合模式
+    BREAST_PUMP_CUSTOM_MODE,         /// 个性化模式
+    BREAST_PUMP_PP_MILK_TRACK_MODE,                   /// PP追奶模式
+    BREAST_PUMP_MILK_BOOST_MODE,              /// 2+8奶量提升模式
+    BREAST_PUMP_LACTATION_START_MODE,            /// 开奶模式
     BREAST_PUMP_MODE_MAX,
-    BREAST_PUMP_NORMAL_MODE_MAX = BREAST_PUMP_MODE_HYBRID - BREAST_PUMP_MODE_INVALID,
-    BREAST_PUMP_UP_MODE_MAX = BREAST_PUMP_MODE_MILK_INIT - BREAST_PUMP_MODE_HYBRID,
-    BREAST_PUMP_NORMAL_MODE_DEFAULT = BREAST_PUMP_MODE_STIMULATION, /// 默认常规模式
-    BREAST_PUMP_UP_MODE_DEFAULT = BREAST_PUMP_MODE_PERSONALIZED, /// 默认追奶模式
+    BREAST_PUMP_NORMAL_MODE_MAX = BREAST_PUMP_MIX_MODE - BREAST_PUMP_MODE_INVALID,
+    BREAST_PUMP_UP_MODE_MAX = BREAST_PUMP_LACTATION_START_MODE - BREAST_PUMP_MIX_MODE,
+    BREAST_PUMP_NORMAL_MODE_DEFAULT = BREAST_PUMP_STIMULATION_MODE, /// 默认常规模式
+    BREAST_PUMP_UP_MODE_DEFAULT = BREAST_PUMP_CUSTOM_MODE, /// 默认追奶模式
 } breast_pump_mode_e;
 
 /// 泵奶时长
@@ -128,12 +128,12 @@ typedef enum {
 
 typedef struct {
     uint16_t stimulation[STIMULATION_MODE_LEN];     /// 刺激
-    uint16_t breastfeeding[BREASTFEEDING_MODE_LEN]; /// 吸乳
-    uint16_t hybrid[HYBRID_MODE_LEN];               /// 混合
-    uint16_t personalized[PERSONALIZED_MODE_LEN];    /// 个性化默认
-    uint16_t pp_catch_up[PP_MODE_LEN];     /// PP追奶
-    uint16_t upgrade[UPGRADE_MODE_LEN];         /// 2+8奶量提升
-    uint16_t milk_initiation[MILK_INIT_MODE_LEN]; /// 开奶
+    uint16_t pump[PUMP_MODE_LEN]; /// 吸乳
+    uint16_t mix[MIX_MODE_LEN];               /// 混合
+    uint16_t custom[CUSTOM_MODE_LEN];    /// 个性化默认
+    uint16_t pp_milk_track[PP_MODE_LEN];     /// PP追奶
+    uint16_t milk_boost[MILK_BOOST_MODE_LEN];         /// 2+8奶量提升
+    uint16_t lactation_start[LACTATION_START_MODE_LEN]; /// 开奶
 } breast_pump_level_info_t;
 
 /// 描述泵奶信息

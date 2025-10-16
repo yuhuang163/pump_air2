@@ -2,7 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "persist_storage.h"
 #include "root_common_api.h" // IWYU pragma: keep
+#include "breast_pump_mode.h"
 #include "breast_pump_policy.h"
 
 /*
@@ -16,7 +18,7 @@
 */
 
 /// 刺激模式
-static motor_total_policy_t *s_stimulation_obj = NULL;
+static motor_policy_manager_t *s_stimulation_obj = NULL;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -32,7 +34,7 @@ static motor_total_policy_t *s_stimulation_obj = NULL;
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-const motor_total_policy_t *stimulation_mode_policy_get(void *user_data)
+const motor_policy_manager_t *stimulation_mode_policy_get(void *user_data)
 {
     return s_stimulation_obj;
 }
@@ -42,7 +44,7 @@ int stimulation_mode_parameter_deinit(void)
     /// 删除定时策略
     pump_time_policy_empty(s_stimulation_obj);
     /// 删除默认定时策略下的子策略
-    pump_policy_del(&s_stimulation_obj->body);
+    pump_policy_del(&s_stimulation_obj->head);
     /// 删除总策略
     pump_total_policy_deint(s_stimulation_obj);
     return 0;
@@ -51,18 +53,19 @@ int stimulation_mode_parameter_deinit(void)
 int stimulation_mode_parameter_init(motor_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
-    motor_policy_t *current_policy = NULL;
-    motor_policy_t *new_policy = NULL;
-    motor_time_policy_t *current_time_policy = NULL;
-    motor_time_policy_t *new_time_policy = NULL;
-    motor_policy_cfg_t *cfg = thiz->priv.motor_cfg.stimulation;
+    motor_policy_node_t *current_policy = NULL;
+    motor_policy_node_t *new_policy = NULL;
+    motor_timed_policy_node_t *current_time_policy = NULL;
+    motor_timed_policy_node_t *new_time_policy = NULL;
+    const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_STIMULATION_MODE);
+    EXCEPTION_CHECK_INT(cfg);
 
     s_stimulation_obj = pump_total_policy_init(cfg[0]);
-    current_time_policy = &s_stimulation_obj->body;
-    current_policy = &s_stimulation_obj->body.policy;
+    current_time_policy = &s_stimulation_obj->head;
+    current_policy = &s_stimulation_obj->head.policy;
     for (uint8_t i = 1; i < STIMULATION_MODE_LEN; i++) {
         /// 新增定时策略
-        if (cfg[i].new_time_policy > 0) {
+        if (cfg[i].policy_type == MOTOR_TIME_POLICY) {
             new_time_policy = pump_time_policy_init(cfg[1]);
             if (new_time_policy == NULL) {
                 LOGE("add time policy failed !!!");
@@ -71,7 +74,7 @@ int stimulation_mode_parameter_init(motor_manager_context_t *thiz)
             pump_time_policy_add(current_time_policy, new_time_policy);
             current_time_policy = new_time_policy;
             current_policy = &current_time_policy->policy;
-            s_stimulation_obj->time_policy_num++; /// 定时策略个数统计
+            s_stimulation_obj->timed_policy_count++; /// 定时策略个数统计
             continue;
         } 
         
@@ -81,7 +84,7 @@ int stimulation_mode_parameter_init(motor_manager_context_t *thiz)
             LOGE("add policy failed !!!");
             break;
         }
-        current_time_policy->para_num++; /// 子策略个数统计
+        current_time_policy->sub_policy_count++; /// 子策略个数统计
         pump_policy_add(current_policy, new_policy);
     }
     return 0;

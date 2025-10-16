@@ -60,11 +60,6 @@ static void update_play_interrupt_reason(const char *reason)
     }
 }
 
-static int breast_pump_policy_register_internal(void)
-{
-    return 0;
-}
-
 static void start_motor_with_user_para(uint8_t id, int args, void *user_data)
 {
     // uint32_t *tmp = (uint32_t *)user_data;
@@ -162,9 +157,9 @@ static int on_post_motor_init(void *ptr)
     thiz->priv.pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     thiz->priv.motor_dev = pbus->find_device(ID_DEVICE_MOTOR);
 
-    /// 初始化模式配置参数
-    if (thiz->hook && thiz->hook->normal_mode_config_pasrse) {
-        thiz->hook->normal_mode_config_pasrse();
+    /// 钩子参数初始化
+    if (thiz->hook && thiz->hook->on_post_init_route) {
+        thiz->hook->on_post_init_route(thiz);
     }
 
     /// 注册广播监听.
@@ -182,8 +177,6 @@ static int on_post_motor_init(void *ptr)
     sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     sensor->add_sensor_evt_lisenser(thiz, F_SENSOR_EVT_POLLING, 1, on_sensor_data_motor_callback);
 
-    /// 吸奶策略注册.
-    breast_pump_policy_register_internal();
     MUTEX_INIT(&thiz->priv.motor_play_thd.lock_id, m_motor_play_lock);
     RUN_NEW_THREAD(&thiz->priv.motor_play_thd, "motor_play_thd", motor_play_work_thread, 
                    RT_PRIO_MOTOR_DISPATCH_THREAD, MOTOR_PLAY_THREAD_STACKSIZE);

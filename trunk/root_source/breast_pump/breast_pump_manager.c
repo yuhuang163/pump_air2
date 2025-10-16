@@ -54,8 +54,8 @@ static void notify_breast_pump_completed(void)
 
 static int get_breast_pump_status_async(void)
 {
-    breast_pump_info_t *pump_info = &breast_pump_obj->priv.breast_pump_info;
-    uint8_t status = pump_info->status;
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    uint8_t status = m_info->status;
     if (status > BREAST_PUMP_FINISH) {
         LOG_PMP("breast pump state: %d", status);
         status = BREAST_PUMP_IDLE;
@@ -112,54 +112,57 @@ static void convent_algo_breast_pump_to_ui_breast_pump_result(algo_breast_pump_d
 
 }
 
-static int local_is_on_working(void)
+static int breast_pump_is_working(void)
 {
-    breast_pump_info_t *pump_info = &breast_pump_obj->priv.breast_pump_info;
-    return pump_info->do_work == 1;
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    return m_info->do_work == 1;
 }
 
-static void local_reset_breast_pump_result(void)
+static void reset_breast_pump_result(void)
 {
     memset(&breast_pump_obj->priv.m_result, 0, sizeof(breast_pump_result_t));
     LOG_PMP("reset result.");
 }
 
-static int local_get_breast_pump_level(void)
+static void get_breast_pump_unit_info(uint8_t id, breast_pump_unit_t *unit_info)
 {
-    breast_pump_info_t *pump_info = &breast_pump_obj->priv.breast_pump_info;
-    return pump_info->level;
+    if (id > BREAST_PUMP_NUM) {
+        return;
+    }
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    memcpy(unit_info, &m_info->unit_info[id], sizeof(breast_pump_unit_t));
 }
 
-static void local_set_breast_pump_level(breast_pump_mode_e mode)
+static void set_breast_pump_unit_info(uint8_t id, breast_pump_unit_t *unit_info)
 {
-    uint16_t level_info[16];
-    breast_pump_info_t *pump_info = &breast_pump_obj->priv.breast_pump_info;
-
-    breast_pump_obj->priv.st->get_store_val(STORE_ID_BREAST_PUMP_LEVEL, 0, 0, level_info);
-    pump_info->level = level_info[0];
+    if (id > BREAST_PUMP_NUM) {
+        return;
+    }
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    memcpy(&m_info->unit_info[id], unit_info, sizeof(breast_pump_unit_t));
 }
 
-static int local_get_breast_pump_mode(void)
+static int get_breast_pump_mode(void)
 {
-    breast_pump_info_t *pump_info = &breast_pump_obj->priv.breast_pump_info;
-    if (pump_info->mode >= BREAST_PUMP_MODE_MAX ||
-        pump_info->mode == BREAST_PUMP_MODE_INVALID) {
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    if (m_info->mode >= BREAST_PUMP_MODE_MAX ||
+        m_info->mode == BREAST_PUMP_MODE_INVALID) {
         LOG_PMP("invalid, return default mode: %d", BREAST_PUMP_NORMAL_MODE_DEFAULT);
         return BREAST_PUMP_NORMAL_MODE_DEFAULT;
     }
-    return pump_info->mode;
+    return m_info->mode;
 }
 
-static void local_set_breast_pump_mode(uint32_t mode)
+static void set_breast_pump_mode(uint32_t mode)
 {
-    breast_pump_info_t *pump_info = &breast_pump_obj->priv.breast_pump_info;
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     if (mode >= BREAST_PUMP_MODE_MAX || mode == BREAST_PUMP_MODE_INVALID) {
-        pump_info->mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+        m_info->mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
     } else {
-        pump_info->mode = mode;
+        m_info->mode = mode;
     }
-    LOG_PMP("new mode is: %d", pump_info->mode);
-    SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_MODE_CHANGE, pump_info->mode, 1);
+    LOG_PMP("new mode is: %d", m_info->mode);
+    SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_MODE_CHANGE, m_info->mode, 1);
 }
 
 static int get_breast_pump_status(void)
@@ -175,19 +178,19 @@ static int get_breast_pump_status(void)
 static void set_breast_pump_status(int status)
 {
     power_manager_context_t *pm_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
-    breast_pump_info_t *pump_info = &breast_pump_obj->priv.breast_pump_info;
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
 
-    LOG_PMP("enter work: %d", pump_info->do_work);
+    LOG_PMP("enter work: %d", m_info->do_work);
     MUTEX_LOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
     if (status >= BREAST_PUMP_IDLE && status <= BREAST_PUMP_FINISH) {
-        if (pump_info->status != status) {
-            pump_info->status = status;
-            LOG_PMP("status: %d, do_work: %d", status, pump_info->do_work);
+        if (m_info->status != status) {
+            m_info->status = status;
+            LOG_PMP("status: %d, do_work: %d", status, m_info->do_work);
 
             switch (status) {
                 case BREAST_PUMP_IDLE:
-                    if (pump_info->do_work) {
-                        pump_info->do_work = 0;
+                    if (m_info->do_work) {
+                        m_info->do_work = 0;
                         stop_breast_pump_work(status);
                         CHECK_IF_VALID(pm_ctx, {
                             pm_ctx->release_wakelock(PUMP_THD_WAKELOCK);
@@ -200,8 +203,8 @@ static void set_breast_pump_status(int status)
                     breast_pump_obj->reset_breast_pump_result();
 
                 case BREAST_PUMP_CONTINUE:
-                    if (!pump_info->do_work) {
-                        pump_info->do_work = 1;
+                    if (!m_info->do_work) {
+                        m_info->do_work = 1;
                         CHECK_IF_VALID(pm_ctx, {
                             pm_ctx->acquire_wakelock(PUMP_THD_WAKELOCK, -1);
                         });
@@ -211,8 +214,8 @@ static void set_breast_pump_status(int status)
 
                 case BREAST_PUMP_PAUSE:
                 case BREAST_PUMP_FINISH:
-                    if (pump_info->do_work) {
-                        pump_info->do_work = 0;
+                    if (m_info->do_work) {
+                        m_info->do_work = 0;
                         stop_breast_pump_work(status);
                         CHECK_IF_VALID(pm_ctx, {
                             pm_ctx->release_wakelock(PUMP_THD_WAKELOCK);
@@ -227,19 +230,19 @@ static void set_breast_pump_status(int status)
 
                 case BREAST_PUMP_FACTORY:
                     notify_breast_pump_completed();
-                    if (pump_info->do_work) {
-                        pump_info->do_work = 0;
+                    if (m_info->do_work) {
+                        m_info->do_work = 0;
                         stop_breast_pump_work(status);
                     }
                     break;
             }
 
-            SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, pump_info->do_work,
+            SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, m_info->do_work,
                 breast_pump_obj->get_breast_pump_status_async());
         }
     }
     MUTEX_UNLOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
-    LOG_PMP("exit work: %d", pump_info->do_work);
+    LOG_PMP("exit work: %d", m_info->do_work);
 }
 
 static const breast_pump_result_t *get_curr_breast_pump_result(void)
@@ -280,7 +283,7 @@ static void *list_del_condition_cb(void *data, list_head_t *pos)
     return NULL;
 }
 
-static int local_add_result_listener(void *user_data, on_breast_pump_result_cb_ptr cb)
+static int breast_pump_add_result_listener(void *user_data, on_breast_pump_result_cb_ptr cb)
 {
     list_head_t *head = &breast_pump_obj->priv.client_list;
 
@@ -304,7 +307,7 @@ static int local_add_result_listener(void *user_data, on_breast_pump_result_cb_p
     return 0;
 }
 
-static void local_remove_result_listener(on_breast_pump_result_cb_ptr cb)
+static void breast_pump_remove_result_listener(on_breast_pump_result_cb_ptr cb)
 {
     list_head_t *head = &breast_pump_obj->priv.client_list;
 
@@ -356,10 +359,8 @@ static void on_breast_pump_broadcast_receiver(broadcast_mask_id_t id, void *cont
 static int on_post_breast_pump_init(void *ptr)
 {
     breast_pump_manager_context_t *ctx = ptr;
-    ctx->priv.breast_pump_info.mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;      
-    ctx->priv.breast_pump_info.level = 0;
-    ctx->priv.breast_pump_info.do_work = 0;
-    ctx->priv.breast_pump_info.status = BREAST_PUMP_IDLE;
+    memset(&ctx->priv.m_info , 0, sizeof(breast_pump_info_t));
+    ctx->priv.m_info.mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;      
     
     /// 注册广播监听.
     ctx->priv.m_bdc.context = ctx;
@@ -413,20 +414,20 @@ const char *get_breast_pump_mode_name(uint8_t mode)
             return "@unknow";
         case BREAST_PUMP_MODE_INVALID:
             return "@pause";
-        case BREAST_PUMP_MODE_STIMULATION:
+        case BREAST_PUMP_STIMULATION_MODE:
             return "@stimulation";
-        case BREAST_PUMP_MODE_BREASTFEEDING:
-            return "@breastfeeding";
-        case BREAST_PUMP_MODE_HYBRID:
-            return "@hybrid";
-        case BREAST_PUMP_MODE_PERSONALIZED:
-            return "@personalized";
-        case BREAST_PUMP_MODE_PP:
-            return "@pp_catch_up";
-        case BREAST_PUMP_MODE_UPGRADE:
-            return "@2+8_upgrade";
-        case BREAST_PUMP_MODE_MILK_INIT:
-            return "@milk_initiation";
+        case BREAST_PUMP_PUMP_MODE:
+            return "@pump";
+        case BREAST_PUMP_MIX_MODE:
+            return "@mix";
+        case BREAST_PUMP_CUSTOM_MODE:
+            return "@custom";
+        case BREAST_PUMP_PP_MILK_TRACK_MODE:
+            return "@pp_milk_track";
+        case BREAST_PUMP_MILK_BOOST_MODE:
+            return "@2+8_milk_boost";
+        case BREAST_PUMP_LACTATION_START_MODE:
+            return "@lactation_start";
     }
 }
 
@@ -434,14 +435,14 @@ void *register_module_for_breast_pump_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, breast_pump_manager_context_t);
 
-    ptr->is_on_working = local_is_on_working;
-    ptr->reset_breast_pump_result = local_reset_breast_pump_result;
-    ptr->add_breast_pump_result_listener = local_add_result_listener;
-    ptr->remove_breast_pump_result_listener = local_remove_result_listener;
-    ptr->get_breast_pump_mode = local_get_breast_pump_mode;
-    ptr->set_breast_pump_mode = local_set_breast_pump_mode;
-    ptr->get_breast_pump_level = local_get_breast_pump_level;
-    ptr->set_breast_pump_level = local_set_breast_pump_level;
+    ptr->is_on_working = breast_pump_is_working;
+    ptr->reset_breast_pump_result = reset_breast_pump_result;
+    ptr->add_breast_pump_result_listener = breast_pump_add_result_listener;
+    ptr->remove_breast_pump_result_listener = breast_pump_remove_result_listener;
+    ptr->get_breast_pump_mode = get_breast_pump_mode;
+    ptr->set_breast_pump_mode = set_breast_pump_mode;
+    ptr->get_breast_pump_unit_info = get_breast_pump_unit_info;
+    ptr->set_breast_pump_unit_info = set_breast_pump_unit_info;
     ptr->get_breast_pump_status_async = get_breast_pump_status_async;
     ptr->get_breast_pump_status = get_breast_pump_status;
     ptr->set_breast_pump_status = set_breast_pump_status;

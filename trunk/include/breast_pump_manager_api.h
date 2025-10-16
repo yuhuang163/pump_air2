@@ -11,7 +11,7 @@ extern "C" {
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 #include "broadcast_manager_api.h"
-#include "persist_storage.h"
+#include "persist_storage.h" // IWYU pragma: keep
 
 typedef enum {
     BREAST_PUMP_IDLE = 0,
@@ -34,10 +34,15 @@ typedef struct {
 typedef void (*on_breast_pump_result_cb_ptr)(void *user_data, breast_pump_result_t *result);
 
 typedef struct {
+    uint8_t level;
+    uint8_t speed;
+} breast_pump_unit_t;
+
+typedef struct {
     uint8_t status;
     uint8_t do_work;
     uint8_t mode;
-    uint8_t level;
+    breast_pump_unit_t unit_info[BREAST_PUMP_NUM];
 } breast_pump_info_t;
 
 struct peripheral_bus_context;
@@ -52,7 +57,7 @@ typedef struct breast_pump_manager_context {
         os_mutex_id breast_pump_mode_lock;
         os_timer_id breast_pump_work_timer;
         breast_pump_result_t m_result;
-        breast_pump_info_t breast_pump_info;
+        breast_pump_info_t m_info;
         thread_context_t breast_pump_thd;
         list_head_t client_list;
         broadcast_obj_t m_bdc;
@@ -68,8 +73,8 @@ typedef struct breast_pump_manager_context {
     void (*remove_breast_pump_result_listener)(on_breast_pump_result_cb_ptr cb);
     int (*get_breast_pump_mode)(void);
     void (*set_breast_pump_mode)(uint32_t mode);
-    int (*get_breast_pump_level)(void);
-    void (*set_breast_pump_level)(breast_pump_mode_e mode);
+    void (*get_breast_pump_unit_info)(uint8_t id, breast_pump_unit_t *unit_info);
+    void (*set_breast_pump_unit_info)(uint8_t id, breast_pump_unit_t *unit_info);
     void (*set_breast_pump_status)(int status);
     int (*get_breast_pump_status)(void);
     int (*get_breast_pump_status_async)(void);
