@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "persist_storage.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "breast_pump_mode.h"
 #include "breast_pump_policy.h"
@@ -39,26 +38,14 @@ const motor_policy_manager_t *stimulation_mode_policy_get(void *user_data)
     return s_stimulation_obj;
 }
 
-int stimulation_mode_parameter_deinit(void)
+int stimulation_mode_parameter_init(void)
 {
-    /// 删除定时策略
-    pump_time_policy_empty(s_stimulation_obj);
-    /// 删除默认定时策略下的子策略
-    pump_policy_del(&s_stimulation_obj->head);
-    /// 删除总策略
-    pump_total_policy_deint(s_stimulation_obj);
-    return 0;
-}
-
-int stimulation_mode_parameter_init(motor_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_INT(thiz);
+    const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_STIMULATION_MODE);
+    EXCEPTION_CHECK_INT(cfg);
     motor_policy_node_t *current_policy = NULL;
     motor_policy_node_t *new_policy = NULL;
     motor_timed_policy_node_t *current_time_policy = NULL;
     motor_timed_policy_node_t *new_time_policy = NULL;
-    const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_STIMULATION_MODE);
-    EXCEPTION_CHECK_INT(cfg);
 
     s_stimulation_obj = pump_total_policy_init(cfg[0]);
     current_time_policy = &s_stimulation_obj->head;
@@ -69,7 +56,7 @@ int stimulation_mode_parameter_init(motor_manager_context_t *thiz)
             new_time_policy = pump_time_policy_init(cfg[1]);
             if (new_time_policy == NULL) {
                 LOGE("add time policy failed !!!");
-                break;
+                goto ERROR_EXIT;
             }
             pump_time_policy_add(current_time_policy, new_time_policy);
             current_time_policy = new_time_policy;
@@ -82,7 +69,7 @@ int stimulation_mode_parameter_init(motor_manager_context_t *thiz)
         new_policy = pump_policy_init(cfg[i]);
         if (new_policy == NULL) {
             LOGE("add policy failed !!!");
-            break;
+            goto ERROR_EXIT;
         }
         current_time_policy->sub_policy_count++; /// 子策略个数统计
         pump_policy_add(current_policy, new_policy);
@@ -90,7 +77,7 @@ int stimulation_mode_parameter_init(motor_manager_context_t *thiz)
     return 0;
 
 ERROR_EXIT:
-    stimulation_mode_parameter_deinit();
+    breast_pump_mode_parameter_deinit(s_stimulation_obj);
     return -1;
 }
 

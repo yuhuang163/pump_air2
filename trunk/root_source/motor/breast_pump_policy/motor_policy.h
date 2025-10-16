@@ -1,7 +1,6 @@
 #ifndef __MOTOR_POLICY_H__
 #define __MOTOR_POLICY_H__
 
-#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -197,7 +196,7 @@ typedef void (*breast_pump_policy_handler_cb_ptr)(void *user_data);
 
 
 struct motor_manager_context;
-typedef int (*breast_pump_policy_init_func)(struct motor_manager_context *ctx);
+typedef int (*breast_pump_policy_init_func)(void);
 typedef const motor_policy_manager_t *(*get_policy_obj_func)(void *user_data);
 typedef void (*add_breast_pump_policy_fptr)(list_head_t *head, const char *name, int breast_pump_mode, 
     void *user_data, breast_pump_policy_init_func init_cb, get_policy_obj_func policy_cb);

@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "root_common_api.h"
-#include "breast_pump_policy.h" // IWYU pragma: keep
 #include "motor_manager.h" // IWYU pragma: keep
 
 /*
@@ -42,7 +41,9 @@ static void motor_play_work_thread(void *args)
         LOG_MOTOR("running timestamp: %ld, id: %d", task_para.timestamp, task_para.play_mask_id);
         set_thread_running(thd, true);
         if (pm->acquire_wakelock(MOTOR_PLAY_THD_WAKELOCK, (MOTOR_PLAY_WAKELOCK_TIMEOUT)) == 0) {
-            breast_pump_mode_policy_handler(motor_obj, &task_para);
+            if (motor_obj->hook && motor_obj->hook->mode_policy_handler) {
+                motor_obj->hook->mode_policy_handler(motor_obj, &task_para);
+            }
         } else {
             LOGE("acquire wakelock fail");
         }
@@ -145,22 +146,12 @@ static void on_motor_broadcast_receiver(broadcast_mask_id_t id, void *context, i
     }
 }
 
-static void on_sensor_data_motor_callback(void *user_data, uint8_t *data, int data_len)
-{
-
-}
-
 static int on_post_motor_init(void *ptr)
 {
     motor_manager_context_t *thiz = (motor_manager_context_t *)ptr;
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     thiz->priv.pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     thiz->priv.motor_dev = pbus->find_device(ID_DEVICE_MOTOR);
-
-    /// 钩子参数初始化
-    if (thiz->hook && thiz->hook->on_post_init_route) {
-        thiz->hook->on_post_init_route(thiz);
-    }
 
     /// 注册广播监听.
     thiz->priv.m_bdc.context = thiz;
@@ -173,9 +164,10 @@ static int on_post_motor_init(void *ptr)
     thiz->priv.m_bdc.receiver_cb = on_motor_broadcast_receiver;
     register_broadcast_receiver(&thiz->priv.m_bdc);
 
-    /// 注册sensor数据.
-    sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
-    sensor->add_sensor_evt_lisenser(thiz, F_SENSOR_EVT_POLLING, 1, on_sensor_data_motor_callback);
+    /// 钩子参数初始化
+    if (thiz->hook && thiz->hook->on_post_init_route) {
+        thiz->hook->on_post_init_route(thiz);
+    }
 
     MUTEX_INIT(&thiz->priv.motor_play_thd.lock_id, m_motor_play_lock);
     RUN_NEW_THREAD(&thiz->priv.motor_play_thd, "motor_play_thd", motor_play_work_thread, 

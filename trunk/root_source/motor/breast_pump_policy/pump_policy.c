@@ -130,6 +130,11 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_nod
     memset(&info->state, 0, sizeof(motor_policy_state_t));
     memcpy(&info->config, &policy->core.config, sizeof(suction_policy_config_t));
     memcpy(&map_para, &policy->core.mapping, sizeof(suction_strategy_mapping_t));
+    /// 空闲模式，吸力设定为0
+    if (map_para.mode_type == SUCTION_MODE_IDLE) {
+        memset(&info->parameters, 0, sizeof(suction_parameters_t));
+        return;
+    }
     /// 用户设定力度与频率(速度)策略
     pump_user_policy_update(thiz, &map_para); 
     /// 通过map参数获取吸力参数

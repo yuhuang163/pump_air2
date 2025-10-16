@@ -18,9 +18,10 @@ extern "C" {
 * 马达策略执行动作
 */
 typedef enum {
-    MOTOR_POLICY_START = 0,             /// 初始化启动
-    MOTOR_POLICY_CONTINUE = 1,          /// 继续运行(同一个模式下)
-    MOTOR_POLICY_CHANGE_MODE = 2,       /// 切换模式运行
+    MOTOR_POLICY_IDLE,
+    MOTOR_POLICY_START,             /// 初始化启动
+    MOTOR_POLICY_CONTINUE,          /// 继续运行(同一个模式下)
+    MOTOR_POLICY_CHANGE_MODE,       /// 切换模式运行
     MOTOR_POLICY_ACTION_MAX
 } motor_policy_action_e;
 
@@ -106,7 +107,11 @@ typedef struct motor_manager_context {
         /// 马达接收广播路由
         int (*on_motor_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
         /// 马达参数生成器
-        int (*generate_motor_para)(int mode, void *user_data, int data_size);
+        int (*generate_motor_para)(struct motor_manager_context *ctx, int mode, void *user_data, int data_size);
+        /// 策略启动
+        void (*motor_policy_prepare)(struct motor_manager_context *thiz, uint8_t id, uint8_t action);
+        /// 策略处理回调
+        int (*mode_policy_handler)(struct motor_manager_context *thiz, motor_task_para_t *play_para);
     } *hook;
 
 } motor_manager_context_t;
