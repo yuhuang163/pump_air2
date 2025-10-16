@@ -7,17 +7,18 @@ extern "C" {
 
 
 /*******************************************************************************
- * Include files
- ******************************************************************************/
+* Include files
+******************************************************************************/
 #include "root_common_api.h"
 
 /**@brief Firmware information define*/
 
 /*
- * GLOBAL FUNCTION DECLARATION
- *****************************************************************************************
- */
- void register_motor_hook(motor_manager_context_t *ctx);
+* GLOBAL FUNCTION DECLARATION
+*****************************************************************************************
+*/
+void register_motor_hook(motor_manager_context_t *ctx);
+void register_sensor_hook(sensor_manager_context_t *ctx);
 #ifdef __cplusplus
 }
 #endif

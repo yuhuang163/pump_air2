@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-// device
+/// device
 #define IS_SUPPORT_DEVICE_UART                           (1)
 #define IS_SUPPORT_DEVICE_IRQ                            (1)
 #define IS_SUPPORT_DEVICE_FLASH                          (1)
@@ -14,19 +14,19 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_POWER                          (1)
 #define IS_SUPPORT_DEVICE_PMU                            (1)
 #define IS_SUPPORT_DEVICE_BATTERY                        (1)
-#define IS_SUPPORT_DEVICE_IMU                            (1)
+#define IS_SUPPORT_DEVICE_IMU                            (0)
+#define IS_SUPPORT_DEVICE_FSENSOR                        (0)
+#define IS_SUPPORT_DEVICE_PRESSURE_KEY                   (0)
 #define IS_SUPPORT_DEVICE_AIR_PRESSURE                   (1)
 #define IS_SUPPORT_DEVICE_MOTOR                          (1)
 #define IS_SUPPORT_DEVICE_LED                            (1)
 #define IS_SUPPORT_DEVICE_AUDIO                          (0)
 #define IS_SUPPORT_DEVICE_LCD                            (1)
-#define IS_SUPPORT_DEVICE_FSENSOR                        (1)
-#define IS_SUPPORT_DEVICE_PRESSURE_KEY                   (0)
 #define IS_SUPPORT_DEVICE_BLE                            (0)
 #define IS_SUPPORT_DEVICE_FS                             (0)
 #define IS_SUPPORT_DEVICE_WIFI                           (0)
 
-// module
+/// module
 #define IS_SUPPORT_LOG_OUT                               (1)
 #define IS_SUPPORT_LOG_COLOR                             (0)
 #define IS_SUPPORT_MODULE_PBUS                           (1)
@@ -36,7 +36,7 @@ extern "C" {
 #define IS_SUPPORT_MODULE_TIME_SYSTEM                    (1)
 #define IS_SUPPORT_MODULE_WM                             (0)
 #define IS_SUPPORT_MODULE_KEY_INPUT                      (0)
-#define IS_SUPPORT_MODULE_SENSOR                         (0)
+#define IS_SUPPORT_MODULE_SENSOR                         (1)
 #define IS_SUPPORT_MODULE_BLE                            (0)
 #define IS_SUPPORT_MODULE_OTA                            (0)
 #define IS_SUPPORT_MODULE_MISC                           (1)
@@ -49,12 +49,12 @@ extern "C" {
 #define IS_SUPPORT_MODULE_DATA_BURIAL                    (0)
 #define IS_SUPPORT_WEEKLY_STAT                           (0)
 
-// function
+/// function
 #define IS_SUPPORT_MOTOR_SHAKE                           (1)
 #define IS_USE_GYRO_ONLINE_CALI                          (1) 
 #define IS_SUPPORT_IMU_FIFO                              (0)
 
-// test
+/// test
 #define IS_SUPPORT_PRESSURE_TEST                         (1)
 
 #ifdef __cplusplus
