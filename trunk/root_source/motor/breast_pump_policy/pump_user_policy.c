@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include "pump_table.h"
 #include "breast_pump_policy.h"
 
 /*
@@ -30,7 +29,7 @@
  * GLOBAL FUNCTION DEFINITIONS
  *****************************************************************************************
  */
-int pump_compensation_policy_update(struct motor_manager_context *thiz, motor_policy_info_t *info) 
+int pump_user_policy_update(struct motor_manager_context *thiz, suction_strategy_mapping_t *map) 
 { 
     return 0;
 }

@@ -27,7 +27,7 @@ static const motor_pwm_cfg_t motor_pwm_cfg[] = {
     {HAL_PWM1_ID_3, hal_iomux_set_pwm7}, // P37
 };
 
-static uint8_t motor_pwm_status[PWM_ID_MAX];
+static uint8_t motor_pwm_status[MOTOR_PWM_ID_MAX];
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -62,8 +62,8 @@ int bsp_motor_deinit(void)
 int bsp_motor_parameter_set(void *args)
 {
     uint32_t *tmp = (uint32_t *)args;
-    pwm_control_id_e pwm_id = (pwm_control_id_e )tmp[0];
-    if (pwm_id >= PWM_ID_MAX) {
+    motor_pwm_control_id_e pwm_id = (motor_pwm_control_id_e )tmp[0];
+    if (pwm_id >= MOTOR_PWM_ID_MAX) {
         LOGE("pwm_id is out of range: %d", pwm_id);
         return -1;
     }
@@ -83,24 +83,30 @@ int bsp_motor_parameter_set(void *args)
 
 int bsp_motor_stop(void *args)
 {
-    pwm_control_id_e pwm_id = *(pwm_control_id_e *)args;
-    if (pwm_id >= PWM_ID_MAX) {
-        return -1;
+    int ret = 0;
+    motor_pwm_control_id_e pwm_id = *(motor_pwm_control_id_e *)args;
+    if (pwm_id >= MOTOR_PWM_ID_MAX) {
+        for (uint8_t i =0; i < MOTOR_PWM_ID_MAX; i++) {
+            ret |= hal_pwm_disable(motor_pwm_cfg[i].id);
+            motor_pwm_status[i] = 0;
+        }
+        return ret;
     }
-    int ret = hal_pwm_disable(motor_pwm_cfg[pwm_id].id);
+    ret = hal_pwm_disable(motor_pwm_cfg[pwm_id].id);
     motor_pwm_status[pwm_id] = 0;
     return ret;
 }
 
 int bsp_motor_start(void *args)
 {
+    bsp_motor_parameter_set(args);
     return BSP_OK;
 }
 
 int bsp_motor_is_running(void *args)
 {
-    pwm_control_id_e pwm_id = *(pwm_control_id_e *)args;
-    if (pwm_id >= PWM_ID_MAX) {
+    motor_pwm_control_id_e pwm_id = *(motor_pwm_control_id_e *)args;
+    if (pwm_id >= MOTOR_PWM_ID_MAX) {
         return -1;
     }
     return motor_pwm_status[pwm_id] > 0 ? 1 : 0;

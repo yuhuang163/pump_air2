@@ -32,12 +32,13 @@ typedef enum {
  * @brief 描述电机控制类型
 */
 typedef enum {
-    PWM_PUMP_1 = 0,
-    PWM_PUMP_2,
-    PWM_RELIEF_VALVE_1,
-    PWM_RELIEF_VALVE_2,
-    PWM_ID_MAX,
-} pwm_control_id_e;
+    MOTOR_PWM_PUMP_1 = 0,
+    MOTOR_PWM_PUMP_2,
+    MOTOR_PWM_VALVE_1,
+    MOTOR_PWM_VALVE_2,
+    MOTOR_PWM_ID_MAX,
+    MOTOR_PWM_ALL_ID,
+} motor_pwm_control_id_e;
 
 /**
  * @brief 描述pwm配置

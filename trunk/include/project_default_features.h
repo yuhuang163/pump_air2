@@ -79,18 +79,18 @@ extern "C" {
 #endif
 
 /// 吸乳模式参数长度，长吸
-#ifndef BREASTFEEDING_MODE_LEN
-#define BREASTFEEDING_MODE_LEN                                      (1)
+#ifndef PUMP_MODE_LEN
+#define PUMP_MODE_LEN                                      (1)
 #endif
 
 /// 混合模式参数长度，短吸 + 长吸
-#ifndef HYBRID_MODE_LEN
-#define HYBRID_MODE_LEN                                             (1 * 2)
+#ifndef MIX_MODE_LEN
+#define MIX_MODE_LEN                                             (1 * 2)
 #endif
 
 /// 个性化模式默认参数长度，按摩 + 吸乳
-#ifndef PERSONALIZED_MODE_LEN 
-#define PERSONALIZED_MODE_LEN                                       (1 + 1)
+#ifndef CUSTOM_MODE_LEN 
+#define CUSTOM_MODE_LEN                                       (1 + 1)
 #endif
 
 /// PP追奶模式参数长度 吸乳 + 停顿
@@ -99,17 +99,18 @@ extern "C" {
 #endif
 
 /// 2+8奶量提升模式参数长度 吸乳 + 停顿
-#ifndef UPGRADE_MODE_LEN 
-#define UPGRADE_MODE_LEN                                            (2 * 1)
+#ifndef MILK_BOOST_MODE_LEN 
+#define MILK_BOOST_MODE_LEN                                            (2 * 1)
 #endif
 
 /// 开奶模式 吸乳 + 停顿
-#ifndef MILK_INIT_MODE_LEN 
-#define MILK_INIT_MODE_LEN                                          (2 * 1)
+#ifndef LACTATION_START_MODE_LEN 
+#define LACTATION_START_MODE_LEN                                          (2 * 1)
 #endif
 
-#ifndef OVER_PRESSURE_MODE_LEN
-#define OVER_PRESSURE_MODE_LEN                                      (1)
+/// 吸奶器泵数据
+#ifndef BREAST_PUMP_NUM
+#define BREAST_PUMP_NUM                                             (2)
 #endif
 
 /**
