@@ -2,9 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "persist_storage.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "pump_mode_default_config.h"
+#include "breast_pump_policy.h"
 
 /*
 * DEFINES
@@ -51,3 +51,15 @@ const motor_policy_cfg_t *get_breast_pump_mode_para (int mode)
     return NULL;
 }
 
+int breast_pump_mode_parameter_deinit(motor_policy_manager_t *obj)
+{
+    EXCEPTION_CHECK_INT(obj);
+    /// 删除定时策略
+    pump_time_policy_empty(obj);
+    /// 删除默认定时策略下的子策略
+    pump_policy_del(&obj->head);
+    /// 删除总策略
+    pump_total_policy_deint(obj);
+
+    return 0;
+}

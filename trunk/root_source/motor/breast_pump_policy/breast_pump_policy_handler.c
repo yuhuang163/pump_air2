@@ -113,7 +113,7 @@ static void negative_pressure_release(struct motor_manager_context *thiz)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void breast_pump_policy_start(struct motor_manager_context *thiz, uint8_t id, uint8_t action)
+void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t id, uint8_t action)
 {
     thiz->priv.m_info[id].breast_pump_mode = thiz->priv.pump_ctx->get_breast_pump_mode();
     const motor_policy_manager_t *policy_obj = breast_pump_mode_policy_get(thiz,

@@ -39,6 +39,9 @@ int pump_user_policy_update(struct motor_manager_context *thiz, suction_strategy
  
 /// 吸奶策略处理
 int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, struct motor_task_para *play_para);
+
+/// 吸奶策略准备
+void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t id, uint8_t action);
 #ifdef __cplusplus
 }
 #endif
