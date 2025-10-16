@@ -2,8 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common_api.h"
-#include "sensor_manager.h"
+#include "root_common_api.h" // IWYU pragma: keep
+#if IS_SUPPORT_DEVICE_AIR_PRESSURE
+#include "sensor_manager.h" 
 #include "air_pressure_module.h"
 
 /*
@@ -39,7 +40,7 @@ void dispatch_air_pressure_client(sensor_wrapper_data_t *sensor_data, sensor_evt
     // }
 }
 
-void force_sensor_polling_handler(sensor_wrapper_data_t *sensor_data)
+void air_pressure_polling_handler(sensor_wrapper_data_t *sensor_data)
 {
     // EXECUTE_EVERY_X_DELAY(AIR_PRESSURE_POLLING_PERIOD, {
     //     if (thiz->priv.air_pressure.dev) {
@@ -49,9 +50,10 @@ void force_sensor_polling_handler(sensor_wrapper_data_t *sensor_data)
     // });
 }
 
-void on_perpare_force_sensor_init(sensor_manager_context_t *ptr)
+void on_perpare_air_pressure_init(sensor_manager_context_t *ptr)
 {
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     ptr->priv.air_pressure.dev = pbus->find_device(ID_DEVICE_AIR_PRESSURE);
     thiz = ptr;
 }
+#endif

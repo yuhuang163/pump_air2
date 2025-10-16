@@ -108,7 +108,6 @@ typedef struct {
 typedef struct {
     imu_wrapper_data_t imu_data;
     f_sensor_data_t force_raw_data;
-    uint8_t fsensor_pressure_level; /// force_sensor_press_level_e
 } sensor_wrapper_data_t;
 
 /// ble事件类型

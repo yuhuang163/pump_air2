@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-
 /*******************************************************************************
  * Include files
  ******************************************************************************/
@@ -58,6 +57,15 @@ typedef struct sensor_manager_context {
     void (*add_sensor_evt_lisenser)(void *user_data, int report_type, int step, on_sensor_evt_data_cb_fptr lisenser);
     void (*remove_sensor_evt_lisenser)(on_sensor_evt_data_cb_fptr lisenser);
     int (*is_on_running)(void);
+    /// 外部钩子函数.
+    struct __sensor_manager_hook {
+        int (*on_perpare_init_route)(struct sensor_manager_context *ctx);
+        int (*on_post_init_route)(struct sensor_manager_context *ctx);
+        /// 广播路由
+        int (*on_sensor_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
+        /// 线程路由
+        int (*sensor_thread_route)(struct sensor_manager_context *ctx, sensor_wrapper_data_t *sensor_data);
+    } *hook;
     #if IS_SUPPORT_DEVICE_IMU
     imu_module_context_t imu;
     #endif
