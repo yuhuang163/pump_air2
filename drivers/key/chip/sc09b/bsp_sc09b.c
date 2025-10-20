@@ -138,7 +138,7 @@ static void key_device_thread(void *arg)
     uint32_t timestamp = 0;
     while (1) {
         MSG_QUEUE_RECV(s_key_device_thd.msg_id, &msg, OS_WAIT_FOREVER);
-        timestamp = get_timestamp_ms(0);
+        timestamp = get_timestamp();
         sc09b_touch_key_scan();
         LOG_PBUS("key release time:", get_timestamp_ms(timestamp));
     }

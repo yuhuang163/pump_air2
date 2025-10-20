@@ -101,7 +101,7 @@ typedef struct {
 
 typedef struct {
     uint8_t loop_num;     /// 循环次数
-    uint16_t loop_intv;  /// 循环间隔
+    uint16_t sleep_time;  /// 循环间隔
     uint16_t hold_time;   /// 吸力保持时间，单位ms
 } suction_policy_config_t;
 
@@ -169,7 +169,7 @@ typedef struct motor_policy_node {
 /// 吸乳马达定时策略（追奶模式）
 typedef struct motor_timed_policy_node {
     uint8_t sub_policy_count;             /// 子策略参数数量
-    uint16_t duration_seconds;            /// 当前定时策略持续时间，单位s
+    uint32_t duration_seconds;            /// 当前定时策略持续时间，单位s
     motor_policy_node_t policy;           /// 策略参数
     struct motor_timed_policy_node *next; /// 下一个定时策略
 } motor_timed_policy_node_t;
@@ -184,9 +184,9 @@ typedef struct motor_policy_manager {
 typedef struct {
     int breast_pump_mode;
     motor_policy_manager_t *manager;
-    motor_timed_policy_node_t *current_timed_policy;
-    motor_policy_node_t *current_policy;
-    motor_policy_info_t current_info;    /// 当前吸力信息，有多个策略综合生成
+    motor_timed_policy_node_t *timed_policy;
+    motor_policy_node_t policy[BREAST_PUMP_NUM];
+    motor_policy_info_t info[BREAST_PUMP_NUM];    /// 当前吸力信息，有多个策略综合生成
     uint32_t timed_policy_start_time;  /// 时间策略开始时间，单位ms
     uint32_t manager_start_time; /// 总策略开始时间，单位ms
 } motor_policy_runtime_t;

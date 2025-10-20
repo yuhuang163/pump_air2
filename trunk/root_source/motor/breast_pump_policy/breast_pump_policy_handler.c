@@ -27,7 +27,7 @@
 */
 static const motor_policy_manager_t *breast_pump_mode_policy_get(struct motor_manager_context *thiz, int breast_pump_mode)
 {
-    list_head_t *head = &thiz->priv.breast_pump_policy_list;
+    list_head_t *head = &thiz->priv.policy_list;
     if (head->next != NULL) {
         LIST_FOR_EACH(pos, head) {
             breast_pump_policy_node_t *node = CONTAINER_OF(pos, breast_pump_policy_node_t, list);
@@ -56,13 +56,11 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
             args[1] = (uint32_t)&motor;
             DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, args);
             info->state.n_pressure_flag = 1;
-            info->state.start_time = get_timestamp_ms(0);
             break;
 
         case MOTOR_ACTION_PUMP_OFF:
-            args[0] = MOTOR_PWM_ALL_ID;
+            args[0] = MOTOR_PWM_PUMP_1 + id;
             DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
-            info->state.start_time = get_timestamp_ms(0);
             break;
 
         case MOTOR_ACTION_VALVE_ON:
@@ -71,76 +69,92 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
             args[0] = MOTOR_PWM_VALVE_1 + id;
             args[1] = (uint32_t)&motor;
             DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, args);
-            info->state.start_time = get_timestamp_ms(0);
             break;
 
         case MOTOR_ACTION_VALVE_OFF:
-            args[0] = MOTOR_PWM_ALL_ID;
+            args[0] = MOTOR_PWM_VALVE_1 + id;
             DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
             info->state.n_pressure_flag = 0;
-            info->state.start_time = get_timestamp_ms(0);
             break;
 
         default:
             break;
 
     }
+    info->state.action = MOTOR_ACTION_IDLE;
 }
 
-static void negative_pressure_release(struct motor_manager_context *thiz)
+
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+void negative_pressure_release(struct motor_manager_context *thiz)
 {
     motor_para_t motor = {
         .un.pwm.duty = BREAST_PUMP_VALVE_DUTY,
         .un.pwm.freq = BREAST_PUMP_VALVE_FREQ
     };
     uint32_t args[2] = {0, (uint32_t)&motor};
+    LOG_MOTOR("-->step 1");
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         args[0] = i;
         DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
-        msleep(5);
+    }
+    msleep(5);
+    LOG_MOTOR("-->step 2");
+    for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+        args[0] = i;
         DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, args);
     }
-
     msleep(100);
-    
+    LOG_MOTOR("-->step 3");
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         args[0] = i;
         DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
     }
 }
 
-/*
-* GLOBAL FUNCTION DEFINITIONS
-*****************************************************************************************
-*/
-void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t id, uint8_t action)
+void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t action)
 {
-    thiz->priv.m_info[id].breast_pump_mode = thiz->priv.pump_ctx->get_breast_pump_mode();
+    motor_policy_runtime_t *body = &thiz->priv.runtime;
+    body->breast_pump_mode = thiz->priv.pump_ctx->get_breast_pump_mode();
     const motor_policy_manager_t *policy_obj = breast_pump_mode_policy_get(thiz,
-         thiz->priv.m_info[id].breast_pump_mode);
+        body->breast_pump_mode);
+        
     EXCEPTION_CHECK_VOID(policy_obj);
-    memset(&thiz->priv.m_info[id], 0, sizeof(motor_policy_runtime_t));
-    thiz->priv.m_info[id].manager = (motor_policy_manager_t *)policy_obj;
+    body->timed_policy_start_time = get_timestamp();
+    body->manager_start_time = body->timed_policy_start_time;
+    body->manager = (motor_policy_manager_t *)policy_obj;
+    body->timed_policy = &body->manager->head;
+    for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+        memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
+        pump_policy_info_reset(thiz, &body->policy[i], &body->info[i]);
+    }
 }
 
 int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_task_para_t *play_para)
 {
     int exit_code = EXIT_REASON_PLAY_COMPLETED;
-    motor_policy_runtime_t *m_info = thiz->priv.m_info;
+    motor_policy_runtime_t *runtime = &thiz->priv.runtime;
 
     LOG_MOTOR("===enter===");
+    EXCEPTION_CHECK_INT(runtime->manager);
     negative_pressure_release(thiz);
     while (1) {
         if (!thiz->is_can_play_now()) {
             exit_code = EXIT_REASON_INTERRUPT;
             break;
         }
-
-        for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
-            pump_time_policy_update(thiz, &m_info[i]);  ///  时间策略
-            pump_policy_update(&m_info[i].current_info);       /// 子策略
-            update_para_to_motor_device(thiz, i, &m_info[i].current_info);
-        }
+        
+        pump_time_policy_update(thiz, runtime);  ///  时间策略
+        for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {   
+            if (runtime->policy[i].core.mapping.mode_type == SUCTION_MODE_IDLE) {
+                continue;
+            } 
+            pump_policy_update(&runtime->info[i]);    
+            update_para_to_motor_device(thiz, i, &runtime->info[i]);   
+        }    
         msleep(10);
     }
     negative_pressure_release(thiz);

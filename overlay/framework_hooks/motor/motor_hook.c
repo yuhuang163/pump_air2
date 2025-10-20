@@ -27,7 +27,7 @@
 */
 static int breast_pump_policy_register(struct motor_manager_context *thiz, add_breast_pump_policy_fptr add_policy_cb)
 {
-    list_head_t *head = &thiz->priv.breast_pump_policy_list;
+    list_head_t *head = &thiz->priv.policy_list;
 
     add_policy_cb(head, "stimulation", BREAST_PUMP_STIMULATION_MODE, NULL,
         stimulation_mode_parameter_init, stimulation_mode_policy_get);
@@ -65,7 +65,7 @@ static int breast_pump_policy_init(struct motor_manager_context *ctx)
 {
     int ret = 0;
     breast_pump_policy_register(ctx, add_new_breast_pump_policy);
-    list_head_t *head = &ctx->priv.breast_pump_policy_list;
+    list_head_t *head = &ctx->priv.policy_list;
     if (head->next != NULL) {
         LIST_FOR_EACH(pos, head) {
             breast_pump_policy_node_t *node = CONTAINER_OF(pos, breast_pump_policy_node_t, list);
@@ -95,7 +95,7 @@ static int generate_motor_para(struct motor_manager_context *ctx, int mode, void
     uint8_t stop_flag = 0;
     int ret = -1;
     /// 替换新参数前检测当前模式参数是否正在使用
-    if (ctx->priv.m_info[0].breast_pump_mode == mode && ctx->priv.motor_state != MOTOR_POLICY_IDLE) {
+    if (ctx->priv.runtime.breast_pump_mode == mode && ctx->priv.motor_state != MOTOR_POLICY_IDLE) {
         ctx->stop_motor();
         stop_flag = 1;
     }

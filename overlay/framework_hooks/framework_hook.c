@@ -29,14 +29,30 @@
 // hook点入口.
 void framework_extra_hook(void)
 {
+    /// 注册存储钩子.
+    // storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    // CHECK_IF_VALID(storage_ctx, {
+    //     register_storage_hook(storage_ctx);
+    // });
+
+    /// 注册电机钩子.
     motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     CHECK_IF_VALID(motor_ctx, {
         register_motor_hook(motor_ctx);
     });
 
+    /// 注册传感器钩子.
     sensor_manager_context_t *sensor_ctx = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     CHECK_IF_VALID(sensor_ctx, {
         register_sensor_hook(sensor_ctx);
     });
+
+    /// 注册泵奶钩子.
+    // breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    // CHECK_IF_VALID(pump_ctx, {
+    //     register_breast_pump_hook(pump_ctx);
+    // });
+
+
 
 }

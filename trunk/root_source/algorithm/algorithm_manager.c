@@ -106,7 +106,7 @@ static int on_post_algo_init(void *ptr)
     return 0;
 }
 
-static algo_breast_pump_data_t *get_breast_pump_info(int index)
+static pump_result_info_t *get_breast_pump_info(int index)
 {
     if (index < ALGO_BREAST_PUMP_DATA_MAX) {
         return &algo_obj->priv.algo_breast_pump[index];

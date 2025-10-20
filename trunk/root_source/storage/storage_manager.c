@@ -5,7 +5,6 @@
 #include "root_common.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "storage_manager.h" // IWYU pragma: keep
-#include "persist_data_internal.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -43,7 +42,7 @@ static int put_store_val(persist_store_id_e id, int arg1, int arg2, const void *
     MUTEX_LOCK(thiz->priv.storage_rw_lock);
     for (int i = 0; i < list_len; i++) {
         if (list[i].store_id == id) {
-            ret = list[i].store_process(&args);
+            ret = list[i].store_process(args);
             break;
         }
     }
@@ -68,7 +67,7 @@ static int get_store_val(persist_store_id_e id, int arg1, int arg2,  void *val_o
     MUTEX_LOCK(thiz->priv.storage_rw_lock);
     for (int i = 0; i < list_len; i++) {
         if (list[i].store_id == id) {
-            ret = list[i].store_process(&args);
+            ret = list[i].store_process(args);
             break;
         }
     }
@@ -92,7 +91,7 @@ static int del_store_val(persist_store_id_e id, int arg1, int arg2,  const void 
     EXCEPTION_CHECK_INT(list);
     for (int i = 0; i < list_len; i++) {
         if (list[i].store_id == id) {
-            ret = list[i].store_process(&args);
+            ret = list[i].store_process(args);
             break;
         }
     }
@@ -117,7 +116,7 @@ static int get_store_ram_val(persist_store_id_e id, int arg1, int arg2, void *va
     MUTEX_LOCK(thiz->priv.storage_rw_lock);
     for (int i = 0; i < list_len; i++) {
         if (list[i].store_id == id) {
-            ret = list[i].store_process(&args);
+            ret = list[i].store_process(args);
             break;
         }
     }
@@ -141,7 +140,7 @@ static void put_store_ram_val(persist_store_id_e id, int arg1, int arg2, const v
     MUTEX_LOCK(thiz->priv.storage_rw_lock);
     for (int i = 0; i < list_len; i++) {
         if (list[i].store_id == id) {
-            list[i].store_process(&args);
+            list[i].store_process(args);
             break;
         }
     }
@@ -150,14 +149,15 @@ static void put_store_ram_val(persist_store_id_e id, int arg1, int arg2, const v
 
 static void on_storage_save_receive(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
-    on_storage_broadcast_route(id, context, arg1, arg2, pdata);
+    if (thiz->hook && thiz->hook->on_storage_broadcast_route) {
+        thiz->hook->on_storage_broadcast_route(id, context, arg1, arg2, pdata);
+    }
 }
  
 static int on_post_storage_init(void *ptr)
 {
     storage_manager_context_t *ctx = ptr;
-    /// 初始化持久化存储
-    on_post_persist_storage_init(ctx);
+
     /// 注册存储更新广播.
     ctx->priv.mbdc = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.mbdc->context = ctx;
@@ -170,7 +170,11 @@ static int on_post_storage_init(void *ptr)
     #endif
     ctx->priv.mbdc->receiver_cb = on_storage_save_receive;
     register_broadcast_receiver(ctx->priv.mbdc);
-
+    
+    /// 钩子参数初始化
+    if (ctx->hook && ctx->hook->on_post_init_route) {
+        ctx->hook->on_post_init_route(ctx);
+    }
     return 0;
 }
 
@@ -179,7 +183,9 @@ static int on_perpare_storage_init(void *self)
     storage_manager_context_t *st = self;
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     st->priv.db_dev = pbus->find_device(ID_DEVICE_DB);
-    on_perpare_persist_storage_init(st);
+    if (st->hook && st->hook->on_perpare_init_route) {
+        st->hook->on_perpare_init_route(st);
+    }
     return 0;
 }
 
@@ -292,7 +298,6 @@ void *register_module_for_storage_new(list_head_t *list_head)
     ptr->get_persist_sys_info = get_persist_sys_info;
     ptr->get_persist_ver_info = get_persist_ver_info;
     ptr->get_factory_data = get_factory_data;
-    register_persist_storage_ctx(ptr);
  
     MUTEX_INIT(&ptr->priv.db_rw_lock, db_rw_lock);
     MUTEX_INIT(&ptr->priv.storage_rw_lock, storage_rw_lock);

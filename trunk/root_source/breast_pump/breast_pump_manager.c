@@ -45,7 +45,7 @@ static void notify_breast_pump_completed(void)
     }
 
     if (need_save) {
-        // algo_breast_pump_data_t *pumping_info = algo->get_breast_pump_info(ALGO_BREAST_PUMP_DATA_PUMPING);
+        // pump_result_info_t *pumping_info = algo->get_breast_pump_info(ALGO_BREAST_PUMP_DATA_PUMPING);
         // USER_DATA_TO_PRIV_DATA(pumping_info, pdata);
         // SEND_BROADCAST_ARGS4_EXTRA(ID_BROADCAST_SYS_PERSIST_INFO_SAVE, 1, pdata, sizeof(pdata));
         // LOG_PMP("save success, work valid time: %lu", pumping_info->work_valid_time);
@@ -80,7 +80,7 @@ static void start_breast_pump_work(void)
 
     /// 启动计时器
     STOP_TIMER(ctx->priv.breast_pump_work_timer);
-    START_TIMER(ctx->priv.breast_pump_work_timer, BREAST_PUMP_WORK_STEP_TIME_MS);
+    START_TIMER(ctx->priv.breast_pump_work_timer, PUMP_WORK_STEP_TIME_MS);
 }
 
 static void stop_breast_pump_work(int breast_pump_state)
@@ -105,11 +105,6 @@ static void breast_pump_work_timer_cb(os_timer_id *timer)
     uint8_t msg = 0;
 
     MSG_QUEUE_SEND(breast_pump_obj->priv.breast_pump_thd.msg_id, &msg, 0);
-}
-
-static void convent_algo_breast_pump_to_ui_breast_pump_result(algo_breast_pump_data_t *algo_brush)
-{
-
 }
 
 static int breast_pump_is_working(void)
@@ -318,12 +313,9 @@ static void breast_pump_remove_result_listener(on_breast_pump_result_cb_ptr cb)
 
 static void make_progress(void)
 {
-    int notify_id = -1;
     struct __breast_pump_hook *hook = breast_pump_obj->hook;
-
     if (hook && hook->make_progress_route) {
-        // notify_id = hook->make_progress_route(ctx, algo_brush, ctx->get_breast_pump_mode(), ctx->get_breast_pump_level());
-        // convent_algo_breast_pump_to_ui_breast_pump_result(algo_brush);
+        hook->make_progress_route(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
     }
 }
 

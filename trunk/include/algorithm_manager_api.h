@@ -29,13 +29,13 @@ typedef struct algo_manager_context {
 /// private
     struct __algo_private {
         broadcast_obj_t m_bcd;
-        algo_breast_pump_data_t algo_breast_pump[ALGO_BREAST_PUMP_DATA_MAX];  
+        pump_result_info_t algo_breast_pump[ALGO_BREAST_PUMP_DATA_MAX];  
         int algo_inited;
     } priv;
 
 /// public
     int (*get_version)(void);
-    algo_breast_pump_data_t *(*get_breast_pump_info)(int index);
+    pump_result_info_t *(*get_breast_pump_info)(int index);
     struct __algo_fusion_hook {
         int (*on_sensor_data_cb_route)(struct algo_manager_context *ctx, uint8_t *data, int data_len);
         int (*add_static_calib_cmpl_cb)(void (*cb)(void));

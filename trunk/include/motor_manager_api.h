@@ -83,8 +83,8 @@ typedef struct motor_manager_context {
         struct rt_device_node *motor_dev;
         broadcast_obj_t m_bdc;
         thread_context_t motor_play_thd;  /// 播放线程.
-        list_head_t breast_pump_policy_list; /// 马达各种策略链表头指针.
-        motor_policy_runtime_t m_info[BREAST_PUMP_NUM]; /// 马达各种策略状态.
+        list_head_t policy_list; /// 马达各种策略链表头指针.
+        motor_policy_runtime_t runtime; /// 马达各种策略状态.
         list_head_t policy_handler_list; /// 马达各种策略处理.
         char *interrupt_play_reason;  /// 中断播放标记原因.     
         uint8_t motor_state;          /// 马达状态
@@ -109,7 +109,7 @@ typedef struct motor_manager_context {
         /// 马达参数生成器
         int (*generate_motor_para)(struct motor_manager_context *ctx, int mode, void *user_data, int data_size);
         /// 策略启动
-        void (*motor_policy_prepare)(struct motor_manager_context *thiz, uint8_t id, uint8_t action);
+        void (*motor_policy_prepare)(struct motor_manager_context *thiz, uint8_t action);
         /// 策略处理回调
         int (*mode_policy_handler)(struct motor_manager_context *thiz, motor_task_para_t *play_para);
     } *hook;

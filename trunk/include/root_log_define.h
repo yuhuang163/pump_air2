@@ -50,6 +50,8 @@ int platform_get_tid(void);
 void reset_log_filter(uint32_t filter);
 void init_user_log_filter(void);
 uint32_t get_log_filter(void);
+uint32_t get_timestamp(void);
+uint32_t get_timestamp_ms(uint32_t time_tick);
 
 /// log level define
 typedef enum {
@@ -97,11 +99,11 @@ typedef enum{
 #define IS_FILTER(x) if (g_log_filter & x)
 
 #ifndef FORMAT_LOG_OUT_SYMBOL
-#define FORMAT_LOG_OUT_SYMBOL "[%d][%d]"
+#define FORMAT_LOG_OUT_SYMBOL "[%d][%d][%d]"
 #endif
 
 #ifndef FORMAT_LOG_OUT_OBJ
-#define FORMAT_LOG_OUT_OBJ platform_get_utc_time(), platform_get_tid()
+#define FORMAT_LOG_OUT_OBJ platform_get_utc_time(), get_timestamp_ms(0), platform_get_tid()
 #endif
 
 #define PRINT_FORMAT(letter, format) \

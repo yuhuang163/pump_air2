@@ -104,13 +104,13 @@ void platform_get_build_time(char *build_time)
 
 uint32_t platform_int_lock_global(void)
 {
-    LOGI("platform_int_lock_global");
+    // LOGI("platform_int_lock_global");
     return int_lock_global();
 }
 
 void platform_int_unlock_global(uint32_t pri)
 {
-    LOGI("platform_int_unlock_global: pri = %x", pri);
+    // LOGI("platform_int_unlock_global: pri = %x", pri);
     int_unlock_global(pri);
 }
 
