@@ -117,6 +117,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/storage/factory \
 	-I$(PROJECT_ROOT)/overlay/storage/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
+	-I$(PROJECT_ROOT)/overlay/storage/system \
 	-I$(PROJECT_ROOT)/overlay/storage\
 	-I$(PROJECT_ROOT)/trunk/include \
 	-I$(PROJECT_ROOT)/trunk/extern \
@@ -286,14 +287,17 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/table/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/motor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/storage/system/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \

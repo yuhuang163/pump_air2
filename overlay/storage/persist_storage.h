@@ -1,5 +1,5 @@
-#ifndef __SYSTEM_PERSIST_DATA_H__
-#define __SYSTEM_PERSIST_DATA_H__
+#ifndef __PERSIST_STORAGE_H__
+#define __PERSIST_STORAGE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,11 +10,11 @@ extern "C" {
  * Include files
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
-#include "app_algo.h"
+#include "app_algo.h" // IWYU pragma: keep
 
 #define ROOT_WRITE_INFO_LEN                         64
 #define ROOT_BREAST_PUMP_TIME_VALID                 30000   /// 30s
-#define ROOT_BREAST_PUMP_BODY_DATA_NUM              60      /// 按天存储，每天最多 ROOT_BREAST_PUMP_BODY_DATA_NUM / 7
+#define ROOT_BREAST_PUMP_DATA_BODY_NUM              60      /// 按天存储，每天最多 ROOT_BREAST_PUMP_DATA_BODY_NUM / 7
 #define USER_BIND_UID_LEN                           8
 #define USER_BIND_RANDOM_LEN                        6
 #define USER_BIND_AES_KEY_LEN                       16
@@ -49,9 +49,6 @@ typedef enum {
     BREAST_PUMP_FINISH_REMIND,        /// 吸奶完成提醒
     MODE_CHANGE_REMIND,        /// 模式切换提醒
     BREAST_PUMP_TIMING_REMIND,       /// 泵奶定时提醒
-    ALL_VOICE_SW,              /// 全部语音开关
-    INTERVAL_30S_REMIND,       /// 30S间隔提醒
-    AI_LEARN_SW,               /// AI学习开关
     SYS_STAT_MAX,
 } sys_state_bit_map_e;
 
@@ -139,15 +136,12 @@ typedef struct {
 /// 描述泵奶信息
 typedef struct
 {
-    uint8_t is_remind_area_change;        /// 换区提示
     uint8_t is_remind_mode_change;        /// 模式切换提醒
-    uint8_t is_remind_over_pressure;      /// 过压音频提醒
-    uint8_t is_over_pressure_led;         /// 过压LED提示
-    uint8_t is_remind_breast_pump_finish; /// 泵奶完成提醒
+    uint8_t is_remind_pump_finish;        /// 泵奶完成提醒
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
     // breast_pump_level_info_t level_info;
-    uint16_t breast_pump_time;                  /// 泵奶时长 sys_breast_pumping_time_e 
-} breast_pump_cfg_t;
+    uint16_t pump_time[BREAST_PUMP_MODE_MAX];   /// 泵奶时长,单位s
+} sys_pump_info_t;
 
 /**
  * 语音提醒主题枚举定义
@@ -210,9 +204,6 @@ typedef struct {
     uint8_t sys_ui_style;          /// 系统UI风格
     uint8_t log_switch;            /// 系统UART日志开关
     uint8_t language;              /// 系统语言类型
-    uint8_t sound_mode_onoff;      /// 语音提醒开关.
-    uint8_t microseism_onoff;      /// 微震开关
-    uint8_t ai_mode_onoff;         /// ai 模式开关.
 } sys_config_info_t;
 
 /// 描述系统配置
@@ -220,7 +211,6 @@ typedef struct {
     uint8_t guide_deployed;       /// 向导部署标志
     uint8_t battery_health;       /// 电池健康
     uint32_t log_filter;          /// 日志过滤
-    uint32_t breast_pump_header_life;   /// 泵奶头寿命
     uint32_t sync_sys_time;       /// 保存第一次同步系统时间时 本地经历的最终时间点 用于计算泵奶记录的差值.
 } sys_state_info_t;
 
@@ -228,10 +218,8 @@ typedef struct {
 typedef struct sys_persist_info {
     sys_config_info_t config;
     sys_state_info_t state;
-    breast_pump_cfg_t breast_pump_cfg;
+    sys_pump_info_t pump_info;
     user_bind_info_t bind_info;
-    audio_packet_info_t audio_packet;    /// 语音包
-    theme_packet_info_t theme_packet;    /// 主题包
 } sys_persist_info_t;
 
 /// 描述板子信息
@@ -273,13 +261,8 @@ typedef struct {
     uint8_t head;  
     uint8_t tail;
     uint8_t resv;
-    uint16_t crc[ROOT_BREAST_PUMP_BODY_DATA_NUM + 1];  
+    uint16_t crc[ROOT_BREAST_PUMP_DATA_BODY_NUM + 1];  
 } breast_pump_data_head_t;
-
-/// 泵奶数据体
-typedef struct {
-    algo_breast_pump_data_t body;
-} breast_pump_data_body_t;
 
 #ifdef __cplusplus
 }

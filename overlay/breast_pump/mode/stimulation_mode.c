@@ -41,43 +41,8 @@ const motor_policy_manager_t *stimulation_mode_policy_get(void *user_data)
 int stimulation_mode_parameter_init(void)
 {
     const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_STIMULATION_MODE);
-    EXCEPTION_CHECK_INT(cfg);
-    motor_policy_node_t *current_policy = NULL;
-    motor_policy_node_t *new_policy = NULL;
-    motor_timed_policy_node_t *current_time_policy = NULL;
-    motor_timed_policy_node_t *new_time_policy = NULL;
-
-    s_stimulation_obj = pump_total_policy_init(cfg[0]);
-    current_time_policy = &s_stimulation_obj->head;
-    current_policy = &s_stimulation_obj->head.policy;
-    for (uint8_t i = 1; i < STIMULATION_MODE_LEN; i++) {
-        /// 新增定时策略
-        if (cfg[i].policy_type == MOTOR_TIME_POLICY) {
-            new_time_policy = pump_time_policy_init(cfg[1]);
-            if (new_time_policy == NULL) {
-                LOGE("add time policy failed !!!");
-                goto ERROR_EXIT;
-            }
-            pump_time_policy_add(current_time_policy, new_time_policy);
-            current_time_policy = new_time_policy;
-            current_policy = &current_time_policy->policy;
-            s_stimulation_obj->timed_policy_count++; /// 定时策略个数统计
-            continue;
-        } 
-        
-        /// 新增子策略实体
-        new_policy = pump_policy_init(cfg[i]);
-        if (new_policy == NULL) {
-            LOGE("add policy failed !!!");
-            goto ERROR_EXIT;
-        }
-        current_time_policy->sub_policy_count++; /// 子策略个数统计
-        pump_policy_add(current_policy, new_policy);
-    }
-    return 0;
-
-ERROR_EXIT:
-    breast_pump_mode_parameter_deinit(s_stimulation_obj);
-    return -1;
+    s_stimulation_obj = breast_pump_mode_parameter_init(cfg, PP_MODE_LEN, "stimulation");
+    // LOG_MOTOR("obj:%p", s_stimulation_obj);
+    return s_stimulation_obj == NULL ? -1 : 0;
 }
 

@@ -32,7 +32,7 @@ extern "C" {
 #define __EXCEPTION_POINTER_CHECK(tag, x, r) \
 do { \
     if (!(x)) { \
-        LOG_EXCP("%s:null pointer.", tag); \
+        LOG_EXCP("%s:null pointer. line: %d", tag, __LINE__); \
         return r; \
     } \
 } while (0)

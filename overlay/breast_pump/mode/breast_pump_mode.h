@@ -15,7 +15,9 @@ extern "C" {
 *****************************************************************************************
 */
 const motor_policy_cfg_t *get_breast_pump_mode_para(int mode);
+int breast_pump_mode_parameter_output(motor_policy_manager_t *obj, char *name);
 int breast_pump_mode_parameter_deinit(motor_policy_manager_t *obj);
+motor_policy_manager_t *breast_pump_mode_parameter_init(const motor_policy_cfg_t *cfg, uint8_t cfg_num, char *name);
 
 const motor_policy_manager_t *pump_mode_policy_get(void *user_data);
 int pump_mode_parameter_init(void);

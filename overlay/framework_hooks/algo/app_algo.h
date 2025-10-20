@@ -25,7 +25,7 @@ typedef struct {
     uint32_t setting_time;              // app设置的单次泵奶时间
     uint32_t target_valid_time;         // 目标有效泵奶时间
     uint32_t target_total_time;         // 目标最大工作时长 电子压感存在时使用
-    uint32_t work_time_total;           // 泵奶总时长
+    uint32_t work_total_time;           // 泵奶总时长
     uint32_t work_valid_time;           // 有效泵奶时长
     algo_result_detail_t detail_result; // 跟算法的algo_other_result_t结构对齐转换.
 } algo_breast_pump_data_t;

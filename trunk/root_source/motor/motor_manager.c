@@ -28,6 +28,13 @@ static motor_manager_context_t *motor_obj = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void update_play_interrupt_reason(const char *reason)
+{
+    if (motor_obj->priv.interrupt_play_reason != reason) {
+        motor_obj->priv.interrupt_play_reason = (char *)reason;
+    }
+}
+
 static void motor_play_work_thread(void *args)
 {
     motor_task_para_t task_para = {0};
@@ -40,8 +47,17 @@ static void motor_play_work_thread(void *args)
         MSG_QUEUE_RECV(thd->msg_id, &task_para, OS_WAIT_FOREVER);
         LOG_MOTOR("running timestamp: %ld, id: %d", task_para.timestamp, task_para.play_mask_id);
         set_thread_running(thd, true);
+        update_play_interrupt_reason(NULL);
         if (pm->acquire_wakelock(MOTOR_PLAY_THD_WAKELOCK, (MOTOR_PLAY_WAKELOCK_TIMEOUT)) == 0) {
-            if (motor_obj->hook && motor_obj->hook->mode_policy_handler) {
+            if (motor_obj->hook == NULL) {
+                continue;
+            }
+            
+            if (motor_obj->hook->motor_policy_prepare) {
+                motor_obj->hook->motor_policy_prepare(motor_obj, task_para.action_id);
+            }
+
+            if (motor_obj->hook->mode_policy_handler) {
                 motor_obj->hook->mode_policy_handler(motor_obj, &task_para);
             }
         } else {
@@ -54,19 +70,18 @@ static void motor_play_work_thread(void *args)
     } 
 }
 
-static void update_play_interrupt_reason(const char *reason)
-{
-    if (motor_obj->priv.interrupt_play_reason != reason) {
-        motor_obj->priv.interrupt_play_reason = (char *)reason;
-    }
-}
-
 static void start_motor_with_user_para(uint8_t id, int args, void *user_data)
 {
     // uint32_t *tmp = (uint32_t *)user_data;
     // uint32_t args[2] = {0};
     // EXCEPTION_CHECK_VOID(tmp);
     // DEVICE_IOCTL_ARGS(motor_obj->priv.motor_dev, OP_CODE_MOTOR_SET_PARAMETER, args);
+}
+
+static bool is_on_motor_task_running(motor_manager_context_t *ctx)
+{
+    EXCEPTION_CHECK_BOOL(ctx);
+    return get_thread_running(&ctx->priv.motor_play_thd);
 }
 
 static int internal_start_motor(uint8_t action)
@@ -82,7 +97,10 @@ static int internal_start_motor(uint8_t action)
     };
 
     os_message_id msg_id = motor_obj->priv.motor_play_thd.msg_id;
-    update_play_interrupt_reason("play-new-task");
+    if (is_on_motor_task_running(motor_obj)) {
+        update_play_interrupt_reason("play-new-task");
+    }
+    
     if (msg_id) {
         LOG_MOTOR("timestamp: %ld, id: %d", task_para.timestamp, task_para.play_mask_id);
         MSG_QUEUE_SEND(msg_id, &task_para, 0);
@@ -193,12 +211,6 @@ static int get_motor_state(void)
     return (int)motor_obj->priv.motor_state;
 }
 
-static bool is_on_motor_task_running(motor_manager_context_t *ctx)
-{
-    EXCEPTION_CHECK_BOOL(ctx);
-    return get_thread_running(&ctx->priv.motor_play_thd);
-}
-
 int motor_is_can_play_now(void)
 {
     if (motor_obj->priv.interrupt_play_reason) {
@@ -209,6 +221,7 @@ int motor_is_can_play_now(void)
     if (motor_obj->priv.pump_ctx->is_on_working() == 0) {
         LOG_MOTOR("exit reason: not on pumping");
         update_play_interrupt_reason("pumping_state:err");
+        return 0;
     }
 
     return 1;

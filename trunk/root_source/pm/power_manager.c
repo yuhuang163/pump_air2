@@ -494,13 +494,16 @@ static int on_post_pm_init(void *ptr)
     /// 注册按键唤醒.
     uint16_t keycode = KEY_CODE_POWER | KEY_CODE_MODE;
     uint16_t keytype = KEY_EVENT_CLICK;
-    key_input_context_t *input = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+
     keytype |= KEY_EVENT_DOWN;
     keytype |= KEY_EVENT_UP;
     keytype |= KEY_EVENT_LONG_2S;
     keytype |= KEY_EVENT_LONG_5S;
     keytype |= KEY_EVENT_LONG_9S;
-    input->add_keyevent_handler(ctx, keycode, keytype,  pm_key_event_handler);
+    key_input_context_t *input = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    if (input) {
+        input->add_keyevent_handler(ctx, keycode, keytype,  pm_key_event_handler);
+    }
 
     RUN_NEW_THREAD(&ctx->priv.pm_suspend_thd, "pm_suspend_thd",
         pm_sleep_thread, RT_PRIO_PM_SLEEP_THREAD, PM_SUSPEND_THREAD_STACKSIZE);

@@ -13,6 +13,18 @@ extern "C" {
 #include "broadcast_manager_api.h"
 #include "persist_storage.h" // IWYU pragma: keep
 
+#define PUMP_WORK_TIME_INC                           (60000)      
+#define SINGLE_PUMP_TIME_MAX                         (600000)   /// 单次泵奶(包含续刷)最多10分钟
+#define SETTING_PUMP_TIME_MAX                        (3600000)  /// app设置的单次泵奶时间最大值 1小时
+
+typedef enum {
+    RESULT_PUMP_TIMEOUT = -3,
+    RESULT_PUMP_FINISH = -2,
+    RESULT_PUMP_MOTOR_SHAKE = -1,
+    RESULT_PUMP_NORMAL = 0,
+    RESULT_PUMP_DURATION_REACHED = 1,  //达到泵奶设定时长
+} pump_process_result_e;
+
 typedef enum {
     BREAST_PUMP_IDLE = 0,
     BREAST_PUMP_START,
@@ -28,15 +40,29 @@ typedef struct {
     uint32_t expected_valid_time_sec;    ///  目标有效泵奶时间(max time) (s)
     uint32_t elapse_time_sec;            ///  自然流逝时间.
     uint32_t expected_elapse_time_sec;   ///  目标自然流逝时间
-    uint32_t work_time_total;
+    uint32_t work_total_time;
 } breast_pump_result_t;
-
-typedef void (*on_breast_pump_result_cb_ptr)(void *user_data, breast_pump_result_t *result);
 
 typedef struct {
     uint8_t level;
     uint8_t speed;
 } breast_pump_unit_t;
+
+/// 泵奶数据
+typedef struct pump_result_info {
+    uint8_t  mode;
+    breast_pump_unit_t unit_info[BREAST_PUMP_NUM];
+    uint8_t  report_flag;               /// 泵奶报告是否实时上传
+    uint32_t timestamp;                 /// 开始泵奶时间
+    uint32_t setting_time;              /// app设置的单次泵奶时间
+    uint32_t target_valid_time;         /// 目标有效泵奶时间
+    uint32_t target_total_time;         /// 目标最大工作时长 电子压感存在时使用
+    uint32_t work_total_time;           /// 泵奶总时长
+    uint32_t work_valid_time;           /// 有效泵奶时长, 预留后续扩展使用
+} pump_result_info_t;
+
+
+typedef void (*on_breast_pump_result_cb_ptr)(void *user_data, breast_pump_result_t *result);
 
 typedef struct {
     uint8_t status;
@@ -44,6 +70,13 @@ typedef struct {
     uint8_t mode;
     breast_pump_unit_t unit_info[BREAST_PUMP_NUM];
 } breast_pump_info_t;
+
+/// 吸奶结果ID
+typedef enum{
+    BREAST_PUMP_RESULT_PUMPING,    /// 吸奶中的信息 
+    BREAST_PUMP_RESULT_HISTORY,    /// 上次有效的泵奶信息 >30秒
+    BREAST_PUMP_RESULT_MAX,
+} breast_pump_result_id_e;
 
 struct peripheral_bus_context;
 struct motor_manager_context;
@@ -64,6 +97,7 @@ typedef struct breast_pump_manager_context {
         struct storage_manager_context *st;
         struct peripheral_bus_context *pbus;
         struct motor_manager_context *motor;
+        pump_result_info_t result_info[BREAST_PUMP_RESULT_MAX];  
     } priv;
 
 ///  public
@@ -80,14 +114,14 @@ typedef struct breast_pump_manager_context {
     int (*get_breast_pump_status_async)(void);
     int (*get_last_breast_pump_result)(breast_pump_result_t *result, uint8_t breast_pump_data_id);
     const breast_pump_result_t *(*get_curr_breast_pump_result)(void);
+    int (*get_breast_pump_result)(pump_result_info_t *result, uint8_t result_id);
 
     ///  外部挂接点.
     struct __breast_pump_hook {
-        int (*make_progress_route)(struct breast_pump_manager_context *ctx, algo_breast_pump_data_t *algo_brush, int args0, int args1);
+        int (*make_progress_route)(struct breast_pump_manager_context *ctx, pump_result_info_t *result_info);
         int (*breast_pump_completed_route)(struct breast_pump_manager_context *ctx);
-        int (*start_breast_pump_work_route)(struct breast_pump_manager_context *ctx, int breast_pump_state);
-        int (*stop_breast_pump_work_route)(struct breast_pump_manager_context *ctx, int breast_pump_state);
-        uint32_t (*get_last_breast_pump_complete_time)(struct breast_pump_manager_context *ctx);
+        int (*start_breast_pump_work_route)(struct breast_pump_manager_context *ctx, int state);
+        int (*stop_breast_pump_work_route)(struct breast_pump_manager_context *ctx, int state);
     } *hook;
 } breast_pump_manager_context_t;
 

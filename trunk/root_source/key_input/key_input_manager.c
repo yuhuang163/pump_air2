@@ -336,7 +336,6 @@ void *register_module_for_key_input_manager_new(list_head_t *list_head)
     ptr->dispatch_client_input_key = dispatch_key_event_client;
     ptr->dispatch_key_event_wrapper = dispatch_key_event_wrapper;
     ptr->remove_keyevent_handler = remove_keyevent_handler;
-
     thiz = ptr;
 
     return ADD_MODULE("key_input", ID_MODULE_KEY_INPUT, on_perpare_key_input_init, on_post_key_input_init, 

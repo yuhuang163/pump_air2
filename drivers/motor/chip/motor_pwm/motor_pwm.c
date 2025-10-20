@@ -77,7 +77,7 @@ int bsp_motor_parameter_set(void *args)
     };
     int ret = hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
     motor_pwm_status[pwm_id] = 1;
-    LOGI("parameter_set: pwm_id: %d, duty: %d, freq: %d, ret: %d", pwm_id, motor->un.pwm.duty, motor->un.pwm.freq, ret);
+    BSP_LOG("parameter", "pwm_id: %d, duty: %d, freq: %d, ret: %d", pwm_id, motor->un.pwm.duty, motor->un.pwm.freq, ret);
     return ret;
 }
 
@@ -85,8 +85,9 @@ int bsp_motor_stop(void *args)
 {
     int ret = 0;
     motor_pwm_control_id_e pwm_id = *(motor_pwm_control_id_e *)args;
+    BSP_LOG("stop", "pwm_id: %d", pwm_id);
     if (pwm_id >= MOTOR_PWM_ID_MAX) {
-        for (uint8_t i =0; i < MOTOR_PWM_ID_MAX; i++) {
+        for (uint8_t i = 0; i < MOTOR_PWM_ID_MAX; i++) {
             ret |= hal_pwm_disable(motor_pwm_cfg[i].id);
             motor_pwm_status[i] = 0;
         }

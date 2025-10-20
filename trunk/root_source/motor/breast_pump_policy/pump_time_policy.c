@@ -73,47 +73,48 @@ int pump_time_policy_empty(motor_policy_manager_t *total_policy)
     return 0;
 }
 
-int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_runtime_t *info) 
+int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_runtime_t *runtime) 
 { 
-    /// 吸力状态下不允许切换策略，跑完放气流程后才能切换
-    if (info->current_info.state.n_pressure_flag) {
-        return -2;
-    }
-    
-    /// 初始化策略
-    if (info->current_timed_policy == NULL) {
-        info->current_timed_policy = &info->manager->head;
-        info->timed_policy_start_time = get_timestamp_ms(0);
-        info->manager_start_time = info->timed_policy_start_time;
-        info->current_policy = &info->current_timed_policy->policy;
-        pump_policy_info_reset(thiz, info->current_policy, &info->current_info);
-        return 0;
-    }
-   
     /// 检测当前时间策略是否执行完毕
-    uint16_t hold_time = get_timestamp_ms(info->timed_policy_start_time) / 1000;
-    if (hold_time >= info->current_timed_policy->duration_seconds) {
-        if (info->current_timed_policy->next == NULL) {
-            LOG_MOTOR("time policy completed");
-            return -1;
-        }
+    uint32_t hold_time = get_timestamp_ms(runtime->timed_policy_start_time)  / 1000; 
+    if (hold_time >= runtime->timed_policy->duration_seconds) {
         /// 执行下一个时间策略
-        info->current_timed_policy = info->current_timed_policy->next;
-        info->timed_policy_start_time = get_timestamp_ms(0);
-        info->current_policy = &info->current_timed_policy->policy;
-        pump_policy_info_reset(thiz, info->current_policy, &info->current_info);
+        runtime->timed_policy = runtime->timed_policy->next == NULL ? \
+                &runtime->manager->head : runtime->timed_policy->next;
+        /// 释放负压
+        negative_pressure_release(thiz);
+        for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+            memcpy(&runtime->policy[i], &runtime->timed_policy->policy, sizeof(motor_policy_node_t));
+            pump_policy_info_reset(thiz, &runtime->policy[i], &runtime->info[i]);
+        }
+        runtime->timed_policy_start_time = get_timestamp();
+        LOG_MOTOR("goto next time policy, time:%d type:%d, next:%p, duration:%d, level:%d", runtime->timed_policy_start_time,
+             runtime->timed_policy->policy.core.mapping.mode_type, runtime->timed_policy->next,
+             runtime->timed_policy->duration_seconds, runtime->timed_policy->policy.core.mapping.level);
         return 0;
     }
 
-    /// 检测到子策略切换请求
-    if (info->current_info.state.policy_update_req) {
-        if (info->current_policy->next) {
-            info->current_policy = info->current_policy->next;  /// 切换到下一个子策略
-        } else {
-            info->current_policy = &info->current_timed_policy->policy; /// 切换到当前时间策略下的第一个子策略 
-        }
-        pump_policy_info_reset(thiz, info->current_policy, &info->current_info);
-    }
+    for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+        /// 检测到子策略切换请求
+        if (runtime->info[i].state.policy_update_req) {
+            /// 循环执行当前子策略
+            if (runtime->info[i].state.cycles_count < runtime->info[i].config.loop_num) {
+                runtime->info[i].state.status = SUCTION_STATUS_IDLE;
+                runtime->info[i].state.action = MOTOR_ACTION_IDLE;
+                runtime->info[i].state.policy_update_req = 0;
+                // LOG_MOTOR("dev-%d policy loop", id);
+                return 0;
+            }
 
+            if (runtime->policy[i].next) {
+                memcpy(&runtime->policy[i], runtime->policy[i].next, sizeof(motor_policy_node_t)); /// 切换到下一个子策略
+                // LOG_MOTOR("dev-%d goto next policy", id);
+            } else {
+                memcpy(&runtime->policy[i], &runtime->timed_policy->policy, sizeof(motor_policy_node_t)); /// 切换到第一个子策略 
+                // LOG_MOTOR("dev-%d goto first policy", id);
+            }
+            pump_policy_info_reset(thiz, &runtime->policy[i], &runtime->info[i]);
+        }
+    }
     return 0;
 }

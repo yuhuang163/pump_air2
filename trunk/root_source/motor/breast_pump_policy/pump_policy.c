@@ -75,42 +75,48 @@ int pump_policy_del(motor_timed_policy_node_t *time_policy)
 
 int pump_policy_update(motor_policy_info_t *info) 
 { 
+    // LOG_MOTOR("enter: status:%d, action:%d, req:%d, tick:%d", info->state.status, info->state.action, info->state.policy_update_req,
+    //      info->state.start_time);
+    uint32_t run_time = get_timestamp_ms(info->state.start_time);
     switch (info->state.status) {
         case SUCTION_STATUS_IDLE:
             info->state.status = SUCTION_STATUS_GENERATE;
             info->state.action = MOTOR_ACTION_PUMP_ON;
+            info->state.start_time = get_timestamp();
             break;
 
         case SUCTION_STATUS_GENERATE:
-            if (get_timestamp_ms(info->state.start_time) >= info->parameters.pumping_time) {
+            // LOG_MOTOR("generate run time:%d, dest:%d", run_time, info->parameters.pumping_time);
+            if (run_time >= info->parameters.pumping_time) {
                 info->state.status = SUCTION_STATUS_HOLD;
                 info->state.action = MOTOR_ACTION_PUMP_OFF;
+                info->state.start_time = get_timestamp();
             }
             break;
 
         case SUCTION_STATUS_HOLD:
-            if (get_timestamp_ms(info->state.start_time) >= info->config.hold_time) {
+            if (run_time >= info->config.hold_time) {
                 info->state.status = SUCTION_STATUS_RELEASE;
                 info->state.action = MOTOR_ACTION_VALVE_ON;
+                info->state.start_time = get_timestamp();
             }
             break;
 
         case SUCTION_STATUS_RELEASE:
-            if (get_timestamp_ms(info->state.start_time) >= info->parameters.valve_on_time) {
+            // LOG_MOTOR("release run time:%d, dest:%d", run_time, info->parameters.valve_on_time);
+            if (run_time >= info->parameters.valve_on_time) {
                 info->state.status = SUCTION_STATUS_SLEEP;
                 info->state.action = MOTOR_ACTION_VALVE_OFF;
+                info->state.start_time = get_timestamp();
             }
             break;
 
         case SUCTION_STATUS_SLEEP:
-            if (get_timestamp_ms(info->state.start_time) >= info->config.loop_intv) {
+            // LOG_MOTOR("idle run time:%d, dest:%d", run_time, info->config.sleep_time);
+            if ((run_time + 10) >= info->config.sleep_time) {
                 info->state.cycles_count++;
-                if (info->state.cycles_count < info->config.loop_num) {
-                    info->state.status = SUCTION_STATUS_GENERATE;
-                    info->state.action = MOTOR_ACTION_PUMP_ON;
-                } else {
-                    info->state.policy_update_req = 1;
-                }
+                info->state.policy_update_req = 1;
+                info->state.start_time = get_timestamp();
             }
             break;
 
@@ -118,6 +124,8 @@ int pump_policy_update(motor_policy_info_t *info)
             break;
 
     }
+    // LOG_MOTOR("exit: status:%d, action:%d, req:%d", info->state.status, info->state.action, info->state.policy_update_req);
+
     return 0;
 }
 
@@ -125,7 +133,7 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_nod
 {
     suction_strategy_mapping_t map_para = {0};
     const suction_parameters_t *n_pressure = NULL;
-    
+
     /// 默认策略
     memset(&info->state, 0, sizeof(motor_policy_state_t));
     memcpy(&info->config, &policy->core.config, sizeof(suction_policy_config_t));
@@ -133,6 +141,7 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_nod
     /// 空闲模式，吸力设定为0
     if (map_para.mode_type == SUCTION_MODE_IDLE) {
         memset(&info->parameters, 0, sizeof(suction_parameters_t));
+        LOG_MOTOR("-->goto idle policy");
         return;
     }
     /// 用户设定力度与频率(速度)策略
@@ -148,4 +157,5 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_nod
     info->parameters.valve_on_time = n_pressure->valve_on_time;
     /// 通过算法线性补偿
     pump_compensation_policy_update(thiz, &info->parameters); 
+    
 }

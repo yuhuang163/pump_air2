@@ -9,7 +9,7 @@ extern "C" {
 /*******************************************************************************
 * Include files
 ******************************************************************************/
-#include "root_common_api.h"
+#include "root_common_api.h" // IWYU pragma: keep
 
 /**@brief Firmware information define*/
 
@@ -19,6 +19,9 @@ extern "C" {
 */
 void register_motor_hook(motor_manager_context_t *ctx);
 void register_sensor_hook(sensor_manager_context_t *ctx);
+void register_breast_pump_hook(breast_pump_manager_context_t *ctx);
+void register_storage_hook(storage_manager_context_t *ctx);
+
 #ifdef __cplusplus
 }
 #endif

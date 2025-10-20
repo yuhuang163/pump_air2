@@ -22,7 +22,7 @@ int pump_total_policy_deint(motor_policy_manager_t *total_policy);
 motor_timed_policy_node_t *pump_time_policy_init(motor_policy_cfg_t cfg);
 int pump_time_policy_add(motor_timed_policy_node_t *time_policy, motor_timed_policy_node_t *next_time_policy);
 int pump_time_policy_empty(motor_policy_manager_t *total_policy);
-int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_runtime_t *info);
+int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_runtime_t *runtime);
 
 /// 策略实体
 motor_policy_node_t *pump_policy_init(motor_policy_cfg_t cfg);
@@ -41,7 +41,9 @@ int pump_user_policy_update(struct motor_manager_context *thiz, suction_strategy
 int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, struct motor_task_para *play_para);
 
 /// 吸奶策略准备
-void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t id, uint8_t action);
+void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t action);
+
+void negative_pressure_release(struct motor_manager_context *thiz);
 #ifdef __cplusplus
 }
 #endif

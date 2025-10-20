@@ -10,7 +10,7 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
 
-#define BREAST_PUMP_WORK_STEP_TIME_MS   (100)
+#define PUMP_WORK_STEP_TIME_MS   (100)
 #define BREAST_PUMP_IS_GOING(state) (state == BREAST_PUMP_START || state == BREAST_PUMP_CONTINUE)
 
 #define PUMP_LOCK_LOG(...)
