@@ -18,64 +18,75 @@
 */
 const static put_store_process_handle_t put_store_process_list[] = {
     #if IS_SUPPORT_DEVICE_IMU
-    {STORE_ID_FACTORY_IMU_CALI_DATA, storage_write_imu_cali_data_to_flash},
+    {STORE_ID_FACTORY_IMU_CALI_DATA, write_imu_cali_data_to_flash},
     #endif
-    {STORE_ID_FACTORY_DEPLOY_FLAG, storage_write_factory_deploy_flag_to_flash},
-    {STORE_ID_FACTORY_AGE_FLAG, storage_write_factory_age_flag_to_flash},
-    {STORE_ID_FACTORY_AGE_DISPLAY_FLAG, storage_write_factory_age_display_flag_to_flash},
+    {STORE_ID_FACTORY_DEPLOY_FLAG, write_factory_deploy_flag_to_flash},
+    {STORE_ID_FACTORY_AGE_FLAG, write_factory_age_flag_to_flash},
+    {STORE_ID_FACTORY_AGE_DISPLAY_FLAG, write_factory_age_display_flag_to_flash},
     #if IS_SUPPORT_DEVICE_FSENSOR
-    {STORE_ID_FACTORY_FSENSOR_CALI_FLAG, storage_write_factory_fsensor_cali_flag_to_flash},
+    {STORE_ID_FACTORY_FSENSOR_CALI_FLAG, write_factory_fsensor_cali_flag_to_flash},
     #endif
-    {STORE_ID_SYS_CONFIG_INFO, storage_write_sys_config_info_to_flash},
-    {STORE_ID_SYS_UTC_TIMESTAMP, storage_write_utc_timestamp_to_flash},
-    {STORE_ID_SYS_STATE_INFO, storage_write_sys_state_info_to_flash},    
-    {STORE_ID_USER_BIND_INFO, storage_write_user_bind_info_to_flash},
+    {STORE_ID_SYS_CONFIG_INFO, write_sys_config_info_to_flash},
+    {STORE_ID_SYS_UTC_TIMESTAMP, write_utc_timestamp_to_flash},
+    {STORE_ID_SYS_STATE_INFO, write_sys_state_info_to_flash},    
+    {STORE_ID_USER_BIND_INFO, write_user_bind_info_to_flash},
 };
 
 const static get_store_process_handle_t get_store_process_list[] = {
-    {STORE_ID_FACTORY_DEV_INFO, storage_read_factory_dev_info_from_flash},
+    {STORE_ID_FACTORY_DEV_INFO, read_factory_dev_info_from_flash},
     #if IS_SUPPORT_DEVICE_IMU
-    {STORE_ID_FACTORY_IMU_CALI_DATA, storage_read_imu_cali_data_from_flash},
+    {STORE_ID_FACTORY_IMU_CALI_DATA, read_imu_cali_data_from_flash},
     #endif
-    {STORE_ID_SYS_CONFIG_INFO, storage_read_sys_config_info_from_flash},
-    {STORE_ID_SYS_UTC_TIMESTAMP, storage_read_utc_timestamp_from_flash},
-    {STORE_ID_SYS_STATE_INFO, storage_read_sys_state_info_from_flash},    
-    {STORE_ID_USER_BIND_INFO, storage_read_user_bind_info_from_flash},
+    {STORE_ID_SYS_CONFIG_INFO, read_sys_config_info_from_flash},
+    {STORE_ID_SYS_UTC_TIMESTAMP, read_utc_timestamp_from_flash},
+    {STORE_ID_SYS_STATE_INFO, read_sys_state_info_from_flash},    
+    {STORE_ID_USER_BIND_INFO, read_user_bind_info_from_flash},
 };
 
 const static del_store_process_handle_t del_store_process_list[] = {
-    {STORE_ID_BREAST_PUMP_DATA_BODY, storage_del_pump_data_body_from_flash},
+    {STORE_ID_BREAST_PUMP_DATA_BODY, del_pump_data_body_from_flash},
 };
 
 const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
-    {STORE_ID_SYS_TIME_ZONE, storage_write_sys_time_zone_to_ram},
-    {STORE_ID_SYS_AP_MODE_ONOFF, storage_write_ap_mode_onoff_to_ram},
-    {STORE_ID_SYS_SILENT_UPGRADE, storage_write_slient_upgrade_onoff_to_ram},
-    {STORE_ID_SYS_UI_STYLE, storage_write_sys_ui_style_to_ram},
-    {STORE_ID_SYS_LOG_SWITCH, storage_write_log_switch_to_ram},
-    {STORE_ID_SYS_LANGUAGE, storage_write_language_to_ram},
-    {STORE_ID_SYS_GUIDE_DEPLOYED, storage_write_guide_deployed_to_ram},
-    {STORE_ID_SYS_BATTERY_HEALTH, storage_write_battery_health_to_ram},
-    {STORE_ID_SYS_SYNC_SYS_TIME, storage_write_sync_sys_time_to_ram},
+    {STORE_ID_SYS_TIME_ZONE, write_sys_time_zone_to_ram},
+    {STORE_ID_SYS_AP_MODE_ONOFF, write_ap_mode_onoff_to_ram},
+    {STORE_ID_SYS_SILENT_UPGRADE, write_slient_upgrade_onoff_to_ram},
+    {STORE_ID_SYS_UI_STYLE, write_sys_ui_style_to_ram},
+    {STORE_ID_SYS_LOG_SWITCH, write_log_switch_to_ram},
+    {STORE_ID_SYS_LANGUAGE, write_language_to_ram},
+    {STORE_ID_SYS_GUIDE_DEPLOYED, write_guide_deployed_to_ram},
+    {STORE_ID_SYS_BATTERY_HEALTH, write_battery_health_to_ram},
+    {STORE_ID_SYS_SYNC_SYS_TIME, write_sync_sys_time_to_ram},
+
+    {STORE_ID_BREAST_PUMP_TIME, write_pump_time_to_ram},
+    {STORE_ID_BREAST_PUMP_LEVEL, write_pump_level_to_ram},
+    {STORE_ID_REMIND_PUMP_EXCEPTION, write_pump_exception_remind_to_ram},
+    {STORE_ID_REMIND_PUMP_MODE_CHANGE, write_pump_mode_change_remind_to_ram},
+    {STORE_ID_REMIND_PUMP_FINISH, write_pump_finish_remind_to_ram},
 };
 
 const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
-    {STORE_ID_FACTORY_DEPLOY_FLAG, storage_read_factory_deploy_flag_from_ram},
-    {STORE_ID_FACTORY_AGE_FLAG, storage_read_factory_age_flag_from_ram},
-    {STORE_ID_FACTORY_AGE_DISPLAY_FLAG, storage_read_factory_age_display_flag_from_ram},
+    {STORE_ID_FACTORY_DEPLOY_FLAG, read_factory_deploy_flag_from_ram},
+    {STORE_ID_FACTORY_AGE_FLAG, read_factory_age_flag_from_ram},
+    {STORE_ID_FACTORY_AGE_DISPLAY_FLAG, read_factory_age_display_flag_from_ram},
     #if IS_SUPPORT_DEVICE_FSENSOR
-    {STORE_ID_FACTORY_FSENSOR_CALI_FLAG, storage_read_factory_fsensor_cali_flag_from_ram},
+    {STORE_ID_FACTORY_FSENSOR_CALI_FLAG, read_factory_fsensor_cali_flag_from_ram},
     #endif
-    {STORE_ID_SYS_TIME_ZONE, storage_read_sys_time_zone_from_ram},
-    {STORE_ID_SYS_AP_MODE_ONOFF, storage_read_ap_mode_onoff_from_ram},
-    {STORE_ID_SYS_SILENT_UPGRADE, storage_read_slient_upgrade_onoff_from_ram},
-    {STORE_ID_SYS_UI_STYLE, storage_read_sys_ui_style_from_ram},
-    {STORE_ID_SYS_LOG_SWITCH, storage_read_log_switch_from_ram},
-    {STORE_ID_SYS_LANGUAGE, storage_read_language_from_ram},
-    {STORE_ID_SYS_GUIDE_DEPLOYED, storage_read_guide_deployed_from_ram},
-    {STORE_ID_SYS_BATTERY_HEALTH, storage_read_battery_health_from_ram},
-    {STORE_ID_SYS_SYNC_SYS_TIME, storage_read_sync_sys_time_from_ram},
-    {STORE_ID_USER_BIND_INFO, storage_user_is_binded_from_ram},
+    {STORE_ID_SYS_TIME_ZONE, read_sys_time_zone_from_ram},
+    {STORE_ID_SYS_AP_MODE_ONOFF, read_ap_mode_onoff_from_ram},
+    {STORE_ID_SYS_SILENT_UPGRADE, read_slient_upgrade_onoff_from_ram},
+    {STORE_ID_SYS_UI_STYLE, read_sys_ui_style_from_ram},
+    {STORE_ID_SYS_LOG_SWITCH, read_log_switch_from_ram},
+    {STORE_ID_SYS_LANGUAGE, read_language_from_ram},
+    {STORE_ID_SYS_GUIDE_DEPLOYED, read_guide_deployed_from_ram},
+    {STORE_ID_SYS_BATTERY_HEALTH, read_battery_health_from_ram},
+    {STORE_ID_SYS_SYNC_SYS_TIME, read_sync_sys_time_from_ram},
+    {STORE_ID_USER_BIND_INFO, user_is_binded_from_ram},
+    {STORE_ID_BREAST_PUMP_TIME, read_pump_time_from_ram},
+    {STORE_ID_BREAST_PUMP_LEVEL, read_pump_level_from_ram},
+    {STORE_ID_REMIND_PUMP_EXCEPTION, read_pump_exception_remind_from_ram},
+    {STORE_ID_REMIND_PUMP_MODE_CHANGE, read_pump_mode_change_remind_from_ram},
+    {STORE_ID_REMIND_PUMP_FINISH, read_pump_finish_remind_from_ram},
 };
 
 static storage_manager_context_t *thiz = NULL;
@@ -116,13 +127,13 @@ static int init_system_persist_info(storage_manager_context_t *ctx)
         .val = NULL,
     };
     args.val = &sys_info->config;
-    storage_read_sys_config_info_from_flash(args);
+    read_sys_config_info_from_flash(args);
     args.val = &sys_info->state;
-    storage_read_sys_state_info_from_flash(args);
+    read_sys_state_info_from_flash(args);
     args.val = &sys_info->bind_info;
-    storage_read_user_bind_info_from_flash(args);
+    read_user_bind_info_from_flash(args);
     args.val = &sys_info->pump_info;
-    storage_read_pump_info_from_flash(args);
+    read_pump_info_from_flash(args);
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_CONFIG] = CRC16(&sys_info->config, sizeof(sys_config_info_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_STATE]  = CRC16(&sys_info->state, sizeof(sys_state_info_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_INFO]  = CRC16(&sys_info->pump_info, sizeof(sys_pump_info_t));
@@ -145,21 +156,21 @@ static int system_persist_info_sync_flash(storage_manager_context_t *ctx)
     info_crc = CRC16(&sys_info->config, sizeof(sys_config_info_t));
     if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_CONFIG]) {
         args.val = &sys_info->config;
-        storage_write_sys_config_info_to_flash(args);
+        write_sys_config_info_to_flash(args);
     }
 
     ///  系统状态
     info_crc = CRC16(&sys_info->state, sizeof(sys_state_info_t));
     if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_STATE]) {
         args.val = &sys_info->state;
-        storage_write_sys_state_info_to_flash(args);
+        write_sys_state_info_to_flash(args);
     }
 
     ///  泵奶信息
     info_crc = CRC16(&sys_info->pump_info, sizeof(sys_pump_info_t));
     if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_INFO]) {
         args.val = &sys_info->pump_info;
-        storage_write_pump_info_to_flash(args);
+        write_pump_info_to_flash(args);
     }
 
     return 0;
@@ -169,15 +180,16 @@ static int system_persist_info_sync_flash(storage_manager_context_t *ctx)
 static int user_database_reset(void)
 {
     EXCEPTION_CHECK_INT(thiz);
-    storage_reset_pump_info(thiz, &thiz->priv.sys_info.pump_info);
+    reset_pump_info(thiz, &thiz->priv.sys_info.pump_info);
     msleep(10);
-    storage_reset_user_bind_info(thiz, &thiz->priv.sys_info.bind_info);
+    reset_user_bind_info(thiz, &thiz->priv.sys_info.bind_info);
     msleep(10);
-    storage_reset_sys_config_info(thiz, &thiz->priv.sys_info.config);
+    reset_sys_config_info(thiz, &thiz->priv.sys_info.config);
     msleep(10);
-    storage_reset_sys_state_info(thiz, &thiz->priv.sys_info.state);
+    reset_sys_state_info(thiz, &thiz->priv.sys_info.state);
     msleep(10);
-    storage_reset_pump_data_head(thiz, &thiz->priv.pump_data_head);
+    reset_pump_data_head(thiz, &thiz->priv.pump_data_head);
+    LOGE("==> user database reset !!!!!!!!!!!!!!!");
     
     return 0;
 }

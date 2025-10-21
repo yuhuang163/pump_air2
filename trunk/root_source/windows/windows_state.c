@@ -69,7 +69,9 @@ bool is_valid_window_id(uint8_t window_id)
 bool is_window_deployed(void)
 {
     storage_manager_context_t *st_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    return st_ctx->get_store_ram_val(STORE_ID_SYS_GUIDE_DEPLOYED, 0, 0, NULL) ? 1 : 0;
+    int guide_deployed = 0;
+    st_ctx->get_store_ram_val(STORE_ID_SYS_GUIDE_DEPLOYED, 0, 0, &guide_deployed);
+    return guide_deployed ? 1 : 0;
 }
 
 /// 设置首次开机部署标志.

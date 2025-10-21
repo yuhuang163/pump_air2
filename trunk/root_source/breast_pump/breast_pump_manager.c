@@ -251,6 +251,15 @@ static int get_last_breast_pump_result(breast_pump_result_t *result, uint8_t bre
     return 0;
 }
 
+static pump_result_info_t * get_breast_pump_result(breast_pump_result_id_e result_id)
+{
+    breast_pump_manager_context_t *ctx = breast_pump_obj;
+    if (result_id >= BREAST_PUMP_RESULT_MAX) {
+        return NULL;
+    }
+    return &ctx->priv.result_info[result_id];
+}
+
 static void dispatch_to_client(void)
 {
     list_head_t *head = &breast_pump_obj->priv.client_list;
@@ -441,6 +450,7 @@ void *register_module_for_breast_pump_new(list_head_t *list_head)
 
     ptr->get_last_breast_pump_result = get_last_breast_pump_result;
     ptr->get_curr_breast_pump_result = get_curr_breast_pump_result;
+    ptr->get_breast_pump_result = get_breast_pump_result;
 
     MUTEX_INIT(&ptr->priv.m_lock, breast_pump_client_mutex);
     MUTEX_INIT(&ptr->priv.breast_pump_state_lock, brusht_state_mutex);

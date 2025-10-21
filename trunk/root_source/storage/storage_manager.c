@@ -26,9 +26,9 @@ static storage_manager_context_t *thiz = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static int put_store_val(persist_store_id_e id, int arg1, int arg2, const void *val_in)
+static int put_store_val(persist_store_id_e id, int arg1, int arg2, void *val_in)
 {
-    int ret = 0;
+    int ret = -2;
     store_func_args_t args = {
         .ctx = thiz,
         .arg1 = arg1,
@@ -47,13 +47,15 @@ static int put_store_val(persist_store_id_e id, int arg1, int arg2, const void *
         }
     }
     MUTEX_UNLOCK(thiz->priv.storage_rw_lock);
-
+    if (ret != 0) {
+        LOGE("==> put store val failed: %d", id);
+    }
     return ret;
 }
 
 static int get_store_val(persist_store_id_e id, int arg1, int arg2,  void *val_out)
 {
-    int ret = 0;
+    int ret = -2;
     store_func_args_t args = {
         .ctx = thiz,
         .arg1 = arg1,
@@ -72,12 +74,15 @@ static int get_store_val(persist_store_id_e id, int arg1, int arg2,  void *val_o
         }
     }
     MUTEX_UNLOCK(thiz->priv.storage_rw_lock);
+    if (ret != 0) {
+        LOGE("==> get store val failed: %d", id);
+    }
     return ret;
 }
 
-static int del_store_val(persist_store_id_e id, int arg1, int arg2,  const void *val_in)
+static int del_store_val(persist_store_id_e id, int arg1, int arg2,  void *val_in)
 {
-    int ret = 0;
+    int ret = -2;
     store_func_args_t args = {
         .ctx = thiz,
         .arg1 = arg1,
@@ -96,13 +101,16 @@ static int del_store_val(persist_store_id_e id, int arg1, int arg2,  const void 
         }
     }
     MUTEX_UNLOCK(thiz->priv.storage_rw_lock);
+    if (ret != 0) {
+        LOGE("==> del store val failed: %d", id);
+    }
 
     return ret;
 }       
 
 static int get_store_ram_val(persist_store_id_e id, int arg1, int arg2, void *val_out)
 {
-    int ret = 0;
+    int ret = -2;
     store_func_args_t args = {
         .ctx = thiz,
         .arg1 = arg1,
@@ -121,12 +129,15 @@ static int get_store_ram_val(persist_store_id_e id, int arg1, int arg2, void *va
         }
     }
     MUTEX_UNLOCK(thiz->priv.storage_rw_lock);
-
+    if (ret != 0) {
+        LOGE("==> get store ram val failed: %d", id);
+    }
     return ret;
 }
 
-static void put_store_ram_val(persist_store_id_e id, int arg1, int arg2, const void *val_in)
+static void put_store_ram_val(persist_store_id_e id, int arg1, int arg2, void *val_in)
 {
+    int ret = -2;
     EXCEPTION_CHECK_VOID(thiz);
     store_func_args_t args = {
         .ctx = thiz,
@@ -140,11 +151,14 @@ static void put_store_ram_val(persist_store_id_e id, int arg1, int arg2, const v
     MUTEX_LOCK(thiz->priv.storage_rw_lock);
     for (int i = 0; i < list_len; i++) {
         if (list[i].store_id == id) {
-            list[i].store_process(args);
+            ret = list[i].store_process(args);
             break;
         }
     }
     MUTEX_UNLOCK(thiz->priv.storage_rw_lock);
+    if (ret != 0) {
+        LOGE("==> put store ram val failed: %d", id);
+    }
 }
 
 static void on_storage_save_receive(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)

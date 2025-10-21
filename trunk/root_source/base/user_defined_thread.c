@@ -32,6 +32,10 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
     // rt_device_node_t *motor_dev = pbus->find_device(ID_DEVICE_MOTOR);
     // motor_pwm_control_id_e pwm_id = rand() % MOTOR_PWM_ID_MAX;
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test:continue");
+    LOGE("==> enter pressure test !!!!!!!!!!!!!!!");
+    storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    ctx->user_database_reset();
+    msleep(10);
     LOGE("==> enter test !!!!!!!!!!!!!!!");
     breast_pump_manager_context_t *breast_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     breast_ctx->set_breast_pump_mode(BREAST_PUMP_PP_MILK_TRACK_MODE);

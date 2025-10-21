@@ -10,8 +10,8 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
 
-#if 0
-#define LOG_STORE_WRAP(format, args...) LOG_STORE("[tag=%s, store_id=%d]" format, tag, id, ##args)
+#if 1
+#define LOG_STORE_WRAP(...) LOG_STORE(__VA_ARGS__)
 #else
 #define LOG_STORE_WRAP(format, args...) do { } while (0)
 #endif
