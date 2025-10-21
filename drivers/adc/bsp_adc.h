@@ -9,13 +9,8 @@ extern "C" {
 /*******************************************************************************
 * Include files
 ******************************************************************************/
-#include <stdint.h> // IWYU pragma: keep
-#include <stddef.h> // IWYU pragma: keep
 #include "bsp_common.h" // IWYU pragma: keep
 #include "hal_gpadc.h" // IWYU pragma: keep
-
-#define BATT_ADC_CHANNEL    HAL_GPADC_CHAN_2
-#define NTC_ADC_CHANNEL     HAL_GPADC_CHAN_4
 
 /*
 * GLOBAL FUNCTION DECLARATION

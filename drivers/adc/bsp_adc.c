@@ -4,8 +4,6 @@
 */
 #include "bsp_common.h" // IWYU pragma: keep
 #include "hal_gpadc.h"
-#include "root_log_define.h"
-#include <stdint.h>
 #include "bsp_adc.h" // IWYU pragma: keep
 
 /*

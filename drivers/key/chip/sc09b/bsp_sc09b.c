@@ -2,8 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "hal_iomux.h" // IWYU pragma: keep
-#include "hal_gpio.h" // IWYU pragma: keep
+#include "bsp_config.h"
 #include "bsp_common.h" // IWYU pragma: keep
 #include "bsp_internal.h" // IWYU pragma: keep
 #include "bsp_i2c.h" // IWYU pragma: keep
@@ -14,12 +13,12 @@
 * DEFINES
 *****************************************************************************************
 */
-#define TOUCH_INT_PIN               HAL_IOMUX_PIN_P0_0
 #define TOUCH_KEY_I2C_ID            I2C_MASTER_ID_0
 #define TOUCH_KEY_NUM               6
 #define TOUCH_KEY_RETRY_COUNT       1
 #define TOUCH_KEY_IDLE_COUNT        3
 #define TOUCH_I2C_ADDR              0x40  /// SC09B 只有一个固定地址
+
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -105,7 +104,7 @@ static void sc09b_irq_init(void)
 
 static void sc09b_touch_key_scan(void)
 {
-    uint16_t key_value = 0, key_idle_count = 0;
+    uint16_t key_value = 0, key_idle_count = 0, error_count = 0;
     i2c_master_data_t key_data = {
         .data = (uint8_t *)&key_value,
         .len  = 2,
@@ -125,6 +124,12 @@ static void sc09b_touch_key_scan(void)
                 }
             } else {
                 key_idle_count = 0;
+            }
+            error_count = 0;
+        } else {
+            error_count++;
+            if (error_count > 5) {
+                break;
             }
         }
         msleep(10);
@@ -162,6 +167,38 @@ static void sc09b_chip_init(void)
     // sc09b_reference_cap_config();
 }
 
+
+static void power_key_irq_callback(enum HAL_GPIO_PIN_T pin)
+{
+    // LOG_PBUS("power key pin[%d] irq triggered", pin);
+    bsp_irq_msg_send(INT_NUM_KEY_1);
+}
+
+static void power_key_irq_control(bool enable)
+{
+    struct HAL_GPIO_IRQ_CFG_T gpio_irq_cfg = {
+        enable, 
+        0, 
+        HAL_GPIO_IRQ_TYPE_EDGE_SENSITIVE, 
+        HAL_GPIO_IRQ_POLARITY_LOW_FALLING, 
+        power_key_irq_callback
+    };
+
+    hal_gpio_setup_irq((enum HAL_GPIO_PIN_T)POWER_KEY_PIN, &gpio_irq_cfg);
+}
+
+static void power_key_irq_init(void)
+{
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        POWER_KEY_PIN,  
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_PULLUP_ENABLE,
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)POWER_KEY_PIN,  HAL_GPIO_DIR_IN,  1);
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -174,6 +211,8 @@ int bsp_key_init(void)
     RUN_NEW_THREAD(&s_key_device_thd, "key", key_device_thread, RT_PRIO_KEY_DEVICE_THREAD, (KEY_DEVICE_THREAD_STACKSIZE));
     sc09b_irq_control(true);
     sc09b_chip_init();
+    power_key_irq_init();
+    power_key_irq_control(true);
 
     return BSP_OK;
 }
@@ -188,11 +227,14 @@ int bsp_key_deinit(void)
 
 int bsp_read_key_value(uint8_t key_index)
 {
-    if (key_index >= TOUCH_KEY_NUM) {
+    if (key_index > TOUCH_KEY_NUM) {
         return 0;
     }
 
-    return s_touch_key[key_index];
+    if (key_index == 0) {
+        return hal_gpio_pin_get_val((enum HAL_GPIO_PIN_T)POWER_KEY_PIN) == 0 ? 1 : 0;
+    }
+    return s_touch_key[key_index - 1];
 }
 
 int bsp_key_sensitivity_set(uint8_t key_index, uint8_t sensitivity)

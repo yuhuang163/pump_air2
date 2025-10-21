@@ -19,6 +19,7 @@ typedef enum scan_key_id_e {
     SCAN_KEY_ID4,
     SCAN_KEY_ID5,
     SCAN_KEY_ID6,
+    SCAN_KEY_ID7,
     SCAN_KEY_ID_MAX,
 } scan_key_id_e;
 
@@ -30,6 +31,7 @@ typedef enum {
     SCAN_KEY_CODE_4,
     SCAN_KEY_CODE_5,
     SCAN_KEY_CODE_6,
+    SCAN_KEY_CODE_7,
     SCAN_KEY_CODE_MAX,
 } scan_key_code_e;
 
