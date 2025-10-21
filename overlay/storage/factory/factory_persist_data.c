@@ -34,7 +34,7 @@
  */
 #if IS_SUPPORT_DEVICE_IMU
 /// 写入imu校准数据到flash
-int storage_write_imu_cali_data_to_flash(store_func_args_t args)
+int write_imu_cali_data_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -55,7 +55,7 @@ int storage_write_imu_cali_data_to_flash(store_func_args_t args)
 }
 
 /// 从flash中读取imu校准数据
-int storage_read_imu_cali_data_from_flash(store_func_args_t args)
+int read_imu_cali_data_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -78,8 +78,7 @@ int storage_read_imu_cali_data_from_flash(store_func_args_t args)
 }
 #endif
 
-/// 写入工厂部署标志到flash
-int storage_write_factory_deploy_flag_to_flash(store_func_args_t args)
+int write_factory_deploy_flag_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -100,8 +99,7 @@ int storage_write_factory_deploy_flag_to_flash(store_func_args_t args)
     return ret;
 }
 
-/// 写入工厂老化标志到flash
-int storage_write_factory_age_flag_to_flash(store_func_args_t args)
+int write_factory_age_flag_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -122,8 +120,7 @@ int storage_write_factory_age_flag_to_flash(store_func_args_t args)
     return ret;
 }
 
-/// 写入工厂老化展示标志到flash
-int storage_write_factory_age_display_flag_to_flash(store_func_args_t args)
+int write_factory_age_display_flag_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -145,8 +142,7 @@ int storage_write_factory_age_display_flag_to_flash(store_func_args_t args)
 }
 
 #if IS_SUPPORT_DEVICE_FSENSOR
-/// 写入工厂fsensor校准标志到flash
-int storage_write_factory_fsensor_cali_flag_to_flash(store_func_args_t args)
+int write_factory_fsensor_cali_flag_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -168,8 +164,7 @@ int storage_write_factory_fsensor_cali_flag_to_flash(store_func_args_t args)
 }
 #endif
 
-/// 写入工厂标志信息到flash
-int storage_write_factory_flag_info_to_flash(store_func_args_t args)
+int write_factory_flag_info_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -189,8 +184,7 @@ int storage_write_factory_flag_info_to_flash(store_func_args_t args)
     return ret;
 }
 
-/// 从flash中读取工厂标志信息
-int storage_read_factory_flag_info_from_flash(store_func_args_t args)
+int read_factory_flag_info_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -211,50 +205,58 @@ int storage_read_factory_flag_info_from_flash(store_func_args_t args)
     return ret;
 }
 
-/// 写入工厂设备信息到flash
-int storage_write_factory_dev_info_to_flash(store_func_args_t args)
+int write_factory_dev_info_to_flash(store_func_args_t args)
 {
     return 0; 
 }
 
-/// 从flash中读取工厂设备信息到ram
-int storage_read_factory_dev_info_from_flash(store_func_args_t args)
+int read_factory_dev_info_from_flash(store_func_args_t args)
 {
     return 0;
 }
 
-/// 从ram中读取工厂标志信息
-int storage_read_factory_deploy_flag_from_ram(store_func_args_t args)
+int read_factory_deploy_flag_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
-    return flag_info->deploy_flag;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = flag_info->deploy_flag;
+    return 0;
 }
 
-int storage_read_factory_age_flag_from_ram(store_func_args_t args)
+int read_factory_age_flag_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
-    return flag_info->age_flag;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = flag_info->age_flag;
+    return 0;
 }
 
-int storage_read_factory_age_display_flag_from_ram(store_func_args_t args)
+int read_factory_age_display_flag_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
-    return flag_info->age_display;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = flag_info->age_display;
+    return 0;
 }
 
 #if IS_SUPPORT_DEVICE_FSENSOR
-int storage_read_factory_fsensor_cali_flag_from_ram(store_func_args_t args)
+int read_factory_fsensor_cali_flag_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
-    return flag_info->fsensor_cali_flag;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = flag_info->fsensor_cali_flag;
+    return 0;
 }
 #endif
 
-/// 初始化工厂信息
 int init_factory_persist_info(storage_manager_context_t *ctx)
 {
     factory_data_store_t *factory_data = &ctx->priv.factory_data;
@@ -266,14 +268,14 @@ int init_factory_persist_info(storage_manager_context_t *ctx)
     };
     /// 初始化工厂设备信息
     args.val = &factory_data->dev_info;
-    storage_read_factory_dev_info_from_flash(args);
+    read_factory_dev_info_from_flash(args);
     /// 初始化工厂标志信息
     args.val = &factory_data->flag_info;
-    storage_read_factory_flag_info_from_flash(args);
+    read_factory_flag_info_from_flash(args);
 #if IS_SUPPORT_DEVICE_IMU
     /// 初始化工厂imu校准数据
     args.val = &factory_data->imu;
-    storage_read_imu_cali_data_from_flash(args);
+    read_imu_cali_data_from_flash(args);
 #endif
     return 0;
 }

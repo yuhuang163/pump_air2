@@ -63,7 +63,9 @@ static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reaso
     if (!(pm && pm->is_background_wakeup())) {
     }
 
-    if (!proc->st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, NULL)) {
+    int factory_deploy_flag = 0;
+    proc->st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, &factory_deploy_flag);
+    if (!factory_deploy_flag) {
         LOG_UI("goto fac: true");
         msg.union_body.extra.window_id = ID_WINDOW_FACTORY_MODE;
         wm->dispatch_new_window_args(wm, &msg);

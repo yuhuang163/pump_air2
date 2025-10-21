@@ -37,10 +37,9 @@ typedef enum {
     STORE_ID_BREAST_PUMP_INFO = 300,               /// 吸奶信息
     STORE_ID_BREAST_PUMP_TIME,                     /// 吸奶时间
     STORE_ID_BREAST_PUMP_LEVEL,                    /// 吸奶力度
-    STORE_ID_REMIND_BREAST_PUMP_EXCEPTION,         /// 吸奶异常提醒
-    STORE_ID_REMIND_BREAST_PUMP_HORIZONTAL,        /// 吸奶水平提醒
-    STORE_ID_REMIND_BREAST_PUMP_MODE_CHANGE,       /// 吸奶模式切换提醒
-    STORE_ID_REMIND_BREAST_PUMP_FINISH,            /// 吸奶完成提醒
+    STORE_ID_REMIND_PUMP_EXCEPTION,         /// 吸奶异常提醒
+    STORE_ID_REMIND_PUMP_MODE_CHANGE,       /// 吸奶模式切换提醒
+    STORE_ID_REMIND_PUMP_FINISH,            /// 吸奶完成提醒
     STORE_ID_BREAST_PUMP_DATA_HEAD,                /// 吸奶数据头
     STORE_ID_BREAST_PUMP_DATA_BODY,                /// 吸奶数据体
     STORE_ID_SYS_CONFIG_INFO = 400,         /// 系统配置信息
@@ -87,7 +86,7 @@ typedef struct {
     struct storage_manager_context *ctx;
     int arg1;
     int arg2;
-    const void *val;
+    void *val;
 } store_func_args_t;
 
 /// 写入存储处理接口.
@@ -147,10 +146,10 @@ typedef struct storage_manager_context {
     sec_sys_ver_t *(*get_persist_ver_info)(void);
     factory_data_store_t *(*get_factory_data)(void);
     /// 通用数据存储写读操作接口.
-    int (*put_store_val)(persist_store_id_e id, int arg1, int arg2,  const void *val_in);
+    int (*put_store_val)(persist_store_id_e id, int arg1, int arg2,  void *val_in);
     int (*get_store_val)(persist_store_id_e id, int arg1, int arg2,  void *val_out);
-    int (*del_store_val)(persist_store_id_e id, int arg1, int arg2,  const void *val_in);
-    void (*put_store_ram_val)(persist_store_id_e id, int arg1, int arg2,  const void *val_in);
+    int (*del_store_val)(persist_store_id_e id, int arg1, int arg2,  void *val_in);
+    void (*put_store_ram_val)(persist_store_id_e id, int arg1, int arg2,  void *val_in);
     int (*get_store_ram_val)(persist_store_id_e id, int arg1, int arg2, void *val_out);
     int (*user_database_reset)(void);
     /// 外部hook点.

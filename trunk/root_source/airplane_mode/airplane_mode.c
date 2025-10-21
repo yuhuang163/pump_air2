@@ -68,7 +68,9 @@ static int popup_exit_cb(void *user_data, int args1, int args2)
         LOG_AIR("popup_exit_cb: exit - %d -- %d", args1, args2);
         /// 发送状态切换同步广播，通知感兴趣的组件.
         SEND_BROADCAST_SYNC_ARGS1(ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE, SETTINGS_AIRPLANE_MODE_EXIT);
-        if (!st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, NULL)) {
+        int factory_deploy_flag = 0;
+        st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, &factory_deploy_flag);
+        if (!factory_deploy_flag) {
             msg.union_body.extra.window_id = ID_WINDOW_FACTORY_MODE;
             thiz->priv.wm->dispatch_new_window_args(thiz->priv.wm, &msg);
         } else {

@@ -25,7 +25,7 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int storage_write_sys_config_info_to_flash(store_func_args_t args)
+int write_sys_config_info_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -46,7 +46,7 @@ int storage_write_sys_config_info_to_flash(store_func_args_t args)
     return ret;
 }
 
-void storage_reset_sys_config_info(storage_manager_context_t *ctx, sys_config_info_t *sys_config)
+void reset_sys_config_info(storage_manager_context_t *ctx, sys_config_info_t *sys_config)
 {
     sys_config->time_zone              = 0;
     sys_config->ap_mode_onoff          = 1;
@@ -60,10 +60,10 @@ void storage_reset_sys_config_info(storage_manager_context_t *ctx, sys_config_in
         .arg2 = 0,
         .val = sys_config,
     };
-    storage_write_sys_config_info_to_flash(args);
+    write_sys_config_info_to_flash(args);
 }
 
-int storage_read_sys_config_info_from_flash(store_func_args_t args)
+int read_sys_config_info_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -77,7 +77,7 @@ int storage_read_sys_config_info_from_flash(store_func_args_t args)
     if (ret == 0 && store_sys_config->magic == STORAGE_SYS_CONFIG_MAGIC_NUM && store_sys_config->crc == crc) {
         memcpy(sys_config, &store_sys_config->config, sizeof(sys_config_info_t));
     } else {
-        storage_reset_sys_config_info(args.ctx, sys_config);
+        reset_sys_config_info(args.ctx, sys_config);
         LOGE("read sys config failure! ret: %d, magic: %d, crc: %d, expect_crc: %d", ret,
               store_sys_config->magic, store_sys_config->crc, crc);
     }
@@ -85,7 +85,7 @@ int storage_read_sys_config_info_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_write_sys_state_info_to_flash(store_func_args_t args)
+int write_sys_state_info_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -106,7 +106,7 @@ int storage_write_sys_state_info_to_flash(store_func_args_t args)
     return ret;
 }
 
-void storage_reset_sys_state_info(storage_manager_context_t *ctx, sys_state_info_t *sys_state)
+void reset_sys_state_info(storage_manager_context_t *ctx, sys_state_info_t *sys_state)
 {
     sys_state->guide_deployed          = 0;
     sys_state->sync_sys_time           = 0;
@@ -117,10 +117,10 @@ void storage_reset_sys_state_info(storage_manager_context_t *ctx, sys_state_info
         .arg2 = 0,
         .val = sys_state,
     };
-    storage_write_sys_state_info_to_flash(args);
+    write_sys_state_info_to_flash(args);
 }
 
-int storage_read_sys_state_info_from_flash(store_func_args_t args)
+int read_sys_state_info_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -134,7 +134,7 @@ int storage_read_sys_state_info_from_flash(store_func_args_t args)
     if (ret == 0 && store_sys_state->magic == STORAGE_SYS_STATE_MAGIC_NUM && store_sys_state->crc == crc) {
         memcpy(sys_state, &store_sys_state->state, sizeof(sys_state_info_t));
     } else {
-        storage_reset_sys_state_info(args.ctx, sys_state);
+        reset_sys_state_info(args.ctx, sys_state);
         LOGE("read sys state failure! ret: %d, magic: %d, crc: %d, expect_crc: %d", ret,
               store_sys_state->magic, store_sys_state->crc, crc);
     }
@@ -142,7 +142,7 @@ int storage_read_sys_state_info_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_write_user_bind_info_to_flash(store_func_args_t args)
+int write_user_bind_info_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -167,7 +167,7 @@ int storage_write_user_bind_info_to_flash(store_func_args_t args)
     return ret;
 }
 
-void storage_reset_user_bind_info(storage_manager_context_t *ctx, user_bind_info_t *user_bind)
+void reset_user_bind_info(storage_manager_context_t *ctx, user_bind_info_t *user_bind)
 {
     memset(user_bind, 0, sizeof(user_bind_info_t));
     store_func_args_t args = {
@@ -176,10 +176,10 @@ void storage_reset_user_bind_info(storage_manager_context_t *ctx, user_bind_info
         .arg2 = 0,
         .val = user_bind,
     };
-    storage_write_user_bind_info_to_flash(args);
+    write_user_bind_info_to_flash(args);
 }
 
-int storage_read_user_bind_info_from_flash(store_func_args_t args)
+int read_user_bind_info_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -193,7 +193,7 @@ int storage_read_user_bind_info_from_flash(store_func_args_t args)
     if (ret == 0 && store_bind_info->magic == STORAGE_USER_BIND_MAGIC_NUM && store_bind_info->crc == crc) {
         memcpy(bind_info, &store_bind_info->bind_info, sizeof(user_bind_info_t));
     } else {
-        storage_reset_user_bind_info(args.ctx, bind_info);
+        reset_user_bind_info(args.ctx, bind_info);
         LOGE("read user bind info failure! ret: %d, magic: %d, crc: %d, expect_crc: %d", ret,
              store_bind_info->magic, store_bind_info->crc, crc);
     }
@@ -201,7 +201,7 @@ int storage_read_user_bind_info_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_write_utc_timestamp_to_flash(store_func_args_t args)
+int write_utc_timestamp_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -219,7 +219,7 @@ int storage_write_utc_timestamp_to_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_read_utc_timestamp_from_flash(store_func_args_t args)
+int read_utc_timestamp_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -241,7 +241,7 @@ int storage_read_utc_timestamp_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_write_sys_time_zone_to_ram(store_func_args_t args)
+int write_sys_time_zone_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
@@ -250,7 +250,7 @@ int storage_write_sys_time_zone_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_ap_mode_onoff_to_ram(store_func_args_t args)
+int write_ap_mode_onoff_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
@@ -259,7 +259,7 @@ int storage_write_ap_mode_onoff_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_slient_upgrade_onoff_to_ram(store_func_args_t args)
+int write_slient_upgrade_onoff_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
@@ -268,7 +268,7 @@ int storage_write_slient_upgrade_onoff_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_sys_ui_style_to_ram(store_func_args_t args)
+int write_sys_ui_style_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
@@ -277,7 +277,7 @@ int storage_write_sys_ui_style_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_log_switch_to_ram(store_func_args_t args)
+int write_log_switch_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
@@ -286,7 +286,7 @@ int storage_write_log_switch_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_language_to_ram(store_func_args_t args)
+int write_language_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
@@ -295,7 +295,7 @@ int storage_write_language_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_guide_deployed_to_ram(store_func_args_t args)
+int write_guide_deployed_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
@@ -304,7 +304,7 @@ int storage_write_guide_deployed_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_battery_health_to_ram(store_func_args_t args)
+int write_battery_health_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
@@ -313,7 +313,7 @@ int storage_write_battery_health_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_sync_sys_time_to_ram(store_func_args_t args)
+int write_sync_sys_time_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
@@ -322,7 +322,7 @@ int storage_write_sync_sys_time_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_log_filter_to_ram(store_func_args_t args)
+int write_log_filter_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
@@ -331,77 +331,107 @@ int storage_write_log_filter_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_read_sys_time_zone_from_ram(store_func_args_t args)
+int read_sys_time_zone_from_ram(store_func_args_t args)
 {   
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
-    return sys_config->time_zone;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_config->time_zone;
+    return 0;
 }
 
-int storage_read_ap_mode_onoff_from_ram(store_func_args_t args)
+int read_ap_mode_onoff_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
-    return sys_config->ap_mode_onoff;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_config->ap_mode_onoff;
+    return 0;
 }
 
-int storage_read_slient_upgrade_onoff_from_ram(store_func_args_t args)
+int read_slient_upgrade_onoff_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
-    return sys_config->slient_upgrade_onoff;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_config->slient_upgrade_onoff;
+    return 0;
 }
 
-int storage_read_sys_ui_style_from_ram(store_func_args_t args)
+int read_sys_ui_style_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
-    return sys_config->sys_ui_style;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_config->sys_ui_style;
+    return 0;
 }
 
-int storage_read_log_switch_from_ram(store_func_args_t args)
+int read_log_switch_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
-    return sys_config->log_switch;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_config->log_switch;
+    return 0;
 }
 
-int storage_read_language_from_ram(store_func_args_t args)
+int read_language_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_config_info_t *sys_config = &args.ctx->priv.sys_info.config;
-    return sys_config->language;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_config->language;
+    return 0;
 }   
 
-int storage_read_guide_deployed_from_ram(store_func_args_t args)
+int read_guide_deployed_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
-    return sys_state->guide_deployed;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_state->guide_deployed;
+    return 0;
 }
 
-int storage_read_battery_health_from_ram(store_func_args_t args)
+int read_battery_health_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
-    return sys_state->battery_health;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_state->battery_health;
+    return 0;
 }
 
-int storage_read_sync_sys_time_from_ram(store_func_args_t args)
+int read_sync_sys_time_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
-    return sys_state->sync_sys_time;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_state->sync_sys_time;
+    return 0;
 }
 
-int storage_read_log_filter_from_ram(store_func_args_t args)
+int read_log_filter_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
-    return sys_state->log_filter;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_state->log_filter;
+    return 0;
 }
 
-int storage_user_is_binded_from_ram(store_func_args_t args)
+int user_is_binded_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     user_bind_info_t *bind_info = &args.ctx->priv.sys_info.bind_info;

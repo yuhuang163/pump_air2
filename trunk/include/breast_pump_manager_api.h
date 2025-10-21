@@ -114,7 +114,7 @@ typedef struct breast_pump_manager_context {
     int (*get_breast_pump_status_async)(void);
     int (*get_last_breast_pump_result)(breast_pump_result_t *result, uint8_t breast_pump_data_id);
     const breast_pump_result_t *(*get_curr_breast_pump_result)(void);
-    int (*get_breast_pump_result)(pump_result_info_t *result, uint8_t result_id);
+    pump_result_info_t *(*get_breast_pump_result)(breast_pump_result_id_e result_id);
 
     ///  外部挂接点.
     struct __breast_pump_hook {

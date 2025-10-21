@@ -31,7 +31,7 @@ extern "C" {
 #define IS_SUPPORT_LOG_COLOR                             (0)
 #define IS_SUPPORT_MODULE_PBUS                           (1)
 #define IS_SUPPORT_MODULE_PM                             (1)
-#define IS_SUPPORT_MODULE_STORAGE                        (0)
+#define IS_SUPPORT_MODULE_STORAGE                        (1)
 #define IS_SUPPORT_MODULE_RES                            (0)
 #define IS_SUPPORT_MODULE_TIME_SYSTEM                    (1)
 #define IS_SUPPORT_MODULE_WM                             (0)

@@ -32,7 +32,7 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int storage_write_pump_info_to_flash(store_func_args_t args)
+int write_pump_info_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -53,11 +53,11 @@ int storage_write_pump_info_to_flash(store_func_args_t args)
     return ret;
 }
 
-void storage_reset_pump_info(storage_manager_context_t *ctx, sys_pump_info_t *pump_info)
+void reset_pump_info(storage_manager_context_t *ctx, sys_pump_info_t *pump_info)
 {
     pump_info->is_remind_exception        = 1;
     pump_info->is_remind_mode_change      = 1;
-    pump_info->is_remind_pump_finish     = 1;
+    pump_info->is_remind_pump_finish      = 1;
     for (int i = 0; i < BREAST_PUMP_MODE_MAX; i++) {
         pump_info->pump_time[i] = BREAST_PUMPING_DEFAULT_TIME;
     }
@@ -69,10 +69,11 @@ void storage_reset_pump_info(storage_manager_context_t *ctx, sys_pump_info_t *pu
         .arg2 = 0,
         .val = pump_info,
     };
-    storage_write_pump_info_to_flash(args);
+    LOG_STORE_WRAP("==> storage_reset_pump_info !!!!!!!!!!!!!!!");
+    write_pump_info_to_flash(args);
 }
 
-int storage_read_pump_info_from_flash(store_func_args_t args)
+int read_pump_info_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -85,7 +86,7 @@ int storage_read_pump_info_from_flash(store_func_args_t args)
     if (ret == 0) {
         memcpy(pump_info, &store_pump_info->pump_info, sizeof(sys_pump_info_t));
     } else {
-        storage_reset_pump_info(args.ctx, pump_info);
+        reset_pump_info(args.ctx, pump_info);
         LOGE("read pump info failure! ret: %d", ret);
     }
     u_free(store_pump_info);
@@ -93,7 +94,7 @@ int storage_read_pump_info_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_write_pump_data_head_to_flash(store_func_args_t args)
+int write_pump_data_head_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -114,7 +115,7 @@ int storage_write_pump_data_head_to_flash(store_func_args_t args)
     return ret;
 }
 
-void storage_reset_pump_data_head(storage_manager_context_t *ctx, breast_pump_data_head_t *pump_data_head)
+void reset_pump_data_head(storage_manager_context_t *ctx, breast_pump_data_head_t *pump_data_head)
 {
     EXCEPTION_CHECK_VOID(ctx);
     memset(pump_data_head, 0, sizeof(breast_pump_data_head_t));
@@ -124,10 +125,10 @@ void storage_reset_pump_data_head(storage_manager_context_t *ctx, breast_pump_da
         .arg2 = 0,
         .val = pump_data_head,
     };
-    storage_write_pump_data_head_to_flash(args);
+    write_pump_data_head_to_flash(args);
 }
 
-int storage_read_pump_data_head_from_flash(store_func_args_t args)
+int read_pump_data_head_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -148,7 +149,7 @@ int storage_read_pump_data_head_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_write_pump_data_body_to_flash(store_func_args_t args)
+int write_pump_data_body_to_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -175,7 +176,7 @@ int storage_write_pump_data_body_to_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_read_pump_data_body_from_flash(store_func_args_t args)
+int read_pump_data_body_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -200,7 +201,7 @@ int storage_read_pump_data_body_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_del_pump_data_body_from_flash(store_func_args_t args)
+int del_pump_data_body_from_flash(store_func_args_t args)
 {
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
@@ -218,7 +219,7 @@ int storage_del_pump_data_body_from_flash(store_func_args_t args)
     return ret;
 }
 
-int storage_write_pump_time_to_ram(store_func_args_t args)
+int write_pump_time_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
@@ -227,7 +228,7 @@ int storage_write_pump_time_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_write_pump_exception_remind_to_ram(store_func_args_t args)
+int write_pump_exception_remind_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
@@ -236,35 +237,66 @@ int storage_write_pump_exception_remind_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_read_pump_time_from_ram(store_func_args_t args)
+int write_pump_mode_change_remind_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    return pump_info->pump_time[args.arg1];
+    pump_info->is_remind_mode_change = (uint8_t)args.arg1;
+    LOG_STORE_WRAP("write pump mode change remind: %d", args.arg1);
+    return 0;
 }
 
-int storage_read_pump_exception_remind_from_ram(store_func_args_t args)
+int write_pump_finish_remind_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    return pump_info->is_remind_exception;
+    pump_info->is_remind_pump_finish = (uint8_t)args.arg1;
+    LOG_STORE_WRAP("write pump finish remind: %d", args.arg1);
+    return 0;
 }
 
-int storage_read_pump_mode_change_remind_from_ram(store_func_args_t args)
+int read_pump_time_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    return pump_info->is_remind_mode_change;
+    LOG_STORE_WRAP("read pump mode: %d, time: %d", args.arg1, pump_info->pump_time[args.arg1]);
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = pump_info->pump_time[args.arg1];
+    return 0;
 }
 
-int storage_read_pump_finish_remind_from_ram(store_func_args_t args)
+int read_pump_exception_remind_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    return pump_info->is_remind_pump_finish;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = pump_info->is_remind_exception;
+    return 0;
 }
 
-int storage_write_pump_level_to_ram(store_func_args_t args)
+int read_pump_mode_change_remind_from_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = pump_info->is_remind_mode_change;
+    return 0;
+}
+
+int read_pump_finish_remind_from_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = pump_info->is_remind_pump_finish;
+    return 0;
+}
+
+int write_pump_level_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     LOG_STORE("write pump mode: %d", args.arg1);
@@ -272,7 +304,7 @@ int storage_write_pump_level_to_ram(store_func_args_t args)
     return 0;
 }
 
-int storage_read_pump_level_from_ram(store_func_args_t args)
+int read_pump_level_from_ram(store_func_args_t args)
 {
     return 0;
 }

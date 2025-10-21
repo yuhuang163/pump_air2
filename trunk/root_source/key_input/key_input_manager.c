@@ -300,7 +300,7 @@ static int dispatch_key_event_wrapper(void *context, int keycode, int keytype)
     };
     LOG_KEY("event: %d/%d\n", keycode, keytype);
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    if (wm->post_msg_to_window) {
+    if (wm && wm->post_msg_to_window) {
         wm->post_msg_to_window(__func__, (&__msg));
     }
 

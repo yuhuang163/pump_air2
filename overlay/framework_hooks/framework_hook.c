@@ -30,10 +30,16 @@
 void framework_extra_hook(void)
 {
     /// 注册存储钩子.
-    // storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    // CHECK_IF_VALID(storage_ctx, {
-    //     register_storage_hook(storage_ctx);
-    // });
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    CHECK_IF_VALID(storage_ctx, {
+        register_storage_hook(storage_ctx);
+    });
+
+    /// 注册输入按键钩子.
+    key_input_context_t *input_key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    CHECK_IF_VALID(input_key_ctx, {
+        register_input_key_hook(input_key_ctx);
+    });
 
     /// 注册电机钩子.
     motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
@@ -48,10 +54,10 @@ void framework_extra_hook(void)
     });
 
     /// 注册泵奶钩子.
-    // breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    // CHECK_IF_VALID(pump_ctx, {
-    //     register_breast_pump_hook(pump_ctx);
-    // });
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    CHECK_IF_VALID(pump_ctx, {
+        register_breast_pump_hook(pump_ctx);
+    });
 
 
 
