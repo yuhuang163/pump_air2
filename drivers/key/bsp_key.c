@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "bsp_common.h" // IWYU pragma: keep
+#include "cmsis_os_api.h"
 #include "scan_key.h" // IWYU pragma: keep
 #include "bsp_key_internal.h"
 
@@ -10,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define KEY_CODE_SIZE 6
+#define KEY_CODE_SIZE (6 + 1)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -46,7 +47,7 @@ static int scan_key_module_init(void)
 
 static int key_dev_open(struct rt_device_node *dev)
 {
-    bsp_key_init();
+    scan_key_module_init();
     return 0;
 }
 
@@ -82,6 +83,7 @@ static int key_dev_write(struct rt_device_node *dev, const void *buf, uint32_t n
         keytype = tmp[1];
     }
 
+    // LOG_PBUS("keycode: %d, keytype: %d, key_cb: %p", keycode, keytype, key_cb);
     if (keycode && key_cb) {
         key_cb(dev, keycode, keytype);
     }

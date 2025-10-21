@@ -2,7 +2,9 @@
  * INCLUDE FILES
  *****************************************************************************************
  */
-#include "bsp_common.h"
+#include "bsp_config.h"
+#include "bsp_common.h" // IWYU pragma: keep
+#include "bsp_internal.h" // IWYU pragma: keep
 
 /*
  * DEFINES
@@ -24,21 +26,33 @@ static rt_device_node_t *node = NULL;
  * LOCAL FUNCTION DEFINITIONS
  *****************************************************************************************
  */
-#if 0
-static int bsp_sys_power_init(void)
+static void sys_power_gpio_init(void)
 {
-    app_io_init_t io_init = {
-        .pull = APP_IO_PULLUP,
-        .mode = APP_IO_MODE_INPUT,
-        .pin  = PCBA_TEST_PIN,
-        .mux  = BSP_COMMON_IO_MUX
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        SYS_POWER_PIN,  
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL,
     };
-    return app_io_init(PCBA_TEST_IO_TYPE, &io_init);
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_POWER_PIN,  HAL_GPIO_DIR_OUT,  1);
+    LOG_PBUS("sys_power_gpio_init");
 }
-#endif
+
+static void sys_power_gpio_control(bool enable)
+{
+    if (enable) {
+        hal_gpio_pin_set((enum HAL_GPIO_PIN_T)SYS_POWER_PIN);
+    } else {
+        hal_gpio_pin_clr((enum HAL_GPIO_PIN_T)SYS_POWER_PIN);
+    }
+    LOG_PBUS("sys_power_gpio_control: %d", enable);
+}
 
 static int sys_power_dev_open(struct rt_device_node *dev)
 {
+    sys_power_gpio_init();
+    sys_power_gpio_control(true);
     return 0;
 }
 

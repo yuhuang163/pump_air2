@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define DEBOUNCE_TIMER_SLOT_MS                       (10)
+#define DEBOUNCE_TIMER_SLOT_MS                       (20)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -40,7 +40,7 @@ static void bsp_post_key_event(uint16_t keycode, uint16_t keytype)
     rt_device_node_t *node = s_key_dev;
 
     if (node && node->write) {
-        // LOG_KEY("write keyevent: %d --- %d", keycode, keytype);
+        LOG_KEY("write keyevent: %d --- %d", keycode, keytype);
         int buf[] = { (1 << (SCAN_KEY_CODE_BEGIN + keycode)), (1 << (KEY_TYPE_BEGIN + keytype)) };
         node->write(node, buf, sizeof(buf));
     }
@@ -116,14 +116,6 @@ static void scan_key_init(void)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int scan_key_input_init(struct rt_device_node *key_dev, uint8_t key_code_size)
-{
-    s_key_dev = key_dev;
-    s_key_code_size = key_code_size > SCAN_KEY_CODE_MAX ? SCAN_KEY_CODE_MAX : key_code_size;
-    scan_key_init();
-    return 0;
-}
-
 void scan_key_timer_start(int key)
 {
     uint8_t key_code = 0;
@@ -145,6 +137,16 @@ void scan_key_timer_start(int key)
         SET_BIT(timer_flag, scan_key_pin_to_code(i));
     }
 }
+
+int scan_key_input_init(struct rt_device_node *key_dev, uint8_t key_code_size)
+{
+    s_key_dev = key_dev;
+    s_key_code_size = key_code_size > SCAN_KEY_CODE_MAX ? SCAN_KEY_CODE_MAX : key_code_size;
+    scan_key_init();
+    scan_key_timer_start(SCAN_KEY_ID1);
+    return 0;
+}
+
 
 __attribute__((weak)) int platform_read_key_value(int type, int pin)
 {
