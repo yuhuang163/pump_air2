@@ -653,11 +653,13 @@ void ble_start_adv(void)
 }
 
 #if CFG_CUSTOM_APP
+extern void sys_power_gpio_init(void);
 extern void platform_log_init(void);
 extern void root_main(int argc, const char *argv[]);
 #endif
 int main(void)
 {
+    sys_power_gpio_init();
     hwtimer_init();
     hal_sys_timer_open();
 
@@ -682,6 +684,9 @@ int main(void)
 
 #if CFG_CUSTOM_APP
     platform_log_init();
+#else
+    hal_trace_set_log_level(TR_LEVEL_DEBUG);
+    TRACE(0, "-->-->no custom app log level: debug");
 #endif
 
     hal_norflash_show_id_state(HAL_FLASH_ID_0, true);
@@ -742,6 +747,8 @@ int main(void)
         ble_start_adv();
 #if CFG_CUSTOM_APP
         root_main(0, NULL);
+#else
+        TRACE(0, "no custom app enter");
 #endif
     }
  
@@ -753,6 +760,10 @@ int main(void)
                 break;
             }
         }
+        #if CFG_CUSTOM_APP
+        #else
+        TRACE(0, "-->-->no custom app loop");
+        #endif
     }
 
     ble_app_deinit();
