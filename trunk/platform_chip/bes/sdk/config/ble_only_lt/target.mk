@@ -80,7 +80,7 @@ export ENABLE_PRINT_FLOAT ?= 1
 export CORE_DUMP ?= 0
 export ALLOW_WARNING ?= 1
 
-export OS_TASKCNT ?= 22
+export OS_TASKCNT ?= 28
 export OS_SCHEDULERSTKSIZE ?= 512
 export OS_IDLESTKSIZE ?= 1024
 export OS_FIFOSZ ?= 24
