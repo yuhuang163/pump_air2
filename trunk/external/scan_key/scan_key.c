@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define DEBOUNCE_TIMER_SLOT_MS                       (20)
+#define DEBOUNCE_TIMER_SLOT_MS                       (10)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
