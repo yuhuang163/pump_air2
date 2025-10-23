@@ -31,3 +31,29 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+
+#if 0
+
+static void on_create(void *ptr)
+{
+}
+
+static void on_resume(void *ptr)
+{
+}
+
+static void on_pause(void *ptr)
+{
+}
+
+static void on_destory(void)
+{
+}
+
+#endif
+
+const window_life_cycle_t m_window_pump = {0};
+
+
+
+

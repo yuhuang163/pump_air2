@@ -53,6 +53,7 @@ const motor_policy_cfg_t *get_breast_pump_mode_para (int mode)
 
 int breast_pump_mode_parameter_output(motor_policy_manager_t *obj, char *name)
 {
+    #if 0
     EXCEPTION_CHECK_INT(obj);
     motor_timed_policy_node_t *timed = &obj->head;
     motor_policy_node_t *policy = &timed->policy;
@@ -77,6 +78,7 @@ int breast_pump_mode_parameter_output(motor_policy_manager_t *obj, char *name)
             policy = &timed->policy;
         }
     }
+    #endif
     return 0;
 }
 

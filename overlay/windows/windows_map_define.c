@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "root_common.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "windows_internal_api.h" // IWYU pragma: keep
 #include "windows_manager.h" // IWYU pragma: keep
@@ -20,8 +21,6 @@
 #define WINDOW_PRIO_FAC         WINDOW_PRIO_HIGH
 #define WINDOW_PRIO_LOGO        WINDOW_PRIO_HIGH
 #define WINDOW_PRIO_BATTERY     WINDOW_PRIO_TOP
-
-#define WINDOW_HANDLE_LIST_COUNT 1
 
 DECLARE_WM_HANDLE_OBJ(m_window_dummy);
 DECLARE_WM_HANDLE_OBJ(m_window_logo);
@@ -49,9 +48,9 @@ const window_life_cycle_t m_ui_screen_null = {
 /**
 * 注意: 新增窗口处理集合, 请按window_id顺序排列，便于二分法查找.
 */
-static const window_context_handle_t g_process_handle_list[WINDOW_HANDLE_LIST_COUNT] = {
+static const window_context_handle_t g_process_handle_list[] = {
     {ID_WINDOW_DUMMY,               WINDOW_PRIO_DUMMY,      PAGE_HANDLE_NAME(dummy),    REFS_T(m_window_dummy)},
-    // {ID_WINDOW_LOGO,                WINDOW_PRIO_LOGO,       PAGE_HANDLE_NAME(logo),     REFS_T(m_window_logo)},
+    {ID_WINDOW_LOGO,                WINDOW_PRIO_LOGO,       PAGE_HANDLE_NAME(logo),     REFS_T(m_window_logo)},
     // {ID_WINDOW_GUIDE,               WINDOW_PRIO_GUIDE,      PAGE_HANDLE_NAME(guide),    REFS_T(m_window_guide)},
     // {ID_WINDOW_CHARGE,              WINDOW_PRIO_CHARGE,     PAGE_HANDLE_NAME(charge),   REFS_T(m_window_charge)},
     // {ID_WINDOW_BATTERY,             WINDOW_PRIO_BATTERY,    PAGE_HANDLE_NAME(battery ), REFS_T(m_window_battery)},
@@ -101,5 +100,5 @@ const char *to_window_name(uint8_t window_id)
 void get_window_state_hdr_list(window_context_handle_t **list, uint16_t *list_len)
 {
     *list = (window_context_handle_t *)g_process_handle_list;
-    *list_len = WINDOW_HANDLE_LIST_COUNT;
+    *list_len = LENGTH_OF_ARRAY(g_process_handle_list);
 }
