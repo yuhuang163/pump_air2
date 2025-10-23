@@ -95,7 +95,7 @@ static void on_dummy_receive_internal(broadcast_mask_id_t id, void *context,
     }
 
     msg.union_body.extra.pm_wakeup_reason = wakeup_reason;
-    msg.union_body.extra.window_id = ID_WINDOW_BREAST_PUMP;
+    msg.union_body.extra.window_id = ID_WINDOW_PUMP;
     msg.union_body.extra.is_background = 1;
     wm->dispatch_new_window_args(wm, &msg);
 }

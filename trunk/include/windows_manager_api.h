@@ -35,7 +35,7 @@ typedef enum {
     ID_WINDOW_BATTERY,             /// 低电量.
     ID_WINDOW_OTA_UPGRADE,         /// OTA
     ID_WINDOW_POPUP_WINDOW,        /// 通用弹出框
-    ID_WINDOW_BREAST_PUMP,         /// 泵奶主流程
+    ID_WINDOW_PUMP,                /// 泵奶主流程
     ID_WINDOW_FACTORY_MODE,        /// 工厂模式
     ID_WINDOW_SETTINGS,            /// 系统设置
     ID_WINDOW_AIRPLANE_MODE,       /// 进入飞行模式后和退出飞行模式前处理飞行模式事件的中间窗口
