@@ -27,8 +27,6 @@ typedef struct {
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-DECLARE_UI_PAGE_OBJ(PAGE_STATIC_NAME);
-static ui_page_handle_t *p_window_handle = &PAGE_CONTEXT_NAME(PAGE_STATIC_NAME);
 INIT_WINDOW_CONTEXT();
 
 /*
@@ -40,21 +38,6 @@ INIT_WINDOW_CONTEXT();
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void draw(ui_page_obj_t *return_menu, void *argv)
-{
-    LOG_UI("dummy page");
-}
-
-static void timer_cb(void *args)
-{
-    LOG_UI("dummy page");
-}
-
-ui_page_handle_t PAGE_CONTEXT_NAME(PAGE_STATIC_NAME) = {
-    .draw = draw,
-    .timer_handler = timer_cb,
-};
-
 static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reason)
 {
     window_manager_context_t *wm = proc->args.wm;
@@ -136,7 +119,7 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
             default:
             break;
         }
-    }, LOG_UI);
+    });
 
     window_dispatch_unlock(__func__);
 }
@@ -156,7 +139,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
             window_dispatch_lock("dummy-exit");
             LOG_UI("ON_DESTORY--begin\n");
             u_free(proc);
-            SET_WINDOW_CONTEXT(NULL, LOG_UI);
+            SET_WINDOW_CONTEXT(NULL);
             LOG_UI("ON_DESTORY--end\n");
             window_dispatch_unlock("dummy-exit");
         break;
@@ -181,8 +164,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     #if IS_SUPPORT_MODULE_RES
     proc->res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
     #endif
-    SET_WINDOW_CONTEXT(proc, LOG_UI);
-
+    SET_WINDOW_CONTEXT(proc);
     /// 监听PM状态改变.
     LOG_UI("register receiver\n");
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
