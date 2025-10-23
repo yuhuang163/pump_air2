@@ -580,7 +580,7 @@ void app_enter_non_signalingtest_mode(void)
     pmu_reboot();
 }
 /***************************************************************/
-
+#if 0
 static int key_event_process(uint32_t key_code, uint8_t key_event)
 {
     TRACE(2,"%s: key_code:%04x key_event:%d", __func__, key_code, key_event);
@@ -601,6 +601,7 @@ static int key_event_process(uint32_t key_code, uint8_t key_event)
 
     return 0;
 }
+#endif
 
 static void app_ble_stub_user_data_fill_handler(void *param)
 {
@@ -663,7 +664,7 @@ int main(void)
     hal_audma_open();
     hal_gpdma_open();
 
-    hal_key_open(0, key_event_process);
+    // hal_key_open(0, key_event_process);
 
 #if (DEBUG_PORT == 1)
     hal_iomux_set_uart0();
