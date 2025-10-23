@@ -2,12 +2,10 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "stdint.h"
 #include "pmu.h"
 #include "watchdog/watchdog.h"
 #include "norflash_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
-#include <string.h>
 
 /*
 * DEFINES
@@ -45,18 +43,16 @@ static void platform_wdt_refresh(void)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-// extern int tgt_hardware_setup(void);
 void platform_prepare_init(void)
 {
     u_heap_init();
     os_mutex_module_init();
-    platform_set_utc_time(PRODUCT_BUILD_TIMESTAMP, 8);
     LOGI("platform_prepare_init");
 }
 
 void platform_post_init(void) 
 {
-    // TODO: Implement platform post-initialization logic
+    platform_set_utc_time(PRODUCT_BUILD_TIMESTAMP, 8);
 }
 
 void platform_sysinfo_print(void *user_data)

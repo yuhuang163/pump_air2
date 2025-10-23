@@ -9,7 +9,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define U_HEAP_SIZE (64 * 1024)
+#define U_HEAP_SIZE (80 * 1024)
 
 /*
 * LOCAL VARIABLE DEFINITIONS

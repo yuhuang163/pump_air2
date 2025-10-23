@@ -165,6 +165,8 @@ void msleep(uint32_t time_ms);
 void platform_prepare_init(void);
 /// 后期初始化接口.
 void platform_post_init(void);
+/// 日志初始化接口.
+void platform_log_init(void);
 /// 平台相关轮询信息打印接口.
 void platform_sysinfo_print(void *user_data);
 /// 平台提供的获取UTC时间戳接口.
