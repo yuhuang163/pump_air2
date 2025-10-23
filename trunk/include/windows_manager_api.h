@@ -13,13 +13,6 @@ extern "C" {
 #include "broadcast_manager_api.h"
 #include "root_message.h"
 
-#if CUST_LVGL_SUPPORT
-#include "lv_conf.h"
-#include "lvgl.h"
-#include "lv_port_disp.h"
-#include "lv_port_indev.h"
-#endif /// CUST_LVGL_SUPPORT
-
 /// 语言类型，不能随意修改排序，会影响打包脚本
 typedef enum {
     SYS_LANGUANGE_CHINESE = 0,
@@ -85,6 +78,11 @@ typedef struct window_manager_context {
 /// private:
     struct __window_manager_private {
         struct resource_manager_context *res; /// 资源管理器
+        struct storage_manager_context *st; /// 存储管理器
+        struct misc_manager_context *misc; /// 杂项管理器
+        struct power_manager_context *pm; /// 电源管理器
+        struct key_input_context *key; /// 按键管理器
+        struct breast_pump_manager_context *pump; /// 泵奶管理器
     #if CUST_LVGL_SUPPORT
         thread_context_t lv_hdr_thd; /// lvgl 显示调度线程
         os_timer_id lv_tick_timer; /// lvgl tick定时器
@@ -114,7 +112,7 @@ typedef struct window_manager_context {
         uint8_t *draw_buffer; /// 绘制缓冲区
     } priv;
 
-// public:
+    /// public:
     void (*set_backlight)(uint16_t val);
     void (*set_is_restting_device)(uint8_t val);
     int (*set_window_switch_forbid)(int forbid);
@@ -126,6 +124,7 @@ typedef struct window_manager_context {
     bool (*is_on_window_dispatch)(void);
     const char *(*to_window_name)(uint8_t window_id);
     uint8_t (*get_current_window_id)(void);
+    void (*set_is_playing_rt_ani)(bool flag);
     int (*dispatch_new_window_args)(struct window_manager_context *wm, multi_func_msg_data_t *msg);
     int (*go_back_to_history)(void *wm, window_entry_extra_t *__extra);
 } window_manager_context_t;

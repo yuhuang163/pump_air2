@@ -142,6 +142,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/root_source/resource \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/storage \
+	-I$(PROJECT_ROOT)/trunk/root_source/ui \
 	-I$(PROJECT_ROOT)/trunk/root_source/utils \
 	-I$(PROJECT_ROOT)/trunk/root_source/windows
 

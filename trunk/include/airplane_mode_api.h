@@ -17,11 +17,6 @@ typedef enum {
     AIRPLANE_MODE_BY_IMU_PASSIVE_ENTER = 2,      ///IMU检查移动被动进入.
 } airplane_mode_state_e;
 
-typedef enum {
-    SETTINGS_AIRPLANE_MODE_ENTER = 0,
-    SETTINGS_AIRPLANE_MODE_EXIT,
-} settings_airplane_mode_e;
-
 struct broadcast_obj;
 struct window_manager_context;
 struct power_manager_context;
