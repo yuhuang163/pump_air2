@@ -9,11 +9,30 @@ extern "C" {
 /*******************************************************************************
 * Include files
 ******************************************************************************/
-#include <stdio.h> // IWYU pragma: keep
-#include <stdlib.h> // IWYU pragma: keep
 #include "windows_manager_api.h" // IWYU pragma: keep
 #include "windows_manager.h" // IWYU pragma: keep
 #include "windows_map_define.h" // IWYU pragma: keep
+
+// 窗口引用记录宏定义.
+#define INIT_WINDOW_CONTEXT() \
+    static void *__s_window_refs = NULL
+
+#define GET_WINDOW_CONTEXT() (__s_window_refs)
+
+#define SET_WINDOW_CONTEXT(ctx) \
+    do { \
+        __s_window_refs = ctx; \
+        LOG_UI("set_window_context:%p", __s_window_refs); \
+    } while (0)
+
+#define IS_WINDOW_CONTEXT_PRESENT(closure) \
+    do { \
+        if (__s_window_refs != NULL) { \
+            { closure } \
+        } else { \
+            LOG_UI("Oops! NOT WINDOW_PRESENT"); \
+        } \
+    } while (0)
 
 /*
 * GLOBAL FUNCTION DECLARATION

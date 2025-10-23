@@ -18,6 +18,7 @@
 *****************************************************************************************
 */
 static window_manager_context_t *thiz = NULL;
+static os_mutex_id s_play_animation_lock = NULL;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -31,10 +32,10 @@ static window_manager_context_t *thiz = NULL;
 
 #if CUST_LVGL_SUPPORT
 /// lvgl任务显示调度线程,所有的UI操作均在此线程完成.
-static void lv_handler_thread(const void *args)
+static void ui_handler_thread(const void *args)
 {
     thread_context_t *thd = args;
-    window_manager_context_t *wm = CONTAINER_OF(thd, window_manager_context_t, priv.lv_hdr_thd);
+    window_manager_context_t *wm = CONTAINER_OF(thd, window_manager_context_t, priv.ui_hdr_thd);
     int msg = 0;
 
     CREATE_MSG_TYPE_QUEUE(&thd->msg_id, 1, sizeof(int));
@@ -44,27 +45,27 @@ static void lv_handler_thread(const void *args)
         MSG_QUEUE_RECV(thd->msg_id, &msg, OS_WAIT_FOREVER);
 
         WM_LOCK(NULL);
-        lv_task_handler();
+        ui_task_handler();
         WM_UNLOCK(NULL);
 
         #if DEBUG_LV_FPS == 1
-        PRINTF_FPS("lv_task");
+        PRINTF_FPS("ui_task");
         #endif
     }
 }
 
-static void lv_tick_timer_handler(TimerHandle_t *handle)
+static void ui_tick_timer_handler(TimerHandle_t *handle)
 {
-    lv_tick_inc(LVGL_TIME_TICK_PERIOD);
+    ui_tick_inc(LVGL_TIME_TICK_PERIOD);
 
     #if DEBUG_LV_FPS == 2
-    PRINTF_FPS("lv_tick");
+    PRINTF_FPS("ui_tick");
     #endif
 
     static int msg = 0;
-    if (thiz->lv_hdr_thd.msg_id) {
+    if (thiz->ui_hdr_thd.msg_id) {
         if (++msg % 2 == 0) {
-            MSG_QUEUE_SEND(thiz->lv_hdr_thd.msg_id, &msg, 0);
+            MSG_QUEUE_SEND(thiz->ui_hdr_thd.msg_id, &msg, 0);
         }
     }
 }
@@ -114,15 +115,15 @@ void local_clear(uint16_t color)
 void window_flush_post_init(window_manager_context_t *wm)
 {
     #if CUST_LVGL_SUPPORT
-    lv_init();
-    lv_port_disp_init((void *)wm);
-    lv_port_indev_init((void *)wm);
-    lv_animation_init();
-    CREATE_TIMER(&wm->priv.lv_tick_timer, "lv_tick_timer", wm, osTimerPeriodic, lv_tick_timer_handler);
-    START_TIMER(wm->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
-    wm->priv.lv_tick_status = 1;
-    RUN_NEW_THREAD(&wm->priv.lv_hdr_thd, "lv_hdr_thd", 
-        lv_handler_thread, RT_PRIO_LVGL_HANDLER_THREAD, (LVGL_RENDER_THREAD_STACKSIZE));
+    ui_init();
+    ui_port_disp_init((void *)wm);
+    ui_port_indev_init((void *)wm);
+    ui_animation_init();
+    CREATE_TIMER(&wm->priv.ui_tick_timer, "ui_tick_timer", wm, osTimerPeriodic, ui_tick_timer_handler);
+    START_TIMER(wm->priv.ui_tick_timer, LVGL_TIME_TICK_PERIOD);
+    wm->priv.ui_tick_status = 1;
+    RUN_NEW_THREAD(&wm->priv.ui_hdr_thd, "ui_hdr_thd", 
+        ui_handler_thread, RT_PRIO_LVGL_HANDLER_THREAD, (LVGL_RENDER_THREAD_STACKSIZE));
     #else
     // window_flush_init();
     RUN_NEW_THREAD(&wm->priv.window_flush_thd, "window_flush_thd",

@@ -312,12 +312,13 @@ static void window_dispatch_thread(const void *args)
     REGISTER_TO_HANDLER_POST_POOL(thd->msg_id, &hdr_process_cb);
     task_post_process_fptr *bcr_process_cb = NULL;
     REGISTER_TO_BROCASE_THD_POOL(thd->msg_id, &bcr_process_cb);
+    LOG_WM("window_dispatch_thread start");
 
     for (;;) {
         thd->is_running = 0;
         MSG_QUEUE_RECV(thd->msg_id, msg, OS_WAIT_FOREVER);
         thd->is_running = get_timestamp();
-
+        LOG_WM("recv msg: %d, window_id: %d", msg->msg_type, msg->union_body.extra.window_id);
         switch (msg->msg_type) {
             case MSG_TYPE_WIN_DISPATCH:
                 WM_LOCK("--switch");
@@ -476,6 +477,7 @@ static int dispatch_new_window_args(struct window_manager_context *wm, multi_fun
         LOG_WM("dispatch-UI(bg: %d)(scr: %s/%d) allow.\n", s_bg, to_window_name(window_id), window_id);
         if (wm->priv.window_dispatch_thd.msg_id) {
             msg->msg_type = MSG_TYPE_WIN_DISPATCH;
+            // LOG_WM("send msg: %d, window_id: %d", msg->msg_type, msg->union_body.extra.window_id);
             MSG_QUEUE_SEND(wm->priv.window_dispatch_thd.msg_id, msg, 0);
             return 0;
         }
@@ -610,7 +612,7 @@ static int go_back_to_history_wrapper(void *wm, window_entry_extra_t *__extra)
         msg.union_body.extra.window_id = pop_window_history();
     }
 
-    LOG_WM("GO_BACK_TO_HISTORY: %s\n", to_window_name(msg.union_body.extra.window_id));
+    LOG_WM("go back to history: %s\n", to_window_name(msg.union_body.extra.window_id));
     _wm->dispatch_new_window_args(_wm, &(msg));
 
     return 0;
@@ -641,10 +643,11 @@ static int on_post_wm_init(void *ptr)
 static int on_perpare_wm_init(void *self)
 {
     window_manager_context_t *wm = self;
-    
-    #if IS_SUPPORT_MODULE_RES
     wm->priv.res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
-    #endif
+    wm->priv.st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    wm->priv.misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    wm->priv.pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    wm->priv.key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     wm->priv.panel_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
     DEVICE_IOCTL_ARGS_NO_RET(wm->priv.panel_dev, OP_CODE_PANEL_ADD_READY_CB, display_device_ready_callback);
@@ -678,7 +681,7 @@ int dispatch_new_window(window_context_t *ctx)
     }
 
     uint32_t t0 = get_timestamp();
-    LOG_WM("LOG_KEYSTEP switch_windows start: (%s), new_window_id: %d", to_window_name(ctx->new_window_id), (ctx->new_window_id));
+    LOG_WM("switch_windows start: (%s), new_window_id: %d", to_window_name(ctx->new_window_id), (ctx->new_window_id));
 
     /// 先停掉上一个 scr_obj
     if (record->window_hdr != NULL) {
@@ -728,7 +731,7 @@ int dispatch_new_window(window_context_t *ctx)
     
     record->window_hdr = next;
     record->window_context = ctx;
-    LOGE("LOG_KEYSTEP switch_windows finish: (%s/%d/z_order:%d), escaped: %ld ms", 
+    LOGE("switch_windows finish: (%s/%d/z_order:%d), escaped: %ld ms", 
         to_window_name(next->window_id), next->window_id, record->z_order, get_timestamp_ms(t0));
 
     return 0;
@@ -787,6 +790,7 @@ void *register_module_for_window_manager_new(list_head_t *list_head)
     ptr->get_current_window_id = get_current_window_id;
     ptr->dispatch_new_window_args = dispatch_new_window_args;
     ptr->go_back_to_history = go_back_to_history_wrapper;
+    ptr->set_is_playing_rt_ani = set_is_playing_rt_ani;
 
     USE_INIT_LIST_HEAD(&ptr->priv.history_list);
     MUTEX_INIT(&ptr->priv.history_lock, history_stack_lock);

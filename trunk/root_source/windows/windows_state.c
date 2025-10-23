@@ -35,8 +35,6 @@ void set_is_playing_rt_ani(bool flag)
     thiz->priv.is_playing_realtime_ani = flag;
 }
 
-
-
 bool is_window_backlight_on(void)
 {
     return thiz->priv.m_backlight_val > 0 ? true : false;
@@ -59,10 +57,10 @@ bool is_the_same_window(uint8_t new_window_id)
 
 bool is_valid_window_id(uint8_t window_id)
 {
-    if (window_id > ID_WINDOW_BEGIN && window_id < ID_WINDOW_MAX) {
-        return true;
+    if (window_id >= ID_WINDOW_MAX || window_id == ID_WINDOW_INVALID) {
+        return false;
     }
-    return false;
+    return window_id;
 }
 
 /// 是否完成首次开机部署.
@@ -155,4 +153,5 @@ void clear_window_go_back_history_flag(void)
 void on_perpare_window_state_init(window_manager_context_t *wm)
 {
     thiz = wm;
+    LOG_WM("window state init");
 }

@@ -9,11 +9,32 @@ extern "C" {
 /*******************************************************************************
 * Include files
 ******************************************************************************/
-#include <stdio.h> // IWYU pragma: keep
-#include <stdlib.h> // IWYU pragma: keep
 #include "windows_manager_api.h" // IWYU pragma: keep
-#include "windows_define.h" // IWYU pragma: keep
+#include "windows_display.h" // IWYU pragma: keep
 
+#ifndef MAX_UI_DRAW_PROP
+#define MAX_UI_DRAW_PROP (8)
+#endif
+
+#define CONCAT_MACRO(a, b) a##b
+
+#define CONCAT_MACRO_3(a, b, c) a##b##c
+
+#define UI_STRING_IFY(name) (#name)
+
+#define PAGE_CONTEXT_NAME(name) CONCAT_MACRO(page_context_, name)
+
+#define PAGE_HANDLE_NAME(name) CONCAT_MACRO_3(enter_new_window_, name, _screen)
+
+#define PAGE_CONTEXT_NAME_STR(name) UI_STRING_IFY(name)
+
+#ifndef LVGL_TIME_TICK_PERIOD
+#define LVGL_TIME_TICK_PERIOD (10)
+#endif
+
+#define LVGL_HDR_TASK_PERIOD (16)
+
+#define DEBUG_LV_FPS (1)
 
 #define MUTEX_LOCK_WM(tag, __lock) \
 do { \
@@ -65,21 +86,16 @@ typedef enum {
     ID_WINDOW_DISPLAY_IGNORE = -2,
 } window_enter_result_e;
 
-/**
- * 叠图送给LVGL显示的步骤
- */
+/// 飞行模式进入/退出.
 typedef enum {
-    OVERLAY_IMG_DIS_STEP_FULL_BG,
-    OVERLAY_IMG_DIS_STEP_SYNC_FB,
-    OVERLAY_IMG_DIS_STEP_LVGL_SHOW,
-    OVERLAY_IMG_DIS_STEP_MAX
-} overlay_img_dis_step_t;
+    SETTINGS_AIRPLANE_MODE_ENTER = 0,
+    SETTINGS_AIRPLANE_MODE_EXIT,
+} settings_airplane_mode_e;
 
-/**
- * UI生命周期监听
- */
+/// 窗口生命周期记录code.
+#define UI_WINDOW_MARGIC_CODE (0x44556677)
+/// UI生命周期监听
 struct window_context;
-
 typedef int (*window_life_cycle_enter_cb)(window_lift_cycle_e new_state, 
     const struct window_context *thiz, const struct window_context *old_scr);
 
@@ -108,47 +124,19 @@ typedef struct window_context {
     uint8_t not_push_history;
     /// 用于记录具体的window类型和参数.
     uint8_t is_popup_window;
-    /// 窗口上下文指针.
+    /// 窗口上下文指针
     void *user_data;
+    /// 窗口管理器上下文.
     window_manager_context_t *wm;
-    /// 窗口自定义优先级,会覆盖掉系统默认优先级.
-
     /// 窗口事件异步处理回调.
     window_async_evt_handler_cb async_evt_handler_cb;
-    /// entry_type,switch or only preload
+    /// 窗口进入类型
     window_entry_type_e entry_type;
-
+    /// 窗口优先级.
     window_priority_e z_order;
-    // 窗口生命周期监听回调.
+    /// 窗口生命周期监听回调.
     window_life_cycle_enter_cb evt_cb_entry;
-    window_life_cycle_exit_cb evt_cb_exit;
-#if CUST_LVGL_SUPPORT
-    /// 动画绘制上下文参数.
-    lv_animation_play_st *ani;
-    /// 动画绘制合并数组
-    ui_draw_property_t draw[MAX_UI_DRAW_PROP];
-    /// 合并数组长度.
-    uint16_t draw_count;
-    /// 获取资源缓冲区
-    res_obj_desc_t *(*get_res_buf)(get_res_buf_args_t * p_args);
-    /// 叠图图片数据初始化接口
-    void (*overlay_img_wrap_init_cb)(void *user_data);
-    /// 叠图接口，如果某个页面需要叠图，在页面实现 overlay_img_display_cb 即可
-    void (*overlay_img_display_cb)(void *user_data, overlay_img_dis_step_t step);
-#endif
-
-#if IS_SUPPORT_OVERLAY_IMG
-    /// 动画绘制合并数组
-    ui_draw_property_t overlay_img_draw[OVERLAY_IMG_NUM_MAX][MAX_UI_DRAW_PROP];
-    /// 合并数组长度
-    uint16_t overlay_img_draw_count[OVERLAY_IMG_NUM_MAX];
-    /// 是否叠图显示
-    uint8_t is_display_overlay_img_mode;
-#endif
-
-#if USING_DENTAL_GRADUAL_CHANGE
-    void (*dental_mold_to_frame_buffer)(uint8_t *fb, uint8_t *src, ui_draw_property_t *d);
-#endif    
+    window_life_cycle_exit_cb evt_cb_exit;  
 } window_context_t;
 
 /**
@@ -184,41 +172,6 @@ typedef struct {
     window_context_t *window_context;
     window_priority_e z_order;
 } window_context_record_t;
-
-/**
- * 窗口页对象.
- */
-typedef struct ui_page_obj
-{
-    const char *name;
-    void (*create)  (void *argv);
-    void (*destory) (void *argv);
-    void (*draw)    (struct ui_page_obj *return_menu, void *argv);
-    // ui_widget_typedef_t *p_widget_list;
-    int16_t detal_x;
-    int16_t detal_y;
-    uint8_t current_max_widget;
-    uint8_t is_notif:1;
-    uint8_t if_stay_flag:1;
-    uint8_t dynamicFlag:1;
-#if FEATURE_PSRAM
-    uint16_t psram_has_up_cache : 1;
-    uint16_t psram_has_down_cache : 1;
-    uint16_t psram_has_left_cache : 1;
-    uint16_t psram_has_right_cache : 1;
-    uint16_t psram_has_center_cache : 1;
-	uint16_t psram_last_cache : 1;
-#endif
-} ui_page_obj_t;
-
-typedef struct ui_page_handle
-{
-    void (*draw) (ui_page_obj_t *return_menu, void *argv);
-    void (*timer_handler)(void *argv);
-} ui_page_handle_t;
-
-#define DECLARE_UI_PAGE_OBJ(name) ui_page_handle_t PAGE_CONTEXT_NAME(name)
-
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
