@@ -28,7 +28,7 @@ extern "C" {
 /// 按键线程深度
 #define INPUT_KEY_THREAD_STACKSIZE                     (TASK_SIZE_DEFAULT * 2 + 0)
 /// 传感器线程深度
-#define INPUT_SENSOR_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 10 + 0)
+#define INPUT_SENSOR_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 2 + 0)
 /// 死锁检查线程深度
 #define HG_CHECK_THREAD_STACKSIZE                      (TASK_SIZE_DEFAULT * 2 + 0)
 /// 死锁检测线程深度
@@ -85,6 +85,11 @@ extern "C" {
 #define BREAST_PUMP_VALVE_FREQ                          (1000)
 #define BREAST_PUMP_VALVE_DUTY                          (100)
 #define BREAST_PUMP_PUMP_FREQ                           (1000)
+
+/// 叠图最大数量
+#define OVERLAY_IMG_NUM_MAX                             (2)
+/// 气压传感器数量
+#define AIR_PRESSURE_NUM                                (2)
 
 #ifdef __cplusplus
 }

@@ -9,10 +9,8 @@
 #include "hal_timer.h"
 #include "hwtimer_list.h"
 #include "bsp_common.h" 
+#include "bsp_config.h"
 #include "bsp_led_internal.h"
-#include <stdint.h>
-#include <string.h>
-
 /*
 * DEFINES
 *****************************************************************************************
@@ -20,16 +18,6 @@
 #define LED_TOTAL_SIZE               (6)
 #define LED_PWM_PERIOD               800 // 800 - 1ms  350 - 0.5ms  120 - 0.25ms
 #define LED_THREAD_POLL_INTERVAL     (10)
-
-#define LED1_PIN                     HAL_GPIO_PIN_P1_2  // 启动与暂停背光灯
-#define LED2_PIN                     HAL_GPIO_PIN_P1_3  // 模式选择背光灯
-#define LED3_PIN                     HAL_GPIO_PIN_P1_4  // 频率选择背光灯
-#define LED4_PIN                     HAL_GPIO_PIN_P1_5  // 追奶模式背光灯
-#define LED5_PIN                     HAL_GPIO_PIN_P1_6  // 双边控制背光灯
-#define LED6_PIN                     HAL_GPIO_PIN_P1_7  // 左边控制背光灯
-#define LED7_PIN                     HAL_GPIO_PIN_P4_3  // 右边控制背光灯
-
-#define LED_PIN_CTRL(pin, status)             ((status) ? hal_gpio_pin_set(pin) : hal_gpio_pin_clr(pin))
 
 typedef struct {
     enum HAL_GPIO_PIN_T pin;
@@ -46,12 +34,12 @@ static thread_context_t s_led_device_thd;
 static os_timer_id s_led_timer_id;
 
 static const led_cfg_t led_cfg[LED_TOTAL_SIZE] = {
-    {LED1_PIN},
-    {LED2_PIN},
-    {LED3_PIN},
-    {LED4_PIN},
-    {LED6_PIN},
-    {LED7_PIN},
+    {PUMP_START_BL_PIN},
+    {PUMP_MODE_BL_PIN},
+    {PUMP_FREQ_SET_BL_PIN},
+    {PUMP_BREASTFEEDING_BL_PIN},
+    {PUMP_LEFT_CONTROL_BL_PIN},
+    {PUMP_RIGHT_CONTROL_BL_PIN},
 };
 
 /*
@@ -88,7 +76,7 @@ static void led_timeout_handler(void *param)
         }
         level_count++;
         led_status[i].un.onoff.status = !led_status[i].un.onoff.status;
-        LED_PIN_CTRL(led_cfg[i].pin, led_status[i].un.onoff.status > 0 ? 1 : 0);
+        GPIO_PIN_CTRL(led_cfg[i].pin, led_status[i].un.onoff.status > 0 ? 1 : 0);
     }
 
     if (level_count > 0) {
@@ -117,7 +105,7 @@ static void led_timer_deinit(void)
 static void led_pin_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)LED1_PIN,  
+        (enum HAL_IOMUX_PIN_T)PUMP_START_BL_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_PULLUP_ENABLE
@@ -127,7 +115,7 @@ static void led_pin_init(void)
         gpio_map.pin = (enum HAL_IOMUX_PIN_T)led_cfg[i].pin;
         hal_iomux_init(&gpio_map, 1);
         hal_gpio_pin_set_dir(led_cfg[i].pin, HAL_GPIO_DIR_OUT, 1);
-        LED_PIN_CTRL(led_cfg[i].pin, 0);
+        GPIO_PIN_CTRL(led_cfg[i].pin, 0);
     }
 }
 
@@ -138,7 +126,6 @@ static void led_blink_handle(uint8_t index)
     }
 
     led_blink_t *led = &led_status[index].un.blink;
-
     /// 闪烁完成
     if (get_timestamp_ms(led->start_time) >= led->continue_time && led->continue_time != 0) {
         if (led->cb) {
@@ -146,12 +133,11 @@ static void led_blink_handle(uint8_t index)
         }
         return;
     }
-    
     /// 闪烁计时
     led->count += LED_THREAD_POLL_INTERVAL;
     if (led->count >= led->period) {
         led->status = led->status > 0 ? 0 : 1;
-        LED_PIN_CTRL(led_cfg[index].pin, led->status);
+        GPIO_PIN_CTRL(led_cfg[index].pin, led->status);
         led->count = 0;
     }
 }
@@ -178,39 +164,61 @@ static void led_device_thread(void *arg)
 
 static void led_onoff_set(uint8_t index, led_onoff_t onoff)
 {
+    if (index == PUMP_LED_ALL_ID) {
+        for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
+            led_status[i].mode = LED_MODE_ONOFF; 
+            GPIO_PIN_CTRL(led_cfg[i].pin, onoff.status);
+        }
+        return;
+    }
     led_status[index].mode = LED_MODE_ONOFF; 
-    LED_PIN_CTRL(led_cfg[index].pin, onoff.status);
+    GPIO_PIN_CTRL(led_cfg[index].pin, onoff.status);
 }
 
 static void led_level_set(uint8_t index, led_luminous_t luminous)
 {
-    /// 灭
-    if (luminous.level == 0) {
-        led_status[index].mode = LED_MODE_ONOFF; 
-        LED_PIN_CTRL(led_cfg[index].pin, 0);
+    if (index == PUMP_LED_ALL_ID) {
+        for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
+            if (luminous.level == 0 || luminous.level >= LED_LEVEL_MAX) {
+                led_status[i].mode = LED_MODE_ONOFF; 
+                GPIO_PIN_CTRL(led_cfg[i].pin, luminous.level == 0 ? 0 : 1);
+            } else {
+                led_status[i].mode = LED_MODE_LEVEL; 
+                led_status[i].un.luminous.level = luminous.level;
+                if (led_time_is_running == 0) {
+                    led_timer_start(LED_PWM_PERIOD); 
+                }
+            }
+        }
         return;
     }
 
-    /// 全亮
-    if (luminous.level >= LED_LEVEL_MAX) {
+    if (luminous.level == 0 || luminous.level >= LED_LEVEL_MAX) {
         led_status[index].mode = LED_MODE_ONOFF; 
-        LED_PIN_CTRL(led_cfg[index].pin, 1);
-        return;
-    }
-
-    /// 半亮
-    led_status[index].mode = LED_MODE_LEVEL; 
-    led_status[index].un.luminous.level = luminous.level;
-    if (led_time_is_running == 0) {
-        led_timer_start(LED_PWM_PERIOD); 
+        GPIO_PIN_CTRL(led_cfg[index].pin, luminous.level == 0 ? 0 : 1);
+    } else {
+        led_status[index].mode = LED_MODE_LEVEL; 
+        led_status[index].un.luminous.level = luminous.level;
+        if (led_time_is_running == 0) {
+            led_timer_start(LED_PWM_PERIOD); 
+        }
     }
 }
 
 static void led_blink_set(uint8_t index, led_blink_t blink)
 {
+    if (index == PUMP_LED_ALL_ID) {
+        for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
+            led_status[i].mode = LED_MODE_BLINK; 
+            memcpy(&led_status[i].un.blink, &blink, sizeof(led_blink_t));
+            GPIO_PIN_CTRL(led_cfg[i].pin, blink.first_status);
+        }
+        return;
+    }
+
     led_status[index].mode = LED_MODE_BLINK; 
     memcpy(&led_status[index].un.blink, &blink, sizeof(led_blink_t));
-    LED_PIN_CTRL(led_cfg[index].pin, blink.first_status);
+    GPIO_PIN_CTRL(led_cfg[index].pin, blink.first_status);
     led_status[index].un.blink.start_time = get_timestamp();
     led_status[index].un.blink.status = led_status[index].un.blink.first_status;
     led_status[index].un.blink.count = 0;
@@ -244,27 +252,30 @@ int bsp_led_status_set(void *args)
 {
     uint32_t *tmp = (uint32_t *)args;
     if (tmp == NULL) {
+        LOGE("tmp is NULL");
         return BSP_ERROR;
     }
     
     uint8_t index = tmp[0];
-    if (index >= LED_TOTAL_SIZE) {
+    if (index >= LED_TOTAL_SIZE && index != PUMP_LED_ALL_ID) {
+        LOGE("index is out of range: %d", index);
         return BSP_ERROR;
     }
 
     led_status_t *led = (led_status_t *)tmp[1];
     if (led == NULL) {
+        LOGE("led is NULL");
         return BSP_ERROR;
     }
 
     switch (led->mode) {
         case LED_MODE_ONOFF:
-            led_onoff_set(index,  led->un.onoff);
-        break;
+            led_onoff_set(index, led->un.onoff);
+            break;
 
         case LED_MODE_BLINK:
             led_blink_set(index, led->un.blink);
-        break;
+            break;
 
         case LED_MODE_LEVEL:
             led_level_set(index, led->un.luminous);

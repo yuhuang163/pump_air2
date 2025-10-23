@@ -21,10 +21,10 @@ typedef struct {
 *****************************************************************************************
 */
 static const motor_pwm_cfg_t motor_pwm_cfg[] = {
-    {HAL_PWM_ID_0,  hal_iomux_set_pwm0},
     {HAL_PWM_ID_1,  hal_iomux_set_pwm1},
-    {HAL_PWM1_ID_2, hal_iomux_set_pwm6}, // P36
     {HAL_PWM1_ID_3, hal_iomux_set_pwm7}, // P37
+    {HAL_PWM_ID_0,  hal_iomux_set_pwm0},
+    {HAL_PWM1_ID_2, hal_iomux_set_pwm6}, // P36
 };
 
 static uint8_t motor_pwm_status[MOTOR_PWM_ID_MAX];

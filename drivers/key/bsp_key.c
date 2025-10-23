@@ -41,7 +41,6 @@ static int scan_key_module_init(void)
     if (node) {
         node->status = DEVICE_BUS_INIT;
     }
-    LOG_PBUS("key init ok");
     return ret;
 }
 

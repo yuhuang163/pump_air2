@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-/// device
+/// 设备支持
 #define IS_SUPPORT_DEVICE_UART                           (1)
 #define IS_SUPPORT_DEVICE_IRQ                            (1)
 #define IS_SUPPORT_DEVICE_FLASH                          (1)
@@ -26,15 +26,14 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_FS                             (0)
 #define IS_SUPPORT_DEVICE_WIFI                           (0)
 
-/// module
-#define IS_SUPPORT_LOG_OUT                               (1)
-#define IS_SUPPORT_LOG_COLOR                             (0)
+/// 模块支持
 #define IS_SUPPORT_MODULE_PBUS                           (1)
 #define IS_SUPPORT_MODULE_PM                             (1)
 #define IS_SUPPORT_MODULE_STORAGE                        (1)
 #define IS_SUPPORT_MODULE_RES                            (0)
 #define IS_SUPPORT_MODULE_TIME_SYSTEM                    (1)
-#define IS_SUPPORT_MODULE_WM                             (0)
+#define IS_SUPPORT_MODULE_WM                             (1)
+#define IS_SUPPORT_MODULE_UI                             (1)
 #define IS_SUPPORT_MODULE_KEY_INPUT                      (1)
 #define IS_SUPPORT_MODULE_SENSOR                         (1)
 #define IS_SUPPORT_MODULE_BLE                            (0)
@@ -48,13 +47,19 @@ extern "C" {
 #define IS_SUPPORT_MODULE_AIRPLANE                       (0)
 #define IS_SUPPORT_MODULE_DATA_BURIAL                    (0)
 #define IS_SUPPORT_WEEKLY_STAT                           (0)
-
-/// function
-#define IS_SUPPORT_MOTOR_SHAKE                           (1)
-#define IS_USE_GYRO_ONLINE_CALI                          (1) 
+/// 日志功能
+#define IS_SUPPORT_LOG_OUT                               (1)
+#define IS_SUPPORT_LOG_COLOR                             (0)
+/// 叠图功能
+#define IS_SUPPORT_OVERLAY_IMG                           (1)
+#define IS_SUPPORT_ASYNC_RESET_UI_PLAY_INFO              (1)
+/// 振动马达震动功能
+#define IS_SUPPORT_MOTOR_SHAKE                           (0)
+/// 使用在线陀螺仪校准
+#define IS_USE_GYRO_ONLINE_CALI                          (0) 
+/// 使用IMU FIFO
 #define IS_SUPPORT_IMU_FIFO                              (0)
-
-/// test
+/// 测试支持
 #define IS_SUPPORT_PRESSURE_TEST                         (1)
 
 #ifdef __cplusplus

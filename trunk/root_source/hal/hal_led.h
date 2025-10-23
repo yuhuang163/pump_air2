@@ -46,6 +46,7 @@ typedef enum {
     PUMP_RIGHT_CONTROL_BL,    /// 右控制背光灯
     PUMP_BILATERRAL_CONTROL_BL,    /// 双边控制背光灯
     PUMP_LED_INDEX_MAX,
+    PUMP_LED_ALL_ID = 0xFF,
 } pump_led_index_e;
 
 /**
