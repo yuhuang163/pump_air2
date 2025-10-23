@@ -10,6 +10,8 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
 
+#define AIR_PRESSURE_POLLING_PERIOD              (500)
+
 struct rt_device_node;
 typedef struct _air_pressure_module_data {
     struct rt_device_node *dev;
