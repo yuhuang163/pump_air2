@@ -26,33 +26,30 @@ static rt_device_node_t *node = NULL;
  * LOCAL FUNCTION DEFINITIONS
  *****************************************************************************************
  */
-static void sys_power_gpio_init(void)
+void sys_power_gpio_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        SYS_POWER_PIN,  
+        (enum HAL_IOMUX_PIN_T)SYS_POWER_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_POWER_PIN,  HAL_GPIO_DIR_OUT,  1);
+    // hal_gpio_pin_set((enum HAL_GPIO_PIN_T)SYS_POWER_PIN);
     LOG_PBUS("sys_power_gpio_init");
 }
 
 static void sys_power_gpio_control(bool enable)
 {
-    if (enable) {
-        hal_gpio_pin_set((enum HAL_GPIO_PIN_T)SYS_POWER_PIN);
-    } else {
-        hal_gpio_pin_clr((enum HAL_GPIO_PIN_T)SYS_POWER_PIN);
-    }
+    GPIO_PIN_CTRL(SYS_POWER_PIN, enable ? 1 : 0);
     LOG_PBUS("sys_power_gpio_control: %d", enable);
 }
 
 static int sys_power_dev_open(struct rt_device_node *dev)
 {
-    sys_power_gpio_init();
-    sys_power_gpio_control(true);
+    // sys_power_gpio_init();
+    // sys_power_gpio_control(true);
     return 0;
 }
 

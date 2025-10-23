@@ -9,12 +9,9 @@ extern "C" {
 /*******************************************************************************
 * Include files
 ******************************************************************************/
-#include <stdio.h>
 #include <stdint.h>
 
-
 /**@brief Firmware information define*/
-
 
 /*
 * GLOBAL FUNCTION DECLARATION

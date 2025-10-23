@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "bsp_motor_internal.h"
+#include "bsp_config.h"
 
 /*
 * DEFINES
@@ -15,6 +16,7 @@
 *****************************************************************************************
 */
 static rt_device_node_t *node = NULL;
+static uint8_t motor_power_status = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -25,8 +27,27 @@ static rt_device_node_t *node = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void motor_power_gpio_init(void)
+{
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        (enum HAL_IOMUX_PIN_T)PUMP_POWER_PIN,  
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL,
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(PUMP_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
+    GPIO_PIN_CTRL(PUMP_POWER_PIN, 0);
+}
+
+static void motor_power_control(uint8_t status)
+{
+    GPIO_PIN_CTRL(PUMP_POWER_PIN, status > 0 ? 1 : 0);
+}
+
 static int motor_dev_open(struct rt_device_node *dev)
 {
+    motor_power_gpio_init();
     return bsp_motor_init();
 }
 
@@ -49,9 +70,15 @@ static int motor_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
 {
     switch (op_code) {
         case OP_CODE_MOTOR_START_PLAY:
+            if (motor_power_status == 0) {
+                motor_power_control(1);
+            }
             return bsp_motor_start(args);
 
         case OP_CODE_MOTOR_STOP_PLAY:
+            if (motor_power_status == 1) {
+                motor_power_control(0);
+            }
             return bsp_motor_stop(args);
 
         case OP_CODE_MOTOR_SET_PARAMETER:

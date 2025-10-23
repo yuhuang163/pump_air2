@@ -15,7 +15,6 @@
 *****************************************************************************************
 */
 static rt_device_node_t *node = NULL;
-// static void (*s_air_pressure_irq_callback)(void *param);
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -57,7 +56,7 @@ static int air_pressure_dev_resume(struct rt_device_node *dev)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void *register_device_for_imu(list_head_t *list_head)
+void *register_device_for_air_pressure(list_head_t *list_head)
 {
     node = u_malloz(sizeof(rt_device_node_t));
     node->name = "air_pressure";

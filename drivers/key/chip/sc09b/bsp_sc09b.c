@@ -26,6 +26,15 @@
 */
 static thread_context_t s_key_device_thd  = {0};
 static uint8_t s_touch_key[TOUCH_KEY_NUM] = {0};
+static uint16_t s_key_mask[TOUCH_KEY_NUM] = {
+    0x0002, /// 启动键
+    0x0004, /// 模式键
+    0x0008, /// 频段键
+    0x0010, /// 追奶键
+    0x0001, /// 左按键
+    0x4000, /// 右按键
+    // 0x8000, /// 双边控制键
+};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -71,8 +80,8 @@ static int sc09b_read_nbyte(i2c_master_data_t *data)
 static void sc09b_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
     uint8_t msg = 0;
-    LOG_PBUS("sc09b pin[%d] irq triggered", pin);
-    if (pin == (enum HAL_GPIO_PIN_T)TOUCH_INT_PIN && s_key_device_thd.msg_id) {
+    // LOG_PBUS("sc09b pin[%d] irq triggered", pin);
+    if (pin == TOUCH_INT_PIN && s_key_device_thd.msg_id) {
         MSG_QUEUE_SEND(s_key_device_thd.msg_id, &msg, 0);
         bsp_irq_msg_send(INT_NUM_TOUCH_KEY);
     }
@@ -87,19 +96,19 @@ static void sc09b_irq_control(bool enable)
         HAL_GPIO_IRQ_POLARITY_LOW_FALLING, 
         sc09b_irq_callback
     };
-    hal_gpio_setup_irq((enum HAL_GPIO_PIN_T)TOUCH_INT_PIN, &gpio_irq_cfg);
+    hal_gpio_setup_irq(TOUCH_INT_PIN, &gpio_irq_cfg);
 }
 
 static void sc09b_irq_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        TOUCH_INT_PIN,  
+        (enum HAL_IOMUX_PIN_T)TOUCH_INT_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_PULLUP_ENABLE,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)TOUCH_INT_PIN,  HAL_GPIO_DIR_IN,  1);
+    hal_gpio_pin_set_dir(TOUCH_INT_PIN,  HAL_GPIO_DIR_IN,  1);
 }
 
 static void sc09b_touch_key_scan(void)
@@ -114,12 +123,15 @@ static void sc09b_touch_key_scan(void)
     while(1) {
         if (sc09b_read_nbyte(&key_data) == BSP_OK) {
             for (uint8_t i = 0; i < TOUCH_KEY_NUM; i++) {
-                s_touch_key[i] = key_value & (1 << (12 - i));
+                s_touch_key[i] = (key_value & s_key_mask[i]) ? 1 : 0;
             }
+            // LOG_PBUS("key value: %x, %x, %x, %x, %x, %x", s_touch_key[0], s_touch_key[1], 
+            //     s_touch_key[2], s_touch_key[3], s_touch_key[4], s_touch_key[5]);
 
             if (key_value == 0) {
                 key_idle_count++;
                 if (key_idle_count > TOUCH_KEY_IDLE_COUNT) {
+                    // LOG_PBUS("key idle count: %d", key_idle_count);
                     break;
                 }
             } else {
@@ -155,16 +167,46 @@ static void sc09b_reference_cap_config(void)
     i2c_master_data_t key_data = {
         .data = &reg_val,
         .len  = 1,
-        .reg_addr = SC09B_CTRL1_REG 
+        .reg_addr = SC09B_OUTPUT1_REG 
     };
     sc09b_write_nbyte(&key_data);
 }
 
-static void sc09b_chip_init(void)
+static int sc09b_is_ready(void)
 {
+    int ret = BSP_NOT_READY;
+    uint16_t reg_val = 0;
+    i2c_master_data_t key_data = {
+        .data = (uint8_t *)&reg_val,
+        .len  = 2,
+        .reg_addr = SC09B_OUTPUT1_REG 
+    };
+
+    for (uint8_t i = 0; i < 5; i++) {
+        ret = sc09b_read_nbyte(&key_data);
+        if (ret != BSP_OK) {
+            continue;
+        }
+        msleep(5);
+    }
+
+    if (ret != BSP_OK) {
+        LOGE("sc09b is not ready");
+        return BSP_NOT_READY;
+    }
+
+    return BSP_OK;
+}
+
+static int sc09b_chip_init(void)
+{
+    if (sc09b_is_ready() != BSP_OK) {
+        return BSP_NOT_READY;
+    }
     // bsp_key_sensitivity_set(0, SC09B_SEN_DEFAULT);
     // bsp_key_sensitivity_set(1, SC09B_SEN_DEFAULT);
     // sc09b_reference_cap_config();
+    return BSP_OK;
 }
 
 
@@ -184,19 +226,19 @@ static void power_key_irq_control(bool enable)
         power_key_irq_callback
     };
 
-    hal_gpio_setup_irq((enum HAL_GPIO_PIN_T)POWER_KEY_PIN, &gpio_irq_cfg);
+    hal_gpio_setup_irq(POWER_KEY_PIN, &gpio_irq_cfg);
 }
 
 static void power_key_irq_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        POWER_KEY_PIN,  
+        (enum HAL_IOMUX_PIN_T)POWER_KEY_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_PULLUP_ENABLE,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)POWER_KEY_PIN,  HAL_GPIO_DIR_IN,  1);
+    hal_gpio_pin_set_dir(POWER_KEY_PIN,  HAL_GPIO_DIR_IN,  1);
 }
 
 /*
@@ -205,16 +247,16 @@ static void power_key_irq_init(void)
 */
 int bsp_key_init(void)
 {
+    /// 初始化电源键
+    power_key_irq_init();
+    power_key_irq_control(true);
+    /// 初始化触摸键
     sc09b_irq_init();
     bsp_i2c_init(I2C_MASTER_ID_0);
     CREATE_MSG_TYPE_QUEUE(&s_key_device_thd.msg_id, 1, 1);
     RUN_NEW_THREAD(&s_key_device_thd, "key", key_device_thread, RT_PRIO_KEY_DEVICE_THREAD, (KEY_DEVICE_THREAD_STACKSIZE));
     sc09b_irq_control(true);
-    sc09b_chip_init();
-    power_key_irq_init();
-    power_key_irq_control(true);
-
-    return BSP_OK;
+    return sc09b_chip_init();
 }
 
 int bsp_key_deinit(void)
@@ -232,7 +274,7 @@ int bsp_read_key_value(uint8_t key_index)
     }
 
     if (key_index == 0) {
-        return hal_gpio_pin_get_val((enum HAL_GPIO_PIN_T)POWER_KEY_PIN) == 0 ? 1 : 0;
+        return hal_gpio_pin_get_val(POWER_KEY_PIN) == 0 ? 1 : 0;
     }
     return s_touch_key[key_index - 1];
 }

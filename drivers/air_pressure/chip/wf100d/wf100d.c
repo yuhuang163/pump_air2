@@ -19,8 +19,7 @@
 #define W100DP_200KPA                  3
 
 #define WF100D_MEASUREMENT_RANG        2
-
-#define PRESSURE_RAW_DATA_CALC(x)      (x) > 8388608 ?  ((x) - 16777216 / 8388608.0f) : ((x) / 8388608.0f)
+#define PRESSURE_RAW_DATA_CALC(x)      (x) > 8388608 ? (((x) - 16777216) / 8388608.0f) : ((x) / 8388608.0f)
 
 #if WF100D_MEASUREMENT_RANG ==  W100DP_100KPA
 #define PRESSURE_CALC_KPA(x)           (x) * 50 + 5
@@ -29,8 +28,6 @@
 #endif
 
 #define TEMP_CALC_CELSIUS(msb, lsb)    -1.2 + (msb) + (lsb) * 0.004
-
-#define AIR_PRESSURE_NUM               2
 
 #define W100DP_I2C_ID1                 I2C_MASTER_ID_1
 #define W100DP_I2C_ID2                 I2C_MASTER_ID_2
@@ -112,7 +109,7 @@ static int wait_air_pressure_conversion_completed(uint8_t index)
 static int air_pressure_result_get(uint8_t index, air_pressue_status_t *out_status)
 {
     uint8_t reg_data[5];
-    uint32_t raw_data = 0;
+    int32_t raw_data = 0;
     i2c_master_data_t air_pressure = {
         .data = reg_data,
         .len  = 5,
@@ -123,12 +120,31 @@ static int air_pressure_result_get(uint8_t index, air_pressue_status_t *out_stat
     if (ret != BSP_OK) {
         return ret;
     }
-
-    raw_data = ((reg_data[0] & 0xFFFFFF) << 16) | ((reg_data[1] & 0xFFFF) << 8) | reg_data[2];
-    out_status->pressure = PRESSURE_CALC_KPA(raw_data);
+    raw_data = (int32_t)((((uint32_t)reg_data[0]) << 16) | (((uint32_t)reg_data[1]) << 8) | ((uint32_t)reg_data[2]));
+    out_status->pressure = PRESSURE_CALC_KPA(PRESSURE_RAW_DATA_CALC(raw_data));
     out_status->temp = TEMP_CALC_CELSIUS(reg_data[3], reg_data[4]);
 
     return ret;
+}
+
+static int air_pressure_is_ready(uint8_t index)
+{
+    uint8_t reg_val = 0;
+    int ret = BSP_NOT_READY;
+    i2c_master_data_t air_pressure = {
+        .data = &reg_val,
+        .len  = 1,
+        .reg_addr = WF100D_STATUS_REG
+    };
+
+    for (uint8_t i = 0; i < 3; i++) {
+        ret = wf100d_read_nbyte(index, &air_pressure);
+        if (ret == BSP_OK) {
+            break;
+        }
+        msleep(5);
+    }
+    return ret != BSP_OK ? BSP_NOT_READY : BSP_OK;
 }
 
 /*
@@ -137,6 +153,15 @@ static int air_pressure_result_get(uint8_t index, air_pressue_status_t *out_stat
 */
 int bsp_air_pressure_init(void)
 {
+    bsp_i2c_init(W100DP_I2C_ID1);
+    bsp_i2c_init(W100DP_I2C_ID2);
+    msleep(10);
+    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
+        if (air_pressure_is_ready(i) != BSP_OK) {
+            LOGE("air pressure is not ready: %d", i);
+            return BSP_NOT_READY;
+        }
+    }
     return BSP_OK;
 }
 
