@@ -34,6 +34,8 @@ typedef enum {
     BREAST_PUMP_FACTORY
 } breast_pump_status_e;
 
+#define PUMP_IS_GOING(state) (state == BREAST_PUMP_START || state == BREAST_PUMP_CONTINUE)
+
 typedef struct {
     uint8_t breast_pump_state;
     uint32_t real_valid_time_sec;        ///  实际有效泵奶时间 (s)
@@ -60,7 +62,6 @@ typedef struct pump_result_info {
     uint32_t work_total_time;           /// 泵奶总时长
     uint32_t work_valid_time;           /// 有效泵奶时长, 预留后续扩展使用
 } pump_result_info_t;
-
 
 typedef void (*on_breast_pump_result_cb_ptr)(void *user_data, breast_pump_result_t *result);
 
