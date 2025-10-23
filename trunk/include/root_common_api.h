@@ -36,6 +36,7 @@ extern "C" {
 #include "breast_pump_manager_api.h" // IWYU pragma: keep
 #include "algorithm_manager_api.h" // IWYU pragma: keep
 #include "ble_manager_api.h" // IWYU pragma: keep
+#include "ui_manager_api.h" // IWYU pragma: keep
 
 #define ADD_MODULE(name, id, perpare_init_cb, post_init_cb, ptr, list_head, mem_usage) \
     add_new_module(name, id, perpare_init_cb, post_init_cb, ptr, list_head, mem_usage)
@@ -49,7 +50,7 @@ typedef enum {
     ID_MODULE_DEVICE_BUS,
     ID_MODULE_RES,
     ID_MODULE_WM,
-
+    ID_MODULE_UI,
     ID_MODULE_ALGO_HUB,
     ID_MODULE_STORAGE,
     ID_MODULE_KEY_INPUT,
