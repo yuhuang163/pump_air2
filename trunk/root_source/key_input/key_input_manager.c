@@ -130,7 +130,7 @@ static void internal_keyevent_callback(void *user_data, uint16_t keycode, uint16
     key_input_context_t *input = thiz;
 
 #if IS_SUPPORT_KEY_SOFT_RESET      
-    if (keycode == KEY_CODE_POWER) {
+    if (keycode == KEY_CODE_1) {
         if (keytype == KEY_EVENT_DOWN || keytype == CUST_KEY_EVENT_FORCE_RESET) {
             on_spec_press_key_handler(NULL, keycode, keytype);
         }
@@ -269,9 +269,10 @@ static void add_keyevent_handler_extra(const char *caller, void *user_data, uint
     MUTEX_UNLOCK_KEY(thiz->priv.key_evt_lock);
 }
 
-static void add_keyevent_handler(void *user_data, uint16_t keycode, uint16_t keytype, on_key_event_handler_fptr cb)
+static void add_keyevent_handler(const char *caller, void *user_data, uint16_t keycode, uint16_t keytype,
+     on_key_event_handler_fptr cb)
 {
-    add_keyevent_handler_extra("default", user_data, keycode, keytype, cb);
+    add_keyevent_handler_extra(caller, user_data, keycode, keytype, cb);
 }
 
 /// 注消按键响应.

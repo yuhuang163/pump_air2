@@ -34,8 +34,13 @@ typedef enum {
 
 /// 按键类型
 typedef enum {
-    KEY_CODE_POWER = (1 << 0),   /// 电源键,确认键
-    KEY_CODE_MODE = (1 << 1),   /// 模式切换键
+    KEY_CODE_1 = (1 << 0),   /// 支持唤醒
+    KEY_CODE_2 = (1 << 1),  
+    KEY_CODE_3 = (1 << 2),   
+    KEY_CODE_4 = (1 << 3),   
+    KEY_CODE_5 = (1 << 4),   
+    KEY_CODE_6 = (1 << 5),   
+    KEY_CODE_7 = (1 << 6),   
     KEY_CODE_MAX
 } key_type_enum_e;
 
@@ -57,7 +62,8 @@ typedef struct key_input_context {
     int (*read_btn_id)(void *ptr);
     int (*dispatch_key_event_wrapper)(void *context, int keycode, int keytype);
     int (*dispatch_client_input_key)(uint16_t keycode, uint16_t keytype);
-    void (*add_keyevent_handler)(void *user_data, uint16_t keycode, uint16_t keytype, on_key_event_handler_fptr cb);
+    void (*add_keyevent_handler)(const char *caller, void *user_data, uint16_t keycode, uint16_t keytype,
+         on_key_event_handler_fptr cb);
     void (*remove_keyevent_handler)(on_key_event_handler_fptr cb);
     /// 定义外部钩子函数.
     struct __key_input_hook {

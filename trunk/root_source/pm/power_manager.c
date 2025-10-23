@@ -246,12 +246,9 @@ static int pm_resume_internal(power_manager_context_t *ctx)
 static int pm_key_event_handler(void *user_data, uint16_t keycode, uint16_t keytype)
 {
     power_manager_context_t *ctx = user_data;
-
     // LOG_PM("SHORT==>keyevent(%d,%d) event.", keycode, keytype);
-    if (keycode == KEY_CODE_POWER) {
+    if (keycode == KEY_CODE_1) {
         ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER);
-    } else if (keycode == KEY_CODE_MODE) {
-        ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_MODE);
     } else {
         set_suspend_counter("non-wakeup-key-reset", get_suspend_timeout(ctx));
         LOG_PM("not wakeup-key, only reset");
@@ -492,7 +489,7 @@ static int on_post_pm_init(void *ptr)
     register_broadcast_receiver(ctx->priv.pm_bcd);
 
     /// 注册按键唤醒.
-    uint16_t keycode = KEY_CODE_POWER | KEY_CODE_MODE;
+    uint16_t keycode = KEY_CODE_1;
     uint16_t keytype = KEY_EVENT_CLICK;
 
     keytype |= KEY_EVENT_DOWN;
@@ -502,7 +499,7 @@ static int on_post_pm_init(void *ptr)
     keytype |= KEY_EVENT_LONG_9S;
     key_input_context_t *input = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     if (input) {
-        input->add_keyevent_handler(ctx, keycode, keytype,  pm_key_event_handler);
+        input->add_keyevent_handler("pm", ctx, keycode, keytype,  pm_key_event_handler);
     }
 
     RUN_NEW_THREAD(&ctx->priv.pm_suspend_thd, "pm_suspend_thd",
