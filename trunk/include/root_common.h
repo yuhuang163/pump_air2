@@ -96,6 +96,26 @@ do { \
         __fsensor->adc[1], __fsensor->value[0], __fsensor->value[1]); \
 } while (0)
 
+/// 通用帧率打印方法.
+#define PRINTF_FPS(tag) LOG_FPS(tag, LOGW)
+#define LOG_FPS(tag, log) \
+do { \
+    static uint16_t fps = 0; \
+    static uint32_t time_last = 0; \
+    uint32_t current = get_timestamp(); \
+    if (time_last == 0) { \
+        time_last = current; \
+    }  \
+    else if (current - time_last >= 1000) { \
+        log("[fps-%s: %d]", (tag), fps); \
+        fps = 0; \
+        time_last = 0; \
+    }  \
+    else { \
+        fps++; \
+    } \
+} while (0)
+
 /*
  * GLOBAL FUNCTION DECLARATION
  *****************************************************************************************
