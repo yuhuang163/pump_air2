@@ -1,7 +1,6 @@
 #ifndef __ROOT_MESSAGE_H__
 #define __ROOT_MESSAGE_H__
 
-#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
