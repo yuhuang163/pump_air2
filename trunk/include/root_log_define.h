@@ -107,7 +107,7 @@ typedef enum{
 #endif
 
 #define PRINT_FORMAT(letter, format) \
-  LOG_COLOR_##letter #letter FORMAT_LOG_OUT_SYMBOL "[%s][%s](): " format LOG_RESET_COLOR "\n"
+  LOG_COLOR_##letter #letter FORMAT_LOG_OUT_SYMBOL "[%s]%s(): " format LOG_RESET_COLOR "\n"
 #define PRINT_WRAPPER(letter, format, TAG) \
   PRINT_FORMAT(letter, format), FORMAT_LOG_OUT_OBJ, TAG, __func__
 

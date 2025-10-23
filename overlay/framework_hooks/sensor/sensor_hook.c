@@ -92,7 +92,7 @@ static int on_post_sensor_init_route(struct sensor_manager_context *ctx)
     return 0;
 }
 
-static int on_perpare_init_route(struct sensor_manager_context *ctx)
+static int on_perpare_sensor_init_route(struct sensor_manager_context *ctx)
 {
     #if IS_SUPPORT_DEVICE_IMU
     on_perpare_imu_init(ctx);
@@ -115,7 +115,7 @@ static int on_perpare_init_route(struct sensor_manager_context *ctx)
 void register_sensor_hook(sensor_manager_context_t *ctx)
 {
     ctx->hook = u_malloz(sizeof(struct __sensor_manager_hook));
-    ctx->hook->on_perpare_init_route = on_perpare_init_route;
+    ctx->hook->on_perpare_init_route = on_perpare_sensor_init_route;
     ctx->hook->on_post_init_route = on_post_sensor_init_route;
     ctx->hook->on_sensor_receiver_route = on_sensor_receiver_route;
     ctx->hook->sensor_thread_route = sensor_thread_route;

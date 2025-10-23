@@ -184,8 +184,8 @@ static int on_perpare_sensor_init(void *self)
 {
     sensor_manager_context_t *ptr = self;
     /// 钩子参数初始化
-    if (ptr->hook && ptr->hook->on_post_init_route) {
-        ptr->hook->on_post_init_route(ptr);
+    if (ptr->hook && ptr->hook->on_perpare_init_route) {
+        ptr->hook->on_perpare_init_route(ptr);
     }
     MUTEX_INIT(&ptr->priv.m_lock, sensor_client_mutex);
     USE_INIT_LIST_HEAD(&ptr->priv.client_list);

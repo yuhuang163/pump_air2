@@ -1,6 +1,7 @@
 #ifndef __ROOT_MESSAGE_H__
 #define __ROOT_MESSAGE_H__
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,6 +13,7 @@ extern "C" {
 #include "root_common_base.h" // IWYU pragma: keep
 #include "handler_post.h" // IWYU pragma: keep
 #include "broadcast_manager_api.h" // IWYU pragma: keep
+#include "project_config.h" // IWYU pragma: keep
 
 /// 描述异步消息类型
 typedef enum {
@@ -104,10 +106,28 @@ typedef struct {
     uint8_t report_type;
 } sensor_event_type_t;
 
+/// 传感器掩码类型
+typedef enum {
+    SENSOR_MASK_IMU = 1 << 0,
+    SENSOR_MASK_FSENSOR = 1 << 1,
+    SENSOR_MASK_AIR_PRESSURE = 1 << 2,
+} sensor_wrapper_data_mask_e;
+
 /// sensor数据集
 typedef struct {
+    #if IS_SUPPORT_DEVICE_IMU
+    uint16_t imu_serial_num;
     imu_wrapper_data_t imu_data;
+    #endif
+    #if IS_SUPPORT_DEVICE_FSENSOR
+    uint16_t f_sensor_serial_num;
     f_sensor_data_t force_raw_data;
+    #endif
+    #if IS_SUPPORT_DEVICE_AIR_PRESSURE
+    uint16_t air_pressure_serial_num;
+    air_pressue_status_t air_pressure_data[AIR_PRESSURE_NUM];
+    #endif
+    uint32_t sensor_mask; /// 传感器掩码，用于记录传感器数据是否有效
 } sensor_wrapper_data_t;
 
 /// ble事件类型
