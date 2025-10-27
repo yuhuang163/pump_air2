@@ -653,13 +653,11 @@ void ble_start_adv(void)
 }
 
 #if CFG_CUSTOM_APP
-extern void sys_power_gpio_init(void);
 extern void platform_log_init(void);
 extern void root_main(int argc, const char *argv[]);
 #endif
 int main(void)
 {
-    sys_power_gpio_init();
     hwtimer_init();
     hal_sys_timer_open();
 
