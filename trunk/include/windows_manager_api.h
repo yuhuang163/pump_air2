@@ -83,6 +83,7 @@ typedef struct window_manager_context {
         struct power_manager_context *pm; /// 电源管理器
         struct key_input_context *key; /// 按键管理器
         struct breast_pump_manager_context *pump; /// 泵奶管理器
+        struct peripheral_bus_context *pbus; /// 外设总线管理器
     #if CUST_LVGL_SUPPORT
         thread_context_t lv_hdr_thd; /// lvgl 显示调度线程
         os_timer_id lv_tick_timer; /// lvgl tick定时器
