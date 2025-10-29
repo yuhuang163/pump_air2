@@ -306,6 +306,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/system/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/input_key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/breast_pump/*.c) \

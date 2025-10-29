@@ -68,6 +68,7 @@ typedef struct key_input_context {
     /// 定义外部钩子函数.
     struct __key_input_hook {
         int (*input_keyevent_route)(struct key_input_context *ctx, uint16_t keycode, uint16_t keytype, int flag);
+        const char *(*get_key_code_name)(uint8_t code);
     } *hook;
 
 } key_input_context_t;
