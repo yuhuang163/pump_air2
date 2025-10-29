@@ -42,7 +42,10 @@ extern "C" {
 #define PUMP_RIGHT_CONTROL_BL_PIN       HAL_GPIO_PIN_P4_3 
 /// 泵奶电源控制引脚
 #define PUMP_POWER_PIN                  HAL_GPIO_PIN_P0_3
-
+/// LCD电源控制引脚
+#define LCD_POWER_PIN                   HAL_GPIO_PIN_P4_7
+/// 充电中断引脚
+#define CHARGE_INT_PIN                  HAL_GPIO_PIN_P0_1
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

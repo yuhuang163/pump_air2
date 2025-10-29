@@ -36,8 +36,7 @@ static void motor_power_gpio_init(void)
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(PUMP_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
-    GPIO_PIN_CTRL(PUMP_POWER_PIN, 0);
+    hal_gpio_pin_set_dir(PUMP_POWER_PIN, HAL_GPIO_DIR_OUT, 0);
 }
 
 static void motor_power_control(uint8_t status)

@@ -428,6 +428,7 @@ static int battery_dev_open(struct rt_device_node *dev)
 {
     battery_adc_init();
     battery_health_update();
+    charge_device_init();
     LOG_PBUS("battery init ok, health:%d%%, percent: %d%% voltage: %d",
         battery.health, battery.percent, battery.voltage); 
     s_batt_poll_time = 0;   

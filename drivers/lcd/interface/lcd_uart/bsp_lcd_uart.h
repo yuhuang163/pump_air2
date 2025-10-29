@@ -15,6 +15,10 @@ extern "C" {
 /// 屏幕串口协议数据格式
 #define LCD_UART_SOF                0x5C   
 
+#define LCD_UART_DATA_MAX_SIZE      (256)
+#define LCD_UART_DATA_HEADER_SIZE   (6)
+#define LCD_UART_DATA_CHECKSUM_SIZE (2)
+
 typedef struct {
     uint8_t type;
     uint8_t data_size;
@@ -32,7 +36,7 @@ typedef struct {
     uint8_t srv_id;
     uint8_t type;
     uint8_t data_size;
-    uint8_t *data;
+    uint8_t data[LCD_UART_DATA_MAX_SIZE];
 } lcd_uart_protocol_t;
 
 /// error code

@@ -19,7 +19,6 @@
 #define TOUCH_KEY_IDLE_COUNT        3
 #define TOUCH_I2C_ADDR              0x40  /// SC09B 只有一个固定地址
 
-
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -127,7 +126,6 @@ static void sc09b_touch_key_scan(void)
             }
             // LOG_PBUS("key value: %x, %x, %x, %x, %x, %x", s_touch_key[0], s_touch_key[1], 
             //     s_touch_key[2], s_touch_key[3], s_touch_key[4], s_touch_key[5]);
-
             if (key_value == 0) {
                 key_idle_count++;
                 if (key_idle_count > TOUCH_KEY_IDLE_COUNT) {
@@ -252,7 +250,7 @@ int bsp_key_init(void)
     power_key_irq_control(true);
     /// 初始化触摸键
     sc09b_irq_init();
-    bsp_i2c_init(I2C_MASTER_ID_0);
+    bsp_i2c_init(TOUCH_KEY_I2C_ID);
     CREATE_MSG_TYPE_QUEUE(&s_key_device_thd.msg_id, 1, 1);
     RUN_NEW_THREAD(&s_key_device_thd, "key", key_device_thread, RT_PRIO_KEY_DEVICE_THREAD, (KEY_DEVICE_THREAD_STACKSIZE));
     sc09b_irq_control(true);
@@ -262,7 +260,7 @@ int bsp_key_init(void)
 int bsp_key_deinit(void)
 {
     sc09b_irq_control(false);
-    bsp_i2c_deinit(I2C_MASTER_ID_0);
+    bsp_i2c_deinit(TOUCH_KEY_I2C_ID);
     
     return BSP_OK;
 }

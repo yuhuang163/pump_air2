@@ -47,6 +47,7 @@ POSSIBLY_UNUSED static int lcd_uart_write(uint8_t *buf, uint32_t len)
 {
     uint8_t msg = 0;
     int ret = 0;
+    BSP_LOG_HEX("lcd send", buf, len);
     ret = hal_uart_dma_send((enum HAL_UART_ID_T)LCD_UART_ID, (uint8_t *)buf, len, NULL, NULL);
     if (ret) {
         LOGW("uart tx dma error: ret=%d", ret);
@@ -139,7 +140,7 @@ static void lcd_uart_event_thread(const void *args)
         recv_len = lcd_uart_read(recv_buf, LCD_UART_RX_BUF_SIZE);
         if (recv_len > 0) {
             lcd_uart_recv_handler(recv_buf, recv_len);
-            lcd_uart_write(recv_buf, recv_len); // 调试用，实际使用时不需要
+            // lcd_uart_write(recv_buf, recv_len); // 调试用，实际使用时不需要
         }
     }
 }
@@ -153,27 +154,32 @@ void bsp_lcd_uart_register_event_cb(panel_recv_event_cb_func cb)
     s_lcd_uart_event_cb = cb;
 }
 
-int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t tlvs) 
+int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs) 
 {
-    uint16_t error_code = 0;
-    uint16_t data_size = tlvs.data_size + 8;
-    lcd_uart_protocol_t *lcd_data = u_malloz(data_size);
-
+    if (tlvs->data_size > (LCD_UART_DATA_MAX_SIZE - LCD_UART_DATA_CHECKSUM_SIZE)) {
+        LOGE("lcd data size is too large");
+        return -1;
+    }
+    uint16_t error_code = 0, checksum = 0;
+    LOG_PBUS("lcd data send: %d, %d, %d, %p", srv_id, tlvs->type, tlvs->data_size, tlvs->data);
+ 
+    lcd_uart_protocol_t *lcd_data = u_malloz(sizeof(lcd_uart_protocol_t));
     lcd_data->sof = LCD_UART_SOF;
-    lcd_data->lenght = tlvs.data_size + 3;
+    lcd_data->lenght = tlvs->data_size + 3;
     lcd_data->srv_id = srv_id;
-    lcd_data->type = tlvs.type;
-    lcd_data->data_size = tlvs.data_size;
-    memcpy(lcd_data->data, tlvs.data, tlvs.data_size);
-
-    uint16_t checksum = CRC16(lcd_data, data_size - 2);
-    lcd_data->data[tlvs.data_size] = checksum;
-    lcd_data->data[tlvs.data_size + 1] = checksum >> 8;
-    int ret = lcd_uart_write((uint8_t *)lcd_data, data_size);
+    lcd_data->type = tlvs->type;
+    lcd_data->data_size = tlvs->data_size;
+    memcpy(lcd_data->data, tlvs->data, tlvs->data_size);
+    checksum = CRC16(lcd_data, tlvs->data_size + LCD_UART_DATA_HEADER_SIZE);
+    lcd_data->data[tlvs->data_size] = checksum;
+    lcd_data->data[tlvs->data_size + 1] = checksum >> 8;
+    int ret = lcd_uart_write((uint8_t *)lcd_data, tlvs->data_size + LCD_UART_DATA_HEADER_SIZE + 
+            LCD_UART_DATA_CHECKSUM_SIZE);
     if (ret != BSP_OK) {
         LOGE("lcd uart send failed");
         goto ERROR_EXIT;
     }
+
     ret = MSG_QUEUE_RECV(lcd_rsp_msg_id, &error_code, 100);
     if (ret != BSP_OK) {
         LOGE("lcd rsp timeout");

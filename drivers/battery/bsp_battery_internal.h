@@ -123,6 +123,7 @@ typedef struct {
 *****************************************************************************************
 */
 bool vbus_is_plug_in(void);
+int charge_device_init(void);
 int get_charge_state(void);
 int get_charging_temperature(void);
 int get_charge_full_debounce(void);

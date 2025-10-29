@@ -4,20 +4,16 @@
 */
 #include "bsp_common.h"  // IWYU pragma: keep
 #include "ble_advs.h"
-#include "cmsis_os_api.h"
 #include "gap_service.h"
 #include "bes_gap_api.h"
 #include "app_ble.h" // IWYU pragma: keep
 #include "ble_core_common.h"
-#include "product_info.h"
 #include "factory_section.h"
-#include <string.h>
-
 /*
 * DEFINES
 *****************************************************************************************
 */
-#define CUSTOM_ADV_SLOW_INTERVAL         200
+#define CUSTOM_ADV_SLOW_INTERVAL         100
 #define CUSTOM_ADV_FAST_INTERVAL         100
 
 #define IS_SUPPORT_OLD_ADV_DATA          1

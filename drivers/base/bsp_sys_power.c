@@ -36,7 +36,6 @@ void sys_power_gpio_init(void)
     };
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_POWER_PIN,  HAL_GPIO_DIR_OUT,  1);
-    // hal_gpio_pin_set((enum HAL_GPIO_PIN_T)SYS_POWER_PIN);
     LOG_PBUS("sys_power_gpio_init");
 }
 
