@@ -127,6 +127,7 @@
 #define PMU_DCDC_ANA_DEFAULT            0xBB /* 1.3V */
 
 // 4mV
+#define PMU_DCDC_HPPA_1_95V             0x166
 #define PMU_DCDC_HPPA_1_9V              0x159
 #define PMU_DCDC_HPPA_1_8V              0x140
 #define PMU_DCDC_HPPA_1_75V             0x134
@@ -2488,6 +2489,8 @@ static uint32_t pmu_dcdc_hppa_mv_to_val(uint16_t mv)
         val = PMU_DCDC_HPPA_1_75V;
     } else if (mv == 1900) {
         val = PMU_DCDC_HPPA_1_9V;
+    } else if (mv == 1950) {
+        val = PMU_DCDC_HPPA_1_95V;
     } else {
         val = PMU_DCDC_HPPA_1_8V;
     }
@@ -2808,13 +2811,12 @@ int BOOT_TEXT_FLASH_LOC pmu_open(void)
 #endif
 
     ASSERT(vcodec_mv == 1400 || vcodec_mv == 1450 || vcodec_mv == 1500 || vcodec_mv == 1550 || vcodec_mv == 1600 || vcodec_mv == 1650 ||
-        vcodec_mv == 1700 || vcodec_mv == 1750 || vcodec_mv == 1800 || vcodec_mv == 1900,
+        vcodec_mv == 1700 || vcodec_mv == 1750 || vcodec_mv == 1800 || vcodec_mv == 1900 || vcodec_mv == 1950,
         "Invalid vcodec cfg: vcodec_mv=%u", vcodec_mv);
     ASSERT(vhppa_mv == 1400 || vhppa_mv == 1450 || vhppa_mv == 1500 || vhppa_mv == 1550 || vhppa_mv == 1600 || vhppa_mv == 1650 ||
-        vhppa_mv == 1700 || vhppa_mv == 1750 || vhppa_mv == 1800 || vhppa_mv == 1900,
+        vhppa_mv == 1700 || vhppa_mv == 1750 || vhppa_mv == 1800 || vhppa_mv == 1900 || vhppa_mv == 1950,
         "Invalid vhppa cfg: vhppa_mv=%u", vhppa_mv);
     TRACE(0, "%s vcodec_mv:%d vhppa_mv:%d", __func__, vcodec_mv, vhppa_mv);
-
 #if !defined(ROM_BUILD) && defined(PMU_EFUSE_INIT_IN_BOOT)
     pmu_efuse_init();
 #endif
