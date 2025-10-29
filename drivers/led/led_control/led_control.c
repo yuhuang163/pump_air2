@@ -17,6 +17,8 @@
 */
 #define LED_TOTAL_SIZE               (6)
 #define LED_PWM_PERIOD               800 // 800 - 1ms  350 - 0.5ms  120 - 0.25ms
+#define LED_ON_TIME                  200 // 800 - 1ms  350 - 0.5ms  120 - 0.25ms
+#define LED_OFF_TIME                 1800 // 800 - 1ms  350 - 0.5ms  120 - 0.25ms
 #define LED_THREAD_POLL_INTERVAL     (10)
 
 typedef struct {
@@ -32,6 +34,7 @@ static uint8_t led_time_is_running = 0;
 static led_status_t led_status[LED_TOTAL_SIZE];
 static thread_context_t s_led_device_thd;
 static os_timer_id s_led_timer_id;
+static uint8_t soft_level_status = 0;
 
 static const led_cfg_t led_cfg[LED_TOTAL_SIZE] = {
     {PUMP_START_BL_PIN},
@@ -75,12 +78,15 @@ static void led_timeout_handler(void *param)
             continue;
         }
         level_count++;
-        led_status[i].un.onoff.status = !led_status[i].un.onoff.status;
-        GPIO_PIN_CTRL(led_cfg[i].pin, led_status[i].un.onoff.status > 0 ? 1 : 0);
+        // led_status[i].un.onoff.status = !led_status[i].un.onoff.status;
+        // GPIO_PIN_CTRL(led_cfg[i].pin, led_status[i].un.onoff.status > 0 ? 1 : 0);
+        soft_level_status = soft_level_status > 0 ? 0 : 1;
+        GPIO_PIN_CTRL(led_cfg[i].pin, soft_level_status);
     }
 
     if (level_count > 0) {
-        led_timer_start(LED_PWM_PERIOD);
+        // led_timer_start(LED_PWM_PERIOD);
+        led_timer_start(soft_level_status == 0 ? LED_OFF_TIME : LED_ON_TIME);
     } else {
         led_time_is_running = 0;
     }
@@ -114,8 +120,7 @@ static void led_pin_init(void)
     for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
         gpio_map.pin = (enum HAL_IOMUX_PIN_T)led_cfg[i].pin;
         hal_iomux_init(&gpio_map, 1);
-        hal_gpio_pin_set_dir(led_cfg[i].pin, HAL_GPIO_DIR_OUT, 1);
-        GPIO_PIN_CTRL(led_cfg[i].pin, 0);
+        hal_gpio_pin_set_dir(led_cfg[i].pin, HAL_GPIO_DIR_OUT, 0);
     }
 }
 
@@ -124,12 +129,12 @@ static void led_blink_handle(uint8_t index)
     if (led_status[index].mode != LED_MODE_BLINK) {
         return;
     }
-
     led_blink_t *led = &led_status[index].un.blink;
     /// 闪烁完成
     if (get_timestamp_ms(led->start_time) >= led->continue_time && led->continue_time != 0) {
+        led_status[index].mode = LED_MODE_ONOFF;
         if (led->cb) {
-            led->cb();
+            led->cb(led->user_data, index);
         }
         return;
     }
@@ -232,6 +237,10 @@ int bsp_led_init(void)
 {
     led_timer_init();
     led_pin_init();
+    led_luminous_t luminous = {.level = LED_LEVEL_MAX};
+    for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
+        led_level_set(i, luminous);
+    }
     RUN_NEW_THREAD(&s_led_device_thd, "led", led_device_thread, RT_PRIO_LED_DEVICE_THREAD, (LED_DEVICE_THREAD_STACKSIZE));
     return BSP_OK;
 }
