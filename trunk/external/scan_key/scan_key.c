@@ -40,9 +40,11 @@ static void bsp_post_key_event(uint16_t keycode, uint16_t keytype)
     rt_device_node_t *node = s_key_dev;
 
     if (node && node->write) {
-        LOG_KEY("write keyevent: %d --- %d", keycode, keytype);
+        // LOG_KEY("write keyevent: %d --- %d", keycode, keytype);
         int buf[] = { (1 << (SCAN_KEY_CODE_BEGIN + keycode)), (1 << (KEY_TYPE_BEGIN + keytype)) };
         node->write(node, buf, sizeof(buf));
+    } else {
+        LOG_KEY("node or write is NULL: %d --- %d", keycode, keytype);
     }
 }
 

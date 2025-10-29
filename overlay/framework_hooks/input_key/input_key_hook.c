@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
+#include "input_key_code.h"  // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -33,8 +34,10 @@ static int input_keyevent_route(struct key_input_context *ctx, uint16_t keycode,
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+extern const char *get_input_key_code_name(uint8_t code);
 void register_input_key_hook(key_input_context_t *ctx)
 {
     ctx->hook = u_malloz(sizeof(struct __key_input_hook));
     ctx->hook->input_keyevent_route = input_keyevent_route;
+    ctx->hook->get_key_code_name = get_input_key_code_name;
 }
