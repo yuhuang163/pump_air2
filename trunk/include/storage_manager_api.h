@@ -34,14 +34,15 @@ typedef enum {
     STORE_ID_FACTORY_IMU_CALI_DATA,         /// 工厂陀螺仪校准数据
     STORE_ID_AUDIO_PACKET_INFO = 200,       /// 语音包信息
     STORE_ID_THEME_PACKET_INFO,             /// 主题包信息
-    STORE_ID_BREAST_PUMP_INFO = 300,               /// 吸奶信息
-    STORE_ID_BREAST_PUMP_TIME,                     /// 吸奶时间
-    STORE_ID_BREAST_PUMP_LEVEL,                    /// 吸奶力度
+    STORE_ID_BREAST_PUMP_INFO = 300,        /// 吸奶信息
+    STORE_ID_BREAST_PUMP_TIME,              /// 吸奶时间
+    STORE_ID_PUMP_SETTING_INFO,             /// 吸奶设置信息
+    STORE_ID_PUMP_CONTROL_TYPE,             /// 吸奶控制类型
     STORE_ID_REMIND_PUMP_EXCEPTION,         /// 吸奶异常提醒
     STORE_ID_REMIND_PUMP_MODE_CHANGE,       /// 吸奶模式切换提醒
     STORE_ID_REMIND_PUMP_FINISH,            /// 吸奶完成提醒
-    STORE_ID_BREAST_PUMP_DATA_HEAD,                /// 吸奶数据头
-    STORE_ID_BREAST_PUMP_DATA_BODY,                /// 吸奶数据体
+    STORE_ID_BREAST_PUMP_DATA_HEAD,         /// 吸奶器数据头
+    STORE_ID_BREAST_PUMP_DATA_BODY,         /// 吸奶器数据体
     STORE_ID_SYS_CONFIG_INFO = 400,         /// 系统配置信息
     STORE_ID_SYS_TIME_ZONE,                 /// 系统时区
     STORE_ID_SYS_AP_MODE_ONOFF,             /// 系统飞航模式开关
@@ -49,13 +50,12 @@ typedef enum {
     STORE_ID_SYS_UI_STYLE,                  /// 系统UI风格
     STORE_ID_SYS_LOG_SWITCH,                /// 系统UART日志开关
     STORE_ID_SYS_LANGUAGE,                  /// 系统语言类型
-    STORE_ID_SYS_SOUND_MODE_ONOFF,          /// 系统语音提醒开关
-    STORE_ID_SYS_MICROSEISM_ONOFF,          /// 系统微震开关
     STORE_ID_SYS_UTC_TIMESTAMP,             /// 系统时间戳
     STORE_ID_SYS_STATE_INFO = 500,          /// 系统状态信息
     STORE_ID_SYS_GUIDE_DEPLOYED,            /// 向导部署标志
     STORE_ID_SYS_BATTERY_HEALTH,            /// 电池健康
     STORE_ID_SYS_BREAST_PUMP_HEADER_LIFE,   /// 吸嘴寿命
+    STORE_ID_SYS_NIGHT_LIGHT_INFO,          /// 夜灯信息
     STORE_ID_SYS_SYNC_SYS_TIME,             /// 保存第一次同步系统时间时 本地经历的最终时间点 用于计算吸奶记录的差值.
     STORE_ID_SYS_LOG_FILTER,                /// 系统日志过滤
     STORE_ID_USER_BIND_INFO = 600,          /// 用户绑定信息
