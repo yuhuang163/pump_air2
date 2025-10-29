@@ -70,7 +70,7 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     result_info->work_total_time += PUMP_WORK_STEP_TIME_MS;
     /// 更新模式和力度.
     result_info->mode = ctx->priv.m_info.mode;
-    memcpy(&result_info->unit_info, &ctx->priv.m_info.unit_info, sizeof(breast_pump_unit_t) * BREAST_PUMP_NUM);
+    ctx->get_breast_pump_setting(&result_info->setting);
     /// 有效时间累加，更新各区域有效时间.
     result_info->work_valid_time += PUMP_WORK_STEP_TIME_MS;
     if (log_timer > PUMP_INFO_LOG_INTERVAL) {
@@ -89,7 +89,7 @@ static int make_progress_route(breast_pump_manager_context_t *ctx, pump_result_i
 
     EXCEPTION_CHECK_INT(result_info);
     result_info->mode = ctx->priv.m_info.mode;
-    memcpy(&result_info->unit_info, &ctx->priv.m_info.unit_info, sizeof(breast_pump_unit_t) * BREAST_PUMP_NUM);
+    ctx->get_breast_pump_setting(&result_info->setting);
     notify_id = local_breast_pump_process(ctx, result_info);
 
     return notify_id;
@@ -136,7 +136,9 @@ static int breast_pump_result_info_update(breast_pump_manager_context_t *ctx, pu
 }
 
 static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int status)
-{
+{    
+    struct storage_manager_context *st = ctx->priv.st;
+    EXCEPTION_CHECK_INT(st);
     pump_result_info_t *result_info = ctx->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     EXCEPTION_CHECK_INT(result_info);
     struct sys_persist_info *persist = ctx->priv.st->get_persist_sys_info();
@@ -148,16 +150,14 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
     }
     result_info->setting_time = work_time * 1000;
     result_info->mode = ctx->priv.m_info.mode;
-    memcpy(&result_info->unit_info, &ctx->priv.m_info.unit_info, sizeof(breast_pump_unit_t) * BREAST_PUMP_NUM);
+    ctx->get_breast_pump_setting(&result_info->setting);
     LOG_PMP("start pump work, mode: %d, work_time: %d, setting_time: %d", result_info->mode, work_time, result_info->setting_time);
-
     /// 初始化泵奶数据.
     if (status == BREAST_PUMP_START) {
         breast_pump_result_info_reset(ctx, result_info);  
         // ctx->m_result.notify_ui.expected_valid_time_sec = algo_breast_pump->target_valid_time / 1000;
         // ctx->m_result.notify_ui.expected_elapse_time_sec = algo_breast_pump->target_total_time / 1000;
-    }
-        
+    } 
     /// 无限续刷逻辑处理
     if (status == BREAST_PUMP_CONTINUE) { 
         if (breast_pump_result_info_update(ctx, result_info) == 0) {
@@ -165,12 +165,11 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
             // ctx->m_result.notify_ui.expected_elapse_time_sec = algo_breast_pump->target_total_time / 1000;
         }
     }
-
-    for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
-        result_info->mode = ctx->get_breast_pump_mode();
-        ctx->get_breast_pump_unit_info(i, &result_info->unit_info[i]);
-    }  
-
+    /// 获取当前模式.
+    result_info->mode = ctx->get_breast_pump_mode();
+    /// 从ram中获取当前模式下的设置信息.
+    st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, result_info->mode, 0, &result_info->setting);
+    ctx->set_breast_pump_setting(&result_info->setting);    
 
     return 0;
 }

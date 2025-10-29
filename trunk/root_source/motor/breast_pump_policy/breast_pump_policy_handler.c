@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "hal_motor.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "motor_policy.h" // IWYU pragma: keep
 #include "breast_pump_policy.h" // IWYU pragma: keep
@@ -97,20 +98,18 @@ void negative_pressure_release(struct motor_manager_context *thiz)
     };
     uint32_t args[2] = {0, (uint32_t)&motor};
     LOG_MOTOR("-->step 1");
-    for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
-        args[0] = i;
-        DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
-    }
+    args[0] = MOTOR_PWM_ALL_ID;
+    DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
     msleep(5);
     LOG_MOTOR("-->step 2");
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
-        args[0] = i;
+        args[0] = i + MOTOR_PWM_VALVE_1;
         DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, args);
     }
     msleep(100);
     LOG_MOTOR("-->step 3");
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
-        args[0] = i;
+        args[0] = i + MOTOR_PWM_VALVE_1;
         DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
     }
 }
@@ -129,7 +128,7 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     body->timed_policy = &body->manager->head;
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
-        pump_policy_info_reset(thiz, &body->policy[i], &body->info[i]);
+        pump_policy_info_reset(thiz, body, i);
     }
 }
 

@@ -63,6 +63,10 @@ extern "C" {
 #define RT_PRIO_KEY_DEVICE_THREAD                      OS_PRIORITY_REALTIME2
 #endif
 
+#ifndef RT_PRIO_CHARGE_DEVICE_THREAD
+#define RT_PRIO_CHARGE_DEVICE_THREAD                    OS_PRIORITY_REALTIME2
+#endif
+
 #ifndef RT_PRIO_LED_DEVICE_THREAD
 #define RT_PRIO_LED_DEVICE_THREAD                      OS_PRIORITY_REALTIME2
 #endif
@@ -154,6 +158,10 @@ extern "C" {
 
 #ifndef KEY_DEVICE_THREAD_STACKSIZE
 #define KEY_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
+#endif
+
+#ifndef CHARGE_DEVICE_THREAD_STACKSIZE
+#define CHARGE_DEVICE_THREAD_STACKSIZE                 (TASK_SIZE_DEFAULT * 1 + 0)
 #endif
 
 #ifndef LED_DEVICE_THREAD_STACKSIZE

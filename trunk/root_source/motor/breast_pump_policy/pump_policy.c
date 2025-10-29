@@ -129,11 +129,12 @@ int pump_policy_update(motor_policy_info_t *info)
     return 0;
 }
 
-void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_node_t *policy, motor_policy_info_t *info) 
+void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_runtime_t *runtime, uint8_t pump_id) 
 {
     suction_strategy_mapping_t map_para = {0};
     const suction_parameters_t *n_pressure = NULL;
-
+    motor_policy_info_t *info = &runtime->info[pump_id];
+    motor_policy_node_t *policy = &runtime->policy[pump_id];
     /// 默认策略
     memset(&info->state, 0, sizeof(motor_policy_state_t));
     memcpy(&info->config, &policy->core.config, sizeof(suction_policy_config_t));
@@ -145,7 +146,9 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_nod
         return;
     }
     /// 用户设定力度与频率(速度)策略
-    pump_user_policy_update(thiz, &map_para); 
+    pump_user_policy_update(thiz, &map_para, pump_id); 
+    /// 爬升策略
+    pump_climb_policy_update(thiz, &map_para);
     /// 通过map参数获取吸力参数
     if (map_para.mode_type == SUCTION_MODE_SHORT) {
         n_pressure = &short_suction_table[map_para.level][map_para.speed];
