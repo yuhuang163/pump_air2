@@ -296,31 +296,97 @@ int read_pump_finish_remind_from_ram(store_func_args_t args)
     return 0;
 }
 
-int write_pump_level_to_ram(store_func_args_t args)
+int write_pump_setting_info_to_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    pump_setting_t *setting = (pump_setting_t *)args.val;
+    EXCEPTION_CHECK_INT(setting);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+    LOG_STORE("write pump setting info: %d", args.arg1);
+    switch (args.arg1) {
+        case BREAST_PUMP_STIMULATION_MODE:
+            memcpy(&pump_info->setting.stimulation, setting, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_PUMP_MODE:
+            memcpy(&pump_info->setting.pump, setting, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_MIX_MODE:      
+            memcpy(&pump_info->setting.mix, setting, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_CUSTOM_MODE:
+            memcpy(&pump_info->setting.custom, setting, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_PP_MILK_TRACK_MODE:
+            memcpy(&pump_info->setting.pp_milk_track, setting, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_MILK_BOOST_MODE:
+            memcpy(&pump_info->setting.milk_boost, setting, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_LACTATION_START_MODE:
+            memcpy(&pump_info->setting.lactation_start, setting, sizeof(pump_setting_t));
+            break;
+        default:
+            LOGE("write pump setting info: %d, out of range", args.arg1);
+            break;
+
+    }
+    return 0;
+}
+
+int read_pump_setting_info_from_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+    pump_setting_t *setting = (pump_setting_t *)args.val;
+    EXCEPTION_CHECK_INT(setting);
+    LOG_STORE("read pump setting info: %d", args.arg1);
+    switch (args.arg1) {
+        case BREAST_PUMP_STIMULATION_MODE:
+            memcpy(setting, &pump_info->setting.stimulation, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_PUMP_MODE:
+            memcpy(setting, &pump_info->setting.pump, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_MIX_MODE:
+            memcpy(setting, &pump_info->setting.mix, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_CUSTOM_MODE:
+            memcpy(setting, &pump_info->setting.custom, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_PP_MILK_TRACK_MODE:
+            memcpy(setting, &pump_info->setting.pp_milk_track, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_MILK_BOOST_MODE:
+            memcpy(setting, &pump_info->setting.milk_boost, sizeof(pump_setting_t));
+            break;
+        case BREAST_PUMP_LACTATION_START_MODE:
+            memcpy(setting, &pump_info->setting.lactation_start, sizeof(pump_setting_t));
+            break;
+        default:
+            LOGE("read pump setting info: %d, out of range", args.arg1);
+            break;
+        }
+    return 0;
+}
+
+int write_pump_control_type_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
-    LOG_STORE("write pump mode: %d", args.arg1);
-
+    sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
+    pump_info->control_type = (uint8_t)args.arg1;
+    LOG_STORE_WRAP("write pump control type: %d", args.arg1);
     return 0;
 }
 
-int read_pump_level_from_ram(store_func_args_t args)
+int read_pump_control_type_from_ram(store_func_args_t args)
 {
-    return 0;
-}
-
-int pump_data_info_sync_flash(storage_manager_context_t *ctx, pump_result_info_t *body)
-{
-    return 0;
-}
-
-int get_pump_data_info_from_flash(int num, void *body)
-{
-    return 0;
-}
-
-int delete_pump_data_info_from_flash(int num)
-{
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = pump_info->control_type;
     return 0;
 }
 

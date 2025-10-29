@@ -109,29 +109,55 @@ typedef enum {
 
 /// 泵奶力度
 typedef enum {
-    SYS_BREAST_PUMP_LEVEL_1 = 111,
-    SYS_BREAST_PUMP_LEVEL_2,
-    SYS_BREAST_PUMP_LEVEL_3,
-    SYS_BREAST_PUMP_LEVEL_4,
-    SYS_BREAST_PUMP_LEVEL_5,
-    SYS_BREAST_PUMP_LEVEL_MAX,
-} sys_breast_pump_level_e;
+    BREAST_PUMP_LEVEL_1 = 0,
+    BREAST_PUMP_LEVEL_2,
+    BREAST_PUMP_LEVEL_3,
+    BREAST_PUMP_LEVEL_4,
+    BREAST_PUMP_LEVEL_5,
+    BREAST_PUMP_LEVEL_6,
+    BREAST_PUMP_LEVEL_7,
+    BREAST_PUMP_LEVEL_8,
+    BREAST_PUMP_LEVEL_9,
+    BREAST_PUMP_LEVEL_10,
+    BREAST_PUMP_LEVEL_11,
+    BREAST_PUMP_LEVEL_12,
+    BREAST_PUMP_LEVEL_13,
+    BREAST_PUMP_LEVEL_14,
+    BREAST_PUMP_LEVEL_15,
+    BREAST_PUMP_LEVEL_DEFAULT = BREAST_PUMP_LEVEL_1,
+    BREAST_PUMP_LEVEL_MAX,
+} breast_pump_level_e;
 
-/// 泵奶方向
-typedef enum { 
-    BREAST_PUMPING_TEETH_CLOCKWISE= 0,  ///顺时针
-    BREAST_PUMPING_TEETH_ANTI_CLOCKWISE = 1  ///逆时针
-} sys_breast_pump_order;
+/// 泵奶控制类型
+typedef enum {
+    BREAST_PUMP_SPEED_LOW = 0,
+    BREAST_PUMP_SPEED_MID = 1,
+    BREAST_PUMP_SPEED_HIGH = 2,
+    BREAST_PUMP_SPEED_MAX,
+} breast_pump_speed_e;
+
+/// 泵奶控制类型
+typedef enum {
+    BREAST_PUMP_CONTROL_TYPE_LEFT = 0,
+    BREAST_PUMP_CONTROL_TYPE_RIGHT = 1,
+    BREAST_PUMP_CONTROL_TYPE_BILATERAL = 2,
+    BREAST_PUMP_CONTROL_TYPE_MAX,
+} breast_pump_control_type_e;
 
 typedef struct {
-    uint16_t stimulation[STIMULATION_MODE_LEN];     /// 刺激
-    uint16_t pump[PUMP_MODE_LEN]; /// 吸乳
-    uint16_t mix[MIX_MODE_LEN];               /// 混合
-    uint16_t custom[CUSTOM_MODE_LEN];    /// 个性化默认
-    uint16_t pp_milk_track[PP_MODE_LEN];     /// PP追奶
-    uint16_t milk_boost[MILK_BOOST_MODE_LEN];         /// 2+8奶量提升
-    uint16_t lactation_start[LACTATION_START_MODE_LEN]; /// 开奶
-} breast_pump_level_info_t;
+    uint8_t level[BREAST_PUMP_NUM];
+    uint8_t speed;
+} pump_setting_t;
+
+typedef struct {
+    pump_setting_t stimulation;     /// 刺激
+    pump_setting_t pump; /// 吸乳
+    pump_setting_t mix;               /// 混合
+    pump_setting_t custom;    /// 个性化默认
+    pump_setting_t pp_milk_track;     /// PP追奶
+    pump_setting_t milk_boost;         /// 2+8奶量提升
+    pump_setting_t lactation_start; /// 开奶
+} pump_setting_info_t;
 
 /// 描述泵奶信息
 typedef struct
@@ -139,7 +165,8 @@ typedef struct
     uint8_t is_remind_mode_change;        /// 模式切换提醒
     uint8_t is_remind_pump_finish;        /// 泵奶完成提醒
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
-    // breast_pump_level_info_t level_info;
+    uint8_t control_type;                 /// 泵奶控制类型 breast_pump_control_type_e
+    pump_setting_info_t setting;
     uint16_t pump_time[BREAST_PUMP_MODE_MAX];   /// 泵奶时长,单位s
 } sys_pump_info_t;
 
@@ -196,6 +223,12 @@ typedef struct {
     uint8_t aes_key[USER_BIND_AES_KEY_LEN]; /// 对称密钥，数据加解密
 } user_bind_info_t;
 
+typedef struct {
+    uint8_t adaptive; /// 夜灯自适应开关
+    uint8_t level; /// 夜灯亮度等级
+    uint8_t onoff; /// 夜灯开关状态
+} night_light_info_t;
+
 /// 描述系统配置
 typedef struct {
     int8_t  time_zone;             /// 时区
@@ -210,6 +243,7 @@ typedef struct {
 typedef struct {
     uint8_t guide_deployed;       /// 向导部署标志
     uint8_t battery_health;       /// 电池健康
+    night_light_info_t night_light; /// 夜灯亮度信息
     uint32_t log_filter;          /// 日志过滤
     uint32_t sync_sys_time;       /// 保存第一次同步系统时间时 本地经历的最终时间点 用于计算泵奶记录的差值.
 } sys_state_info_t;
@@ -252,7 +286,9 @@ typedef struct {
 typedef struct factory_data_store {
     factory_flag_info_t flag_info;
     factory_dev_info_t dev_info;
+    #if IS_SUPPORT_DEVICE_IMU
     imu_cali_data_t imu;
+    #endif
 } factory_data_store_t;
 
 /// 泵奶数据头

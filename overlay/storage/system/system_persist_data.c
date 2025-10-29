@@ -313,6 +313,16 @@ int write_battery_health_to_ram(store_func_args_t args)
     return 0;
 }
 
+int write_night_light_info_to_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
+    memcpy(&sys_state->night_light, (night_light_info_t *)args.val, sizeof(night_light_info_t));
+    LOG_STORE_WRAP("write night light info: adaptive: %d, level: %d, onoff: %d", 
+        sys_state->night_light.adaptive, sys_state->night_light.level, sys_state->night_light.onoff);
+    return 0;
+}   
+
 int write_sync_sys_time_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
@@ -389,7 +399,7 @@ int read_language_from_ram(store_func_args_t args)
     EXCEPTION_CHECK_INT(tmp);
     *tmp = sys_config->language;
     return 0;
-}   
+}
 
 int read_guide_deployed_from_ram(store_func_args_t args)
 {
@@ -408,6 +418,16 @@ int read_battery_health_from_ram(store_func_args_t args)
     int *tmp = (int *)args.val;
     EXCEPTION_CHECK_INT(tmp);
     *tmp = sys_state->battery_health;
+    return 0;
+}
+
+int read_night_light_info_from_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
+    night_light_info_t *tmp = (night_light_info_t *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    memcpy(tmp, &sys_state->night_light, sizeof(night_light_info_t));
     return 0;
 }
 
