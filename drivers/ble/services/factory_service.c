@@ -44,11 +44,11 @@ static const gatt_attribute_t ble_factory_attr_list[] = {
     gatt_attribute(ble_factory_service),
     /* Characteristics */
     gatt_attribute(ble_factory_rx_character),
-    gatt_attribute(ble_factory_rx_cudd),
+    // gatt_attribute(ble_factory_rx_cudd),
     /* Characteristics */
     gatt_attribute(ble_factory_tx_character),
     gatt_attribute(ble_factory_tx_cccd),
-    gatt_attribute(ble_factory_tx_cudd),
+    // gatt_attribute(ble_factory_tx_cudd),
 };
 
 static uint8_t notification_enabled = false;

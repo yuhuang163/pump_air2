@@ -17,7 +17,7 @@ GATT_DECL_128_LE_PRI_SERVICE(ble_master_service,
 GATT_DECL_128_LE_CHAR(ble_master_rx_character,
     ROOT_MASTER_SRV_RX_CHAR_UUID_128,
     GATT_WR_REQ|GATT_WR_CMD,
-    ATT_WR_ENC);
+    ATT_SEC_NONE);
 
 GATT_DECL_CUDD_DESCRIPTOR(ble_master_rx_cudd,
     ATT_SEC_NONE);
