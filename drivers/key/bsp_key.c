@@ -117,9 +117,7 @@ int platform_read_key_value(int type, int index)
 
 void key_irq_event_callback(int index)
 {
-    if (platform_read_key_value(0, index) > 0) {
-        scan_key_timer_start(index);
-    }
+    scan_key_timer_start(index);
 }
 
 void *register_device_for_input_key(list_head_t *list_head)
