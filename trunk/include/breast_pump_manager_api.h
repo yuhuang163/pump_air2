@@ -45,15 +45,10 @@ typedef struct {
     uint32_t work_total_time;
 } breast_pump_result_t;
 
-typedef struct {
-    uint8_t level;
-    uint8_t speed;
-} breast_pump_unit_t;
-
 /// 泵奶数据
 typedef struct pump_result_info {
     uint8_t  mode;
-    breast_pump_unit_t unit_info[BREAST_PUMP_NUM];
+    pump_setting_t setting;
     uint8_t  report_flag;               /// 泵奶报告是否实时上传
     uint32_t timestamp;                 /// 开始泵奶时间
     uint32_t setting_time;              /// app设置的单次泵奶时间
@@ -69,7 +64,6 @@ typedef struct {
     uint8_t status;
     uint8_t do_work;
     uint8_t mode;
-    breast_pump_unit_t unit_info[BREAST_PUMP_NUM];
 } breast_pump_info_t;
 
 /// 吸奶结果ID
@@ -92,6 +86,7 @@ typedef struct breast_pump_manager_context {
         os_timer_id breast_pump_work_timer;
         breast_pump_result_t m_result;
         breast_pump_info_t m_info;
+        pump_setting_t setting;
         thread_context_t breast_pump_thd;
         list_head_t client_list;
         broadcast_obj_t m_bdc;
@@ -108,14 +103,16 @@ typedef struct breast_pump_manager_context {
     void (*remove_breast_pump_result_listener)(on_breast_pump_result_cb_ptr cb);
     int (*get_breast_pump_mode)(void);
     void (*set_breast_pump_mode)(uint32_t mode);
-    void (*get_breast_pump_unit_info)(uint8_t id, breast_pump_unit_t *unit_info);
-    void (*set_breast_pump_unit_info)(uint8_t id, breast_pump_unit_t *unit_info);
+    void (*get_breast_pump_setting)(pump_setting_t *setting);
+    void (*set_breast_pump_setting)(pump_setting_t *setting);
     void (*set_breast_pump_status)(int status);
     int (*get_breast_pump_status)(void);
     int (*get_breast_pump_status_async)(void);
     int (*get_last_breast_pump_result)(breast_pump_result_t *result, uint8_t breast_pump_data_id);
     const breast_pump_result_t *(*get_curr_breast_pump_result)(void);
     pump_result_info_t *(*get_breast_pump_result)(breast_pump_result_id_e result_id);
+    const char *(*get_breast_pump_status_name)(uint8_t status);
+    const char *(*get_breast_pump_mode_name)(uint8_t mode);
 
     ///  外部挂接点.
     struct __breast_pump_hook {
