@@ -49,7 +49,6 @@ int battery_adc_init(void)
 
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir(BATT_ADC_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
-    hal_gpio_pin_set(BATT_ADC_POWER_PIN);
     msleep(50);
     bsp_adc_init();
     return 0;
