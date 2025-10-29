@@ -43,10 +43,12 @@ static power_manager_context_t *thiz = NULL;
 static int pm_check_wakelock(power_manager_context_t *ctx);
 static void clear_all_wakelock(power_manager_context_t *ctx);
 
-static void set_suspend_counter(const char *tag, int counter)
+static void set_suspend_counter(const char *tag, int counter, uint8_t log_out)
 {
     thiz->priv.suspend_counter = counter;
-    LOG_PM("tag:%s New counter: %d", tag, counter);
+    if (log_out) {
+        LOG_PM("tag:%s New counter: %d", tag, counter);
+    }
 }
 
 static const char *print_wakeup_state(pm_wakeup_state_e state)
@@ -164,8 +166,9 @@ static int pm_check_wakelock(power_manager_context_t *ctx)
 
 static void pm_suspend_check_handler(power_manager_context_t *ctx)
 {
+    static uint32_t log_interval = 0;
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-
+    log_interval++;
     if (wm && wm->is_on_window_dispatch()) {
         LOG_PM("on_window_dispatch, ignore");
         return;
@@ -178,13 +181,15 @@ static void pm_suspend_check_handler(power_manager_context_t *ctx)
 
     int tmp = ctx->priv.suspend_counter;
     if (tmp > 0) {
-        LOG_PM("I will goto suspend after: %ds pm_state_change_progress: %s", 
-            tmp, print_wakeup_state((pm_wakeup_state_e)ctx->priv.pm_state_change_progress));
-        set_suspend_counter("suspend_timer", (--tmp));
+        if (log_interval % 10 == 0) {
+            LOG_PM("I will goto suspend after: %ds pm_state_change_progress: %s", 
+                tmp, print_wakeup_state((pm_wakeup_state_e)ctx->priv.pm_state_change_progress));
+        }
+        set_suspend_counter("suspend_timer", (--tmp), false);
     } else {
         ota_manager_context_t *ota_ctx = (ota_manager_context_t *)find_module(ID_MODULE_OTA);
         if (ota_ctx && ota_ctx->is_ota_upgrading()) {
-            set_suspend_counter("ota_is_running", get_suspend_timeout(ctx));
+            set_suspend_counter("ota_is_running", get_suspend_timeout(ctx), true);
             return;
         }
         LOG_PM("Now goto suspend!");
@@ -204,7 +209,7 @@ static void pm_suspend_check_handler(power_manager_context_t *ctx)
 static void start_suspend_timer(power_manager_context_t *ctx)
 {
     LOG_PM("enter");
-    set_suspend_counter("start_suspend_timer", get_suspend_timeout(ctx));
+    set_suspend_counter("start_suspend_timer", get_suspend_timeout(ctx), true);
     STOP_TIMER(ctx->priv.suspend_timer);
     START_TIMER(ctx->priv.suspend_timer, PM_SUSPEND_WORK_PERIOD);
 }
@@ -250,7 +255,7 @@ static int pm_key_event_handler(void *user_data, uint16_t keycode, uint16_t keyt
     if (keycode == KEY_CODE_1) {
         ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER);
     } else {
-        set_suspend_counter("non-wakeup-key-reset", get_suspend_timeout(ctx));
+        set_suspend_counter("non-wakeup-key-reset", get_suspend_timeout(ctx), true);
         LOG_PM("not wakeup-key, only reset");
     }
     return 0;
@@ -272,7 +277,7 @@ static void on_pm_broadcast_receive(broadcast_mask_id_t id,
             #endif
         } else {
             ctx->priv.user_set_to_sleep = true;
-            set_suspend_counter("PM_SUSPEND_BY_USER", 0);
+            set_suspend_counter("PM_SUSPEND_BY_USER", 0, true);
             clear_all_wakelock(ctx);
             pm_suspend_check_handler(ctx);
         }
@@ -572,7 +577,7 @@ static int pm_acquire_wakelock(const char *caller, int timeout_s)
     LOG_PM("NEW add(%s/%d)", node->caller, node->timeout_s);
 
     /// 复位计数器.
-    set_suspend_counter("pm_acquire_wakelock", get_suspend_timeout(thiz));
+    set_suspend_counter("pm_acquire_wakelock", get_suspend_timeout(thiz), true);
 
     return 0;
 }
@@ -681,7 +686,7 @@ static void pm_wakeup(pm_wakeup_reason_e reason)
         return;
     }
 
-    set_suspend_counter("pm_wakeup", get_suspend_timeout(thiz));
+    set_suspend_counter("pm_wakeup", get_suspend_timeout(thiz), true);
     if (reason == PM_WAKEUP_REASON_CHARGE_PLUG_OUI) {
         LOG_PM("CHARGE_PLUG_OUI blocked");
         return;
