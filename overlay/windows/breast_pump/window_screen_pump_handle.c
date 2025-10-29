@@ -12,35 +12,22 @@
 #define PAGE_ANIMATION_FREQ                 (12.5f)
 #define PAGE_ANIMATION_TIME_MS              (uint16_t)((1000.0f / PAGE_ANIMATION_FREQ) + 0.5f)
 #define PAGE_ANIMATION_CNT                  UI_ANIM(PUMP, COMMON, CNT)
-#define PUMP_UI_KEY_CODE                    (KEY_CODE_POWER | KEY_CODE_START | KEY_CODE_MODE | KEY_CODE_FREQUENCY | \
+#define PUMP_UI_KEY_CODE                    (KEY_CODE_POWER |KEY_CODE_START | KEY_CODE_MODE | KEY_CODE_FREQUENCY | \
                                             KEY_CODE_BREASTFEEDING | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL)
-#define PUMP_UI_KEY_TYPE                    (KEY_EVENT_CLICK | KEY_EVENT_DOWN | KEY_EVENT_UP)
+#define PUMP_UI_KEY_TYPE                    (KEY_EVENT_CLICK)
 #define GOTO_CHARGE_HDR_TASK_NAME           "goto_charge_ui"
 #define RESET_PLAY_ANI_FPS_HDR_TASK_NAME    "reset_play_ani_fps"
 #define PLAY_ANI_START_HDR_TASK_NAME        "play_ani_start"
 #define PUMP_START_HDR_TASK_NAME            "pump_start"
 #define PUMP_STATE_CHANGE_HDR_TASK_NAME     "pump_state_change"
+#define PUMP_SHOW_ONCE_HDR_TASK_NAME        "pump_show_once"
+#define RECOVERY_DEFAULT_ANI_PLAY_HDR_TASK_NAME "recovery_def_ani_play"
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_UI("==>REMOVE_ALL_HANDER_TASK"); \
 } while (0)
 
-typedef struct ui_proc_pump_t{    
-    uint32_t ani_timer_cnt;
-    window_context_t w_ctx;
-    // ui_page_handle_t bridge;
-    broadcast_obj_t receiver;
-    uint32_t margic;
-    uint8_t need_start_pump;
-    uint8_t ui_show_state;
-    uint8_t user_pause;
-    uint8_t goto_charge_ui_flag;
-    uint8_t is_mode_changed_by_app;
-    uint8_t is_mode_changed_by_device;
-    uint8_t current_ui_mode;
-
-} ui_proc_pump_t;
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -62,39 +49,21 @@ static void local_work_completed(window_manager_context_t *wm)
     LOG_UI("pump play finish.\n");
 }
 
-static void animation_progress_cb(void *user_data, int index, int state)
-{
-    window_context_t *args = user_data;
-}
-
-static void start_pump_ui_animation(ui_proc_pump_t *proc)
-{
-    if (proc->user_pause == 1) {
-        LOG_UI("user_pause ignore.");
-        return;
-    }
-    /// TODO: 播放泵奶动画
-}
-
-static void draw_buffer_reset(ui_proc_pump_t *proc)
-{
-
-}
-
-static int get_ui_pump_mode_index(int pump_mode)
-{
-    /// TODO: 根据泵奶模式获取UI索引.
-    return 0;
-}
-
-static void init_themes_pump_img_res_id(ui_proc_pump_t *proc)
-{
-    /// TODO: 初始化主题动画资源.
-}
-
 static void on_breast_pump_result_cb(void *user_data, breast_pump_result_t *result)
 {
 
+}
+
+static const char *ui_state_to_string(int state)
+{
+    switch (state) {
+        case LOOP_SHOW_SWITCH_MODE:
+            return "ui:switch_mode";
+        case LOOP_SHOW_PUMPING:
+            return "ui:brushing";
+        default:
+            return "ui:unknown";
+    }
 }
 
 static void pump_ui_common_cb(hdr_post_args_t *args)
@@ -171,9 +140,62 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
     window_dispatch_unlock("pump_ui_hdr");
 }
 
+
 static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
-    LOG_UI("key event:%x-%x", keycode, keytype);
+    ui_proc_pump_t *proc = user_data;
+    breast_pump_manager_context_t *pump = proc->w_ctx.wm->priv.pump;
+    key_input_context_t *key_ctx = proc->w_ctx.wm->priv.key;
+    breast_pump_info_t pump_info;
+    EXCEPTION_CHECK_INT(pump);
+    pump_info.status = pump->get_breast_pump_status();
+    pump_info.mode = pump->get_breast_pump_mode();
+    pump_info.do_work = pump->is_on_working();
+    const char *key_name = NULL;
+    if (key_ctx && key_ctx->hook && key_ctx->hook->get_key_code_name) {
+        key_name = key_ctx->hook->get_key_code_name(keycode);
+    } else {
+        key_name = "@unknow";
+    }
+
+    LOG_UI("%s, keyevent:%d/%d, pump working: %d.", key_name, keycode, keytype, pump_info.do_work);
+
+    if (proc->goto_charge_ui_flag != 0) {
+        LOG_UI("goto charge ui, ignore key event.");
+        return 0;
+    }
+
+    window_dispatch_lock("pump_ui-keyevent");
+    switch (keycode) {
+        case KEY_CODE_POWER:
+            switch_pump_power_ui(proc, pump);
+            break;
+        case KEY_CODE_START:
+            switch_pump_status_ui(proc, pump, pump_info.status);
+            break;
+        case KEY_CODE_MODE:
+            switch_pump_common_mode_ui(proc, pump, &pump_info);
+            break;
+        case KEY_CODE_FREQUENCY:
+            switch_pump_frequency_ui(proc, pump, &pump_info);
+            break;
+        case KEY_CODE_BREASTFEEDING:
+            switch_pump_breastfeeding_mode_ui(proc, pump, &pump_info);
+            break;
+        case KEY_CODE_LEFT_CONTROL:
+            switch_pump_control_type_ui(proc, pump, 0);
+            break;
+        case KEY_CODE_RIGHT_CONTROL:
+            switch_pump_control_type_ui(proc, pump, 1);
+            break;
+
+        default:
+            LOG_UI("unknow keycode: %d, ignore.", keycode);
+            break;
+    }
+    window_dispatch_unlock("pump_ui-keyevent");
+    LOG_UI("keyevent#EXIT: %d: %d", keycode, keytype);
+
     return 0;
 }
 
@@ -249,6 +271,12 @@ static int entry_event_cb(window_lift_cycle_e new_state,
 {
     window_manager_context_t *wm = thiz->wm;
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
+    struct storage_manager_context *st = wm->priv.st;
+    /// 获取泵奶控制类型
+    if (st && st->get_store_val) {
+        st->get_store_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
+    }
+
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_UI("==>ON_RESUME #add pump keyevent handler");
         wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE, on_pump_ui_keyevent_hdr);
@@ -356,6 +384,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     window_context_t *w_ctx = &proc->w_ctx;
     w_ctx->wm = wm;
     w_ctx->new_window_id = window_id;
+    w_ctx->evt_cb_entry = entry_event_cb;
     w_ctx->evt_cb_exit = exit_event_cb;
     w_ctx->not_push_history = 1;
     // args->user_data = &proc->bridge;

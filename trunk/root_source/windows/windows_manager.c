@@ -5,6 +5,7 @@
 #include "root_common_api.h" 
 #include "windows_manager.h" 
 #include "windows_internal_api.h"
+#include "windows_manager_api.h"
 
 /*
 * DEFINES
@@ -509,8 +510,13 @@ static void play_boot_animation(void)
     
     POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 500, 100, ACTION_SET_BL,  thiz, "boot_set_bl-ON0");
     multi_func_msg_data_t __msg = {0};
+    #if 0
     __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
     LOG_WM("goto logo screen");
+    #else
+    __msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+    LOG_WM("goto pump screen");
+    #endif
     dispatch_new_window_args(wm, &__msg);
     POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 2000, 0, ACTION_BOOT_COMPLETED,  wm, "boot_completed#task");
 }
@@ -648,8 +654,9 @@ static int on_perpare_wm_init(void *self)
     wm->priv.misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     wm->priv.pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     wm->priv.key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    wm->priv.panel_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
+    wm->priv.pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    wm->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    wm->priv.panel_dev = wm->priv.pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
     DEVICE_IOCTL_ARGS_NO_RET(wm->priv.panel_dev, OP_CODE_PANEL_ADD_READY_CB, display_device_ready_callback);
     /// 初始化显示相关.
     window_flush_perpare_init(wm);
