@@ -5,6 +5,9 @@
 #include "persist_storage.h"
 #include "root_common_api.h"
 #include "ble_manager.h" // IWYU pragma: keep
+#include "ble_master_message.h" // IWYU pragma: keep
+#include "ble_factory_message.h" // IWYU pragma: keep
+#include "ble_remot_message.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -24,7 +27,6 @@ static void ble_event_resume(void *context, void *data, int data_len);
 static void ble_event_periph_disconnect(void *context, void *data, int data_len);
 static void ble_event_periph_connect_suc(void *context, void *data, int data_len);
 static void ble_event_periph_disconnect_suc(void *context, void *data, int data_len);
-static void ble_event_master_recive_data(void *context, void *data, int data_len);
 static void ble_event_algo_real_time(void *context, void *data, int data_len);
 static void ble_event_algo_remind_data(void *context, void *data, int data_len);
 static void ble_event_device_remind_data(void *context, void *data, int data_len);
@@ -32,7 +34,12 @@ static void ble_event_airplane_mode_changed(void *context, void *data, int data_
 static void ble_event_breast_pump_state_change(void *context, void *data, int data_len);
 static void ble_event_breast_pump_mode_change(void *context, void *data, int data_len);
 static void ble_event_notify_app_settings(void *context, void *data, int data_len);
+static void ble_event_master_send_data(void *context, void *data, int data_len);
+static void ble_event_master_recive_data(void *context, void *data, int data_len);
+static void ble_event_fac_send_data(void *context, void *data, int data_len);
 static void ble_event_fac_recive_data(void *context, void *data, int data_len);
+static void ble_event_remot_send_data(void *context, void *data, int data_len);
+static void ble_event_remot_recive_data(void *context, void *data, int data_len);
 static ble_msg_process_handle_t s_ble_msg_process_list[] = {
     {BLE_MSG_SET_ADV_UPDATE,                 ble_event_opt_adv_param_update},
     {BLE_MSG_SET_ADV_START,                  ble_event_opt_adv_start},
@@ -43,7 +50,6 @@ static ble_msg_process_handle_t s_ble_msg_process_list[] = {
     {BLE_MSG_PERIPH_DISCONN,                 ble_event_periph_disconnect},
     {BLE_MSG_PERIPH_CONNECT_SUC,             ble_event_periph_connect_suc},
     {BLE_MSG_PERIPH_DISCONN_SUC,             ble_event_periph_disconnect_suc},
-    {BLE_MSG_MASTER_RECIVE_DATA,             ble_event_master_recive_data},
     {BLE_MSG_SEND_PUMP_REALTIME_INFO,       ble_event_algo_real_time},
     {BLE_MSG_SEND_ALGO_REMIND_DATA,         ble_event_algo_remind_data},
     {BLE_MSG_SEND_DEVICE_REMIND_DATA,       ble_event_device_remind_data},
@@ -51,7 +57,12 @@ static ble_msg_process_handle_t s_ble_msg_process_list[] = {
     {BLE_MSG_BREAST_PUMP_STATE_CHANGE,      ble_event_breast_pump_state_change},
     {BLE_MSG_BREAST_PUMP_MODE_CHANGE,       ble_event_breast_pump_mode_change},
     {BLE_MSG_NOTIY_APP_SETTINGS,            ble_event_notify_app_settings},
+    {BLE_MSG_MASTER_SEND_DATA,              ble_event_master_send_data},
+    {BLE_MSG_MASTER_RECIVE_DATA,            ble_event_master_recive_data},
+    {BLE_MSG_FAC_SEND_DATA,                 ble_event_fac_send_data},
     {BLE_MSG_FAC_RECIVE_DATA,               ble_event_fac_recive_data},
+    {BLE_MSG_REMOT_SEND_DATA,               ble_event_remot_send_data},
+    {BLE_MSG_REMOT_RECIVE_DATA,             ble_event_remot_recive_data},
 };
 
 /*
@@ -154,7 +165,7 @@ static void ble_event_periph_disconnect(void *context, void *data, int data_len)
 static void ble_event_periph_connect_suc(void *context, void *data, int data_len)
 {
     ble_manager_context_t *pble = context;
-    uint16_t conn_id = *(uint8_t *)data;
+    uint16_t conn_id = *(uint16_t *)data;
     LOG_BLE("ble connect succ, conn_id: %d", conn_id);
     pble->priv.connect_idx = conn_id;
     pble->priv.ble_connect_state = 1;
@@ -180,11 +191,6 @@ static void ble_event_periph_disconnect_suc(void *context, void *data, int data_
     pble->on_connect_status_change(pble, pble->priv.ble_connect_state, 0);
 }
 
-static void ble_event_master_recive_data(void *context, void *data, int data_len)
-{
-    ble_manager_context_t *pble = context;
-}
-
 static void ble_event_algo_real_time(void *context, void *data, int data_len)
 {
 
@@ -207,6 +213,7 @@ static void ble_event_airplane_mode_changed(void *context, void *data, int data_
 
 static void ble_event_breast_pump_state_change(void *context, void *data, int data_len)
 {
+
 }
 
 static void ble_event_breast_pump_mode_change(void *context, void *data, int data_len)
@@ -219,9 +226,56 @@ static void ble_event_notify_app_settings(void *context, void *data, int data_le
 
 }
 
-static void ble_event_fac_recive_data(void *context, void *data, int data_len)
+static void ble_event_master_send_data(void *context, void *data, int data_len)
 {
 
+}
+
+static void ble_event_master_recive_data(void *context, void *data, int data_len)
+{
+    ble_manager_context_t *pble = context;
+    ble_service_data_t srv_data = {
+        .p_data = data,
+        .size = data_len,
+        .protocol_version = 0,
+        .data_type = BLE_SRV_DATA_TYPE_RAW,
+    };
+    ble_master_srv_recv_data(pble, &srv_data);
+}
+
+static void ble_event_fac_send_data(void *context, void *data, int data_len)
+{
+
+}
+
+static void ble_event_fac_recive_data(void *context, void *data, int data_len)
+{
+    ble_manager_context_t *pble = context;
+    ble_service_data_t srv_data = {
+        .p_data = data,
+        .size = data_len,
+        .protocol_version = 0,
+        .data_type = BLE_SRV_DATA_TYPE_RAW,
+    };
+    ble_factory_srv_recv_data(pble, &srv_data);
+    
+}
+
+static void ble_event_remot_send_data(void *context, void *data, int data_len)
+{
+
+}
+
+static void ble_event_remot_recive_data(void *context, void *data, int data_len)
+{
+    ble_manager_context_t *pble = context;
+    ble_service_data_t srv_data = {
+        .p_data = data,
+        .size = data_len,
+        .protocol_version = 0,
+        .data_type = BLE_SRV_DATA_TYPE_RAW,
+    };
+    ble_remot_srv_recv_data(pble, &srv_data);
 }
 
 void ble_message_process_handler(ble_manager_context_t *ctx, ble_event_type_t *msg)
@@ -239,6 +293,7 @@ void ble_message_process_handler(ble_manager_context_t *ctx, ble_event_type_t *m
         if (tmp == msg->msg_id) {
             if (list[m].ble_msg_process) {
                 list[m].ble_msg_process(ctx, msg->ble_data, msg->data_len);
+                return;
             }
         } else if (tmp > msg->msg_id) {
             h = m - 1;

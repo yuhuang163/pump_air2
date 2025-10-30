@@ -10,6 +10,7 @@
 * DEFINES
 *****************************************************************************************
 */
+#define BLE_MSG_MALLOC_MIN_SIZE              (256) /// 消息分配最小大小
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -239,7 +240,7 @@ static void on_connect_status_change(ble_manager_context_t *ctx, int new_status,
     }
 
     LOG_BLE("new ble_connect_state: %d, show popup window.", new_status);
-    SEND_BROADCAST_ARGS1(ID_BROADCAST_BT_CONNECT_STATE_CHANGE, new_status);
+    SEND_BROADCAST_ARGS1(ID_BROADCAST_BLE_CONNECT_STATE_CHANGE, new_status);
 
     /// 如果定义了钩子函数则路由到xx处理.
     if (ctx->hook && ctx->hook->on_connect_change_route) {
@@ -254,15 +255,23 @@ static void on_connect_status_change(ble_manager_context_t *ctx, int new_status,
             (1 == new_status) ? ID_POPUP_WINDOW_BT_CONNECT : ID_POPUP_WINDOW_BT_DISCONNECT;
         msg.union_body.extra.popup_exit_time = 2000;
         msg.union_body.extra.is_background = 0x1;
-        wm->dispatch_new_window_args(wm, &msg);
+        // wm->dispatch_new_window_args(wm, &msg);
     }
 }
 
 static int dispatch_ble_event_wrapper(ble_manager_context_t *ctx, uint8_t _msg_id, uint8_t *_data, int _data_len)
 {
     multi_func_msg_data_t msg = { .union_body.ble_evt_type.msg_id = _msg_id, };
+    if (_data_len) {
+        msg.union_body.ble_evt_type.ble_data = u_malloz(_data_len > BLE_MSG_MALLOC_MIN_SIZE ? _data_len : BLE_MSG_MALLOC_MIN_SIZE);
+        EXCEPTION_CHECK_INT(msg.union_body.ble_evt_type.ble_data);
+        if (msg.union_body.ble_evt_type.ble_data) {
+            msg.union_body.ble_evt_type.data_len = _data_len;
+            memcpy(msg.union_body.ble_evt_type.ble_data, _data, _data_len);
+        }
+        return MSG_QUEUE_SEND(ctx->priv.ble_work_thd.msg_id, &msg, 0);
+    }
     LOGE("dispatch ble event fail. msg_id: %d", _msg_id);
-
     return -1;
 }
 
@@ -272,13 +281,55 @@ static void ble_manager_dispatch_thread(void *args)
     ble_manager_context_t *ctx = ble_obj;
     multi_func_msg_data_t msg = {0};
     CREATE_MSG_QUEUE(&thd->msg_id, BLE_WORK_DISPATCH_MESQ_NUM);
-    do {
+    while (1) {
         MSG_QUEUE_RECV(thd->msg_id, &msg, OS_WAIT_FOREVER);
         ble_message_process_handler(ctx, &msg.union_body.ble_evt_type);
         if (msg.union_body.ble_evt_type.ble_data) {
-            // ble_free(&ble_obj->mem_pool, msg.union_body.ble_evt_type.ble_data);s
+            u_free(msg.union_body.ble_evt_type.ble_data);
         }
-    } while (1);
+    }
+}
+
+static void ble_event_callback(ble_event_e event, void *param)
+{
+    LOG_BLE("ble event: %d", event);
+    switch (event) {
+        case BLE_EVENT_ADVERTISE_STARTED:
+            ble_obj->priv.ble_adv_state = 1;
+            break;
+        case BLE_EVENT_ADVERTISE_STOPPED:
+            ble_obj->priv.ble_adv_state = 0;
+            break;
+        case BLE_EVENT_CONN_OPENED:
+            ble_obj->dispatch_ble_event_wrapper(ble_obj, BLE_MSG_PERIPH_CONNECT_SUC, param, 1);
+            break;
+        case BLE_EVENT_CONN_CLOSED:
+            ble_obj->dispatch_ble_event_wrapper(ble_obj, BLE_MSG_PERIPH_DISCONN, param, 1);
+            break;
+        case BLE_EVENT_CONN_FAILED:
+            ble_obj->dispatch_ble_event_wrapper(ble_obj, BLE_MSG_PERIPH_DISCONN, param, 1);
+            break;
+        default:
+            break;
+    }
+}
+
+static void ble_data_callback(ble_service_id_e service_id, uint8_t *p_data, uint16_t size)
+{
+    LOG_BLE("ble data: %d", service_id);
+    switch (service_id) {
+        case BLE_SRV_ID_MASTER:
+            ble_obj->dispatch_ble_event_wrapper(ble_obj, BLE_MSG_MASTER_RECIVE_DATA, p_data, size);
+            break;
+        case BLE_SRV_ID_FACTORY:
+            ble_obj->dispatch_ble_event_wrapper(ble_obj, BLE_MSG_FAC_RECIVE_DATA, p_data, size);
+            break;
+        case BLE_SRV_ID_REMOT:
+            ble_obj->dispatch_ble_event_wrapper(ble_obj, BLE_MSG_REMOT_RECIVE_DATA, p_data, size);
+            break;
+        default:
+            break;
+    }
 }
 
 static int on_post_init(void *ptr)
@@ -286,6 +337,16 @@ static int on_post_init(void *ptr)
     ble_manager_context_t *ctx = ptr;
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     ctx->priv.ble_dev = pbus->find_device(ID_DEVICE_BLE);
+    /// 注册BLE设备事件回调
+    if (ctx->priv.ble_dev && ctx->priv.ble_dev->ioctl) {
+        DEVICE_IOCTL_ARGS(ctx->priv.ble_dev, OP_CODE_BLE_ADD_EVENT_CALLBACK, ble_event_callback);
+    }
+
+    /// 注册BLE数据回调
+    if (ctx->priv.ble_dev && ctx->priv.ble_dev->ioctl) {
+        DEVICE_IOCTL_ARGS(ctx->priv.ble_dev, OP_CODE_BLE_ADD_DATA_CALLBACK, ble_data_callback);
+    }
+
     ctx->priv.bcreceiver = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.bcreceiver->context = ctx;
     ctx->priv.bcreceiver->name = "ble_manager";

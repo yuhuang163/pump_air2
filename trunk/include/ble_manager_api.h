@@ -40,20 +40,30 @@ typedef enum {
 } ble_bind_process_state_e;
 
 typedef enum {
+    BLE_SRV_DATA_TYPE_RAW = 0,    /// 数据透传 
+    BLE_SRV_DATA_TYPE_ENCRYPT,    /// 数据加密 
+    BLE_SRV_DATA_TYPE_NO_ENCRYPT  /// 数据不加密 
+} ble_srv_data_type_e;
+
+typedef struct {
+    uint8_t *p_data;
+    uint16_t size;
+    uint16_t protocol_version; /// 协议版本
+    ble_srv_data_type_e data_type; /// 数据类型
+} ble_service_data_t;
+
+typedef enum {
     BLE_MSG_ADV_START_OK = 0, /// 广播启动成功
     BLE_MSG_ADV_STOP_OK, /// 广播停止成功
     BLE_MSG_SET_ADV_UPDATE, /// 设置广播更新
     BLE_MSG_SET_ADV_START, /// 设置广播启动
     BLE_MSG_SET_ADV_STOP, /// 设置广播停止
     BLE_MSG_USER_BIND_SUCC, /// 用户绑定成功
-
     BLE_MSG_SUSPEND, /// 休眠
     BLE_MSG_RESUME, /// 唤醒
     BLE_MSG_PERIPH_DISCONN, /// 设备断开连接
     BLE_MSG_PERIPH_CONNECT_SUC, /// 设备连接成功
     BLE_MSG_PERIPH_DISCONN_SUC, /// 设备断开连接成功
-
-    BLE_MSG_MASTER_RECIVE_DATA, /// 主设备接收数据
     BLE_MSG_SEND_PUMP_REALTIME_INFO, /// 发送泵奶实时信息
     BLE_MSG_SEND_ALGO_REMIND_DATA, /// 发送算法提醒数据
     BLE_MSG_SEND_DEVICE_REMIND_DATA, /// 发送设备提醒数据
@@ -61,7 +71,12 @@ typedef enum {
     BLE_MSG_BREAST_PUMP_STATE_CHANGE, /// 泵奶状态改变
     BLE_MSG_BREAST_PUMP_MODE_CHANGE, /// 泵奶模式改变
     BLE_MSG_NOTIY_APP_SETTINGS,  /// 提醒手柄收到了APP下发任意设置
+    BLE_MSG_MASTER_SEND_DATA, /// 发送主设备数据
+    BLE_MSG_MASTER_RECIVE_DATA, /// 主设备接收数据
+    BLE_MSG_FAC_SEND_DATA, /// 发送工厂设备数据
     BLE_MSG_FAC_RECIVE_DATA, /// 工厂设备接收数据
+    BLE_MSG_REMOT_SEND_DATA, /// 发送远程设备数据
+    BLE_MSG_REMOT_RECIVE_DATA, /// 远程设备接收数据
 } ble_msg_id_e;
 
 typedef void (*ble_msg_process_func)(void *context, void *data, int data_len);

@@ -22,7 +22,7 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_LED                            (1)
 #define IS_SUPPORT_DEVICE_AUDIO                          (0)
 #define IS_SUPPORT_DEVICE_LCD                            (1)
-#define IS_SUPPORT_DEVICE_BLE                            (0)
+#define IS_SUPPORT_DEVICE_BLE                            (1)
 #define IS_SUPPORT_DEVICE_FS                             (0)
 #define IS_SUPPORT_DEVICE_WIFI                           (0)
 
@@ -36,7 +36,7 @@ extern "C" {
 #define IS_SUPPORT_MODULE_UI                             (1)
 #define IS_SUPPORT_MODULE_KEY_INPUT                      (1)
 #define IS_SUPPORT_MODULE_SENSOR                         (1)
-#define IS_SUPPORT_MODULE_BLE                            (0)
+#define IS_SUPPORT_MODULE_BLE                            (1)
 #define IS_SUPPORT_MODULE_OTA                            (0)
 #define IS_SUPPORT_MODULE_MISC                           (1)
 #define IS_SUPPORT_MODULE_MOTOR                          (1)

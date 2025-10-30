@@ -133,13 +133,13 @@ int ble_custom_event_callback(uintptr_t connhdl, gap_adv_event_t event, gap_adv_
             s_ble_event_callback(BLE_EVENT_ADVERTISE_STOPPED, NULL);
             break;
         case GAP_ADV_EVENT_CONN_OPENED:
-            s_ble_event_callback(BLE_EVENT_CONN_OPENED, NULL);
+            s_ble_event_callback(BLE_EVENT_CONN_OPENED, &connhdl);
             break;
         case GAP_ADV_EVENT_CONN_CLOSED:
-            s_ble_event_callback(BLE_EVENT_CONN_CLOSED, NULL);
+            s_ble_event_callback(BLE_EVENT_CONN_CLOSED, &connhdl);
             break;
         case GAP_ADV_EVENT_CONN_FAILED:
-            s_ble_event_callback(BLE_EVENT_CONN_FAILED, NULL);
+            s_ble_event_callback(BLE_EVENT_CONN_FAILED, &connhdl);
             break;
         case GAP_ADV_EVENT_CONN_MTU_EXCHANGED:
             s_ble_event_callback(BLE_EVENT_CONN_MTU_EXCHANGED, NULL);

@@ -41,7 +41,7 @@ typedef enum {
     ID_BROADCAST_CHARGE_PLUG_IN_STATE = (1 << 1),           /// 充电拔插
     ID_BROADCAST_PM_STATE_CHANGE = (1 << 2),                /// 休眠唤醒.
     ID_BROADCAST_SYS_BOOT_COMPLETED = (1 << 3),             /// 系统启动完成.
-    ID_BROADCAST_BT_CONNECT_STATE_CHANGE = (1 << 4),        /// 蓝牙连接状态改变.
+    ID_BROADCAST_BLE_CONNECT_STATE_CHANGE = (1 << 4),       /// 蓝牙连接状态改变.
     ID_BROADCAST_OTA_UPGREADING_CHANGE = (1 << 5),          /// ota升级进度广播
     ID_BROADCAST_ENTER_NEW_SCREEN = (1 << 6),               /// 进入新窗口.
     ID_BROADCAST_PM_WAKEUP_BY_USER = (1 << 7),              /// PM被外部唤醒
