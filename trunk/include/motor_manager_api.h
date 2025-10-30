@@ -22,6 +22,7 @@ typedef enum {
     MOTOR_POLICY_START,             /// 初始化启动
     MOTOR_POLICY_CONTINUE,          /// 继续运行(同一个模式下)
     MOTOR_POLICY_CHANGE_MODE,       /// 切换模式运行
+    MOTOR_USER_DEBUG_POLICY_START,  /// 用户调试策略启动
     MOTOR_POLICY_ACTION_MAX
 } motor_policy_action_e;
 
@@ -85,10 +86,12 @@ typedef struct motor_manager_context {
         thread_context_t motor_play_thd;  /// 播放线程.
         list_head_t policy_list; /// 马达各种策略链表头指针.
         motor_policy_runtime_t runtime; /// 马达各种策略状态.
+        motor_policy_manager_t user_debug_policy; /// 用户调试策略.
         list_head_t policy_handler_list; /// 马达各种策略处理.
         char *interrupt_play_reason;  /// 中断播放标记原因.     
         uint8_t motor_state;          /// 马达状态
         uint8_t is_user_stoped;       /// 用户停止
+        uint8_t user_debug_status;    /// 用户调试状态
     } priv;
 
 /// public
@@ -99,8 +102,6 @@ typedef struct motor_manager_context {
     int (*is_can_play_now)(void);  
     /// 马达任务运行状态.
     bool (*is_on_motor_task_running)(struct motor_manager_context *ctx);
-    /// 带参启动马达
-    void (*start_motor_with_user_para)(uint8_t id, int args, void *user_data);
     /// 外部钩子函数.
     struct __motor_manager_hook {
         int (*on_post_init_route)(struct motor_manager_context *ctx);
@@ -112,6 +113,8 @@ typedef struct motor_manager_context {
         void (*motor_policy_prepare)(struct motor_manager_context *thiz, uint8_t action);
         /// 策略处理回调
         int (*mode_policy_handler)(struct motor_manager_context *thiz, motor_task_para_t *play_para);
+        /// 马达带参调试处理
+        void (*motor_debug_with_user_para)(struct motor_manager_context *ctx, uint8_t id, void *user_data);
     } *hook;
 
 } motor_manager_context_t;

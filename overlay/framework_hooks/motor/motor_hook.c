@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
+#include "handler_post.h"
 #include "breast_pump_mode.h"
 #include "breast_pump_policy.h"
 
@@ -10,6 +11,8 @@
 * DEFINES
 *****************************************************************************************
 */
+#define MOTOR_DEBUG_TASK_NAME "motor_debug_task"
+#define MOTOR_DEBUG_SYNC_TIME_THRESHOLD   50   /// 同步时间阈值，单位：毫秒
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -114,6 +117,93 @@ static int generate_motor_para(struct motor_manager_context *ctx, int mode, void
     return ret;
 }
 
+static void motor_debug_finish_cb(hdr_post_args_t *args)
+{
+    motor_manager_context_t *ctx = (motor_manager_context_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(ctx);
+    ctx->stop_motor();
+    ctx->priv.user_debug_status = 0;
+}
+
+static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id, void *user_data)
+{
+    motor_para_t motor = {0};
+    uint32_t args[2] = {0};
+    if (id >= MOTOR_USER_DEBUG_ID_MAX) {
+        LOG_MOTOR("motor debug id: %d, out of range", id);
+        return;
+    }
+    EXCEPTION_CHECK_VOID(ctx);
+    if (id == MOTOR_USER_DEBUG_PUMP_OFF || id == MOTOR_USER_DEBUG_VALVE_OFF) {
+        ctx->stop_motor();
+        ctx->priv.user_debug_status = 0;
+        REMOVE_TASK_HANDLER_DIRECTLY(MOTOR_DEBUG_TASK_NAME);
+        LOG_MOTOR("motor debug stop, id: %d", id);
+        return;
+    }
+    EXCEPTION_CHECK_VOID(user_data);
+    if (ctx->priv.user_debug_status) {
+        ctx->stop_motor();
+        REMOVE_TASK_HANDLER_DIRECTLY(MOTOR_DEBUG_TASK_NAME);
+    }
+    ctx->priv.user_debug_status = 1;
+    if (id == MOTOR_USER_DEBUG_POLICY) {
+        motor_debug_policy_para_t *para = (motor_debug_policy_para_t *)user_data;
+        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
+        policy->timed_policy_count = 1;
+        policy->head.duration_seconds = 1200;   /// 20分钟
+        policy->head.sub_policy_count = 1;
+        policy->head.policy.core.type = MOTOR_PARAM_PASS_THROUGH;
+        policy->head.policy.core.para.pump_level = para->pump_level;
+        policy->head.policy.core.para.pumping_time = para->pumping_time;
+        policy->head.policy.core.para.valve_on_time = para->valve_on_time;
+        policy->head.policy.core.config.sleep_time = para->sleep_time;
+        policy->head.policy.core.config.hold_time = para->hold_time;
+        policy->head.policy.core.config.loop_num = 1;
+        LOG_MOTOR("user debug policy: pump_level: %d, pumping_time: %d, valve_on_time: %d, sleep_time: %d, hold_time: %d",
+            para->pump_level, para->pumping_time, para->valve_on_time, para->sleep_time, para->hold_time);
+        ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
+    } else if (id == MOTOR_USER_DEBUG_PUMP_ON) {
+        motor_debug_para_t *para = (motor_debug_para_t *)user_data;
+        motor.un.pwm.duty = para->duty;
+        motor.un.pwm.freq = BREAST_PUMP_VALVE_FREQ;
+        args[1] = (uint32_t)&motor;
+        for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+            args[0] = MOTOR_PWM_PUMP_1 + i;
+            DEVICE_IOCTL_ARGS(ctx->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, args);
+        }
+        if (para->hold_time < MOTOR_DEBUG_SYNC_TIME_THRESHOLD) {
+            msleep(para->hold_time);   
+            args[0] = MOTOR_PWM_ALL_ID;
+            DEVICE_IOCTL_ARGS(ctx->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
+            ctx->priv.user_debug_status = 0;
+        } else {
+            POST_TASK_HANDLER_DELAYED_ARG1(motor_debug_finish_cb, para->hold_time, ctx,
+                    MOTOR_DEBUG_TASK_NAME);
+        }
+        LOG_MOTOR("motor debug pump on, duty: %d, hold_time: %d", para->duty, para->hold_time);
+    } else if (id == MOTOR_USER_DEBUG_VALVE_ON) {
+        motor_debug_para_t *para = (motor_debug_para_t *)user_data;
+        motor.un.pwm.duty = para->duty;
+        motor.un.pwm.freq = BREAST_PUMP_VALVE_FREQ;
+        args[1] = (uint32_t)&motor;
+        for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+            args[0] = MOTOR_PWM_VALVE_1 + i;
+            DEVICE_IOCTL_ARGS(ctx->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, args);
+        }
+        if (para->hold_time < MOTOR_DEBUG_SYNC_TIME_THRESHOLD) {
+            msleep(para->hold_time);   
+            args[0] = MOTOR_PWM_ALL_ID;
+            DEVICE_IOCTL_ARGS(ctx->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
+            ctx->priv.user_debug_status = 0;
+        } else {
+            POST_TASK_HANDLER_DELAYED_ARG1(motor_debug_finish_cb, para->hold_time, ctx,
+                    MOTOR_DEBUG_TASK_NAME);
+        }
+        LOG_MOTOR("motor debug valve on, duty: %d, hold_time: %d", para->duty, para->hold_time);
+    }
+}
+
 static void on_sensor_data_motor_callback(void *user_data, uint8_t *data, int data_len)
 {
 
@@ -121,7 +211,7 @@ static void on_sensor_data_motor_callback(void *user_data, uint8_t *data, int da
 
 static int on_post_motor_init_route(struct motor_manager_context *ctx)
 {
-    /// 将模式策略参数挂载到列表中
+    /// 将模式策略参数挂载到列表中s
     breast_pump_policy_init(ctx);
     /// 注册sensor数据.
     sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
@@ -144,4 +234,5 @@ void register_motor_hook(motor_manager_context_t *ctx)
     ctx->hook->generate_motor_para = generate_motor_para;
     ctx->hook->motor_policy_prepare = breast_pump_policy_prepare;
     ctx->hook->mode_policy_handler = breast_pump_mode_policy_handler;
+    ctx->hook->motor_debug_with_user_para = motor_debug_with_user_para;
 }
