@@ -26,6 +26,7 @@ typedef enum {
     OP_CODE_BLE_ADV_OPEN = 1,
     OP_CODE_BLE_ADV_CLOSE = 2,
     OP_CODE_BLE_ADV_PARAM_UPDATE = 3,
+    OP_CODE_BLE_ADV_SPEED_SET = 4,
     // gatt
     OP_CODE_BLE_DISCONNECT = 4,
     OP_CODE_BLE_MAC_ADDR_SET = 5,

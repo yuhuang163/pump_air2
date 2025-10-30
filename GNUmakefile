@@ -101,6 +101,9 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/drivers/motor/chip/motor_pwm \
 	-I$(PROJECT_ROOT)/drivers/uart \
 	-I$(PROJECT_ROOT)/drivers/wifi \
+	-I$(PROJECT_ROOT)/overlay/ble/factory_service \
+	-I$(PROJECT_ROOT)/overlay/ble/master_service \
+	-I$(PROJECT_ROOT)/overlay/ble/remot_service \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/mode \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/table \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks \
@@ -289,6 +292,9 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/motor/chip/motor_pwm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/uart/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/wifi/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/ble/factory_service/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/ble/master_service/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/ble/remot_service/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/table/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
