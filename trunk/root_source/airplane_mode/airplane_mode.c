@@ -56,7 +56,7 @@ static int popup_exit_cb(void *user_data, int args1, int args2)
         thiz->set_airplane_mode(thiz->priv.enter_state);
         /// 发送状态切换同步广播，通知感兴趣的组件.
         SEND_BROADCAST_SYNC_ARGS1(ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE, SETTINGS_AIRPLANE_MODE_ENTER);
-        if (ble_m->is_bt_connected()) {
+        if (ble_m->ble_is_connected()) {
             LOG_AIR("bt is connected");
             msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
             thiz->priv.wm->dispatch_new_window_args(thiz->priv.wm, &msg);
@@ -369,7 +369,6 @@ static int on_perpare_airplane_init(void *self)
     
     return 0;
 }
-
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
