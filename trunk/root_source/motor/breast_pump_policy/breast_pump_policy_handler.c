@@ -118,9 +118,15 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
 {
     motor_policy_runtime_t *body = &thiz->priv.runtime;
     body->breast_pump_mode = thiz->priv.pump_ctx->get_breast_pump_mode();
-    const motor_policy_manager_t *policy_obj = breast_pump_mode_policy_get(thiz,
-        body->breast_pump_mode);
-        
+
+    const motor_policy_manager_t *policy_obj = NULL;
+    if (action == MOTOR_USER_DEBUG_POLICY_START) {
+        policy_obj = &thiz->priv.user_debug_policy;
+        LOG_MOTOR("user debug policy");
+    } else {
+        policy_obj = breast_pump_mode_policy_get(thiz, body->breast_pump_mode);
+        LOG_MOTOR("%s mode policy", thiz->priv.pump_ctx->get_breast_pump_mode_name(body->breast_pump_mode));
+    }
     EXCEPTION_CHECK_VOID(policy_obj);
     body->timed_policy_start_time = get_timestamp();
     body->manager_start_time = body->timed_policy_start_time;

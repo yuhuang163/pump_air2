@@ -13,6 +13,18 @@ extern "C" {
 #include "root_list_api.h" // IWYU pragma: keep
 
 /**
+ * @brief 马达调试ID
+*/
+typedef enum {
+    MOTOR_USER_DEBUG_PUMP_ON = 0,
+    MOTOR_USER_DEBUG_PUMP_OFF,
+    MOTOR_USER_DEBUG_VALVE_ON,
+    MOTOR_USER_DEBUG_VALVE_OFF,
+    MOTOR_USER_DEBUG_POLICY,
+    MOTOR_USER_DEBUG_ID_MAX,
+} motor_user_debug_id_e;
+
+/**
  * @brief 马达动作类型
 */
 typedef enum {
@@ -119,10 +131,22 @@ typedef struct {
 } suction_strategy_mapping_t;
 
 /**
+ * @brief 马达参数类型
+*/
+typedef enum {
+    MOTOR_PARAM_TABLE = 0,      ///< 查表模式
+    MOTOR_PARAM_PASS_THROUGH,   ///< 数据透传模式
+} motor_param_type_e;
+
+/**
  * @brief 马达策略核心参数
 */
 typedef struct {
-    suction_strategy_mapping_t mapping;
+    uint8_t type;                  /// 参数类型 motor_param_type_e
+    union {
+        suction_strategy_mapping_t mapping;
+        suction_parameters_t para;
+    };
     suction_policy_config_t config;
 } motor_policy_core_t;
 
@@ -146,6 +170,25 @@ typedef struct {
     suction_policy_config_t config;
     motor_policy_state_t state;
 } motor_policy_info_t;
+
+/**
+ * @brief 马达调试策略参数
+*/
+typedef struct {
+    uint8_t  pump_level;    /// 泵力度
+    uint16_t pumping_time;  /// 抽气时间
+    uint16_t valve_on_time; /// 电磁阀动作时间
+    uint16_t sleep_time;    /// 循环间隔
+    uint16_t hold_time;     /// 吸力保持时间，单位ms
+} motor_debug_policy_para_t;
+
+/**
+ * @brief 马达调试参数
+*/
+typedef struct {
+    uint8_t  duty;    /// 占空比
+    uint16_t hold_time;    /// 保持时间
+} motor_debug_para_t;
 
 /**
  * @brief 马达策略类型

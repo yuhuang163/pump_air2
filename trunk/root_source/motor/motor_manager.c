@@ -45,7 +45,7 @@ static void motor_play_work_thread(void *args)
         set_thread_running(thd, false);
         LOG_MOTOR("idle");
         MSG_QUEUE_RECV(thd->msg_id, &task_para, OS_WAIT_FOREVER);
-        LOG_MOTOR("running timestamp: %ld, id: %d", task_para.timestamp, task_para.play_mask_id);
+        LOG_MOTOR("running timestamp: %ld, id: %d, action: %d", task_para.timestamp, task_para.play_mask_id, task_para.action_id);
         set_thread_running(thd, true);
         update_play_interrupt_reason(NULL);
         if (pm->acquire_wakelock(MOTOR_PLAY_THD_WAKELOCK, (MOTOR_PLAY_WAKELOCK_TIMEOUT)) == 0) {
@@ -68,14 +68,6 @@ static void motor_play_work_thread(void *args)
             LOGE("release wakelock fail");
         }
     } 
-}
-
-static void start_motor_with_user_para(uint8_t id, int args, void *user_data)
-{
-    // uint32_t *tmp = (uint32_t *)user_data;
-    // uint32_t args[2] = {0};
-    // EXCEPTION_CHECK_VOID(tmp);
-    // DEVICE_IOCTL_ARGS(motor_obj->priv.motor_dev, OP_CODE_MOTOR_SET_PARAMETER, args);
 }
 
 static bool is_on_motor_task_running(motor_manager_context_t *ctx)
@@ -112,9 +104,9 @@ static int internal_start_motor(uint8_t action)
 static int internal_stop_motor(void)
 {
     int ret = -1;
-
+    uint32_t args[1] = {MOTOR_PWM_ALL_ID};
     if (motor_obj->priv.motor_dev && motor_obj->priv.motor_dev->ioctl) {
-        ret = DEVICE_IOCTL(motor_obj->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY);
+        ret = DEVICE_IOCTL_ARGS(motor_obj->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
     }
     LOG_MOTOR("ret: %d", ret);
 
@@ -197,12 +189,16 @@ static int on_post_motor_init(void *ptr)
 static int start_motor(motor_policy_action_e action)
 {
     motor_obj->priv.is_user_stoped = 0;
-    return internal_start_motor(MOTOR_POLICY_START);   
+    if (action != MOTOR_USER_DEBUG_POLICY_START) {
+        motor_obj->priv.user_debug_status = 0;
+    }
+    return internal_start_motor(action);   
 }
 
 static int stop_motor(void)
 {
     motor_obj->priv.is_user_stoped = 1;
+    motor_obj->priv.user_debug_status = 0;
     return internal_stop_motor();
 }
 
@@ -218,7 +214,7 @@ int motor_is_can_play_now(void)
         return 0;
     }
 
-    if (motor_obj->priv.pump_ctx->is_on_working() == 0) {
+    if (motor_obj->priv.pump_ctx->is_on_working() == 0 && motor_obj->priv.user_debug_status == 0) {
         LOG_MOTOR("exit reason: not on pumping");
         update_play_interrupt_reason("pumping_state:err");
         return 0;
@@ -238,7 +234,6 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
     ptr->start_motor = start_motor;
     ptr->stop_motor = stop_motor;
     ptr->is_on_motor_task_running = is_on_motor_task_running;
-    ptr->start_motor_with_user_para = start_motor_with_user_para;
     ptr->is_can_play_now = motor_is_can_play_now;
     motor_obj = ptr;
     

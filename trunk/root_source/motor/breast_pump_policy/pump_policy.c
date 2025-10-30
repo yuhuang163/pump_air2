@@ -138,27 +138,30 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
     /// 默认策略
     memset(&info->state, 0, sizeof(motor_policy_state_t));
     memcpy(&info->config, &policy->core.config, sizeof(suction_policy_config_t));
-    memcpy(&map_para, &policy->core.mapping, sizeof(suction_strategy_mapping_t));
-    /// 空闲模式，吸力设定为0
-    if (map_para.mode_type == SUCTION_MODE_IDLE) {
-        memset(&info->parameters, 0, sizeof(suction_parameters_t));
-        LOG_MOTOR("-->goto idle policy");
-        return;
-    }
-    /// 用户设定力度与频率(速度)策略
-    pump_user_policy_update(thiz, &map_para, pump_id); 
-    /// 爬升策略
-    pump_climb_policy_update(thiz, &map_para);
-    /// 通过map参数获取吸力参数
-    if (map_para.mode_type == SUCTION_MODE_SHORT) {
-        n_pressure = &short_suction_table[map_para.level][map_para.speed];
+    if (policy->core.type == MOTOR_PARAM_PASS_THROUGH) {
+        memcpy(&info->parameters, &policy->core.para, sizeof(suction_parameters_t));
     } else {
-        n_pressure = &long_suction_table[map_para.level][map_para.speed];
+        memcpy(&map_para, &policy->core.mapping, sizeof(suction_strategy_mapping_t));
+        /// 空闲模式，吸力设定为0
+        if (map_para.mode_type == SUCTION_MODE_IDLE) {
+            memset(&info->parameters, 0, sizeof(suction_parameters_t));
+            LOG_MOTOR("-->goto idle policy");
+            return;
+        }
+        /// 用户设定力度与频率(速度)策略
+        pump_user_policy_update(thiz, &map_para, pump_id); 
+        /// 爬升策略
+        pump_climb_policy_update(thiz, &map_para);
+        /// 通过map参数获取吸力参数
+        if (map_para.mode_type == SUCTION_MODE_SHORT) {
+            n_pressure = &short_suction_table[map_para.level][map_para.speed];
+        } else {
+            n_pressure = &long_suction_table[map_para.level][map_para.speed];
+        }
+        info->parameters.pump_level = n_pressure->pump_level;
+        info->parameters.pumping_time = n_pressure->pumping_time;
+        info->parameters.valve_on_time = n_pressure->valve_on_time;
+        /// 通过算法线性补偿
+        pump_compensation_policy_update(thiz, &info->parameters); 
     }
-    info->parameters.pump_level = n_pressure->pump_level;
-    info->parameters.pumping_time = n_pressure->pumping_time;
-    info->parameters.valve_on_time = n_pressure->valve_on_time;
-    /// 通过算法线性补偿
-    pump_compensation_policy_update(thiz, &info->parameters); 
-    
 }
