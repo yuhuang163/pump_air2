@@ -69,8 +69,7 @@ typedef void (*ble_event_cb_func)(ble_event_e event, void *param);
 /**
  * @brief 描述BLE数据回调
 */
-typedef void (*ble_data_cb_func)(ble_service_id_e service_id, void *data, uint32_t len);
-
+typedef void (*ble_data_cb_func)(ble_service_id_e service_id, uint8_t *p_data, uint16_t size);
 
 #ifdef __cplusplus
 }

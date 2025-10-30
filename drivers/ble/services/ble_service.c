@@ -51,6 +51,9 @@ void ble_service_data_recv(uint8_t srv_id, uint8_t *p_data, uint16_t data_len)
 {
     if (s_ble_data_callback) {
         s_ble_data_callback(srv_id, p_data, data_len);
+
+    } else{
+        LOGE("err ble data callback is NULL for srv_id %d", srv_id);
     }
 }
 

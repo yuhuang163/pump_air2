@@ -1,5 +1,5 @@
-#ifndef __BLE_REMOT_MESSAGE_H__
-#define __BLE_REMOT_MESSAGE_H__
+#ifndef __BLE_MASTER_MESSAGE_H__
+#define __BLE_MASTER_MESSAGE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,6 +10,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
+#include "ble_manager_api.h" // IWYU pragma: keep
 
 typedef enum {
     BLE_SIID_BIND_CONFIG    = 1,
@@ -30,8 +31,8 @@ typedef struct {
     ble_msg_protocol_handle handle_func;
 } ble_protocol_list_t;
 
-int ble_master_srv_recv_data(void *context, uint8_t *p_data, uint16_t size);
-int ble_master_srv_send_data(void *context, uint8_t *p_data, uint16_t size);
+int ble_master_srv_recv_data(void *context, ble_service_data_t *srv_data);
+int ble_master_srv_send_data(void *context, ble_service_data_t *srv_data);
 
 #ifdef __cplusplus
 }
