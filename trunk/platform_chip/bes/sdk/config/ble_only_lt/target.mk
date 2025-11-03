@@ -38,7 +38,7 @@ export FAULT_DUMP := 0
 
 export NO_OVERLAY := 1
 
-export TRACE_BAUD_RATE := 8*115200
+export TRACE_BAUD_RATE := 2000000
 export TRACE_BUF_SIZE ?= 4*1024
 
 init-y      :=
