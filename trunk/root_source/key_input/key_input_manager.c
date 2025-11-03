@@ -299,7 +299,14 @@ static int dispatch_key_event_wrapper(void *context, int keycode, int keytype)
         .union_body.key_event_data.keycode = keycode,
         .union_body.key_event_data.keytype = keytype,
     };
-    LOG_KEY("event: %d/%d\n", keycode, keytype);
+
+    if (ctx->hook && ctx->hook->get_key_code_name) {
+        const char *name = ctx->hook->get_key_code_name(keycode);
+        LOG_KEY("event: %s/%s\n", name, to_event_name(keytype));
+    } else {
+        LOG_KEY("event: %d/%s\n", keycode, to_event_name(keytype));
+    }
+    
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     if (wm && wm->post_msg_to_window) {
         wm->post_msg_to_window(__func__, (&__msg));
