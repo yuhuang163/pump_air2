@@ -180,6 +180,7 @@ static int on_post_motor_init(void *ptr)
     }
 
     MUTEX_INIT(&thiz->priv.motor_play_thd.lock_id, m_motor_play_lock);
+    motor_policy_init(thiz);
     RUN_NEW_THREAD(&thiz->priv.motor_play_thd, "motor_play_thd", motor_play_work_thread, 
                    RT_PRIO_MOTOR_DISPATCH_THREAD, MOTOR_PLAY_THREAD_STACKSIZE);
 

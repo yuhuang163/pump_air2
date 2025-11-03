@@ -41,7 +41,7 @@ const motor_policy_manager_t *mix_mode_policy_get(void *user_data)
 int mix_mode_parameter_init(void)
 {
     const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_MIX_MODE);
-    s_mix_obj = breast_pump_mode_parameter_init(cfg, PP_MODE_LEN, "mix");
+    s_mix_obj = breast_pump_mode_parameter_init(cfg, MIX_MODE_LEN, "mix");
     // LOG_MOTOR("obj:%p", s_mix_obj);
     return s_mix_obj == NULL ? -1 : 0;
 }

@@ -61,6 +61,8 @@ extern "C" {
 #define IS_SUPPORT_IMU_FIFO                              (0)
 /// 测试支持
 #define IS_SUPPORT_PRESSURE_TEST                         (1)
+/// 支持爬升策略
+#define IS_SUPPORT_CLIMB_POLICY                          (1)
 
 #ifdef __cplusplus
 }

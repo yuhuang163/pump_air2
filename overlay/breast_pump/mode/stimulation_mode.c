@@ -41,7 +41,7 @@ const motor_policy_manager_t *stimulation_mode_policy_get(void *user_data)
 int stimulation_mode_parameter_init(void)
 {
     const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_STIMULATION_MODE);
-    s_stimulation_obj = breast_pump_mode_parameter_init(cfg, PP_MODE_LEN, "stimulation");
+    s_stimulation_obj = breast_pump_mode_parameter_init(cfg, STIMULATION_MODE_LEN, "stimulation");
     // LOG_MOTOR("obj:%p", s_stimulation_obj);
     return s_stimulation_obj == NULL ? -1 : 0;
 }

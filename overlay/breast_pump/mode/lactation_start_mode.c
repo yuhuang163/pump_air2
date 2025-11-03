@@ -41,7 +41,7 @@ const motor_policy_manager_t *lactation_start_mode_policy_get(void *user_data)
 int lactation_start_mode_parameter_init(void)
 {
     const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_LACTATION_START_MODE);
-    s_lactation_start_obj = breast_pump_mode_parameter_init(cfg, PP_MODE_LEN, "lactation_start");
+    s_lactation_start_obj = breast_pump_mode_parameter_init(cfg, LACTATION_START_MODE_LEN, "lactation_start");
     // LOG_MOTOR("obj:%p", s_lactation_start_obj);
     return s_lactation_start_obj == NULL ? -1 : 0;
 }

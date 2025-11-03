@@ -11,11 +11,14 @@
 * DEFINES
 *****************************************************************************************
 */
+#define POLICY_WORK_MSG_NUM            2 /// 策略工作消息队列数量
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
+static os_message_id policy_work_msg_id = NULL; /// 策略工作消息ID.
+static os_timer_id policy_work_timer = NULL; /// 策略工作定时器.
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -51,7 +54,7 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
 
     switch (info->state.action) {
         case MOTOR_ACTION_PUMP_ON:
-            motor.un.pwm.duty = info->parameters.pump_level;
+            motor.un.pwm.duty = info->original.pump_level;
             motor.un.pwm.freq = BREAST_PUMP_PUMP_FREQ;
             args[0] =  MOTOR_PWM_PUMP_1 + id;
             args[1] = (uint32_t)&motor;
@@ -106,7 +109,16 @@ void negative_pressure_release(struct motor_manager_context *thiz)
         args[0] = i + MOTOR_PWM_VALVE_1;
         DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, args);
     }
-    msleep(100);
+
+    uint16_t wait_time = 120;
+    while (wait_time) {
+        if (!thiz->is_can_play_now()) {
+            break;
+        }
+        msleep(10);
+        wait_time = wait_time > 10 ? wait_time - 10 : 0;
+    }
+    
     LOG_MOTOR("-->step 3");
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         args[0] = i + MOTOR_PWM_VALVE_1;
@@ -128,8 +140,12 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
         LOG_MOTOR("%s mode policy", thiz->priv.pump_ctx->get_breast_pump_mode_name(body->breast_pump_mode));
     }
     EXCEPTION_CHECK_VOID(policy_obj);
+    negative_pressure_release(thiz);
     body->timed_policy_start_time = get_timestamp();
     body->manager_start_time = body->timed_policy_start_time;
+#if IS_SUPPORT_CLIMB_POLICY
+    body->is_climb_policy = 1;
+#endif
     body->manager = (motor_policy_manager_t *)policy_obj;
     body->timed_policy = &body->manager->head;
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
@@ -140,13 +156,17 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
 
 int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_task_para_t *play_para)
 {
+    uint8_t msg = 0;
     int exit_code = EXIT_REASON_PLAY_COMPLETED;
     motor_policy_runtime_t *runtime = &thiz->priv.runtime;
 
     LOG_MOTOR("===enter===");
     EXCEPTION_CHECK_INT(runtime->manager);
-    negative_pressure_release(thiz);
+    // negative_pressure_release(thiz);
+    MSG_QUEUE_RESETRESET(policy_work_msg_id);
+    START_TIMER(policy_work_timer, PUMP_POLICY_RUN_TIME_INTERVAL);
     while (1) {
+        MSG_QUEUE_RECV(policy_work_msg_id, &msg, OS_WAIT_FOREVER);
         if (!thiz->is_can_play_now()) {
             exit_code = EXIT_REASON_INTERRUPT;
             break;
@@ -154,18 +174,31 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
         
         pump_time_policy_update(thiz, runtime);  ///  时间策略
         for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {   
-            if (runtime->policy[i].core.mapping.mode_type == SUCTION_MODE_IDLE) {
+            if (runtime->policy[i].core.un.mapping.mode_type == SUCTION_MODE_IDLE) {
                 continue;
             } 
-            pump_policy_update(&runtime->info[i]);    
+            pump_policy_update(&runtime->info[i], i);    
             update_para_to_motor_device(thiz, i, &runtime->info[i]);   
         }    
-        msleep(10);
+        // msleep(PUMP_POLICY_RUN_TIME_INTERVAL);
     }
     negative_pressure_release(thiz);
+    STOP_TIMER(policy_work_timer);
     LOG_MOTOR("exit:%d", exit_code);
 
     return exit_code;
 }
+
+static void policy_work_timer_cb(os_timer_id *timer)
+{
+    uint8_t msg = 0;
+    MSG_QUEUE_SEND(policy_work_msg_id, &msg, 0);
+}
  
+void motor_policy_init(struct motor_manager_context *thiz)
+{
+    CREATE_TIMER(&policy_work_timer, "policy_work", thiz,
+         OS_TIMER_PERIODIC, policy_work_timer_cb);
+    CREATE_MSG_TYPE_QUEUE(&policy_work_msg_id, POLICY_WORK_MSG_NUM, 1);
+}
 

@@ -133,9 +133,8 @@ static void set_breast_pump_setting(pump_setting_t *setting)
 static int get_breast_pump_mode(void)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
-    if (m_info->mode >= BREAST_PUMP_MODE_MAX ||
-        m_info->mode == BREAST_PUMP_MODE_INVALID) {
-        LOG_PMP("invalid, return default mode: %d", BREAST_PUMP_NORMAL_MODE_DEFAULT);
+    if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
+        LOG_PMP("invalid, return default mode: %d ", BREAST_PUMP_NORMAL_MODE_DEFAULT);
         return BREAST_PUMP_NORMAL_MODE_DEFAULT;
     }
     return m_info->mode;
@@ -145,7 +144,7 @@ static void set_breast_pump_mode(uint32_t mode)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     struct storage_manager_context *st = breast_pump_obj->priv.st;
-    if (mode >= BREAST_PUMP_MODE_MAX || mode == BREAST_PUMP_MODE_INVALID) {
+    if (mode >= BREAST_PUMP_MODE_MAX) {
         m_info->mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
     } else {
         m_info->mode = mode;
@@ -192,6 +191,9 @@ static void set_breast_pump_status(int status)
                 case BREAST_PUMP_START:
                     LOG_PMP("=>reset breast pump result");
                     breast_pump_obj->reset_breast_pump_result();
+                    // CHECK_IF_VALID(pm_ctx, {
+                    //     pm_ctx->acquire_wakelock(PUMP_THD_WAKELOCK, -1);
+                    // });
 
                 case BREAST_PUMP_CONTINUE:
                     if (!m_info->do_work) {
@@ -207,10 +209,10 @@ static void set_breast_pump_status(int status)
                 case BREAST_PUMP_FINISH:
                     if (m_info->do_work) {
                         m_info->do_work = 0;
-                        // stop_breast_pump_work(status);
-                        // CHECK_IF_VALID(pm_ctx, {
-                        //     pm_ctx->release_wakelock(PUMP_THD_WAKELOCK);
-                        // });
+                        stop_breast_pump_work(status);
+                        CHECK_IF_VALID(pm_ctx, {
+                            pm_ctx->release_wakelock(PUMP_THD_WAKELOCK);
+                        });
                     }
         
                     if (status == BREAST_PUMP_FINISH) {
@@ -318,9 +320,15 @@ static void breast_pump_remove_result_listener(on_breast_pump_result_cb_ptr cb)
 
 static void make_progress(void)
 {
+    static uint32_t notify_time = 0;
+    int notify_id = -1;
     struct __breast_pump_hook *hook = breast_pump_obj->hook;
     if (hook && hook->make_progress_route) {
-        hook->make_progress_route(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
+        notify_id = hook->make_progress_route(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
+        if (notify_id == RESULT_PUMP_FINISH && get_timestamp_ms(notify_time) > 2000) {
+            notify_time = get_timestamp();
+            SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_FINISH, 0);
+        }
     }
 }
 
@@ -330,7 +338,8 @@ static void breast_pump_work_thread(const void *args)
     thread_context_t *thd = (thread_context_t *)args;
     CREATE_MSG_TYPE_QUEUE(&thd->msg_id, BREAST_PUMP_WORK_DISPATCH_MESQ_NUM, 1);
     breast_pump_manager_context_t *ctx = breast_pump_obj;
-    CREATE_TIMER(&ctx->priv.breast_pump_work_timer, "breast_pump_work", ctx, OS_TIMER_PERIODIC, breast_pump_work_timer_cb);
+    CREATE_TIMER(&ctx->priv.breast_pump_work_timer, "breast_pump_work", ctx,
+         OS_TIMER_PERIODIC, breast_pump_work_timer_cb);
     do {
         MSG_QUEUE_RECV(thd->msg_id, &msg, OS_WAIT_FOREVER);
         /// 进度单元.
@@ -341,7 +350,8 @@ static void breast_pump_work_thread(const void *args)
     } while (1);
 }
 
-static void on_breast_pump_broadcast_receiver(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
+static void on_breast_pump_broadcast_receiver(broadcast_mask_id_t id, void *context, int arg1, 
+    int arg2, broadcast_priv_data_t *pdata)
 {
     breast_pump_manager_context_t *bth_ctx = context;
     
@@ -405,8 +415,6 @@ static const char *get_breast_pump_mode_name(uint8_t mode)
     switch (mode) {
         default:
             return "@unknow";
-        case BREAST_PUMP_MODE_INVALID:
-            return "@invalid";
         case BREAST_PUMP_STIMULATION_MODE:
             return "@stimulation";
         case BREAST_PUMP_PUMP_MODE:

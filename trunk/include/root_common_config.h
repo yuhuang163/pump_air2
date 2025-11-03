@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 #ifndef RT_PRIO_MOTOR_DISPATCH_THREAD
-#define RT_PRIO_MOTOR_DISPATCH_THREAD                  OS_PRIORITY_REALTIME2
+#define RT_PRIO_MOTOR_DISPATCH_THREAD                  OS_PRIORITY_REALTIME3
 #endif
 
 #ifndef RT_PRIO_BLE_DISPATCH_THREAD
@@ -52,23 +52,23 @@ extern "C" {
 #endif
 
 #ifndef RT_PRIO_LCD_UART_THREAD
-#define RT_PRIO_LCD_UART_THREAD                        OS_PRIORITY_REALTIME2
+#define RT_PRIO_LCD_UART_THREAD                        OS_PRIORITY_REALTIME
 #endif
 
 #ifndef RT_PRIO_FACTORY_UART_THREAD
-#define RT_PRIO_FACTORY_UART_THREAD                    OS_PRIORITY_REALTIME2
+#define RT_PRIO_FACTORY_UART_THREAD                    OS_PRIORITY_REALTIME
 #endif
 
 #ifndef RT_PRIO_KEY_DEVICE_THREAD
-#define RT_PRIO_KEY_DEVICE_THREAD                      OS_PRIORITY_REALTIME2
+#define RT_PRIO_KEY_DEVICE_THREAD                      OS_PRIORITY_REALTIME
 #endif
 
 #ifndef RT_PRIO_CHARGE_DEVICE_THREAD
-#define RT_PRIO_CHARGE_DEVICE_THREAD                    OS_PRIORITY_REALTIME2
+#define RT_PRIO_CHARGE_DEVICE_THREAD                   OS_PRIORITY_REALTIME
 #endif
 
 #ifndef RT_PRIO_LED_DEVICE_THREAD
-#define RT_PRIO_LED_DEVICE_THREAD                      OS_PRIORITY_REALTIME2
+#define RT_PRIO_LED_DEVICE_THREAD                      OS_PRIORITY_REALTIME
 #endif
 
 ///  各关键业务线程栈深度, 默认线程单位栈深1KB

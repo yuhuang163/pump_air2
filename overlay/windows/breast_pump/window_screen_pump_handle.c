@@ -21,7 +21,10 @@
 #define PUMP_START_HDR_TASK_NAME            "pump_start"
 #define PUMP_STATE_CHANGE_HDR_TASK_NAME     "pump_state_change"
 #define PUMP_SHOW_ONCE_HDR_TASK_NAME        "pump_show_once"
+#define PUMP_COMPLETE_HDR_TASK_NAME          "pump_complete"
 #define RECOVERY_DEFAULT_ANI_PLAY_HDR_TASK_NAME "recovery_def_ani_play"
+
+
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
@@ -69,10 +72,11 @@ static const char *ui_state_to_string(int state)
 static void pump_ui_common_cb(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = args->user_data;
+    LOG_UI("pump_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
+    EXCEPTION_CHECK_VOID(proc);
     int action = args->arg1;
-
     if (proc->margic != UI_WINDOW_MARGIC_CODE) {
-        LOG_UI("invalid margic, ignore");
+        LOG_UI("invalid margic:%x, ignore.", proc->margic);
         return;
     }
     window_dispatch_lock("pump_ui_hdr");
@@ -131,6 +135,12 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
                 LOG_UI("not charge plug in.");
             }
             proc->goto_charge_ui_flag = 0;
+        }
+        break;
+        case HDR_ACTION_PUMP_COMPLETE: {
+            // REMOVE_ALL_HANDER_TASK();
+            LOG_UI("pump complete, show progress time policy.");
+            show_pump_progress_time_policy(proc, proc->w_ctx.wm->priv.pump);
         }
         break;
 
@@ -260,6 +270,13 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
         }
         break;
 
+        case ID_BROADCAST_BREAST_PUMP_FINISH: {
+            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_PUMP_COMPLETE, 
+                proc, PUMP_COMPLETE_HDR_TASK_NAME);
+            LOG_UI("pump finish, post pump complete task.");
+        }
+        break;
+
         default:
         break;
     }
@@ -373,6 +390,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->receiver.name = "model_delete_update";
     proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_MODE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_SYS_PERSIST_INFO_SAVE;
+    proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_FINISH;
     proc->receiver.receiver_cb = on_pump_ui_broadcast_receive_cb;
     register_broadcast_receiver(&proc->receiver);
     /// 设置泵奶状态.

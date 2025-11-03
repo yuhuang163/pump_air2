@@ -77,7 +77,7 @@ typedef struct {
 
 /// 泵奶模式
 typedef enum {
-    BREAST_PUMP_MODE_INVALID = 0,
+    BREAST_PUMP_MODE_INVALID = -1,
     BREAST_PUMP_STIMULATION_MODE,          /// 刺激模式
     BREAST_PUMP_PUMP_MODE,        /// 吸乳模式
     BREAST_PUMP_MIX_MODE,               /// 混合模式
@@ -86,7 +86,7 @@ typedef enum {
     BREAST_PUMP_MILK_BOOST_MODE,              /// 2+8奶量提升模式
     BREAST_PUMP_LACTATION_START_MODE,            /// 开奶模式
     BREAST_PUMP_MODE_MAX,
-    BREAST_PUMP_NORMAL_MODE_MAX = BREAST_PUMP_MIX_MODE - BREAST_PUMP_MODE_INVALID,
+    BREAST_PUMP_NORMAL_MODE_MAX = BREAST_PUMP_MIX_MODE - BREAST_PUMP_STIMULATION_MODE + 1,
     BREAST_PUMP_UP_MODE_MAX = BREAST_PUMP_LACTATION_START_MODE - BREAST_PUMP_MIX_MODE,
     BREAST_PUMP_NORMAL_MODE_DEFAULT = BREAST_PUMP_STIMULATION_MODE, /// 默认常规模式
     BREAST_PUMP_UP_MODE_DEFAULT = BREAST_PUMP_CUSTOM_MODE, /// 默认追奶模式
@@ -124,8 +124,8 @@ typedef enum {
     BREAST_PUMP_LEVEL_13,
     BREAST_PUMP_LEVEL_14,
     BREAST_PUMP_LEVEL_15,
-    BREAST_PUMP_LEVEL_DEFAULT = BREAST_PUMP_LEVEL_1,
     BREAST_PUMP_LEVEL_MAX,
+    BREAST_PUMP_LEVEL_DEFAULT = BREAST_PUMP_LEVEL_1,
 } breast_pump_level_e;
 
 /// 泵奶控制类型
@@ -149,16 +149,6 @@ typedef struct {
     uint8_t speed;
 } pump_setting_t;
 
-typedef struct {
-    pump_setting_t stimulation;     /// 刺激
-    pump_setting_t pump; /// 吸乳
-    pump_setting_t mix;               /// 混合
-    pump_setting_t custom;    /// 个性化默认
-    pump_setting_t pp_milk_track;     /// PP追奶
-    pump_setting_t milk_boost;         /// 2+8奶量提升
-    pump_setting_t lactation_start; /// 开奶
-} pump_setting_info_t;
-
 /// 描述泵奶信息
 typedef struct
 {
@@ -166,7 +156,7 @@ typedef struct
     uint8_t is_remind_pump_finish;        /// 泵奶完成提醒
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
     uint8_t control_type;                 /// 泵奶控制类型 breast_pump_control_type_e
-    pump_setting_info_t setting;
+    pump_setting_t setting[BREAST_PUMP_MODE_MAX];
     uint16_t pump_time[BREAST_PUMP_MODE_MAX];   /// 泵奶时长,单位s
 } sys_pump_info_t;
 

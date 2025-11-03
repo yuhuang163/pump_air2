@@ -41,6 +41,7 @@ int stimulation_mode_parameter_init(void);
 const motor_policy_manager_t *milk_boost_mode_policy_get(void *user_data);
 int milk_boost_mode_parameter_init(void);
 
+int breast_pump_mode_work_time_get(int mode);
 #ifdef __cplusplus
 }
 #endif

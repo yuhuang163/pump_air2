@@ -148,18 +148,16 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
     }
     ctx->priv.user_debug_status = 1;
     if (id == MOTOR_USER_DEBUG_POLICY) {
-        motor_debug_policy_para_t *para = (motor_debug_policy_para_t *)user_data;
+        motor_policy_original_para_t *para = (motor_policy_original_para_t *)user_data;
         motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
+        motor_policy_core_t *core = &policy->head.policy.core;
+        motor_policy_original_para_t *original = &core->un.original;
         policy->timed_policy_count = 1;
         policy->head.duration_seconds = 1200;   /// 20分钟
         policy->head.sub_policy_count = 1;
-        policy->head.policy.core.type = MOTOR_PARAM_PASS_THROUGH;
-        policy->head.policy.core.para.pump_level = para->pump_level;
-        policy->head.policy.core.para.pumping_time = para->pumping_time;
-        policy->head.policy.core.para.valve_on_time = para->valve_on_time;
-        policy->head.policy.core.config.sleep_time = para->sleep_time;
-        policy->head.policy.core.config.hold_time = para->hold_time;
-        policy->head.policy.core.config.loop_num = 1;
+        core->type = MOTOR_PARAM_PASS_THROUGH;
+        memcpy(original, para, sizeof(motor_policy_original_para_t));
+        core->config.loop_num = 1;
         LOG_MOTOR("user debug policy: pump_level: %d, pumping_time: %d, valve_on_time: %d, sleep_time: %d, hold_time: %d",
             para->pump_level, para->pumping_time, para->valve_on_time, para->sleep_time, para->hold_time);
         ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
