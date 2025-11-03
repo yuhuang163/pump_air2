@@ -29,7 +29,7 @@
  * GLOBAL FUNCTION DEFINITIONS
  *****************************************************************************************
  */
-int pump_compensation_policy_update(struct motor_manager_context *thiz, suction_parameters_t *para) 
+int pump_compensation_policy_update(struct motor_manager_context *thiz, motor_policy_original_para_t *para) 
 { 
     return 0;
 }

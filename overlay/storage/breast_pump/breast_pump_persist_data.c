@@ -6,6 +6,7 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "storage_manager.h" // IWYU pragma: keep
 #include "storage_manager_internal.h" // IWYU pragma: keep
+#include "breast_pump_mode.h" // IWYU pragma: keep
 #include "persist_storage.h" // IWYU pragma: keep
 
 /*
@@ -55,13 +56,22 @@ int write_pump_info_to_flash(store_func_args_t args)
 
 void reset_pump_info(storage_manager_context_t *ctx, sys_pump_info_t *pump_info)
 {
-    pump_info->is_remind_exception        = 1;
-    pump_info->is_remind_mode_change      = 1;
-    pump_info->is_remind_pump_finish      = 1;
+    const motor_policy_cfg_t *cfg = NULL;
+    pump_info->is_remind_exception           = 1;
+    pump_info->is_remind_mode_change         = 1;
+    pump_info->is_remind_pump_finish         = 1;
+    pump_info->control_type                  = BREAST_PUMP_CONTROL_TYPE_LEFT;
     for (int i = 0; i < BREAST_PUMP_MODE_MAX; i++) {
-        pump_info->pump_time[i] = BREAST_PUMPING_DEFAULT_TIME;
+        pump_info->pump_time[i] = breast_pump_mode_work_time_get(i);
+        cfg = get_breast_pump_mode_para(i);
+        if (cfg == NULL) {
+            LOGE("cfg is NULL, mode: %d", i);
+            continue;
+        }
+        pump_info->setting[i].speed = cfg->core.un.mapping.speed;
+        pump_info->setting[i].level[0] = cfg->core.un.mapping.level;
+        pump_info->setting[i].level[1] = cfg->core.un.mapping.level;
     }
-
     EXCEPTION_CHECK_VOID(ctx);
     store_func_args_t args = {
         .ctx = ctx,
@@ -304,33 +314,12 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
     EXCEPTION_CHECK_INT(setting);
     sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
     LOG_STORE("write pump setting info: %d", args.arg1);
-    switch (args.arg1) {
-        case BREAST_PUMP_STIMULATION_MODE:
-            memcpy(&pump_info->setting.stimulation, setting, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_PUMP_MODE:
-            memcpy(&pump_info->setting.pump, setting, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_MIX_MODE:      
-            memcpy(&pump_info->setting.mix, setting, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_CUSTOM_MODE:
-            memcpy(&pump_info->setting.custom, setting, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_PP_MILK_TRACK_MODE:
-            memcpy(&pump_info->setting.pp_milk_track, setting, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_MILK_BOOST_MODE:
-            memcpy(&pump_info->setting.milk_boost, setting, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_LACTATION_START_MODE:
-            memcpy(&pump_info->setting.lactation_start, setting, sizeof(pump_setting_t));
-            break;
-        default:
-            LOGE("write pump setting info: %d, out of range", args.arg1);
-            break;
-
+    uint8_t mode = args.arg1;
+    if (mode >= BREAST_PUMP_MODE_MAX) {
+        LOGE("write pump setting info: %d, out of range", args.arg1);
+        return -1;
     }
+    memcpy(&pump_info->setting[mode], setting, sizeof(pump_setting_t));
     return 0;
 }
 
@@ -342,32 +331,12 @@ int read_pump_setting_info_from_ram(store_func_args_t args)
     pump_setting_t *setting = (pump_setting_t *)args.val;
     EXCEPTION_CHECK_INT(setting);
     LOG_STORE("read pump setting info: %d", args.arg1);
-    switch (args.arg1) {
-        case BREAST_PUMP_STIMULATION_MODE:
-            memcpy(setting, &pump_info->setting.stimulation, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_PUMP_MODE:
-            memcpy(setting, &pump_info->setting.pump, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_MIX_MODE:
-            memcpy(setting, &pump_info->setting.mix, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_CUSTOM_MODE:
-            memcpy(setting, &pump_info->setting.custom, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_PP_MILK_TRACK_MODE:
-            memcpy(setting, &pump_info->setting.pp_milk_track, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_MILK_BOOST_MODE:
-            memcpy(setting, &pump_info->setting.milk_boost, sizeof(pump_setting_t));
-            break;
-        case BREAST_PUMP_LACTATION_START_MODE:
-            memcpy(setting, &pump_info->setting.lactation_start, sizeof(pump_setting_t));
-            break;
-        default:
-            LOGE("read pump setting info: %d, out of range", args.arg1);
-            break;
-        }
+    uint8_t mode = args.arg1;
+    if (mode >= BREAST_PUMP_MODE_MAX) {
+        LOGE("read pump setting info: %d, out of range ", args.arg1);
+        return -1;
+    }
+    memcpy(setting, &pump_info->setting[mode], sizeof(pump_setting_t));
     return 0;
 }
 

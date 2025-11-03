@@ -88,9 +88,10 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
             pump_policy_info_reset(thiz, runtime, i);
         }
         runtime->timed_policy_start_time = get_timestamp();
-        LOG_MOTOR("goto next time policy, time:%d type:%d, next:%p, duration:%d, level:%d", runtime->timed_policy_start_time,
-             runtime->timed_policy->policy.core.mapping.mode_type, runtime->timed_policy->next,
-             runtime->timed_policy->duration_seconds, runtime->timed_policy->policy.core.mapping.level);
+        LOG_MOTOR("goto next time policy, time:%d type:%d, next:%p, duration:%d, level:%d", 
+            runtime->timed_policy_start_time, runtime->timed_policy->policy.core.un.mapping.mode_type, 
+            runtime->timed_policy->next, runtime->timed_policy->duration_seconds, 
+            runtime->timed_policy->policy.core.un.mapping.level);
         return 0;
     }
 

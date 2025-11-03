@@ -75,9 +75,6 @@ static int motor_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
             return bsp_motor_start(args);
 
         case OP_CODE_MOTOR_STOP_PLAY:
-            if (motor_power_status == 1) {
-                motor_power_control(0);
-            }
             return bsp_motor_stop(args);
 
         case OP_CODE_MOTOR_SET_PARAMETER:
@@ -94,6 +91,7 @@ static int motor_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
 
 static int motor_dev_suspend(struct rt_device_node *dev)
 {
+    motor_power_control(0);
     return bsp_motor_deinit();
 }
 

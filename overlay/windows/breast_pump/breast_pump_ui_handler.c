@@ -261,8 +261,10 @@ void show_pump_result_loop(ui_proc_pump_t *proc)
 
 }
 
-void show_pump_progress_time_policy(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, int pump_status)
+void show_pump_progress_time_policy(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump)
 {
+    EXCEPTION_CHECK_VOID(pump);
+    int pump_status = pump->get_breast_pump_status_async();
     LOG_UI("pump status: %s", pump->get_breast_pump_status_name(pump_status));
     if (PUMP_IS_GOING(pump_status)) {
         if (proc->pump_result.real_valid_time_sec < (SINGLE_PUMP_TIME_MAX / 1000)) {

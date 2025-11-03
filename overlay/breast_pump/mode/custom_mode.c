@@ -41,7 +41,7 @@ const motor_policy_manager_t *custom_mode_policy_get(void *user_data)
 int custom_mode_parameter_init(void)
 {
     const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(BREAST_PUMP_CUSTOM_MODE);
-    s_custom_obj = breast_pump_mode_parameter_init(cfg, PP_MODE_LEN, "custom");
+    s_custom_obj = breast_pump_mode_parameter_init(cfg, CUSTOM_MODE_LEN, "custom");
     // LOG_MOTOR("obj:%p", s_custom_obj);
     return s_custom_obj == NULL ? -1 : 0;
 }

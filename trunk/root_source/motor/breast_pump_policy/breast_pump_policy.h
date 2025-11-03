@@ -26,10 +26,10 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
 motor_policy_node_t *pump_policy_init(motor_policy_cfg_t cfg);
 int pump_policy_del(motor_timed_policy_node_t *time_policy);
 int pump_policy_add(motor_policy_node_t *policy, motor_policy_node_t *next_policy);
-int pump_policy_update(motor_policy_info_t *info);
+int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id);
 void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_runtime_t *runtime, uint8_t pump_id);
 /// 补偿策略
-int pump_compensation_policy_update(struct motor_manager_context *thiz, suction_parameters_t *para);
+int pump_compensation_policy_update(struct motor_manager_context *thiz, motor_policy_original_para_t *para);
 /// 用户策略，力度/频率调节
 int pump_user_policy_update(struct motor_manager_context *thiz, suction_strategy_mapping_t *map, uint8_t pump_id);
 /// 吸奶策略处理

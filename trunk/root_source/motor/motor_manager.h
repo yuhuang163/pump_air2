@@ -14,7 +14,7 @@ extern "C" {
 * INTERNAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-
+void motor_policy_init(struct motor_manager_context *thiz);
 #ifdef __cplusplus
 }
 #endif

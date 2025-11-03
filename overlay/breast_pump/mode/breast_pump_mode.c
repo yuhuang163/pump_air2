@@ -10,6 +10,7 @@
 * DEFINES
 *****************************************************************************************
 */
+#define IS_SUPPORT_PUMP_MODE_DEBUG_LOG              (0)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -51,9 +52,41 @@ const motor_policy_cfg_t *get_breast_pump_mode_para (int mode)
     return NULL;
 }
 
+int breast_pump_mode_work_time_get(int mode)
+{
+    uint8_t mode_num = 0;
+    int work_time = 0;
+    const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(mode);
+    if (cfg == NULL) {
+        return NORMAL_MODE_DEFAULT_WORK_TIME;
+    }
+
+    switch (mode) {
+        case BREAST_PUMP_STIMULATION_MODE:
+            return NORMAL_MODE_DEFAULT_WORK_TIME;
+        case BREAST_PUMP_PUMP_MODE:
+            return NORMAL_MODE_DEFAULT_WORK_TIME;
+        case BREAST_PUMP_MIX_MODE:
+            return NORMAL_MODE_DEFAULT_WORK_TIME;
+        case BREAST_PUMP_LACTATION_START_MODE:
+            return LACTATION_START_MODE_WORK_TIME;
+        case BREAST_PUMP_MILK_BOOST_MODE:
+            return MILK_BOOST_MODE_WORK_TIME;
+        case BREAST_PUMP_CUSTOM_MODE:
+            mode_num = CUSTOM_MODE_LEN;
+            for (uint8_t i = 0; i < mode_num; i++) {
+                work_time += custom_default[i].duration;
+            }
+            return work_time;
+        case BREAST_PUMP_PP_MILK_TRACK_MODE:
+            return NORMAL_MODE_DEFAULT_WORK_TIME;
+    }
+    return NORMAL_MODE_DEFAULT_WORK_TIME;
+}
+
 int breast_pump_mode_parameter_output(motor_policy_manager_t *obj, char *name)
 {
-    #if 0
+#if IS_SUPPORT_PUMP_MODE_DEBUG_LOG
     EXCEPTION_CHECK_INT(obj);
     motor_timed_policy_node_t *timed = &obj->head;
     motor_policy_node_t *policy = &timed->policy;
@@ -67,8 +100,8 @@ int breast_pump_mode_parameter_output(motor_policy_manager_t *obj, char *name)
                 break;
             }
             LOG_MOTOR(" -->info level:%d, type:%d, speed:%d; hold time:%d, loop num:%d, sleep time:%d, next:%p", 
-                policy->core.mapping.level, policy->core.mapping.mode_type, policy->core.mapping.speed,
-                policy->core.config.hold_time, policy->core.config.loop_num, policy->core.config.sleep_time,
+                policy->core.un.mapping.level, policy->core.un.mapping.mode_type, policy->core.un.mapping.speed,
+                policy->core.config.period, policy->core.config.loop_num,
                 policy->next);
             policy = policy->next;
         }
@@ -78,7 +111,7 @@ int breast_pump_mode_parameter_output(motor_policy_manager_t *obj, char *name)
             policy = &timed->policy;
         }
     }
-    #endif
+#endif
     return 0;
 }
 
