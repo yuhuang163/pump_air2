@@ -225,7 +225,7 @@ FIRMWARE_V3/
   - 跨模块消息分发
   - 支持优先级过滤
 
-## 业务管理器
+## 业务管理器（Manager Layer）
 
 ### 9. UI管理系统
 - **文件**: `trunk/include/ui_manager_api.h`
@@ -237,19 +237,40 @@ FIRMWARE_V3/
   - 触摸事件分发
   - 与LVGL集成
 
-### 10. 吸奶泵管理系统
+### 10. 马达管理系统
+- **文件**: `trunk/include/motor_manager_api.h`
+- **实现**: `trunk/root_source/motor/`
+- **配置**: `overlay/framework_hooks/motor/`
+- **功能**: 马达/泵体控制核心模块，为吸奶泵提供底层驱动能力
+- **特性**:
+  - 马达策略管理（支持复杂的时序控制）
+  - PWM波形生成与控制
+  - 压力/频率闭环调节
+  - 多级策略嵌套（定时策略 + 子策略）
+  - 实时参数调整
+  - 马达状态监控与保护
+
+### 11. 吸奶泵管理系统
 - **文件**: `trunk/include/breast_pump_manager_api.h`
 - **实现**: `trunk/root_source/breast_pump/`
 - **配置**: `overlay/breast_pump/`
 - **功能**: 吸奶泵业务核心管理模块
 - **特性**:
-  - 多种工作模式（按摩/吸乳/自定义）
+  - 多种工作模式支持（共7种模式）:
+    - **刺激模式** (Stimulation Mode): 快速频率刺激，促进泌乳反射
+    - **吸乳模式** (Pump Mode): 标准吸乳工作模式
+    - **混合模式** (Mix Mode): 刺激+吸乳组合模式
+    - **开奶模式** (Lactation Start Mode): 专为哺乳初期设计
+    - **个性化模式** (Custom Mode): 用户可自定义参数的模式
+    - **PP追奶模式** (PP Milk Track Mode): 专为追奶场景优化
+    - **2+8奶量提升模式** (Milk Boost Mode): 2分钟刺激+8分钟吸乳的增产模式
   - 压力/频率闭环控制
   - 状态机管理
-  - 参数表配置化
+  - 参数表配置化（支持定时策略与子策略组合）
   - 历史记录管理
+  - 动态模式参数更新（支持自定义模式在线调整）
 
-### 11. 输入系统管理接口
+### 12. 输入系统管理接口
 - **文件**: `trunk/include/key_input_manager_api.h`
 - **实现**: `trunk/root_source/key_input/`
 - **配置**: `overlay/input_key/`
@@ -260,7 +281,7 @@ FIRMWARE_V3/
   - 可配置按键码映射
   - 触摸事件支持
 
-### 12. 传感器管理接口
+### 13. 传感器管理接口
 - **文件**: `trunk/include/sensor_manager_api.h`
 - **实现**: `trunk/root_source/sensor/`
 - **配置**: `overlay/sensor/`
@@ -272,7 +293,7 @@ FIRMWARE_V3/
   - 传感器校准与滤波
   - 数据融合算法接入
 
-### 13. 算法框架管理
+### 14. 算法框架管理
 - **文件**: `trunk/include/algorithm_manager_api.h`
 - **实现**: `trunk/root_source/algorithm/`
 - **功能**: 算法框架调度与管理
@@ -281,7 +302,7 @@ FIRMWARE_V3/
   - 数据流管理
   - 算法链式处理
 
-### 14. 测试模块（Tests）
+### 15. 测试模块（Tests）
 - **文件**: `trunk/include/tests_manager_api.h`
 - **实现**: `trunk/root_source/tests/`
 - **功能**: 提供固件自检、产测钩子与集成用例的统一入口
@@ -290,51 +311,166 @@ FIRMWARE_V3/
   - 自检流程
   - 测试用例框架
 
+## 吸奶泵工作模式详解
+
+吸奶泵管理系统是业务层模块，负责工作模式、状态管理、历史记录等高层业务逻辑。它依赖于马达管理系统提供的底层驱动能力来实现实际的泵体控制。
+
+**系统分层关系**:
+```
+吸奶泵管理系统 (breast_pump_manager)
+    ↓ 调用
+马达管理系统 (motor_manager)
+    ↓ 控制
+马达驱动 (drivers/motor)
+    ↓ 输出
+硬件泵体
+```
+
+### 模式架构设计
+吸奶泵系统基于策略模式设计，每种工作模式由以下层次结构组成：
+- **总策略管理器** (`motor_policy_manager_t`): 管理整个模式的生命周期
+- **定时策略节点** (`motor_timed_policy_node_t`): 定义阶段性的时间分段
+- **子策略节点** (`motor_policy_node_t`): 具体的马达控制参数（压力、频率、持续时间等）
+
+策略配置通过 `overlay/breast_pump/table/` 中的参数表定义，在运行时由马达管理系统执行。
+
+### 七种标准工作模式
+
+#### 1. 刺激模式 (Stimulation Mode)
+- **模式ID**: `BREAST_PUMP_STIMULATION_MODE`
+- **用途**: 模拟婴儿初始吸吮动作，快速频率刺激乳腺，促进泌乳反射
+- **特点**: 高频率、低压力、短周期
+- **工作时长**: 标准时长（可配置）
+- **适用场景**: 吸乳前的预备阶段，帮助乳汁快速流出
+
+#### 2. 吸乳模式 (Pump Mode)
+- **模式ID**: `BREAST_PUMP_PUMP_MODE`
+- **用途**: 标准的吸乳工作模式，模拟婴儿深度吸吮
+- **特点**: 中等频率、可调压力、长周期
+- **工作时长**: 标准时长（可配置）
+- **适用场景**: 主要吸乳阶段，适合常规使用
+
+#### 3. 混合模式 (Mix Mode)
+- **模式ID**: `BREAST_PUMP_MIX_MODE`
+- **用途**: 结合刺激和吸乳两种模式的优势
+- **特点**: 先快速刺激后深度吸乳，自动切换
+- **工作时长**: 标准时长（可配置）
+- **适用场景**: 一键完成刺激到吸乳的完整流程
+
+#### 4. 开奶模式 (Lactation Start Mode)
+- **模式ID**: `BREAST_PUMP_LACTATION_START_MODE`
+- **用途**: 专为产后初期（产后1-3天）设计，帮助建立泌乳
+- **特点**: 温和压力、特殊节奏、延长工作时间
+- **工作时长**: 延长时长（通常20分钟，由`LACTATION_START_MODE_WORK_TIME`定义）
+- **适用场景**: 产后开奶期，需要更长时间和特殊节奏刺激乳腺
+
+#### 5. 个性化模式 (Custom Mode)
+- **模式ID**: `BREAST_PUMP_CUSTOM_MODE`
+- **用途**: 用户可根据自身情况自定义参数
+- **特点**: 
+  - 支持动态参数更新（通过`custom_mode_parameter_update()`）
+  - 可调整压力、频率、持续时间等所有参数
+  - 工作时长根据配置的子策略动态计算
+- **工作时长**: 动态计算（所有子策略持续时间总和）
+- **适用场景**: 特殊需求用户，或通过APP学习用户习惯后自动生成
+
+#### 6. PP追奶模式 (PP Milk Track Mode)
+- **模式ID**: `BREAST_PUMP_PP_MILK_TRACK_MODE`
+- **用途**: 专为追奶场景设计，增加泌乳量
+- **特点**: 特殊的频率和压力组合，优化追奶效果
+- **工作时长**: 标准时长（可配置）
+- **适用场景**: 奶量不足的妈妈，需要增加泌乳量
+
+#### 7. 2+8奶量提升模式 (Milk Boost Mode)
+- **模式ID**: `BREAST_PUMP_MILK_BOOST_MODE`
+- **用途**: 通过科学的时间分配提升泌乳量
+- **特点**: 2分钟刺激 + 8分钟吸乳的黄金组合
+- **工作时长**: 固定10分钟（由`MILK_BOOST_MODE_WORK_TIME`定义）
+- **适用场景**: 追求高效吸乳，时间有限的场景
+
+### 模式参数配置
+- **配置文件位置**: `overlay/breast_pump/table/pump_mode_default_config.h`
+- **参数类型**: 
+  - `motor_policy_cfg_t`: 单个策略配置（压力、频率、持续时间、循环次数等）
+  - 支持`MOTOR_TIME_POLICY`类型（定时策略）和子策略的嵌套组合
+- **配置示例**: 每种模式有对应的默认参数数组（如`stimulation_default[]`、`pump_default[]`等）
+
+### 模式管理接口
+```c
+// 获取模式参数
+const motor_policy_cfg_t *get_breast_pump_mode_para(int mode);
+
+// 获取模式工作时长（秒）
+int breast_pump_mode_work_time_get(int mode);
+
+// 模式策略初始化
+motor_policy_manager_t *breast_pump_mode_parameter_init(
+    const motor_policy_cfg_t *cfg, 
+    uint8_t cfg_num, 
+    char *name
+);
+
+// 模式策略释放
+int breast_pump_mode_parameter_deinit(motor_policy_manager_t *obj);
+
+// 自定义模式参数更新（仅限Custom Mode）
+int custom_mode_parameter_update(motor_policy_cfg_t *cfg, uint8_t cfg_num);
+```
+
+### 模式扩展指南
+要添加新的工作模式，需要：
+1. 在模式枚举中添加新的模式ID
+2. 在`overlay/breast_pump/table/`中定义参数表
+3. 在`overlay/breast_pump/mode/`中创建模式文件（参考现有模式）
+4. 在`breast_pump_mode.c`的`get_breast_pump_mode_para()`中添加分支
+5. 在`breast_pump_mode_work_time_get()`中设置工作时长
+6. 在业务层注册新模式
+
 ## 驱动支持
 
-### 15. 通用I2C总线驱动
+### 16. 通用I2C总线驱动
 - **目录**: `drivers/i2c/`
 - **功能**: 统一I2C适配层，支持后续多设备挂载
 
-### 16. FATFS 文件系统适配
+### 17. FATFS 文件系统适配
 - **目录**: `drivers/fatfs/`
 - **功能**: 对接 FATFS，提供基础文件系统能力
 
-### 17. WiFi驱动支持
+### 18. WiFi驱动支持
 - **目录**: `drivers/wifi/`
 - **功能**: 新增WiFi驱动支持，扩展网络连接能力
 
-### 18. 串口驱动（UART）
+### 19. 串口驱动（UART）
 - **目录**: `drivers/uart/`
 - **功能**: 提供 UART 外设访问能力，支持后续协议/日志转储
 
-### 19. ADC 驱动
+### 20. ADC 驱动
 - **目录**: `drivers/adc/`
 - **功能**: 提供模拟量采样能力，面向传感器读取与校准
 
-### 20. 气压传感器驱动
+### 21. 气压传感器驱动
 - **目录**: `drivers/air_pressure/`
 - **功能**: 气压/海拔等相关传感器适配与读数
 
 ## 外部库集成
 
-### 21. LVGL图形库
+### 22. LVGL图形库
 - **目录**: `trunk/external/lvgl/`
 - **功能**: 轻量级嵌入式图形界面库
 
-### 22. LittleFS文件系统
+### 23. LittleFS文件系统
 - **目录**: `trunk/external/littlefs/`
 - **功能**: 为嵌入式系统设计的轻量级文件系统
 
-### 23. cJSON解析库
+### 24. cJSON解析库
 - **目录**: `trunk/external/cJSON/`
 - **功能**: 轻量级JSON解析与生成
 
-### 24. 加密与哈希库
+### 25. 加密与哈希库
 - **目录**: `trunk/external/crypto/`、`trunk/external/md5/`、`trunk/external/base64/`
 - **功能**: 提供加解密、哈希、编码能力
 
-### 25. QuickLZ压缩库
+### 26. QuickLZ压缩库
 - **目录**: `trunk/external/quicklz/`
 - **功能**: 快速资源压缩/解压
 
@@ -351,9 +487,20 @@ FIRMWARE_V3/
 ### Overlay目录结构与用途
 
 #### 1. `overlay/breast_pump/` - 吸奶泵业务配置
-- **mode/**: 工作模式定义（按摩模式、吸乳模式、自定义模式等）
-- **table/**: 参数表配置（压力曲线、频率表、时间配置等）
-- **用途**: 产品可根据不同型号配置不同的工作模式和参数
+- **mode/**: 工作模式定义，支持7种标准模式
+  - `stimulation_mode.c` - 刺激模式（快速频率促进泌乳）
+  - `pump_mode.c` - 标准吸乳模式
+  - `mix_mode.c` - 混合模式（刺激+吸乳）
+  - `lactation_start_mode.c` - 开奶模式（初期哺乳优化）
+  - `custom_mode.c` - 个性化模式（支持动态参数更新）
+  - `pp_milk_track_mode.c` - PP追奶模式
+  - `milk_boost_mode.c` - 2+8奶量提升模式
+  - `breast_pump_mode.c/h` - 模式管理框架（模式初始化、参数获取、工作时长管理）
+- **table/**: 参数表配置（压力曲线、频率表、时间配置、定时策略等）
+- **用途**: 
+  - 产品可根据不同型号配置不同的工作模式和参数
+  - 每种模式由定时策略（Time Policy）和子策略（Sub Policy）组成
+  - 支持模式级的工作时长配置（如开奶模式20分钟，奶量提升模式10分钟等）
 
 #### 2. `overlay/framework_hooks/` - 框架钩子
 - **algo/**: 算法模块初始化与回调钩子
