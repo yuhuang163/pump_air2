@@ -10,15 +10,31 @@ extern "C" {
  * Include files
  ******************************************************************************/
 
-/// 按键类型
+/// 按键索引
 typedef enum {
-    KEY_CODE_POWER = (1 << 0),   /// 支持唤醒
-    KEY_CODE_START = (1 << 1),   /// 启动键
-    KEY_CODE_MODE = (1 << 2),   /// 模式键
-    KEY_CODE_FREQUENCY = (1 << 3),   /// 频率键
-    KEY_CODE_BREASTFEEDING = (1 << 4),   /// 追奶键
-    KEY_CODE_LEFT_CONTROL = (1 << 5),   /// 左控制键
-    KEY_CODE_RIGHT_CONTROL = (1 << 6),   /// 右控制键
+    KEY_INDEX_POWER = 0,   
+    KEY_INDEX_START,
+    KEY_INDEX_MODE,
+    KEY_INDEX_FREQUENCY,
+    KEY_INDEX_BREASTFEEDING,
+    KEY_INDEX_LEFT_CONTROL,
+    KEY_INDEX_RIGHT_CONTROL,
+    KEY_INDEX_KNOB_LEFT,
+    KEY_INDEX_KNOB_RIGHT,
+    KEY_INDEX_MAX,
+} key_index_e;
+
+/// 按键编码
+typedef enum {
+    KEY_CODE_POWER = (1 << KEY_INDEX_POWER),   /// 支持唤醒
+    KEY_CODE_START = (1 << KEY_INDEX_START),   /// 启动键
+    KEY_CODE_MODE = (1 << KEY_INDEX_MODE),   /// 模式键
+    KEY_CODE_FREQUENCY = (1 << KEY_INDEX_FREQUENCY),   /// 频率键
+    KEY_CODE_BREASTFEEDING = (1 << KEY_INDEX_BREASTFEEDING),   /// 追奶键
+    KEY_CODE_LEFT_CONTROL = (1 << KEY_INDEX_LEFT_CONTROL),   /// 左控制键
+    KEY_CODE_RIGHT_CONTROL = (1 << KEY_INDEX_RIGHT_CONTROL),   /// 右控制键
+    KEY_CODE_KNOB_LEFT = (1 << KEY_INDEX_KNOB_LEFT),   /// 旋钮逆时针
+    KEY_CODE_KNOB_RIGHT = (1 << KEY_INDEX_KNOB_RIGHT),   /// 旋钮顺时针
 } input_key_code_e;
 
 #ifdef __cplusplus

@@ -240,6 +240,16 @@ static factory_data_store_t *get_factory_data(void)
     return &thiz->priv.factory_data;
 }
 
+static int storage_flash_protect(int protect_enable)
+{
+    if (protect_enable) {
+        MUTEX_LOCK(thiz->priv.storage_rw_lock);
+    } else {
+        MUTEX_UNLOCK(thiz->priv.storage_rw_lock);
+    }
+    return 0;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -248,7 +258,6 @@ int user_database_put(storage_manager_context_t *ctx, database_key_t key, const 
 {
     int ret = -1;
     rt_device_node_t *db_dev = ctx->priv.db_dev;
-    MUTEX_LOCK(ctx->priv.db_rw_lock);
     if (db_dev && db_dev->write) {
         uint32_t buf_wr[] = { (uint32_t)key, (uint32_t)buf, (uint32_t)buf_len };
         ret = DEVICE_WRITE(db_dev, buf_wr, sizeof(buf_wr));
@@ -265,8 +274,6 @@ int user_database_put(storage_manager_context_t *ctx, database_key_t key, const 
             LOGE("write key failure: 0x%x, buf_len: %d, ret: %d", key, buf_len, ret);
         }
     }
-    MUTEX_UNLOCK(ctx->priv.db_rw_lock);
-
     return ret;
 }
 
@@ -274,13 +281,11 @@ int user_database_get(storage_manager_context_t *ctx, database_key_t key, uint8_
 {
     int ret = -1;
     rt_device_node_t *db_dev = ctx->priv.db_dev;
-    MUTEX_LOCK(ctx->priv.db_rw_lock);
     if (db_dev && db_dev->read) {
         uint32_t buf_rd[] = { (uint32_t)key, (uint32_t)buf, (uint32_t)buf_len };
         ret = db_dev->read(db_dev, buf_rd, sizeof(buf_rd));
     }
-    MUTEX_UNLOCK(ctx->priv.db_rw_lock);
-    
+
     return ret;
 }
 
@@ -288,13 +293,9 @@ int user_database_remove(storage_manager_context_t *ctx, database_key_t key)
 {
     int ret = -1;
     rt_device_node_t *db_dev = ctx->priv.db_dev;
-
-    MUTEX_LOCK(ctx->priv.db_rw_lock);
     if (db_dev && db_dev->ioctl) {
         ret = DEVICE_IOCTL_ARGS(db_dev, OP_CODE_DB_DELETE, &key);
-    }
-    MUTEX_UNLOCK(ctx->priv.db_rw_lock);
-    
+    }    
     return ret;
 }
 
@@ -312,10 +313,8 @@ void *register_module_for_storage_new(list_head_t *list_head)
     ptr->get_persist_sys_info = get_persist_sys_info;
     ptr->get_persist_ver_info = get_persist_ver_info;
     ptr->get_factory_data = get_factory_data;
- 
-    MUTEX_INIT(&ptr->priv.db_rw_lock, db_rw_lock);
+    ptr->flash_protect = storage_flash_protect;
     MUTEX_INIT(&ptr->priv.storage_rw_lock, storage_rw_lock);
-    MUTEX_INIT(&ptr->priv.breast_pump_data_rw_lock, breast_pump_data_rw_lock);
     thiz = ptr;
     return ADD_MODULE("storage", ID_MODULE_STORAGE, on_perpare_storage_init, 
         on_post_storage_init, ptr, list_head, sizeof(storage_manager_context_t));

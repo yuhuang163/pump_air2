@@ -510,7 +510,7 @@ static void play_boot_animation(void)
     
     POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 500, 100, ACTION_SET_BL,  thiz, "boot_set_bl-ON0");
     multi_func_msg_data_t __msg = {0};
-    #if 0
+    #if 1
     __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
     LOG_WM("goto logo screen");
     #else

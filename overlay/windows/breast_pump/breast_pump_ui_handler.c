@@ -10,6 +10,9 @@
 * DEFINES
 *****************************************************************************************
 */
+#define PAGE_ANIMATION_FREQ                 (12.5f)
+#define PAGE_ANIMATION_TIME_MS              (uint16_t)((1000.0f / PAGE_ANIMATION_FREQ) + 0.5f)
+#define PAGE_ANIMATION_CNT                  UI_ANIM(PUMP, COMMON, CNT)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
