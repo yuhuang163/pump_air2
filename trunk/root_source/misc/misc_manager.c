@@ -186,7 +186,7 @@ static void misc_work_polling_thread(const void *args)
         }
 
         if (!sys_ready && wm) {
-            sys_ready = wm->system_is_ready();
+            sys_ready = wm->system_is_ready(wm);
             continue;
         }
 

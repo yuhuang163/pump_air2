@@ -231,6 +231,19 @@ typedef struct _ui_play_context_t {
     #endif
 } ui_play_context_t;
 
+typedef struct {
+    /// 传入 get_res_buf使用，一般为 window_context_t
+    void *user_data;
+    /// 需要获取的图片资源ID号
+    uint16_t res_id; 
+    /// 存放图片数据 draw_buffer
+    uint8_t *dest;
+    /// 移动的指针，用来提高刷新率，加载不同的图片时移动 dest_addr 位置即可，不需要memcpy
+    uint8_t **dest_addr;
+    /// 移动的指针 dest_addr 原始地址，当在内存列表里面找不到图片时，让 dest_addr 回到原位再从Flash读取数据
+    uint8_t **dest_addr_base;
+} get_res_buf_args_t;
+
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

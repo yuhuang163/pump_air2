@@ -344,6 +344,8 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/resource/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/storage/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/windows/*.c) 
 
 CC := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)gcc,gcc)

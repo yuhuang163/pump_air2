@@ -109,7 +109,7 @@ static int enter_airplane_mode_internal(int state)
     }
     
     while (1) {
-        if (!thiz->priv.wm->is_current_window(ID_WINDOW_BEGIN) || wait_retry > 60) {
+        if (!thiz->priv.wm->is_current_window(thiz->priv.wm, ID_WINDOW_BEGIN) || wait_retry > 60) {
             break;
         }  
         wait_retry++;
@@ -166,7 +166,7 @@ static int exit_airplane_mode(int wakeup_reason)
     LOG_AIR("exit wakeup_reason: %d", wakeup_reason);
     thiz->priv.is_backgroud_check = false;
     while (1) {
-        if (!thiz->priv.wm->is_current_window(ID_WINDOW_BEGIN) || wait_retry > 60) {
+        if (!thiz->priv.wm->is_current_window(thiz->priv.wm, ID_WINDOW_BEGIN) || wait_retry > 60) {
             break;
         }
         wait_retry++;
@@ -260,7 +260,7 @@ static void on_imu_irq_callback(void *user_data)
         return;
     }
 
-    if (thiz->priv.wm->is_current_window(ID_WINDOW_FACTORY_MODE)) {
+    if (thiz->priv.wm->is_current_window(thiz->priv.wm, ID_WINDOW_FACTORY_MODE)) {
         LOG_AIR("is in factory mode, ignore."); 
         state = AIRPLANE_DETECT_STATE_INIT;
         return;

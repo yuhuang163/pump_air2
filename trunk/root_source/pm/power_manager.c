@@ -169,7 +169,7 @@ static void pm_suspend_check_handler(power_manager_context_t *ctx)
     static uint32_t log_interval = 0;
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     log_interval++;
-    if (wm && wm->is_on_window_dispatch()) {
+    if (wm && wm->is_on_window_dispatch(wm)) {
         LOG_PM("on_window_dispatch, ignore");
         return;
     }
@@ -322,7 +322,7 @@ static void pm_suspend_prepare_enter(power_manager_context_t *ctx)
     do {
         uint8_t current_window_id = wm->get_current_window_id();
         LOG_PM("wait(current: %s) enter --> ID_WINDOW_DUMMY(%d) finish.", wm->to_window_name(current_window_id), counter);
-        if (wm->is_current_window(ID_WINDOW_DUMMY)) {
+        if (wm->is_current_window(wm, ID_WINDOW_DUMMY)) {
             break;
         }
         msleep(100);
@@ -339,7 +339,7 @@ static void pm_resume_post_enter(power_manager_context_t *ctx)
 
     do {
         LOG_PM("wait exit --> ID_WINDOW_DUMMY(%d) finish.", counter);
-        if (!wm->is_current_window(ID_WINDOW_DUMMY)) {
+        if (!wm->is_current_window(wm, ID_WINDOW_DUMMY)) {
             break;
         }
         msleep(100);

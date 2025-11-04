@@ -206,6 +206,7 @@ static int on_perpare_storage_init(void *self)
 static int factory_reset(factory_reset_type_e is_reboot)
 {
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     time_system_t *ts = (time_system_t *)find_module(ID_MODULE_TIME);
     LOG_STORE("reset db data.");
     thiz->user_database_reset();
@@ -215,9 +216,9 @@ static int factory_reset(factory_reset_type_e is_reboot)
         LOG_STORE("reset done,but not reboot.");
         return 1;
     } else {
-        wm->set_backlight(0);
-        wm->set_window_switch_forbid(1);
-        wm->set_is_restting_device(1);   
+        ui->set_ui_backlight(ui, 0);
+        wm->set_window_switch_forbid(wm, 1);
+        wm->set_system_is_restting_device(wm, 1);   
         msleep(1000);
         __system_reboot(__REBOOT_REASON_FACTORY_RESET);
     }
