@@ -10,21 +10,15 @@ extern "C" {
 ******************************************************************************/
 #include "ui_manager_api.h" // IWYU pragma: keep
 
-#ifndef LVGL_TIME_TICK_PERIOD
-#define LVGL_TIME_TICK_PERIOD (10)
-#endif
-
-#define LVGL_HDR_TASK_PERIOD (16)
-
-#ifdef __cplusplus
-}
-#endif
 
 
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void register_ui_display(ui_manager_context_t *thiz);
+
+#ifdef __cplusplus
+}
+#endif
 #endif// __UI_DISPLAY_H__
 

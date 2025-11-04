@@ -65,5 +65,9 @@ void framework_extra_hook(void)
         register_power_manager_hook(power_ctx);
     });
 
-
+    /// 注册UI管理钩子.
+    ui_manager_context_t *ui_ctx = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    CHECK_IF_VALID(ui_ctx, {
+        register_ui_manager_hook(ui_ctx);
+    });
 }
