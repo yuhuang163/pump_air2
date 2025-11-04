@@ -3,11 +3,9 @@
 *****************************************************************************************
 */
 #include "bsp_common.h" // IWYU pragma: keep
-#include "cmsis_os_api.h"
 #include "hal_uart.h" // IWYU pragma: keep
 #include "hal_timer.h" // IWYU pragma: keep
 #include "hal_iomux.h" // IWYU pragma: keep
-#include <stdint.h>
 #include "bsp_lcd_uart.h" // IWYU pragma: keep
 
 /*
@@ -32,8 +30,8 @@ static thread_context_t s_lcd_uart_thd = {0};
 static os_message_id lcd_recv_msg_id = NULL;
 static os_message_id lcd_send_msg_id = NULL;
 static os_message_id lcd_rsp_msg_id  = NULL;
-static panel_recv_event_cb_func s_lcd_uart_event_cb = NULL;
-
+static panel_recv_event_cb_func s_lcd_display_event_cb = NULL;
+static panel_recv_event_cb_func s_knob_button_event_cb = NULL;
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -106,30 +104,33 @@ POSSIBLY_UNUSED static void lcd_uart_tx(uint32_t xfer_size, int dma_error)
 
 static void lcd_uart_recv_handler(uint8_t *buf, uint16_t len)
 {
-    if (len > 0) {
-        BSP_LOG_HEX("lcd rx", buf, len);
-    }
-
-    if (buf == NULL || len < 5) {
+    EXCEPTION_CHECK_VOID(buf);
+    BSP_LOG_HEX("lcd rx", buf, len);
+    if (len < 5) {
         LOGE("uart recv error");
         return;
     }
 
-    lcd_uart_protocol_t *recv = (lcd_uart_protocol_t *)buf;
-    if (recv->sof != LCD_UART_SOF) {
+    lcd_protocol_data_t *recv = (lcd_protocol_data_t *)buf;
+    lcd_tlvs_t *tlvs = (lcd_tlvs_t *)recv->payload;
+    if (recv->header.sof != LCD_UART_SOF) {
         LOGE("uart recv sof error");
         return;
     }
 
-    if (recv->type == LCD_RSP_ERROR_CODE && recv->data_size >= 2) {
-        uint16_t error_code = ((recv->data[0] & 0xFFFF) << 8) | recv->data[1];
+    if (recv->header.srv_id == LCD_KNOB_BUTTON_EVENT_SRV) {
+        if (s_knob_button_event_cb) {
+            s_knob_button_event_cb(tlvs->data[0], tlvs->data[1], NULL);
+        } else {
+            LOGE("knob button event callback is not registered");
+        }
+    }
+
+    if (tlvs->type == LCD_RSP_ERROR_CODE && tlvs->data_size >= 2) {
+        uint16_t error_code = ((tlvs->data[0] & 0xFFFF) << 8) | tlvs->data[1];
         MSG_QUEUE_SEND(lcd_rsp_msg_id, &error_code, 50);
         return;
     }
-
-    // if (s_lcd_uart_event_cb) {
-    //     s_lcd_uart_event_cb(0, 0, NULL);
-    // }
 }
 
 static void lcd_uart_event_thread(const void *args)
@@ -140,7 +141,6 @@ static void lcd_uart_event_thread(const void *args)
         recv_len = lcd_uart_read(recv_buf, LCD_UART_RX_BUF_SIZE);
         if (recv_len > 0) {
             lcd_uart_recv_handler(recv_buf, recv_len);
-            // lcd_uart_write(recv_buf, recv_len); // 调试用，实际使用时不需要
         }
     }
 }
@@ -149,32 +149,43 @@ static void lcd_uart_event_thread(const void *args)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void bsp_lcd_uart_register_event_cb(panel_recv_event_cb_func cb)
+void bsp_lcd_uart_register_event_cb(lcd_uart_event_type_e event_type, panel_recv_event_cb_func cb)
 {
-    s_lcd_uart_event_cb = cb;
+    if (event_type == LCD_UART_DISPLAY_EVENT) {
+        s_lcd_display_event_cb = cb;
+    } else if (event_type == LCD_UART_KNOB_BUTTON_EVENT) {
+        s_knob_button_event_cb = cb;
+    }
 }
 
-int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs) 
+int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs, uint8_t tlvs_num) 
 {
-    if (tlvs->data_size > (LCD_UART_DATA_MAX_SIZE - LCD_UART_DATA_CHECKSUM_SIZE)) {
-        LOGE("lcd data size is too large");
-        return -1;
+    EXCEPTION_CHECK_INT(tlvs);
+    uint8_t *tlvs_data = NULL;
+    uint16_t tlvs_size = 0, payload_size = 0, error_code = 0, checksum = 0;
+    lcd_protocol_data_t *lcd = u_malloz(sizeof(lcd_protocol_data_t));
+    for (uint8_t i = 0; i < tlvs_num; i++) {
+        tlvs_size = tlvs[i].data_size + LCD_TLVS_HEADER_SIZE;
+        if (payload_size + tlvs_size > LCD_PROTOCOL_DATA_SIZE) {
+            LOGE("lcd data size is too large");
+            break;
+        }
+        tlvs_data = (uint8_t *)&tlvs[i];
+        BSP_LOG_HEX("tlvs", tlvs_data, tlvs_size);
+        memcpy(lcd->payload + payload_size, tlvs_data, tlvs_size);
+        payload_size += tlvs_size;
     }
-    uint16_t error_code = 0, checksum = 0;
-    LOG_PBUS("lcd data send: %d, %d, %d, %p", srv_id, tlvs->type, tlvs->data_size, tlvs->data);
- 
-    lcd_uart_protocol_t *lcd_data = u_malloz(sizeof(lcd_uart_protocol_t));
-    lcd_data->sof = LCD_UART_SOF;
-    lcd_data->lenght = tlvs->data_size + 3;
-    lcd_data->srv_id = srv_id;
-    lcd_data->type = tlvs->type;
-    lcd_data->data_size = tlvs->data_size;
-    memcpy(lcd_data->data, tlvs->data, tlvs->data_size);
-    checksum = CRC16(lcd_data, tlvs->data_size + LCD_UART_DATA_HEADER_SIZE);
-    lcd_data->data[tlvs->data_size] = checksum;
-    lcd_data->data[tlvs->data_size + 1] = checksum >> 8;
-    int ret = lcd_uart_write((uint8_t *)lcd_data, tlvs->data_size + LCD_UART_DATA_HEADER_SIZE + 
-            LCD_UART_DATA_CHECKSUM_SIZE);
+    lcd->header.sof = LCD_UART_SOF;
+    lcd->header.srv_id = srv_id;
+    uint16_t data_length = payload_size + 1;
+    lcd->header.length[1] = data_length & 0xFF;
+    lcd->header.length[0] = data_length >> 8;
+    checksum = CRC16(lcd, payload_size + LCD_PROTOCOL_HEADER_SIZE);
+    BSP_LOG("lcd", "srv:%d, size:%d, checksum:%x", srv_id, payload_size, checksum);
+    lcd->payload[payload_size] = checksum >> 8;
+    lcd->payload[payload_size + 1] = checksum & 0xFF;
+    payload_size += LCD_PROTOCOL_CHECKSUM_SIZE;
+    int ret = lcd_uart_write((uint8_t *)lcd, payload_size + LCD_PROTOCOL_HEADER_SIZE);
     if (ret != BSP_OK) {
         LOGE("lcd uart send failed");
         goto ERROR_EXIT;
@@ -192,7 +203,7 @@ int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs)
     }
 
 ERROR_EXIT:
-    u_free(lcd_data);
+    u_free(lcd);
     return ret;
 }
 

@@ -26,14 +26,19 @@
 *****************************************************************************************
 */
 
-
-
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+__WEAK void knob_button_event_handler(int arg1, int arg2, void *param)
+{
+
+}
+
 int bsp_lcd_init(void) 
 {
+    bsp_lcd_uart_register_event_cb(LCD_UART_KNOB_BUTTON_EVENT, knob_button_event_handler);
     return bsp_lcd_uart_init();
 }
+
+
