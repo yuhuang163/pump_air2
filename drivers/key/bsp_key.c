@@ -120,6 +120,13 @@ void key_irq_event_callback(int index)
     scan_key_timer_start(index);
 }
 
+void knob_button_event_handler(int arg1, int arg2, void *param)
+{
+    LOGI("knob button event: arg1=%d, arg2=%d", arg1, arg2);
+    int keycode = arg1 == 0 ? KEY_CODE_8 : KEY_CODE_9;
+    key_cb(node, keycode, KEY_EVENT_CLICK);
+}
+
 void *register_device_for_input_key(list_head_t *list_head)
 {
     node = u_malloz(sizeof(rt_device_node_t));

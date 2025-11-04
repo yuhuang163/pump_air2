@@ -29,7 +29,7 @@ extern "C" {
 *****************************************************************************************
 */
 int bsp_lcd_init(void);
-int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs);
+int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs, uint8_t tlvs_num);
 #ifdef __cplusplus
 }
 #endif

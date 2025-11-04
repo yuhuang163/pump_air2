@@ -32,7 +32,7 @@ typedef enum {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-
+void knob_button_event_handler(int arg1, int arg2, void *param);
 #ifdef __cplusplus
 }
 #endif

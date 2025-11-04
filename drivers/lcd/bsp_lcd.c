@@ -97,7 +97,7 @@ static int lcd_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
             tmp = (uint32_t *)args;
             EXCEPTION_CHECK_INT(tmp);
             LOG_PBUS("lcd data send: %d, %p", tmp[0], tmp[1]);
-            return bsp_lcd_data_send((uint8_t)tmp[0], (lcd_tlvs_t *)tmp[1]);
+            return bsp_lcd_data_send((uint8_t)tmp[0], (lcd_tlvs_t *)tmp[1], tmp[2]);
             // return 0;
         default:
             LOGE("lcd err op_code: %lx", op_code);
