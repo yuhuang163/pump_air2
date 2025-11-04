@@ -14,14 +14,14 @@ typedef enum {
     PRODUCT_INFO_V3PRO = 1,
 } product_info_t;
 
-#define PRODUCT_INFO_V3_VALUE           0
-#define PRODUCT_INFO_V3PRO_VALUE        1
+#define PRODUCT_INFO_V3_VALUE                         0
+#define PRODUCT_INFO_V3PRO_VALUE                      1
 
 /**
  * 产品信息
 */
 #ifndef ROOT_PRODUCT_ID
-#define ROOT_PRODUCT_ID                               PRODUCT_INFO_V3_VALUE
+#define ROOT_PRODUCT_ID                               1
 #endif
 
 #if (ROOT_PRODUCT_ID == 1)

@@ -26,60 +26,40 @@
 #define RSP_MAC_OFFSET 5
 #endif
 
+#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
+#define DEFAULT_PID_CODE    0x09
+#else
+#define DEFAULT_PID_CODE    0x08
+#endif
+
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
 #if IS_SUPPORT_OLD_ADV_DATA
-#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
-static uint8_t s_adv_data_set[] = {
-    0x0C,                               // length
-    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
-    0x56, 0x33, 0x50, 0x52, 0x4F, // name, V3PRO
-    0x2D,                               // '-'
-    0x41, 0x41, 0x3A, 0x42, 0x42       // MAC, AA:BB
-};
-
-static uint8_t s_adv_rsp_data_set[] = {
-    0x0C,                               // length
-    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
-    0x56, 0x33, 0x50, 0x52, 0x4F, // name, V3PRO
-    0x2D,                               // '-'
-    0x41, 0x41, 0x3A, 0x42, 0x42       // MAC, AA:BB
-};
-#else
 static uint8_t s_adv_rsp_data_set[] = {
     0x0A,                              /// length
     0xFF,                              /// manufacturer type 1
     0xAA,                              /// ROOT company flag
-    0x08,                              /// pump product code
+    DEFAULT_PID_CODE,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
     0x03,
-    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
-    0x56, 0x33, // name, V3
-    0x0C,     /// length
-    0xFF,    /// manufacturer type 2
-    0x01,0x02,0x03,0x04,0x05,0x06,
-    0x07,0x08,0x09,0x0A,0x0B    /// reserved
+    BES_GAP_AD_TYPE_COMPLETE_NAME,      /// type
+    0x56, 0x33, /// name, V3
 };
 
 static uint8_t s_adv_data_set[] = {
     0x0A,                              /// length
     0xFF,                              /// manufacturer type 1
     0xAA,                              /// ROOT company flag
-    0x08,                              /// pump product code
+    DEFAULT_PID_CODE,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
     0x03,
-    BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
-    0x56, 0x33, // name, V3
-    0x0C,     /// length
-    0xFF,    /// manufacturer type 2
-    0x01,0x02,0x03,0x04,0x05,0x06,
-    0x07,0x08,0x09, 0x0A, 0x0B    /// reserved
+    BES_GAP_AD_TYPE_COMPLETE_NAME,      /// type
+    0x56, 0x33, /// name, V3
 };
-#endif
 
 #else
 #if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
