@@ -162,6 +162,13 @@ static int internal_read_btn_id(void *context)
     return btn_id;
 }
 
+static int internal_is_key_triggered(uint16_t key_index)
+{
+    EXCEPTION_CHECK_BOOL(thiz->priv.key_dev);
+    int args[] = {key_index};
+    return thiz->priv.key_dev->ioctl(thiz->priv.key_dev, OP_CODE_INPUT_IS_TRIGGERED, (void *)args) > 0 ? 1 : 0;
+}
+
 static void *list_del_condition_cb(void *data, list_head_t *pos)
 {
     on_key_event_handler_fptr cb = (on_key_event_handler_fptr)data;
@@ -340,6 +347,7 @@ void *register_module_for_key_input_manager_new(list_head_t *list_head)
     MALLOC_FOR_PTR(ptr, key_input_context_t);
 
     ptr->read_btn_id = internal_read_btn_id;
+    ptr->is_key_triggered = internal_is_key_triggered;
     ptr->add_keyevent_handler = add_keyevent_handler;
     ptr->dispatch_client_input_key = dispatch_key_event_client;
     ptr->dispatch_key_event_wrapper = dispatch_key_event_wrapper;

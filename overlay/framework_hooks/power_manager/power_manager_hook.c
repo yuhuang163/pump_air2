@@ -1,0 +1,138 @@
+/*
+* INCLUDE FILES
+*****************************************************************************************
+*/
+#include "root_common_api.h" // IWYU pragma: keep
+#include "input_key_code.h"
+#include "power_manager_hook.h"  // IWYU pragma: keep
+
+/*
+* DEFINES
+*****************************************************************************************
+*/
+#define POWER_ON_BOOT_RUN_TIME_MS                   200     /// boot 启动补偿, 冷启动和热启动时间不一致
+#define POWER_ON_TIMEOUT_MS_DEFAULT                 (3000 - POWER_ON_BOOT_RUN_TIME_MS)     /// 电源按键超时时间，单位ms
+#define POWER_ON_TIMEOUT_MS                         (POWER_ON_TIMEOUT_MS_DEFAULT - get_timestamp_ms(0))
+#define POWER_ON_DETECT_HDR_TASK_NAME               "power_on_detect"
+#define POWER_ON_INVALID_HDR_TASK_NAME              "power_on_invalid"
+#define POWER_OFF_HDR_TASK_NAME                     "power_off"
+
+/*
+* LOCAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* GLOBAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* LOCAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+static void system_power_event_cb(hdr_post_args_t *args)
+{
+    LOG_PM("power event, action:%d.", args->arg1);
+    int action = args->arg1;
+    power_manager_context_t *pm = args->user_data;
+    EXCEPTION_CHECK_VOID(pm);
+    switch (action) {
+        case HDR_ACTION_POWER_ON_DETECT: {
+            LOG_PM("%s", args->name);
+            key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+            if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
+                pm->system_power_control(false);
+            } else {
+                pm->priv.is_power_on_timeout_detect = 0;   
+                pm->system_power_control(true);
+                rt_device_node_t *led_dev = pm->priv.pbus->find_device(ID_DEVICE_LED);
+                EXCEPTION_CHECK_VOID(led_dev);
+                led_status_t led_status = {
+                    .mode = LED_MODE_LEVEL,
+                    .un.luminous.level = LED_LEVEL_MAX,
+                };
+                int args[] = {PUMP_LED_ALL_ID, (int)&led_status};
+                led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+            }
+        }
+        break;
+
+        case HDR_ACTION_POWER_ON_INVALID: {
+            LOG_UI("%s", args->name);
+            pm->priv.is_power_on_timeout_detect = 0;
+            REMOVE_TASK_HANDLER_DIRECTLY(POWER_ON_DETECT_HDR_TASK_NAME);
+            pm->system_power_control(false);
+        }
+        break;
+
+        case HDR_ACTION_POWER_OFF: {
+            LOG_PM("%s", args->name);
+            pm->priv.allow_shutdown_flag = 0;
+            rt_device_node_t *led_dev = pm->priv.pbus->find_device(ID_DEVICE_LED);
+            EXCEPTION_CHECK_VOID(led_dev);
+            led_status_t led_status = {
+                .mode = LED_MODE_LEVEL,
+                .un.luminous.level = 0,
+            };
+            int args[] = {PUMP_LED_ALL_ID, (int)&led_status};
+            led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+            pm->system_power_control(false);
+        }
+        break;
+
+        default:
+        break;
+    }
+}
+
+static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycode, uint16_t keytype)
+{
+    EXCEPTION_CHECK_INT(ctx);
+    if (keycode != KEY_CODE_POWER) {
+        return 0;
+    }
+
+    if (keytype == KEY_EVENT_UP && ctx->priv.is_power_on_timeout_detect == 1) {
+        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 10, HDR_ACTION_POWER_ON_INVALID,
+            ctx, POWER_ON_INVALID_HDR_TASK_NAME);
+        return 0;
+    }
+    
+    if (ctx->priv.allow_shutdown_flag == 0 && keytype == KEY_EVENT_DOWN) {
+        ctx->priv.allow_shutdown_flag = ctx->is_system_power_on(); /// 允许关机标志.
+        LOG_PM("allow_shutdown_flag: %d", ctx->priv.allow_shutdown_flag);
+        return 0;
+    }
+
+    if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_flag == 1) {
+        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 0, HDR_ACTION_POWER_OFF,
+            ctx, POWER_OFF_HDR_TASK_NAME);
+    }
+    return 0;
+}
+
+static int on_post_init_route(struct power_manager_context *ctx)
+{
+    EXCEPTION_CHECK_INT(ctx);
+    ctx->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    uint32_t timeout_ms = POWER_ON_TIMEOUT_MS;
+    if (timeout_ms > POWER_ON_TIMEOUT_MS_DEFAULT) {
+        timeout_ms = 100;
+    }
+    ctx->priv.is_power_on_timeout_detect = 1;
+    POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, POWER_ON_TIMEOUT_MS, HDR_ACTION_POWER_ON_DETECT,
+        ctx, POWER_ON_DETECT_HDR_TASK_NAME);
+    return 0;
+}
+
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+void register_power_manager_hook(power_manager_context_t *ctx)
+{
+    ctx->hook = u_malloz(sizeof(struct __power_manager_hook));
+    ctx->hook->on_post_init_route = on_post_init_route;
+    ctx->hook->on_key_event_route = on_key_event_route;
+}

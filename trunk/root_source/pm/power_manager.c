@@ -254,6 +254,9 @@ static int pm_key_event_handler(void *user_data, uint16_t keycode, uint16_t keyt
     // LOG_PM("SHORT==>keyevent(%d,%d) event.", keycode, keytype);
     if (keycode == KEY_CODE_1) {
         ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER);
+        if (ctx->hook && ctx->hook->on_key_event_route) {
+            ctx->hook->on_key_event_route(ctx, keycode, keytype);
+        }
     } else {
         set_suspend_counter("non-wakeup-key-reset", get_suspend_timeout(ctx), true);
         LOG_PM("not wakeup-key, only reset");
@@ -286,7 +289,6 @@ static void on_pm_broadcast_receive(broadcast_mask_id_t id,
 
     if (id.code == ID_BROADCAST_SYS_SHUTDOWN) {
         LOG_PM("==>ID_BROADCAST_SYS_SHUTDOWN");
-        ctx->priv.is_shutdown = 1;
         ctx->enable_pmu_sleep("SYS_SHUTDOWN", false);
         return;
     }
@@ -477,11 +479,13 @@ static void pm_sleep_thread(const void *args)
 static int on_post_pm_init(void *ptr)
 {
     power_manager_context_t *ctx = ptr;
-
     /// 默认打开pmu sleep.
     ctx->priv.pmu_sleep_enable = true;
     ctx->priv.user_set_to_sleep = false;
-
+    /// 钩子处理.
+    if (ctx->hook && ctx->hook->on_post_init_route) {
+        ctx->hook->on_post_init_route(ctx);
+    }
     /// 注册感兴趣的广播事件.
     ctx->priv.pm_bcd = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.pm_bcd->context = ctx;
@@ -500,6 +504,7 @@ static int on_post_pm_init(void *ptr)
     keytype |= KEY_EVENT_DOWN;
     keytype |= KEY_EVENT_UP;
     keytype |= KEY_EVENT_LONG_2S;
+    keytype |= KEY_EVENT_LONG_3S;
     keytype |= KEY_EVENT_LONG_5S;
     keytype |= KEY_EVENT_LONG_9S;
     key_input_context_t *input = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
@@ -602,10 +607,7 @@ static int pm_release_wakelock(const char *caller)
 
 static int external_wakeup_policy(power_manager_context_t *ctx, pm_wakeup_reason_e reason)
 {
-
-
     ctx->priv.is_back_ground_wakeup = false;
-
     switch (reason) {
         case PM_WAKEUP_REASON_IMU_IRQ:
             #if IS_SUPPORT_AIRPLANE_MODE
@@ -761,9 +763,30 @@ static bool is_on_suspend_gotoing(void)
     return (thiz->priv.pm_state_change_progress == PM_SUSPEND_GOING);
 }
 
-static bool is_on_is_shutdown(void)
+static int system_power_control(bool state)
 {
-    return thiz->priv.is_shutdown == 1;
+    if (state) {
+        thiz->priv.is_system_power_on = true;
+        LOG_PM("system_power_on");
+        return 0;
+    } 
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_INT(st);
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    EXCEPTION_CHECK_INT(pbus);
+    rt_device_node_t *power_dev = pbus->find_device(ID_DEVICE_POWER);
+    EXCEPTION_CHECK_INT(power_dev);
+    thiz->priv.is_system_power_on = false;
+    LOG_PM("system_power_off");
+    st->flash_protect(true); /// 禁止flash读写操作.
+    int args[] = {0};
+    power_dev->ioctl(power_dev, OP_CODE_POWER_CONTROL, (void *)args);
+    return 0;
+}
+
+static bool is_system_power_on(void)
+{
+    return thiz->priv.is_system_power_on;
 }
 
 /*
@@ -781,12 +804,12 @@ void *register_module_for_pm_new(list_head_t *list_head)
     ptr->pm_wakeup = pm_wakeup;
     ptr->enable_pmu_sleep = enable_pmu_sleep;
     ptr->is_pmu_sleep = is_pmu_sleep;
-    
+    ptr->system_power_control = system_power_control;
     ptr->set_period_wake_up = set_period_wake_up;
-    ptr->is_background_wakeup = is_background_wakeup;
-    ptr->is_on_suspend_gotoing = is_on_suspend_gotoing;
-    ptr->is_on_is_shutdown = is_on_is_shutdown;
     ptr->pm_get_wakeup_reason = pm_get_wakeup_reason;
+    ptr->is_on_suspend_gotoing = is_on_suspend_gotoing;
+    ptr->is_background_wakeup = is_background_wakeup;
+    ptr->is_system_power_on = is_system_power_on;
 
     MUTEX_INIT(&ptr->priv.m_wake_lock, mutex_caller_wakelock);
     MUTEX_INIT(&ptr->priv.m_suspend_lock, mutex_suspend_lock);

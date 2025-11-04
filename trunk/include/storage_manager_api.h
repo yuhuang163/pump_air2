@@ -152,6 +152,7 @@ typedef struct storage_manager_context {
     void (*put_store_ram_val)(persist_store_id_e id, int arg1, int arg2,  void *val_in);
     int (*get_store_ram_val)(persist_store_id_e id, int arg1, int arg2, void *val_out);
     int (*user_database_reset)(void);
+    int (*flash_protect)(int protect_enable);  /// 保护flash读写操作.
     /// 外部hook点.
     struct __storage_hook {
         int (*on_post_init_route)(struct storage_manager_context *st);
@@ -166,9 +167,7 @@ typedef struct storage_manager_context {
         struct rt_device_node *db_dev;
         /// 外挂flash
         // struct extflash_interface *extflash_if;
-        os_mutex_id db_rw_lock;
         os_mutex_id storage_rw_lock;
-        os_mutex_id breast_pump_data_rw_lock;
         /// 系统用户数据存储.
         sys_persist_info_t sys_info;
         /// 记录sys_info的crc,如果有改变则需要更新到flash.

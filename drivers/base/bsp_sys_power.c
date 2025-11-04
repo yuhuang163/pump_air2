@@ -47,8 +47,6 @@ static void sys_power_gpio_control(bool enable)
 
 static int sys_power_dev_open(struct rt_device_node *dev)
 {
-    // sys_power_gpio_init();
-    // sys_power_gpio_control(true);
     return 0;
 }
 
@@ -69,7 +67,13 @@ static int sys_power_dev_write(struct rt_device_node *dev, const void *buf, uint
 
 static int sys_power_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *args)
 {
+    uint32_t *temp = (uint32_t *)args;
     switch (op_code) {
+        case OP_CODE_POWER_CONTROL: {
+            EXCEPTION_CHECK_INT(temp);
+            sys_power_gpio_control(temp[0] > 0 ? true : false);
+        }
+        break;
         default:
             break;
     }

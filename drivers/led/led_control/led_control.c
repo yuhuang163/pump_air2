@@ -237,10 +237,6 @@ int bsp_led_init(void)
 {
     led_timer_init();
     led_pin_init();
-    led_luminous_t luminous = {.level = LED_LEVEL_MAX};
-    for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
-        led_level_set(i, luminous);
-    }
     RUN_NEW_THREAD(&s_led_device_thd, "led", led_device_thread, RT_PRIO_LED_DEVICE_THREAD, (LED_DEVICE_THREAD_STACKSIZE));
     return BSP_OK;
 }

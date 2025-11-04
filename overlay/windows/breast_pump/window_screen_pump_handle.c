@@ -9,9 +9,6 @@
 *****************************************************************************************
 */
 #define PAGE_STATIC_NAME                    pump
-#define PAGE_ANIMATION_FREQ                 (12.5f)
-#define PAGE_ANIMATION_TIME_MS              (uint16_t)((1000.0f / PAGE_ANIMATION_FREQ) + 0.5f)
-#define PAGE_ANIMATION_CNT                  UI_ANIM(PUMP, COMMON, CNT)
 #define PUMP_UI_KEY_CODE                    (KEY_CODE_POWER |KEY_CODE_START | KEY_CODE_MODE | KEY_CODE_FREQUENCY | \
                                             KEY_CODE_BREASTFEEDING | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL)
 #define PUMP_UI_KEY_TYPE                    (KEY_EVENT_CLICK)
@@ -21,10 +18,7 @@
 #define PUMP_START_HDR_TASK_NAME            "pump_start"
 #define PUMP_STATE_CHANGE_HDR_TASK_NAME     "pump_state_change"
 #define PUMP_SHOW_ONCE_HDR_TASK_NAME        "pump_show_once"
-#define PUMP_COMPLETE_HDR_TASK_NAME          "pump_complete"
-#define RECOVERY_DEFAULT_ANI_PLAY_HDR_TASK_NAME "recovery_def_ani_play"
-
-
+#define PUMP_COMPLETE_HDR_TASK_NAME         "pump_complete"
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
@@ -296,7 +290,8 @@ static int entry_event_cb(window_lift_cycle_e new_state,
 
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_UI("==>ON_RESUME #add pump keyevent handler");
-        wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE, on_pump_ui_keyevent_hdr);
+        wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
+             on_pump_ui_keyevent_hdr);
         if (proc->need_start_pump) {
             proc->need_start_pump = 0;
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_START_PUMP, proc,

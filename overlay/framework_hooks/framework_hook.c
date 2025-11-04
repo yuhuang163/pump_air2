@@ -59,6 +59,11 @@ void framework_extra_hook(void)
         register_breast_pump_hook(pump_ctx);
     });
 
+    /// 注册电源管理钩子.
+    power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    CHECK_IF_VALID(power_ctx, {
+        register_power_manager_hook(power_ctx);
+    });
 
 
 }
