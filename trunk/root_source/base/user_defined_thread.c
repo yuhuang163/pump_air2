@@ -69,22 +69,23 @@ static void reboot_system_test_cb(void)
     platform_system_reboot();
 }
 
-static void lcd_data_send_test_cb(void)
+static int lcd_data_send_test_cb(void)
 {
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     rt_device_node_t *lcd_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
-    EXCEPTION_CHECK_VOID(lcd_dev);
+    EXCEPTION_CHECK_INT(lcd_dev);
 
     uint8_t img_id = LCD_DISPLAY_PUMPING_COMPLETED;
 
     lcd_tlvs_t tlvs = {
         .type = LCD_IMG_ID,
         .data_size = 1,
-        .data = &img_id,
+        .data[0] = img_id,
     };
     LOG_PBUS("===> lcd data send test!!!!! %p, %p", &img_id, &tlvs);
     int args[] = {1, (int)&tlvs};
     lcd_dev->ioctl(lcd_dev, OP_CODE_PANEL_DATA_SEND, (void *)args);
+    return 1000;
 }
 
 static void motor_debug_policy_test_cb(void)
@@ -125,8 +126,7 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
 {
     // reboot_system_test_cb();
     // run_pump_test_cb();
-    // lcd_data_send_test_cb();
-   
+    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, lcd_data_send_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, run_led_test_cb(), "pressure_test:continue"); 
     // motor_debug_policy_test_cb();
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
@@ -144,7 +144,7 @@ int run_user_thread_dispatch(void)
 #endif
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     if (wm) {
-        wm->play_boot_animation();
+        wm->window_scheduling_start();
     }
     return 0;
 }

@@ -4,8 +4,8 @@
 */
 #include "root_common_api.h" 
 #include "windows_manager.h" 
-#include "windows_internal_api.h"
 #include "windows_manager_api.h"
+#include "windows_map_define.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -30,7 +30,6 @@ static window_context_record_t s_window_record = {0};
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
 static uint8_t get_current_window_id(void)
 {
     return s_window_record.window_hdr ? s_window_record.window_hdr->window_id : 0;
@@ -43,10 +42,8 @@ static window_context_handle_t *dichotomy_find_window_obj(uint16_t window_id)
     uint16_t tmp = 0;
     uint16_t list_len = 0;
     window_context_handle_t *list;
-
     get_window_state_hdr_list(&list, &list_len);
     int h = list_len -1;
-
     while (h >= l) {
         m = (h + l) / 2;
         tmp = list[m].window_id;
@@ -59,14 +56,12 @@ static window_context_handle_t *dichotomy_find_window_obj(uint16_t window_id)
         }
     }
     LOG_WM("error! not found window_id: %d", window_id);
-
     return NULL;
 }
 
 static enter_new_window_fptr find_window_handle_by_id(uint8_t window_id)
 {
     window_context_handle_t *tmp = dichotomy_find_window_obj(window_id);
-
     if (tmp) {
         return tmp->new_window_cb;
     }
@@ -79,7 +74,6 @@ static int find_window_z_order_by_id(int window_id)
 {
     window_context_record_t *rcd = &s_window_record;
     window_context_handle_t *tmp = dichotomy_find_window_obj(window_id);
-
     if (tmp) {
         if (rcd->window_hdr && (rcd->window_hdr->window_id == window_id)) {
             if (rcd->z_order > WINDOW_PRIO_LOW) {
@@ -104,7 +98,6 @@ static int enter_new_window_policy(uint8_t target_window)
         LOG_WM("allow! target_z_order:%d >= curr:%d", target_z_order, curr_z_order);
         return 0;
     }
-
     LOG_WM("Blocked! z_order: target(%s) < current(%s)", 
         to_window_name(target_window), to_window_name(curr_window));
 
@@ -142,6 +135,22 @@ static void remove_window_history(uint8_t window_id)
     __list_del(head, (void *)id, list_del_one_condition_cb);
     DUMP_HISTORY("*****after-remove*****", head);
     MUTEX_UNLOCK(wm->priv.history_lock);
+}
+
+static int to_valid_window_id(window_manager_context_t *wm, uint8_t window_id)
+{
+    if (!(window_id > ID_WINDOW_BEGIN && window_id < ID_WINDOW_MAX)) {
+        misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+        LOG_WM("%s(window_id:%d)[%d~%d]", to_window_name(window_id), window_id, ID_WINDOW_BEGIN, ID_WINDOW_MAX);
+        do {
+            if (misc->is_charge_plug_in()) {
+                window_id = ID_WINDOW_CHARGE;
+                break;
+            }
+            window_id = wm->is_window_guidance_deployed() ? ID_WINDOW_PUMP : ID_WINDOW_GUIDE;
+        } while (0);
+    }
+    return window_id;
 }
 
 static void push_window_history(uint8_t window_id)
@@ -201,7 +210,7 @@ static int window_switch(window_manager_context_t *wm, multi_func_msg_data_t *ms
 {
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    int new_window_id = is_valid_window_id(msg->union_body.extra.window_id);
+    int new_window_id = wm->is_valid_window_id(msg->union_body.extra.window_id);
     const char *win_name = to_window_name(new_window_id);
     bool is_bg = msg->union_body.extra.is_background == 0x01;
     uint32_t t0 = 0;
@@ -224,7 +233,7 @@ static int window_switch(window_manager_context_t *wm, multi_func_msg_data_t *ms
         return -3;
     }
 
-    if (is_the_same_window(new_window_id)) {
+    if (wm->is_the_same_window(wm, new_window_id)) {
         LOG_WM("thd ignore the same win: (%s/%d)", to_window_name(new_window_id), new_window_id);
         return -4;
     }
@@ -239,7 +248,7 @@ static int window_switch(window_manager_context_t *wm, multi_func_msg_data_t *ms
                 return -5;
             }
 
-            if (wm->system_is_ready) {
+            if (wm->system_is_ready(wm)) {
                 SEND_BROADCAST_ARGS1(ID_BROADCAST_PM_WAKEUP_BY_USER, PM_WAKEUP_REASON_ENTER_NEW_SCREEN);
             }
         }
@@ -272,8 +281,7 @@ static int window_switch(window_manager_context_t *wm, multi_func_msg_data_t *ms
 
 static int window_post_async_msg(window_manager_context_t *wm, multi_func_msg_data_t *msg)
 {
-    int window_id = is_valid_window_id(msg->union_body.window_evt_data.window_id);
-
+    int window_id = wm->is_valid_window_id(msg->union_body.window_evt_data.window_id);
     if (window_id == ID_WINDOW_INVALID) {
         LOGE("ID_WINDOW_INVALID: %d", window_id);
         return -1;
@@ -362,7 +370,6 @@ static void wm_post_hdr_cb(hdr_post_args_t *args)
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
 
     LOG_WM("task name: %s, arg2: %ld, arg1: %ld", args->name, args->arg2, args->arg1);
-
     if (args->arg2 == ACTION_SET_BL) {
         int counter = 0;
         int val = args->arg1;
@@ -393,7 +400,7 @@ static void wm_post_hdr_cb(hdr_post_args_t *args)
             LOG_WM("PM_WAKEUP_REASON_IOT not turn on bl!");
             return;
         }
-        wm->set_backlight(val);
+        wm->priv.ui->set_ui_backlight(wm->priv.ui, val);
     } else if (args->arg2 == ACTION_STOP_LV_TICK_TIMER) {
     #if CUST_LVGL_SUPPORT
         if (pm->is_pm_suspend()) {
@@ -404,7 +411,7 @@ static void wm_post_hdr_cb(hdr_post_args_t *args)
     #endif
     } else if (args->arg2 == ACTION_BOOT_COMPLETED) {
         LOG_WM("====make up a cut if need====");
-        window_boot_completed();
+        wm->window_boot_completed(wm);
     }
 }
 
@@ -416,27 +423,27 @@ static void on_wm_receive_internal(broadcast_mask_id_t id,
     
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
-            {
-                int pm_state = arg1;
-                if (pm_state == ID_SYS_PM_SUSPEND) {
-                    LOG_WM("pm_state : ID_SYS_PM_SUSPEND");
-                    clear_window_history();
-                #if CUST_LVGL_SUPPORT
-                    POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 
-                        100, -1, ACTION_STOP_LV_TICK_TIMER, wm, "lv_tick_stop");
-                #endif
-                } else {
-                    LOG_WM("pm_state : ID_SYS_PM_RESUME");
-                    POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 0, 100, ACTION_SET_BL, thiz, "boot_set_bl-ON2");
-                #if CUST_LVGL_SUPPORT
-                    STOP_TIMER(wm->lv_tick_timer);
-                    START_TIMER(wm->lv_tick_timer, LVGL_TIME_TICK_PERIOD);
-                    wm->lv_tick_status = 1;
-                    LOG_WM("=====lv_tick_status: %d", wm->lv_tick_status);
-                #endif
-                }
+        {
+            int pm_state = arg1;
+            if (pm_state == ID_SYS_PM_SUSPEND) {
+                LOG_WM("pm_state : ID_SYS_PM_SUSPEND");
+                clear_window_history();
+            #if CUST_LVGL_SUPPORT
+                POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 
+                    100, -1, ACTION_STOP_LV_TICK_TIMER, wm, "lv_tick_stop");
+            #endif
+            } else {
+                LOG_WM("pm_state : ID_SYS_PM_RESUME");
+                POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 0, 100, ACTION_SET_BL, thiz, "boot_set_bl-ON2");
+            #if CUST_LVGL_SUPPORT
+                STOP_TIMER(wm->lv_tick_timer);
+                START_TIMER(wm->lv_tick_timer, LVGL_TIME_TICK_PERIOD);
+                wm->lv_tick_status = 1;
+                LOG_WM("=====lv_tick_status: %d", wm->lv_tick_status);
+            #endif
             }
-            break;
+        }
+        break;
 
         case ID_BROADCAST_PM_WAKEUP_BY_USER:
         case ID_BROADCAST_SET_BLACKLIGHT_BY_USER:
@@ -446,7 +453,7 @@ static void on_wm_receive_internal(broadcast_mask_id_t id,
 
         case ID_BROADCAST_SYS_SHUTDOWN:
             LOG_WM("ID_BROADCAST_SYS_SHUTDOWN set_backlight 0");
-            wm->set_backlight(0);
+            wm->priv.ui->set_ui_backlight(wm->priv.ui, 0);
             break;
             
         #if IS_SUPPORT_AIRPLANE_MODE
@@ -456,7 +463,7 @@ static void on_wm_receive_internal(broadcast_mask_id_t id,
                 clear_window_history();
             }
             break;
-            #endif
+        #endif
 
         default:
             break;
@@ -468,7 +475,7 @@ static int dispatch_new_window_args(struct window_manager_context *wm, multi_fun
 {
     uint8_t window_id = msg->union_body.extra.window_id;
 
-    if (is_the_same_window(window_id)) {
+    if (wm->is_the_same_window(wm, window_id)) {
         LOG_WM("ignore the same scr: (%s/%d)", to_window_name(window_id), window_id);
         return -1;
     }
@@ -489,7 +496,7 @@ static int dispatch_new_window_args(struct window_manager_context *wm, multi_fun
 }
 
 /// 开机动画.
-static void play_boot_animation(void)
+static void window_scheduling_start(void)
 {
     window_manager_context_t *wm = thiz;
     do {
@@ -553,7 +560,7 @@ static bool wait_window_ready(int wait_dummy)
 {
     uint16_t retry_times = 0;
     /// BEGIN窗口下未唤醒，发广播接收不到，DUMMY窗口下未跑完唤醒流程，发广播会唤醒异常
-    while (is_current_window(ID_WINDOW_BEGIN) || (wait_dummy && is_current_window(ID_WINDOW_DUMMY))) {
+    while (thiz->is_current_window(thiz, ID_WINDOW_BEGIN) || (wait_dummy && thiz->is_current_window(thiz, ID_WINDOW_DUMMY))) {
         if (retry_times > 200) {
             LOGE("wait system ready timeout!");
             return false;
@@ -574,7 +581,7 @@ static int window_enter_state_change_cb(window_lift_cycle_e new_state,
 {
     window_manager_context_t *wm = ctx->wm;
     if (new_state == ID_SCR_STATE_ON_CREATE) {
-        set_window_private_context(ctx->new_window_id, (void *)ctx);
+        wm->set_window_private_context(wm, ctx->new_window_id, (void *)ctx);
     }
 
     if (ctx->evt_cb_entry) {
@@ -597,13 +604,82 @@ static int window_exit_state_change_cb(window_lift_cycle_e new_state,
 
     if (new_state == ID_SCR_STATE_ON_DESTORY) {
         if (ret == 0) {
-            set_window_private_context(old_window_id, NULL);
+            wm->set_window_private_context(wm, old_window_id, NULL);
         } else {
             LOGW("#window_private[%d] NOT restore!", old_window_id);
         }
     }
 
     return ret;
+}
+
+
+static int dispatch_new_window(window_context_t *ctx)
+{
+    window_context_handle_t *next = NULL;
+    window_manager_context_t *wm = ctx->wm;
+    window_context_record_t *record = &s_window_record;
+    static uint32_t counter = 0;
+
+    next = dichotomy_find_window_obj(ctx->new_window_id);
+    if (!next) {
+        LOG_WM("not found window_id: %d", ctx->new_window_id);
+        return -1;
+    }
+
+    if (wm->is_the_same_window(wm, ctx->new_window_id)) {
+        LOG_WM("ignore the same screen: %s", to_window_name(ctx->new_window_id));
+        return -1;
+    }
+
+    uint32_t t0 = get_timestamp();
+    LOG_WM("switch_windows start: (%s), new_window_id: %d", to_window_name(ctx->new_window_id), (ctx->new_window_id));
+    /// 先停掉上一个 scr_obj
+    if (record->window_hdr != NULL) {
+        LOG_WM("on_pause old scr_obj: (%s)", to_window_name(record->window_hdr->window_id));        
+        if (record->window_hdr->scr_obj->on_pause) {
+            record->window_hdr->scr_obj->on_pause(record->window_context);
+        }
+        window_exit_state_change_cb(ID_SCR_STATE_ON_PAUSE, record->window_context, ctx);
+    }
+    /// 更新当前窗口的层级优先级.
+    record->z_order = (ctx->z_order > WINDOW_PRIO_LOW) ? ctx->z_order : next->z_order;
+    /// 再进入新 scr_obj
+    LOG_WM("create new scr_obj:(%s),counter=[%lu]", to_window_name(next->window_id), (++counter));
+    window_enter_state_change_cb(ID_SCR_STATE_ON_CREATE, ctx, record->window_context);
+    if (next->scr_obj->on_create) {
+        next->scr_obj->on_create(ctx);
+    }
+    
+    window_enter_state_change_cb(ID_SCR_STATE_ON_RESUME, ctx, record->window_context);
+    if (next->scr_obj->on_resume) {
+        next->scr_obj->on_resume(ctx);
+    }
+    
+    /// 释放旧 scr_obj
+    if (record->window_hdr != NULL && record->window_context != NULL) {
+        if (record->window_context->not_push_history) {
+            LOG_WM("not_push_history flag: %s", to_window_name(record->window_hdr->window_id));
+        } else if (ctx->new_window_id != ID_WINDOW_DUMMY) {
+            push_window_history(record->window_hdr->window_id);
+        }
+        /// 清除Flag.
+        wm->clear_window_go_back_history_flag(wm);
+        LOG_WM("destory old scr_obj: (%s)", to_window_name(record->window_hdr->window_id));
+        window_exit_state_change_cb(ID_SCR_STATE_ON_DESTORY, record->window_context, ctx);
+        if (record->window_hdr->scr_obj->on_destory) {
+            record->window_hdr->scr_obj->on_destory();
+        }
+    } else {
+        LOG_WM("Not found prev scr!");
+    }
+    
+    record->window_hdr = next;
+    record->window_context = ctx;
+    LOGE("switch_windows finish: (%s/%d/z_order:%d), escaped: %ld ms", 
+        to_window_name(next->window_id), next->window_id, record->z_order, get_timestamp_ms(t0));
+
+    return 0;
 }
 
 static int go_back_to_history_wrapper(void *wm, window_entry_extra_t *__extra)
@@ -638,8 +714,6 @@ static int on_post_wm_init(void *ptr)
     wm->priv.bcd->id.code |= ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE;
     wm->priv.bcd->receiver_cb = on_wm_receive_internal;
     register_broadcast_receiver(wm->priv.bcd);
-    /// 初始化显示相关.
-    window_flush_post_init(wm);
     RUN_NEW_THREAD(&wm->priv.window_dispatch_thd, "window_dispatch_thd", 
         window_dispatch_thread, RT_PRIO_WINDOW_DISPATCH_THREAD, WM_THREAD_STACKSIZE);
 
@@ -656,12 +730,7 @@ static int on_perpare_wm_init(void *self)
     wm->priv.key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     wm->priv.pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     wm->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    wm->priv.panel_dev = wm->priv.pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
-    DEVICE_IOCTL_ARGS_NO_RET(wm->priv.panel_dev, OP_CODE_PANEL_ADD_READY_CB, display_device_ready_callback);
-    /// 初始化显示相关.
-    window_flush_perpare_init(wm);
-    /// 初始化窗口状态相关.
-    on_perpare_window_state_init(wm);
+    wm->priv.ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     return 0;
 }
 
@@ -669,140 +738,23 @@ static int on_perpare_wm_init(void *self)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int dispatch_new_window(window_context_t *ctx)
-{
-    window_context_handle_t *next = NULL;
-    window_manager_context_t *wm = ctx->wm;
-    window_context_record_t *record = &s_window_record;
-    static uint32_t counter = 0;
-
-    next = dichotomy_find_window_obj(ctx->new_window_id);
-    if (!next) {
-        LOG_WM("not found window_id: %d", ctx->new_window_id);
-        return -1;
-    }
-
-    if (is_the_same_window(ctx->new_window_id)) {
-        LOG_WM("ignore the same screen: %s", to_window_name(ctx->new_window_id));
-        return -1;
-    }
-
-    uint32_t t0 = get_timestamp();
-    LOG_WM("switch_windows start: (%s), new_window_id: %d", to_window_name(ctx->new_window_id), (ctx->new_window_id));
-
-    /// 先停掉上一个 scr_obj
-    if (record->window_hdr != NULL) {
-        LOG_WM("on_pause old scr_obj: (%s)", to_window_name(record->window_hdr->window_id));
-        #if IS_SUPPORT_LED_FESTOON_POLICY
-        if (wm->led_ctx->stop_play_led_policy_if_need) {
-            wm->led_ctx->stop_play_led_policy_if_need();
-        }
-        #endif
-        
-        if (record->window_hdr->scr_obj->on_pause) {
-            record->window_hdr->scr_obj->on_pause(record->window_context);
-        }
-        window_exit_state_change_cb(ID_SCR_STATE_ON_PAUSE, record->window_context, ctx);
-    }
-    /// 更新当前窗口的层级优先级.
-    record->z_order = (ctx->z_order > WINDOW_PRIO_LOW) ? ctx->z_order : next->z_order;
-    /// 再进入新 scr_obj
-    LOG_WM("create new scr_obj:(%s),counter=[%lu]", to_window_name(next->window_id), (++counter));
-    window_enter_state_change_cb(ID_SCR_STATE_ON_CREATE, ctx, record->window_context);
-    if (next->scr_obj->on_create) {
-        next->scr_obj->on_create(ctx);
-    }
-    
-    window_enter_state_change_cb(ID_SCR_STATE_ON_RESUME, ctx, record->window_context);
-    if (next->scr_obj->on_resume) {
-        next->scr_obj->on_resume(ctx);
-    }
-    
-    /// 释放旧 scr_obj
-    if (record->window_hdr != NULL && record->window_context != NULL) {
-        if (record->window_context->not_push_history) {
-            LOG_WM("not_push_history flag: %s", to_window_name(record->window_hdr->window_id));
-        } else if (ctx->new_window_id != ID_WINDOW_DUMMY) {
-            push_window_history(record->window_hdr->window_id);
-        }
-        /// 清除Flag.
-        clear_window_go_back_history_flag();
-        LOG_WM("destory old scr_obj: (%s)", to_window_name(record->window_hdr->window_id));
-        window_exit_state_change_cb(ID_SCR_STATE_ON_DESTORY, record->window_context, ctx);
-        if (record->window_hdr->scr_obj->on_destory) {
-            record->window_hdr->scr_obj->on_destory();
-        }
-    } else {
-        LOG_WM("Not found prev scr!");
-    }
-    
-    record->window_hdr = next;
-    record->window_context = ctx;
-    LOGE("switch_windows finish: (%s/%d/z_order:%d), escaped: %ld ms", 
-        to_window_name(next->window_id), next->window_id, record->z_order, get_timestamp_ms(t0));
-
-    return 0;
-}
-
-
-void window_dispatch_lock(const char *tag)
-{
-    if (tag) {
-        LOG_WM("=>Take: %s.", tag);
-    }
-    MUTEX_LOCK(thiz->priv.ui_draw_lock);
-}
-
-void window_dispatch_unlock(const char *tag)
-{
-    MUTEX_UNLOCK(thiz->priv.ui_draw_lock);
-
-    if (tag) {
-        LOG_WM("=>Give: %s.", tag);
-    }
-}
-
-uint8_t to_valid_window_id(void *disp, uint8_t window_id)
-{
-    if (!(window_id > ID_WINDOW_BEGIN && window_id < ID_WINDOW_MAX)) {
-        window_manager_context_t *wm = disp;
-        misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
-        LOG_WM("%s(window_id:%d)[%d~%d]", to_window_name(window_id), window_id, ID_WINDOW_BEGIN, ID_WINDOW_MAX);
-        do {
-            if (misc->is_charge_plug_in()) {
-                window_id = ID_WINDOW_CHARGE;
-                break;
-            }
-            window_id = is_window_deployed() ? ID_WINDOW_PUMP : ID_WINDOW_GUIDE;
-        } while (0);
-    }
-    return window_id;
-}
-
 /// 显示管理外部注册接口.
 void *register_module_for_window_manager_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, window_manager_context_t);
-
-    ptr->set_backlight = set_window_backlight;
-    ptr->set_is_restting_device = set_system_is_restting_device;
-    ptr->set_window_switch_forbid = set_window_switch_forbid;
-    ptr->system_is_ready = window_system_is_ready;
-    ptr->play_boot_animation = play_boot_animation;
+    ptr->dispatch_new_window = dispatch_new_window;
+    ptr->window_scheduling_start = window_scheduling_start;
     ptr->post_msg_to_window = post_async_msg_to_window;
     ptr->wait_window_ready = wait_window_ready;
-    ptr->is_on_window_dispatch = is_on_window_dispatch;
-    ptr->is_current_window = is_current_window;
     ptr->to_window_name = to_window_name;
     ptr->get_current_window_id = get_current_window_id;
     ptr->dispatch_new_window_args = dispatch_new_window_args;
     ptr->go_back_to_history = go_back_to_history_wrapper;
-    ptr->set_is_playing_rt_ani = set_is_playing_rt_ani;
+    register_window_state_module(ptr);
 
     USE_INIT_LIST_HEAD(&ptr->priv.history_list);
     MUTEX_INIT(&ptr->priv.history_lock, history_stack_lock);
     MUTEX_INIT(&ptr->priv.window_switch_lock, window_switch_lock);
-    MUTEX_INIT(&ptr->priv.ui_draw_lock, ui_update_draw_lock);
     thiz = ptr;
 
     return ADD_MODULE("wm", ID_MODULE_WM, on_perpare_wm_init, 

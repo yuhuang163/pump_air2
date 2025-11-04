@@ -4,7 +4,6 @@
 */
 #include "root_common_api.h"  // IWYU pragma: keep
 #include "ui_time_warpper.h" // IWYU pragma: keep
-
 /*
 * DEFINES
 *****************************************************************************************

@@ -2,7 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "window_screen_pump.h"
+#include "window_screen_pump.h"// IWYU pragma: keep
 
 /*
 * DEFINES
@@ -22,7 +22,7 @@
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
-    LOG_UI("==>REMOVE_ALL_HANDER_TASK"); \
+    LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
 } while (0)
 
 
@@ -43,7 +43,7 @@ INIT_WINDOW_CONTEXT();
 */
 static void local_work_completed(window_manager_context_t *wm)
 {
-    LOG_UI("pump play finish.\n");
+    LOG_WM("pump play finish.\n");
 }
 
 static void on_breast_pump_result_cb(void *user_data, breast_pump_result_t *result)
@@ -66,23 +66,23 @@ static const char *ui_state_to_string(int state)
 static void pump_ui_common_cb(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = args->user_data;
-    LOG_UI("pump_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
+    LOG_WM("pump_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
     EXCEPTION_CHECK_VOID(proc);
     int action = args->arg1;
     if (proc->margic != UI_WINDOW_MARGIC_CODE) {
-        LOG_UI("invalid margic:%x, ignore.", proc->margic);
+        LOG_WM("invalid margic:%x, ignore.", proc->margic);
         return;
     }
-    window_dispatch_lock("pump_ui_hdr");
+
     switch (action) {
         case HDR_ACTION_START_PUMP: {
-            LOG_UI("%s", args->name);
+            LOG_WM("%s", args->name);
         }
         break;
         
         case HDR_ACTION_CHANGE_PUMP_STATUS: {
             int new_state = args->arg2;
-            LOG_UI("%s, new_state: %d", args->name, new_state);
+            LOG_WM("%s, new_state: %d", args->name, new_state);
             if (proc->ui_show_state != new_state) {
                 proc->ui_show_state = new_state;
             }
@@ -96,7 +96,7 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         
         case HDR_ACTION_SHOW_ONCE: {
             int new_state = args->arg2;
-            LOG_UI("%s, new_state: %d", args->name, new_state);
+            LOG_WM("%s, new_state: %d", args->name, new_state);
             if (proc->ui_show_state != new_state) {
                 proc->ui_show_state = new_state;
             }
@@ -104,13 +104,13 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         break;
 
         case HDR_ACTION_SHOW_THEMES_ANI: {
-            LOG_UI("%s", args->name);
+            LOG_WM("%s", args->name);
             /// TODO: 播放主题动画
         }
         break;
 
         case HDR_ACTION_RECOVER_DEFAULT_ANI: {
-            LOG_UI("%s: recovery-play..", args->name);
+            LOG_WM("%s: recovery-play..", args->name);
             start_pump_ui_animation(proc);
         }
         break;
@@ -122,18 +122,18 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
 
         case HDR_ACTION_GOTO_CHARGE_UI: {
             window_manager_context_t *wm = proc->w_ctx.wm;
-            LOG_UI("%s", args->name);
+            LOG_WM("%s", args->name);
             if (wm->priv.misc && wm->priv.misc->is_charge_plug_in()) {
-                LOG_UI("goto charge_ui.");
+                LOG_WM("goto charge_ui.");
             } else {
-                LOG_UI("not charge plug in.");
+                LOG_WM("not charge plug in.");
             }
             proc->goto_charge_ui_flag = 0;
         }
         break;
         case HDR_ACTION_PUMP_COMPLETE: {
             // REMOVE_ALL_HANDER_TASK();
-            LOG_UI("pump complete, show progress time policy.");
+            LOG_WM("pump complete, show progress time policy.");
             show_pump_progress_time_policy(proc, proc->w_ctx.wm->priv.pump);
         }
         break;
@@ -141,7 +141,6 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         default:
         break;
     }
-    window_dispatch_unlock("pump_ui_hdr");
 }
 
 
@@ -162,14 +161,13 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         key_name = "@unknow";
     }
 
-    LOG_UI("%s, keyevent:%d/%d, pump working: %d.", key_name, keycode, keytype, pump_info.do_work);
+    LOG_WM("%s, keyevent:%d/%d, pump working: %d.", key_name, keycode, keytype, pump_info.do_work);
 
     if (proc->goto_charge_ui_flag != 0) {
-        LOG_UI("goto charge ui, ignore key event.");
+        LOG_WM("goto charge ui, ignore key event.");
         return 0;
     }
 
-    window_dispatch_lock("pump_ui-keyevent");
     switch (keycode) {
         case KEY_CODE_POWER:
             switch_pump_power_ui(proc, pump);
@@ -194,11 +192,10 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             break;
 
         default:
-            LOG_UI("unknow keycode: %d, ignore.", keycode);
+            LOG_WM("unknow keycode: %d, ignore.", keycode);
             break;
     }
-    window_dispatch_unlock("pump_ui-keyevent");
-    LOG_UI("keyevent#EXIT: %d: %d", keycode, keytype);
+    LOG_WM("keyevent#EXIT: %d: %d", keycode, keytype);
 
     return 0;
 }
@@ -206,10 +203,8 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
 static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *context, int arg1, int arg2,
      broadcast_priv_data_t *pdata)
 {
-    window_dispatch_lock("pump_ui_bcr_cb");
     if(!GET_WINDOW_CONTEXT()) {
-        LOG_UI("window context not present, return.");
-        window_dispatch_unlock("pump_ui_bcr_cb");
+        LOG_WM("window context not present, return.");
         return;
     }
 
@@ -217,8 +212,7 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
     breast_pump_manager_context_t *pump = proc->w_ctx.wm->priv.pump;
     /// 如果泵奶管理器不存在，忽略.
     if (!pump) {
-        LOG_UI("pump is NULL, return.");
-        window_dispatch_unlock("pump_ui_bcr_cb");
+        LOG_WM("pump is NULL, return.");
         return;
     }
     /// 获取泵奶状态.
@@ -227,12 +221,11 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
     int pump_working = pump->is_on_working();
     /// 如果用户暂停，忽略.
     if (proc->user_pause != 0) {
-        LOG_UI("user_pause ignore.");
-        window_dispatch_unlock("pump_ui_bcr_cb");
+        LOG_WM("user_pause ignore.");
         return;
     }
 
-    LOG_UI("receive broadcast, code: %lx, code_v2: %lx, flag: %d, status: %d, mode: %ld,\
+    LOG_WM("receive broadcast, code: %lx, code_v2: %lx, flag: %d, status: %d, mode: %ld,\
             working: %d, arg1: %d, arg2: %d.", id.code, id.code_v2, proc->is_mode_changed_by_device,
             pump_status, pump_mode, pump_working, arg1, arg2);
 
@@ -243,7 +236,7 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                 /// 泵奶中切换模式，4秒后进入计时界面
                 if (pump_working && PUMP_IS_GOING(pump_status)) {
                     REMOVE_ALL_HANDER_TASK();
-                    LOG_UI("start pump state change task after %ds", PUMP_MODE_CHANGE_TIMEOUT);
+                    LOG_WM("start pump state change task after %ds", PUMP_MODE_CHANGE_TIMEOUT);
                     POST_TASK_HANDLER_DELAYED_ARG5(pump_ui_common_cb, PUMP_MODE_CHANGE_TIMEOUT,
                             HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_HDR_TASK_NAME);
                 }
@@ -267,20 +260,20 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
         case ID_BROADCAST_BREAST_PUMP_FINISH: {
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_PUMP_COMPLETE, 
                 proc, PUMP_COMPLETE_HDR_TASK_NAME);
-            LOG_UI("pump finish, post pump complete task.");
+            LOG_WM("pump finish, post pump complete task.");
         }
         break;
 
         default:
         break;
     }
-    window_dispatch_unlock("pump_ui_bcr_cb");
 }
 
 static int entry_event_cb(window_lift_cycle_e new_state,
     const struct window_context *thiz, const struct window_context *old_scr)
 {
     window_manager_context_t *wm = thiz->wm;
+    ui_manager_context_t *ui = wm->priv.ui;
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
     struct storage_manager_context *st = wm->priv.st;
     /// 获取泵奶控制类型
@@ -289,7 +282,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     }
 
     if (new_state == ID_SCR_STATE_ON_RESUME) {
-        LOG_UI("==>ON_RESUME #add pump keyevent handler");
+        LOG_WM("==>ON_RESUME #add pump keyevent handler");
         wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
              on_pump_ui_keyevent_hdr);
         if (proc->need_start_pump) {
@@ -299,14 +292,14 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
 
         if (wm->priv.misc && wm->priv.misc->is_charge_plug_in()) {
-            LOG_UI("goto charge ui");
+            LOG_WM("goto charge ui");
             proc->goto_charge_ui_flag = 1; /// 设置跳转充电UI标志
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 1500, HDR_ACTION_GOTO_CHARGE_UI, proc, 
                 GOTO_CHARGE_HDR_TASK_NAME);
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
-        LOG_UI("==>ON_CREATE");
-        wm->set_is_playing_rt_ani(false); /// 清除动画播放标志
+        LOG_WM("==>ON_CREATE");
+        ui->ui_animation_play_status_update(ui, false); /// 清除动画播放标志
         start_pump_ui_animation(proc);
     }
     return 0;
@@ -317,14 +310,13 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 {
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
     window_manager_context_t *wm = proc->w_ctx.wm;
+    ui_manager_context_t *ui = wm->priv.ui;
     switch (new_state) {
 
         case ID_SCR_STATE_ON_PAUSE: {
-            wm->set_is_playing_rt_ani(false);
-            window_dispatch_lock("pump_ui-ON_PAUSE");
+            ui->ui_animation_play_status_update(ui, false);
             proc->user_pause = 1;
-            window_dispatch_unlock("pump_ui-ON_PAUSE");
-            LOG_UI("==>ON_PAUSE# remove_keyevent_handler");
+            LOG_WM("==>ON_PAUSE# remove_keyevent_handler");
             wm->priv.key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
             // REMOVE_TASK_HANDLER_DIRECTLY("reset_play_ani_fps");
             // REMOVE_TASK_HANDLER_DIRECTLY("play_ani_start");
@@ -336,32 +328,30 @@ static int exit_event_cb(window_lift_cycle_e new_state,
         break;
 
         case ID_SCR_STATE_ON_DESTORY:
-            LOG_UI("==>ON_DESTORY start");
+            LOG_WM("==>ON_DESTORY start");
             draw_buffer_reset(proc);
             /// 被弹出框临时打断，不释放资源.
             if (new_scr->is_popup_window) {
-                LOG_UI("popup_window(%d) interrupt, not free instance!", new_scr->new_window_id);
+                LOG_WM("popup_window(%d) interrupt, not free instance!", new_scr->new_window_id);
                 return 1;
             }
             REMOVE_ALL_HANDER_TASK();
-            LOG_UI("==>unregister receiver");
+            LOG_WM("==>unregister receiver");
             unregister_broadcast_receiver(&proc->receiver);
-            window_dispatch_lock("pump_ui-ON_DESTORY");
             if (wm->priv.pump) {
                 int status = wm->priv.pump->get_breast_pump_status();
                 if (status > BREAST_PUMP_IDLE && status < BREAST_PUMP_FINISH) {
-                    LOG_UI("==>BREAST_PUMP_FINISH");
+                    LOG_WM("==>BREAST_PUMP_FINISH");
                     wm->priv.pump->set_breast_pump_status(BREAST_PUMP_FINISH);
                 }
-                LOG_UI("==>remove breast_pump_result_listener");
+                LOG_WM("==>remove breast_pump_result_listener");
                 wm->priv.pump->remove_breast_pump_result_listener(on_breast_pump_result_cb);
             }
             /// TODO: 释放图片资源.
             u_free(proc);
             proc = NULL;
             SET_WINDOW_CONTEXT(NULL);
-            window_dispatch_unlock("pump_ui-ON_DESTORY");
-            LOG_UI("==>ON_DESTORY end");
+            LOG_WM("==>ON_DESTORY end");
             break;
         default:
             break;
@@ -375,7 +365,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 */
 window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_t *wm, uint8_t window_id)
 {
-    LOG_UI("enter, time: %ld.", get_timestamp());
+    LOG_WM("enter, time: %ld.", get_timestamp());
     ui_proc_pump_t *proc = u_malloz(sizeof(ui_proc_pump_t));
     SET_WINDOW_CONTEXT(proc);
     /// 设置窗口标识.
@@ -401,7 +391,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     w_ctx->evt_cb_exit = exit_event_cb;
     w_ctx->not_push_history = 1;
     // args->user_data = &proc->bridge;
-    dispatch_new_window(w_ctx);
+    wm->dispatch_new_window(w_ctx);
 
     /// 配置动画播放
 

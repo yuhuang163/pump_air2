@@ -12,6 +12,18 @@ extern "C" {
 #include "windows_manager_api.h" // IWYU pragma: keep
 #include "windows_manager.h" // IWYU pragma: keep
 
+#define CONCAT_MACRO(a, b) a##b
+
+#define CONCAT_MACRO_3(a, b, c) a##b##c
+
+#define UI_STRING_IFY(name) (#name)
+
+#define PAGE_CONTEXT_NAME(name) CONCAT_MACRO(page_context_, name)
+
+#define PAGE_HANDLE_NAME(name) CONCAT_MACRO_3(enter_new_window_, name, _screen)
+
+#define PAGE_CONTEXT_NAME_STR(name) UI_STRING_IFY(name)
+
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

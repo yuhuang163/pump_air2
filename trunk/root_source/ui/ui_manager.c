@@ -2,7 +2,10 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "peripheral_bus_api.h"
+#include "root_common.h"
 #include "root_common_api.h" 
+#include "ui_display.h" // IWYU pragma: keep
 #include "ui_manager.h" // IWYU pragma: keep
 
 /*
@@ -261,13 +264,48 @@ void ui_stop_animation_if_need(void *user_data)
     ui_play_animation_unlock("ui_stop_animation_if_need");
 }
 
-static int on_perpare_ui_init(void *self)
+
+static void local_flush_screen(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t *color_p)
 {
-    return 0;
+
+}
+
+static void local_clear_screen(uint16_t color)
+{
+    EXCEPTION_CHECK_VOID(thiz->priv.panel_dev);
+    DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_CLEAR, &color);
+}
+
+static int post_msg_to_flush(const char *tag, multi_func_msg_data_t *msg)
+{
+    EXCEPTION_CHECK_INT(msg);
+    return MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
+}
+
+static void ui_handler_thread(const void *args)
+{
+    multi_func_msg_data_t msg;
+    thread_context_t *thd = (thread_context_t *)args;
+    CREATE_MSG_TYPE_QUEUE(&thd->msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
+    while (1) {
+        MSG_QUEUE_RECV(thd->msg_id, &msg, OS_WAIT_FOREVER);
+    }
 }
 
 static int on_post_ui_init(void *self)
 {
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    if (pbus) {
+        thiz->priv.panel_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
+    }
+    RUN_NEW_THREAD(&thiz->priv.ui_hdr_thd, "ui_hdr_thd", 
+        ui_handler_thread, RT_PRIO_LVGL_HANDLER_THREAD, (LVGL_RENDER_THREAD_STACKSIZE));
+    return 0;
+}
+
+static int on_perpare_ui_init(void *self)
+{
+    thiz = self;
     return 0;
 }
 
@@ -280,6 +318,7 @@ void *register_module_for_ui_manager_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, ui_manager_context_t);
     MUTEX_INIT(&ptr->priv.ui_draw_lock, ui_draw_lock);
+    register_ui_display(ptr);
     thiz = ptr;
 
     return ADD_MODULE("ui", ID_MODULE_UI, on_perpare_ui_init, 

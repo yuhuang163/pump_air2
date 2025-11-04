@@ -228,7 +228,7 @@ static void key_input_internal_dispatch_thread(const void *args)
         keycode = msg.union_body.parms_16[0];
         keytype = msg.union_body.parms_16[1];
 
-        if (wm->is_on_window_dispatch()) {
+        if (wm->is_on_window_dispatch(wm)) {
             LOGE("on_window_dispatch, ignore: key_event(%d, %d)", keycode, keytype);
             continue;
         }

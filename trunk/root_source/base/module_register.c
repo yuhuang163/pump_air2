@@ -39,6 +39,9 @@ static const module_register_fptr s_module_register[] = {
     #if IS_SUPPORT_MODULE_WM
     register_module_for_window_manager_new,
     #endif
+    #if IS_SUPPORT_MODULE_UI
+    register_module_for_ui_manager_new,
+    #endif
     #if IS_SUPPORT_MODULE_KEY_INPUT
     register_module_for_key_input_manager_new,
     #endif

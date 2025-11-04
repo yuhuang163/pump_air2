@@ -84,50 +84,62 @@ typedef struct window_manager_context {
         struct key_input_context *key; /// 按键管理器
         struct breast_pump_manager_context *pump; /// 泵奶管理器
         struct peripheral_bus_context *pbus; /// 外设总线管理器
-    #if CUST_LVGL_SUPPORT
-        thread_context_t lv_hdr_thd; /// lvgl 显示调度线程
-        os_timer_id lv_tick_timer; /// lvgl tick定时器
-        uint8_t lv_tick_status; /// lvgl tick状态
-    #else
-        thread_context_t window_flush_thd; /// 窗口刷新调度线程
-    #endif
+        struct ui_manager_context *ui; /// UI管理器
         thread_context_t window_dispatch_thd; /// 窗口调度线程
-        struct rt_device_node *panel_dev; /// 显示设备
         multi_func_msg_data_t new_msg; /// 新消息
         uint16_t go_back_history_flag; /// 回退历史标志
         list_head_t history_list; /// 历史列表
         os_mutex_id history_lock; /// 历史列表锁
         os_mutex_id window_switch_lock; /// 窗口切换锁
-        os_mutex_id ui_draw_lock; /// 显示刷新锁
         broadcast_obj_t *bcd; /// 广播对象
         sys_language_e language_index; /// 语言索引
         bool system_is_ready; /// 系统启动完成标志
         void *window_private[ID_WINDOW_MAX]; /// 记录scr上下文指针.
         int display_ready; /// 显示设备状态
-        uint8_t wake_up_without_operate; /// 飞行模式累计次数
         uint8_t is_restting_device; /// 手柄是否正在重置
         int window_switch_forbid;  /// 禁止窗口切换 特殊场景例如系统重置操作时
-        int m_backlight_val; /// 当前背光值
-        bool is_playing_realtime_ani; /// 播放动画期间
-        uint8_t *frame_buffer; /// 帧缓冲区
-        uint8_t *draw_buffer; /// 绘制缓冲区
     } priv;
 
     /// public:
-    void (*set_backlight)(uint16_t val);
-    void (*set_is_restting_device)(uint8_t val);
-    int (*set_window_switch_forbid)(int forbid);
-    bool (*system_is_ready)(void);
-    void (*play_boot_animation)(void);
+    int (*dispatch_new_window)(struct window_context *ctx);
+    /// 系统是否启动完成
+    bool (*system_is_ready)(struct window_manager_context *wm);
+    /// 系统启动完成
+    void (*window_boot_completed)(struct window_manager_context *wm);
+    /// 窗口调度开始
+    void (*window_scheduling_start)(void);
+    /// 发送消息到窗口
     int (*post_msg_to_window)(const char *tag, multi_func_msg_data_t *msg);
+    /// 等待窗口准备就绪
     bool (*wait_window_ready)(int wait_dummy);
-    bool (*is_current_window)(uint8_t window_id);
-    bool (*is_on_window_dispatch)(void);
+    /// 是否当前窗口
+    bool (*is_current_window)(struct window_manager_context *wm, uint8_t window_id);
+    bool (*is_the_same_window)(struct window_manager_context *wm, uint8_t new_window_id);
+    bool (*is_valid_window_id)(uint8_t window_id);
+    /// 窗口引导是否已部署
+    bool (*is_window_guidance_deployed)(void); 
+    /// 窗口调度相关.
+    bool (*is_on_window_dispatch)(struct window_manager_context *wm);
+    /// 窗口上下文相关.
+    void (*set_window_private_context)(struct window_manager_context *wm, uint8_t window_id, void *context);
+    void *(*get_window_private_context)(struct window_manager_context *wm, uint8_t window_id);
+    /// 窗口入口参数相关.
+    const void *(*get_window_entry_extra)(struct window_manager_context *wm);
+    /// 系统是否正在重置设备标志
+    void (*set_system_is_restting_device)(struct window_manager_context *wm, bool val); 
+    bool (*get_system_is_restting_device)(struct window_manager_context *wm);
+    /// 禁止窗口切换
+    int (*set_window_switch_forbid)(struct window_manager_context *wm, int forbid);
+    /// 窗口名称相关.
     const char *(*to_window_name)(uint8_t window_id);
+    /// 获取当前窗口ID
     uint8_t (*get_current_window_id)(void);
-    void (*set_is_playing_rt_ani)(bool flag);
+    /// 调度新窗口参数
     int (*dispatch_new_window_args)(struct window_manager_context *wm, multi_func_msg_data_t *msg);
+    /// 回退历史相关.
     int (*go_back_to_history)(void *wm, window_entry_extra_t *__extra);
+    /// 清除回退历史标志
+    void (*clear_window_go_back_history_flag)(struct window_manager_context *wm);
 } window_manager_context_t;
 
 #ifdef __cplusplus

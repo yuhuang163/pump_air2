@@ -234,7 +234,7 @@ static void on_connect_status_change(ble_manager_context_t *ctx, int new_status,
     }
 
     /// 系统未准备好，忽略
-    if (!(wm && wm->system_is_ready())) {
+    if (!(wm && wm->system_is_ready(wm))) {
         LOGW("system is not ready, ignore: %d", new_status);
         return;
     }

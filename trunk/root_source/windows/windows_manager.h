@@ -10,29 +10,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "windows_manager_api.h" // IWYU pragma: keep
-#include "windows_display.h" // IWYU pragma: keep
-
-#ifndef MAX_UI_DRAW_PROP
-#define MAX_UI_DRAW_PROP (8)
-#endif
-
-#define CONCAT_MACRO(a, b) a##b
-
-#define CONCAT_MACRO_3(a, b, c) a##b##c
-
-#define UI_STRING_IFY(name) (#name)
-
-#define PAGE_CONTEXT_NAME(name) CONCAT_MACRO(page_context_, name)
-
-#define PAGE_HANDLE_NAME(name) CONCAT_MACRO_3(enter_new_window_, name, _screen)
-
-#define PAGE_CONTEXT_NAME_STR(name) UI_STRING_IFY(name)
-
-#ifndef LVGL_TIME_TICK_PERIOD
-#define LVGL_TIME_TICK_PERIOD (10)
-#endif
-
-#define LVGL_HDR_TASK_PERIOD (16)
+#include "ui_manager_api.h" // IWYU pragma: keep
 
 #define DEBUG_LV_FPS (1)
 
@@ -60,6 +38,27 @@ do { \
         LOG_WM("%s:list is null", tag); \
     } \
 } while (0)
+
+// 窗口引用记录宏定义.
+#define INIT_WINDOW_CONTEXT() \
+    static void *__s_window_refs = NULL
+
+#define GET_WINDOW_CONTEXT() (__s_window_refs)
+
+#define SET_WINDOW_CONTEXT(ctx) \
+    do { \
+        __s_window_refs = ctx; \
+        LOG_UI("set_window_context:%p", __s_window_refs); \
+    } while (0)
+
+#define IS_WINDOW_CONTEXT_PRESENT(closure) \
+    do { \
+        if (__s_window_refs != NULL) { \
+            { closure } \
+        } else { \
+            LOG_UI("Oops! NOT WINDOW_PRESENT"); \
+        } \
+    } while (0)
 
 typedef enum {
     ACTION_SET_BL = 1,
@@ -104,18 +103,7 @@ typedef int (*window_life_cycle_exit_cb)(window_lift_cycle_e new_state,
 
 typedef int (*window_async_evt_handler_cb)(struct window_event_data *evt_data);
 
-typedef struct {
-    /// 传入 get_res_buf使用，一般为 window_context_t
-    void *user_data;
-    /// 需要获取的图片资源ID号
-    uint16_t res_id; 
-    /// 存放图片数据 draw_buffer
-    uint8_t *dest;
-    /// 移动的指针，用来提高刷新率，加载不同的图片时移动 dest_addr 位置即可，不需要memcpy
-    uint8_t **dest_addr;
-    /// 移动的指针 dest_addr 原始地址，当在内存列表里面找不到图片时，让 dest_addr 回到原位再从Flash读取数据
-    uint8_t **dest_addr_base;
-} get_res_buf_args_t;
+
 
 typedef struct window_context {
     /// 当前窗口ID
@@ -128,6 +116,8 @@ typedef struct window_context {
     void *user_data;
     /// 窗口管理器上下文.
     window_manager_context_t *wm;
+    /// UI管理器上下文.
+    ui_manager_context_t *ui;
     /// 窗口事件异步处理回调.
     window_async_evt_handler_cb async_evt_handler_cb;
     /// 窗口进入类型
@@ -176,7 +166,7 @@ typedef struct {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-
+void register_window_state_module(window_manager_context_t *wm);
 #ifdef __cplusplus
 }
 #endif

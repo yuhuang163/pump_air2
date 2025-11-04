@@ -4,8 +4,8 @@
 */
 #include "root_common.h"
 #include "root_common_api.h" // IWYU pragma: keep
-#include "windows_internal_api.h" // IWYU pragma: keep
 #include "windows_manager.h" // IWYU pragma: keep
+#include "windows_map_define.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -40,10 +40,10 @@ DECLARE_WM_HANDLE_OBJ(m_window_fac);
 *****************************************************************************************
 */
 const window_life_cycle_t m_ui_screen_null = {
-.on_create = NULL,
-.on_resume = NULL,
-.on_pause = NULL, 
-.on_destory = NULL,
+    .on_create = NULL,
+    .on_resume = NULL,
+    .on_pause = NULL, 
+    .on_destory = NULL,
 };
 
 /**
