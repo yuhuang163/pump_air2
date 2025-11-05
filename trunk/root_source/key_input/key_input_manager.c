@@ -80,6 +80,18 @@ static const char *to_event_name(uint32_t keytype)
             return ":2s";
         case KEY_EVENT_LONG_3S:
             return ":3s";
+        case KEY_EVENT_LONG_4S:
+            return ":4s";
+        case KEY_EVENT_LONG_5S:
+            return ":5s";
+        case KEY_EVENT_LONG_6S:
+            return ":6s";
+        case KEY_EVENT_LONG_7S:
+            return ":7s";
+        case KEY_EVENT_LONG_8S:
+            return ":8s";
+        case KEY_EVENT_LONG_9S:
+            return ":9s";
         case KEY_EVENT_LONG_10S:
             return ":10s";
         default:

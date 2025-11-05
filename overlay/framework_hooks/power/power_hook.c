@@ -2,9 +2,10 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "key_input_manager_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "input_key_code.h"
-#include "power_manager_hook.h"  // IWYU pragma: keep
+#include "power_hook.h"  // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -16,6 +17,7 @@
 #define POWER_ON_DETECT_HDR_TASK_NAME               "power_on_detect"
 #define POWER_ON_INVALID_HDR_TASK_NAME              "power_on_invalid"
 #define POWER_OFF_HDR_TASK_NAME                     "power_off"
+#define SYS_STANDBY_HDR_TASK_NAME             "sys_standby"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -45,15 +47,8 @@ static void system_power_event_cb(hdr_post_args_t *args)
                 pm->system_power_control(false);
             } else {
                 pm->priv.is_power_on_timeout_detect = 0;   
+                SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
                 pm->system_power_control(true);
-                rt_device_node_t *led_dev = pm->priv.pbus->find_device(ID_DEVICE_LED);
-                EXCEPTION_CHECK_VOID(led_dev);
-                led_status_t led_status = {
-                    .mode = LED_MODE_LEVEL,
-                    .un.luminous.level = LED_LEVEL_MAX,
-                };
-                int args[] = {PUMP_LED_ALL_ID, (int)&led_status};
-                led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
             }
         }
         break;
@@ -68,16 +63,16 @@ static void system_power_event_cb(hdr_post_args_t *args)
 
         case HDR_ACTION_POWER_OFF: {
             LOG_PM("%s", args->name);
-            pm->priv.allow_shutdown_flag = 0;
-            rt_device_node_t *led_dev = pm->priv.pbus->find_device(ID_DEVICE_LED);
-            EXCEPTION_CHECK_VOID(led_dev);
-            led_status_t led_status = {
-                .mode = LED_MODE_LEVEL,
-                .un.luminous.level = 0,
-            };
-            int args[] = {PUMP_LED_ALL_ID, (int)&led_status};
-            led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+            pm->priv.allow_shutdown_or_standby = 0;
+            SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
             pm->system_power_control(false);
+        }
+        break;
+
+        case HDR_ACTION_SYS_STANDBY: {
+            LOG_PM("%s", args->name);
+            pm->priv.is_goto_sys_standby = true;
+            pm->goto_suspend_by_user();
         }
         break;
 
@@ -92,22 +87,27 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     if (keycode != KEY_CODE_POWER) {
         return 0;
     }
-
+    /// 待机状态下长按3s退出待机状态.
+    if (ctx->priv.is_enter_suspend == true  && keytype == KEY_EVENT_LONG_3S) {
+        ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER); /// 唤醒电源管理器.
+        return 0;
+    }
+    /// 开机按键超时检测, 如果超时, 则进入关机状态.
     if (keytype == KEY_EVENT_UP && ctx->priv.is_power_on_timeout_detect == 1) {
         POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 10, HDR_ACTION_POWER_ON_INVALID,
             ctx, POWER_ON_INVALID_HDR_TASK_NAME);
         return 0;
     }
-    
-    if (ctx->priv.allow_shutdown_flag == 0 && keytype == KEY_EVENT_DOWN) {
-        ctx->priv.allow_shutdown_flag = ctx->is_system_power_on(); /// 允许关机标志.
-        LOG_PM("allow_shutdown_flag: %d", ctx->priv.allow_shutdown_flag);
+    /// 允许关机/待机标志设置.
+    if (ctx->priv.allow_shutdown_or_standby == 0 && keytype == KEY_EVENT_DOWN) {
+        ctx->priv.allow_shutdown_or_standby = ctx->is_system_power_on(); /// 允许关机/待机标志.
+        LOG_PM("allow_shutdown_or_standby: %d", ctx->priv.allow_shutdown_or_standby);
         return 0;
     }
-
-    if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_flag == 1) {
-        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 0, HDR_ACTION_POWER_OFF,
-            ctx, POWER_OFF_HDR_TASK_NAME);
+    /// 进入待机状态.
+    if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_or_standby == 1) {
+        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 0, HDR_ACTION_SYS_STANDBY,
+            ctx, SYS_STANDBY_HDR_TASK_NAME);
     }
     return 0;
 }

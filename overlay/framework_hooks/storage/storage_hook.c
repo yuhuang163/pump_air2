@@ -218,9 +218,11 @@ static void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, in
                 POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 500, 0, st, "persist_store_task1");
             }
             break;
-        case ID_BROADCAST_SYS_SHUTDOWN:
-            LOG_STORE("-->save persist_store");
-            POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 0, st, "persist_store_task2");
+        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
+            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+                LOG_STORE("-->save persist_store");
+                POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 0, st, "persist_store_task2");
+            }
             break;
         case ID_BROADCAST_SYS_PERSIST_INFO_SAVE:
                 PRIV_DATA_TO_USER_DATA_V2(user_data, pdata, pump_result_info_t);

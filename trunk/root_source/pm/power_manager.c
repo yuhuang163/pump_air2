@@ -251,27 +251,37 @@ static int pm_resume_internal(power_manager_context_t *ctx)
 static int pm_key_event_handler(void *user_data, uint16_t keycode, uint16_t keytype)
 {
     power_manager_context_t *ctx = user_data;
-    // LOG_PM("SHORT==>keyevent(%d,%d) event.", keycode, keytype);
-    if (keycode == KEY_CODE_1) {
-        ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER);
-        if (ctx->hook && ctx->hook->on_key_event_route) {
-            ctx->hook->on_key_event_route(ctx, keycode, keytype);
+    if (ctx->hook && ctx->hook->on_key_event_route) {
+        ctx->hook->on_key_event_route(ctx, keycode, keytype);
+    }
+    
+    if (keycode != KEY_CODE_1) {
+        if (ctx->priv.is_goto_sys_standby == true) {
+            if (keytype == KEY_EVENT_UP || keytype == KEY_EVENT_DOWN) {
+                ctx->priv.is_goto_sys_standby = false;
+            }
+            LOG_PM("is_goto_sys_standby, ignore");
+            return 0;
         }
-    } else {
         set_suspend_counter("non-wakeup-key-reset", get_suspend_timeout(ctx), true);
         LOG_PM("not wakeup-key, only reset");
     }
     return 0;
 }
 
-/// 监听外部唤醒源输入广播.
+static void pm_goto_suspend_by_user(void)
+{
+    thiz->priv.user_set_to_sleep = true;
+    set_suspend_counter("PM_SUSPEND_BY_USER", 0, true);
+    clear_all_wakelock(thiz);
+    pm_suspend_check_handler(thiz);
+}
+
 static void on_pm_broadcast_receive(broadcast_mask_id_t id,
             void *context, int reason, int arg2, broadcast_priv_data_t *pdata)
 {
     power_manager_context_t *ctx = context;
-
     LOG_PM("id: 0x%lx, reason: %d, arg2: %d", id.code, reason, arg2);
-
     if (id.code == ID_BROADCAST_REQ_PM_SUSPEND_BY_USER) {
         LOG_PM("==>PM_SUSPEND_BY_USER#");
         if (arg2 == SUSPEND_BY_BLE) {
@@ -279,17 +289,14 @@ static void on_pm_broadcast_receive(broadcast_mask_id_t id,
             dispatch_pmu_sleep_event(ctx);
             #endif
         } else {
-            ctx->priv.user_set_to_sleep = true;
-            set_suspend_counter("PM_SUSPEND_BY_USER", 0, true);
-            clear_all_wakelock(ctx);
-            pm_suspend_check_handler(ctx);
+            ctx->goto_suspend_by_user();
         }
         return;
     }
 
-    if (id.code == ID_BROADCAST_SYS_SHUTDOWN) {
-        LOG_PM("==>ID_BROADCAST_SYS_SHUTDOWN");
-        ctx->enable_pmu_sleep("SYS_SHUTDOWN", false);
+    if (id.code == ID_BROADCAST_SYS_POWER_STATE_CHANGE) {
+        LOG_PM("==>ID_BROADCAST_SYS_POWER_STATE_CHANGE");
+        ctx->enable_pmu_sleep("SYS_POWER_STATE_CHANGE", false);
         return;
     }
 
@@ -492,7 +499,7 @@ static int on_post_pm_init(void *ptr)
     ctx->priv.pm_bcd->name = "power_ctx";
     ctx->priv.pm_bcd->id.code |= ID_BROADCAST_PM_WAKEUP_BY_USER;
     ctx->priv.pm_bcd->id.code |= ID_BROADCAST_REQ_PM_SUSPEND_BY_USER;
-    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_SYS_SHUTDOWN;
+    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
     ctx->priv.pm_bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.pm_bcd->receiver_cb = on_pm_broadcast_receive;
     register_broadcast_receiver(ctx->priv.pm_bcd);
@@ -810,7 +817,7 @@ void *register_module_for_pm_new(list_head_t *list_head)
     ptr->is_on_suspend_gotoing = is_on_suspend_gotoing;
     ptr->is_background_wakeup = is_background_wakeup;
     ptr->is_system_power_on = is_system_power_on;
-
+    ptr->goto_suspend_by_user = pm_goto_suspend_by_user;
     MUTEX_INIT(&ptr->priv.m_wake_lock, mutex_caller_wakelock);
     MUTEX_INIT(&ptr->priv.m_suspend_lock, mutex_suspend_lock);
     USE_INIT_LIST_HEAD(&ptr->priv.wake_lock_list);
