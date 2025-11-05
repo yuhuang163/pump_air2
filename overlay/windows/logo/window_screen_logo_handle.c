@@ -83,6 +83,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     wm->dispatch_new_window(w_ctx);
 
     /// 配置动画播放
+    
 
     return ID_WINDOW_DISPLAY_OK;
 }

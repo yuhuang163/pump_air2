@@ -43,7 +43,7 @@ static void ble_pm_change_handler(int arg1)
     if (arg1 == ID_SYS_PM_RESUME) {
         ble_opt_adv_id_e adv = BLE_OPT_ADV_FAST;
         LOG_BLE("ble adv fast start");
-        ctx->set_adv_speed(adv);
+        ctx->dispatch_ble_event_wrapper(ctx, BLE_MSG_SET_ADV_START, (uint8_t *)&adv, sizeof(adv));
     } else {
         LOG_BLE("ble adv stop");
         ble_opt_adv_id_e adv = BLE_OPT_ADV_STOP;
@@ -191,9 +191,6 @@ static int ble_adv_speed_set(int speed)
 
     LOG_BLE("adv speed: %d", speed);
     ble_obj->priv.adv_speed_flag = speed;
-    if (speed != BLE_OPT_ADV_STOP) {
-        ctx->dispatch_ble_event_wrapper(ctx, BLE_MSG_SET_ADV_START, (uint8_t *)&opt, sizeof(opt));
-    }
     return 0;
 }
 

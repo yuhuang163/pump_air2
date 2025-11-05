@@ -10,32 +10,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
-#include "ui_time_warpper.h"
 #include "project_config.h" // IWYU pragma: keep
-
-#if !CUST_LVGL_SUPPORT
-typedef uint16_t ui_color_t;
-typedef void * ui_obj_t;
-typedef struct {
-
-    uint32_t cf : 5;          /*Color format: See `lv_img_color_format_t`*/
-    uint32_t always_zero : 3; /*It the upper bits of the first byte. Always zero to look like a
-                                 non-printable character*/
-
-    uint32_t reserved : 2; /*Reserved to be used later*/
-
-    uint32_t w : 11; /*Width of the image map*/
-    uint32_t h : 11; /*Height of the image map*/
-} ui_img_header_t;
-
-typedef struct {
-    ui_img_header_t header; /**< A header describing the basics of the image*/
-    uint32_t data_size;     /**< Size of the image in bytes*/
-    const uint8_t * data;   /**< Pointer to the data of the image*/
-} ui_img_dsc_t;
-
-#endif
-
 
 /// 图片数据包装初始化.
 #if CUST_LVGL_SUPPORT 
@@ -64,17 +39,6 @@ do { \
 } while (0)
 #endif
 
-/// 图片数据包装.
-typedef struct {
-    int exit_flag;
-    int res_index;
-    int lang_index;
-    int mode_index;
-    uint16_t x;
-    uint16_t y;
-    ui_img_dsc_t img_dsc;
-} ui_img_dsc_wrapper_t;
-
 /// 叠图送给LVGL显示的步骤
  typedef enum {
     OVERLAY_IMG_DIS_STEP_FULL_BG,
@@ -82,28 +46,6 @@ typedef struct {
     OVERLAY_IMG_DIS_STEP_LVGL_SHOW,
     OVERLAY_IMG_DIS_STEP_MAX
 } overlay_img_dis_step_e;
-
-/// 获取图片资源回调.
-typedef void *(*ui_get_img_res_loop_fptr)(void *user_data, int args1, int args2);
-typedef struct {
-    ui_get_img_res_loop_fptr get_img_res_cb;
-    const char *(*get_dest_text_show)(int args1, int args2);
-    void (*show_ui_text)(int *argv, int argc, const char *text);
-    void (*set_bg_img_color)(int args, ui_color_t color);
-    void *(*draw_qrcode_view)(void *user_data, int qr_size, int x, int y, const char *text);
-    int (*animation_progress_hook)(void *user_data, int index, int total);
-    uint16_t ani_loop_play;
-    int16_t x;
-    int16_t y;
-    int16_t w;
-    int16_t h;
-    void *bg_img_obj;
-    #if IS_SUPPORT_OVERLAY_IMG
-    uint8_t overlay_img_num;
-    void *overlay_img_bg_img_obj[OVERLAY_IMG_NUM_MAX];
-    ui_obj_t *overlay_img_layer[OVERLAY_IMG_NUM_MAX];
-    #endif
-} ui_process_cb_parms_t;
 
 /// UI绘制.
 #define FULL_COORDINATE(x0, y0) do { x = x0; y = y0; } while (0)
@@ -162,43 +104,7 @@ typedef struct {
         _user_bridge->y = (_y); \
     }while(0)
 
-typedef enum {
-    ANI_TIMER_DRAW_BEFORE = 0, /// 背景合并之前
-    ANI_TIMER_DRAW_AFTER, /// 背景合并之后
-    ANI_TIMER_DRAW_FINISH, /// 退出.
-} ui_ani_progress_state_e;
 
-/// 动画绘制进度回调.
-typedef void (*progress_cb_fptr)(void *user_data, int index, ui_ani_progress_state_e state);
-
-/// 动画绘制信息.
-typedef struct ui_play_info {
-    const char *tag;
-    void *user_data;
-    const uint16_t *res_array;
-    uint16_t res_count;
-    int fps;
-    ui_process_cb_parms_t *parms;
-    progress_cb_fptr progress_cb;
-} ui_play_info_t;
-
-/// 动画绘制对象.
-typedef struct ui_animation_play {
-    /// private:
-    char *tag;
-    void *user_data;
-    uint16_t *res_array;
-    uint16_t res_count;
-    uint16_t played_count;
-    ui_img_dsc_wrapper_t img_wrap;
-    #if IS_SUPPORT_OVERLAY_IMG
-    ui_img_dsc_wrapper_t img_wrap_overlay[OVERLAY_IMG_NUM_MAX];
-    #endif
-    ui_timer_t *update_timer;
-    /// public:
-    void (*progress_cb)(void *user_data, int index, ui_ani_progress_state_e state);
-    void (*reset_play_count_cb)(struct ui_animation_play *thiz);
-} ui_animation_play_t;
 
 /// 动画绘制合并数组长度.
 #ifndef MAX_UI_DRAW_PROP
@@ -248,11 +154,6 @@ typedef struct {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void ui_draw_sync_fb(void *user_data, ui_draw_property_t *draw, int length);
-#if IS_SUPPORT_OVERLAY_IMG
-void ui_draw_sync_fb_overlay_img(void *user_data, ui_draw_property_t *draw, int length, window_manager_context_t *wm, uint8_t layer_idx);
-#endif
-void full_data_to_frame_buffer_offset(uint8_t *fb, uint8_t *src, int w1, int w2, int h2, int x0, int y0, int x, int y);
 
 #ifdef __cplusplus
 }

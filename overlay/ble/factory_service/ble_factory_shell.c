@@ -5,8 +5,6 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ble_manager.h" // IWYU pragma: keep
 #include "ble_factory_message.h" // IWYU pragma: keep
-#include <stdint.h>
-#include <string.h>
 #include "ble_factory_shell.h" // IWYU pragma: keep
 
 /*

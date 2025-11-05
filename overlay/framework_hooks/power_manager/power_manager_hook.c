@@ -112,7 +112,7 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     return 0;
 }
 
-static int on_post_init_route(struct power_manager_context *ctx)
+static int on_post_power_init_route(struct power_manager_context *ctx)
 {
     EXCEPTION_CHECK_INT(ctx);
     ctx->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
@@ -133,6 +133,6 @@ static int on_post_init_route(struct power_manager_context *ctx)
 void register_power_manager_hook(power_manager_context_t *ctx)
 {
     ctx->hook = u_malloz(sizeof(struct __power_manager_hook));
-    ctx->hook->on_post_init_route = on_post_init_route;
+    ctx->hook->on_post_init_route = on_post_power_init_route;
     ctx->hook->on_key_event_route = on_key_event_route;
 }
