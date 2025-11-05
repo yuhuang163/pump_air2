@@ -128,23 +128,30 @@ typedef struct ui_manager_context {
     /// private:
     struct __ui_manager_private {
         thread_context_t ui_hdr_thd; /// UI显示调度线程
+        os_timer_id lv_tick_timer; /// LVGL定时器
         os_mutex_id ui_draw_lock; /// 显示刷新锁
+        broadcast_obj_t m_bcd; /// 广播监听对象
         struct rt_device_node *panel_dev; /// 显示设备
+        struct rt_device_node *led_dev; /// LED设备
         bool is_playing_ui_animation; /// 是否正在播放UI动画
         uint8_t ui_backlight_val; /// 背光亮度
+        bool lv_tick_timer_running; /// LVGL定时器是否正在运行
+        ui_animation_play_t play_info; /// 当前播放的动画信息
     } priv;
 
     /// public:
-    void (*ui_animation_play_init)(ui_animation_play_t *ani, ui_play_info_t play_info);
-    void (*set_ui_backlight)(struct ui_manager_context *thiz, uint16_t val);
-    bool (*is_ui_backlight_on)(struct ui_manager_context *thiz);
-    void (*ui_animation_play_status_update)(struct ui_manager_context *thiz, bool flag);
+    void (*animation_play_status_update)(struct ui_manager_context *thiz, bool flag);
     void (*play_animation_lock)(const char *tag);
     void (*play_animation_unlock)(const char *tag);
     /// 外部hook点.
     struct __ui_manager_hook {
-        int (*on_post_init_route)(struct ui_manager_context *st);
-        int (*on_perpare_init_route)(struct ui_manager_context *st);
+        int (*on_post_init_route)(struct ui_manager_context *thiz);
+        int (*on_perpare_init_route)(struct ui_manager_context *thiz);
+        void (*lvgl_display_handler)(struct ui_manager_context *thiz);
+        void (*ui_animation_play_init)(struct ui_manager_context *thiz, ui_play_info_t play_info);
+        void (*on_ui_broadcast_receiver)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
+        void (*set_ui_backlight)(struct ui_manager_context *thiz, uint16_t val);
+        bool (*is_ui_backlight_on)(struct ui_manager_context *thiz);
     } *hook;
 } ui_manager_context_t;
 

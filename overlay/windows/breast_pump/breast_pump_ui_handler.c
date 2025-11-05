@@ -2,37 +2,25 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "hal_led.h"
+#include "root_common.h"
+#include "ui_img_define.h"
 #include "window_screen_pump.h"
-#include "breast_pump_manager.h" // IWYU pragma: keep
+#include "breast_pump_manager.h" 
 
 /*
 * DEFINES
 *****************************************************************************************
 */
-#define PAGE_ANIMATION_FREQ                 (12.5f)
-#define PAGE_ANIMATION_TIME_MS              (uint16_t)((1000.0f / PAGE_ANIMATION_FREQ) + 0.5f)
-#define PAGE_ANIMATION_CNT                  UI_ANIM(PUMP, COMMON, CNT)
+#define PAGE_ANIMATION_FREQ                 (12)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 默认模式查找表，如有新资源和模式需要添加到这里.
-static ui_pump_mode_map_t s_pump_mode_map_list_default[] = {
-    { .res_id = 0,                 .mode_id = BREAST_PUMP_STIMULATION_MODE}, /// 刺激
-    { .res_id = 0,                 .mode_id = BREAST_PUMP_PUMP_MODE}, /// 吸乳
-    { .res_id = 0,                 .mode_id = BREAST_PUMP_MIX_MODE}, /// 混合
-    { .res_id = 0,                 .mode_id = BREAST_PUMP_CUSTOM_MODE}, /// 个性化
-    { .res_id = 0,                 .mode_id = BREAST_PUMP_PP_MILK_TRACK_MODE}, /// PP追奶
-    { .res_id = 0,                 .mode_id = BREAST_PUMP_MILK_BOOST_MODE}, /// 2+8奶量提升
-    { .res_id = 0,                 .mode_id = BREAST_PUMP_LACTATION_START_MODE}, /// 开奶
+/// 泵奶首页动画资源ID.
+static const uint16_t s_pump_home_res_array[1] = {
+    UI_IMG_ID_HOME_SCREEN,
 };
-
-/// 模式查找表.
-static ui_pump_mode_map_t *s_pump_mode_map_list = NULL;
-/// 模式查找表长度.
-static int s_pump_mode_map_list_len = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -48,9 +36,29 @@ static int s_pump_mode_map_list_len = 0;
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void animation_progress_cb(void *user_data, int index, int state)
+void animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {
-    window_context_t *args = user_data;
+    static int ani_interval = 0;
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_animation_play_t *ani = &ui->priv.play_info;
+    switch (state) {
+        case ANI_TIMER_DRAW_FINISH:
+            ani_interval++;
+            if (ani_interval >= PAGE_ANIMATION_FREQ) {
+                ani_interval = 0;
+                // if (ani->reset_play_count_cb) {
+                //     ani->reset_play_count_cb(ani);
+                // }
+            }
+            break;
+        case ANI_TIMER_DRAW_BEFORE:
+            break;
+        case ANI_TIMER_DRAW_AFTER:
+            break;
+        default:
+            break;
+    }
 }
 
 void start_pump_ui_animation(ui_proc_pump_t *proc)
@@ -59,33 +67,18 @@ void start_pump_ui_animation(ui_proc_pump_t *proc)
         LOG_UI("user_pause ignore.");
         return;
     }
-    /// TODO: 播放泵奶动画
-}
-
-void draw_buffer_reset(ui_proc_pump_t *proc)
-{
-    /// TODO: 重置动画绘制缓冲区.
-}
-
-int get_ui_pump_mode_index(int pump_mode)
-{
-    /// TODO: 根据泵奶模式获取UI索引.
-    return 0;
-}
-
-void init_themes_pump_img_res_id(ui_proc_pump_t *proc)
-{
-    /// TODO: 初始化主题动画资源.
-}
-
-void generate_pump_mode_map_list(ui_proc_pump_t *proc)
-{
-    if (proc == NULL) {
-        LOGE("generate_pump_mode_map_list , proc is null");
-        s_pump_mode_map_list = s_pump_mode_map_list_default;
-        return;
+    ui_manager_context_t *ui = proc->w_ctx.wm->priv.ui;
+    if (ui && ui->hook && ui->hook->ui_animation_play_init) {
+        ui_play_info_t play_info = {
+            .tag = "pump_home_screen",
+            .fps = PAGE_ANIMATION_FREQ,
+            .res_array = (uint16_t *)s_pump_home_res_array,
+            .res_count = LENGTH_OF_ARRAY(s_pump_home_res_array),
+            .progress_cb = animation_progress_cb,
+            .user_data = proc,
+        };
+        ui->hook->ui_animation_play_init(ui, play_info);
     }
-    s_pump_mode_map_list = s_pump_mode_map_list_default;
 }
 
 int switch_pump_common_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, 

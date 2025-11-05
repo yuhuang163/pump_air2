@@ -113,7 +113,6 @@ static void *list_del_one_condition_cb(void *data, list_head_t *pos)
         LOG_WM("del: (%s)", to_window_name(node->window_id));
         return node;
     }
-
     return NULL;
 }
 
@@ -364,113 +363,37 @@ static void window_dispatch_thread(const void *args)
     }
 }
 
-static void wm_post_hdr_cb(hdr_post_args_t *args)
+static void window_boot_completed_cb(hdr_post_args_t *args)
 {
-    window_manager_context_t *wm = args->user_data;
-    power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
-
-    LOG_WM("task name: %s, arg2: %ld, arg1: %ld", args->name, args->arg2, args->arg1);
-    if (args->arg2 == ACTION_SET_BL) {
-        int counter = 0;
-        int val = args->arg1;
-
-        if (val > 0) {
-            #if IS_SUPPORT_AIRPLANE_MODE
-            airplane_mode_context_t *ap = (airplane_mode_context_t *)find_module(ID_MODULE_AP_MODE);
-            if (ap && ap->is_on_airplane_mode()) {
-                LOG_WM("is_on_airplane_mode not turn on bl");
-                return;
-            }
-            #endif
-            
-            do {
-                LOG_WM("wait display_ready ready: %s, %d", args->name, counter);
-                if (wm->priv.display_ready == 1) {
-                    break;
-                }
-                msleep(100);
-            } while (++counter < 20);
-
-        } else {
-            wm->priv.display_ready = 0;
-            LOG_WM("display_ready reset 0");
-        }
-
-        if (pm->pm_get_wakeup_reason() == PM_WAKEUP_REASON_IOT) {
-            LOG_WM("PM_WAKEUP_REASON_IOT not turn on bl!");
-            return;
-        }
-        wm->priv.ui->set_ui_backlight(wm->priv.ui, val);
-    } else if (args->arg2 == ACTION_STOP_LV_TICK_TIMER) {
-    #if CUST_LVGL_SUPPORT
-        if (pm->is_pm_suspend()) {
-            wm->lv_tick_status = 0;
-            LOG_WM("=====lv_tick_status: %d=====", wm->lv_tick_status);
-            STOP_TIMER(wm->lv_tick_timer);
-        }
-    #endif
-    } else if (args->arg2 == ACTION_BOOT_COMPLETED) {
-        LOG_WM("====make up a cut if need====");
-        wm->window_boot_completed(wm);
-    }
+    LOG_WM("====make up a cut if need====");
+    thiz->window_boot_completed(thiz);
 }
 
-/// 接受PM状态切换广播，执行相关状态切换.
-static void on_wm_receive_internal(broadcast_mask_id_t id, 
-    void *context, int32_t arg1, int32_t arg2, broadcast_priv_data_t *pdata)
+static void on_wm_receive_internal(broadcast_mask_id_t id, void *context, int32_t arg1, 
+        int32_t arg2, broadcast_priv_data_t *pdata)
 {
     window_manager_context_t *wm = thiz;
-    
     switch (id.code) {
-        case ID_BROADCAST_PM_STATE_CHANGE:
-        {
-            int pm_state = arg1;
-            if (pm_state == ID_SYS_PM_SUSPEND) {
+        case ID_BROADCAST_PM_STATE_CHANGE: {
+            if (arg1 == ID_SYS_PM_SUSPEND) {
                 LOG_WM("pm_state : ID_SYS_PM_SUSPEND");
                 clear_window_history();
-            #if CUST_LVGL_SUPPORT
-                POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 
-                    100, -1, ACTION_STOP_LV_TICK_TIMER, wm, "lv_tick_stop");
-            #endif
-            } else {
-                LOG_WM("pm_state : ID_SYS_PM_RESUME");
-                POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 0, 100, ACTION_SET_BL, thiz, "boot_set_bl-ON2");
-            #if CUST_LVGL_SUPPORT
-                STOP_TIMER(wm->lv_tick_timer);
-                START_TIMER(wm->lv_tick_timer, LVGL_TIME_TICK_PERIOD);
-                wm->lv_tick_status = 1;
-                LOG_WM("=====lv_tick_status: %d", wm->lv_tick_status);
-            #endif
-            }
+            } 
         }
-        break;
-
-        case ID_BROADCAST_PM_WAKEUP_BY_USER:
-        case ID_BROADCAST_SET_BLACKLIGHT_BY_USER:
-            LOG_WM("SET_BLACKLIGHT_BY_USER");
-            POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 0, 100, ACTION_SET_BL, thiz, "boot_set_bl-ON3");
-            break;
-
-        case ID_BROADCAST_SYS_SHUTDOWN:
-            LOG_WM("ID_BROADCAST_SYS_SHUTDOWN set_backlight 0");
-            wm->priv.ui->set_ui_backlight(wm->priv.ui, 0);
-            break;
-            
-        #if IS_SUPPORT_AIRPLANE_MODE
+        break;            
+    #if IS_SUPPORT_AIRPLANE_MODE
         case ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE:
             LOG_WM("received ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE, arg1: %ld.", arg1);
             if (SETTINGS_AIRPLANE_MODE_ENTER == arg1) {
                 clear_window_history();
             }
             break;
-        #endif
-
+    #endif
         default:
             break;
     }
 }
 
-/// UI窗口调度分发接口.
 static int dispatch_new_window_args(struct window_manager_context *wm, multi_func_msg_data_t *msg)
 {
     uint8_t window_id = msg->union_body.extra.window_id;
@@ -495,7 +418,6 @@ static int dispatch_new_window_args(struct window_manager_context *wm, multi_fun
     return -1;
 }
 
-/// 开机动画.
 static void window_scheduling_start(void)
 {
     window_manager_context_t *wm = thiz;
@@ -507,25 +429,18 @@ static void window_scheduling_start(void)
         msleep(50);
     } while (1);
 
-    #if IS_SUPPORT_MODULE_RES
+#if IS_SUPPORT_MODULE_RES
     if (wm->priv.res) {
         LOG_WM("wait res ready");
         wm->priv.res->wait_init_completed(wm->priv.res);
 
     }
-    #endif
-    
-    POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 500, 100, ACTION_SET_BL,  thiz, "boot_set_bl-ON0");
+#endif
     multi_func_msg_data_t __msg = {0};
-    #if 1
     __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
     LOG_WM("goto logo screen");
-    #else
-    __msg.union_body.extra.window_id = ID_WINDOW_PUMP;
-    LOG_WM("goto pump screen");
-    #endif
     dispatch_new_window_args(wm, &__msg);
-    POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb, 2000, 0, ACTION_BOOT_COMPLETED,  wm, "boot_completed#task");
+    POST_TASK_HANDLER_DELAYED_ARG1(window_boot_completed_cb, 2000, wm, "boot_completed_cb");
 }
 
 static int post_async_msg_to_window(const char *tag, multi_func_msg_data_t *msg)
@@ -545,15 +460,6 @@ static int post_async_msg_to_window(const char *tag, multi_func_msg_data_t *msg)
         MSG_QUEUE_SEND(thiz->priv.window_dispatch_thd.msg_id, msg, 0);
     }
     return 0;
-}
-
-static void display_device_ready_callback(int type, int status)
-{
-    thiz->priv.display_ready = 1;
-    LOG_WM("display_ready set 1");
-    if (type == 1) {
-        POST_TASK_HANDLER_DELAYED_ARG5(wm_post_hdr_cb,  0, 100, ACTION_SET_BL, thiz, "boot_set_bl-ON1");
-    } 
 }
 
 static bool wait_window_ready(int wait_dummy)
@@ -612,7 +518,6 @@ static int window_exit_state_change_cb(window_lift_cycle_e new_state,
 
     return ret;
 }
-
 
 static int dispatch_new_window(window_context_t *ctx)
 {
@@ -710,7 +615,7 @@ static int on_post_wm_init(void *ptr)
     wm->priv.bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     wm->priv.bcd->id.code |= ID_BROADCAST_PM_WAKEUP_BY_USER;
     wm->priv.bcd->id.code |= ID_BROADCAST_SET_BLACKLIGHT_BY_USER;
-    wm->priv.bcd->id.code |= ID_BROADCAST_SYS_SHUTDOWN;
+    wm->priv.bcd->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
     wm->priv.bcd->id.code |= ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE;
     wm->priv.bcd->receiver_cb = on_wm_receive_internal;
     register_broadcast_receiver(wm->priv.bcd);

@@ -87,12 +87,7 @@ typedef struct {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void animation_progress_cb(void *user_data, int index, int state);
 void start_pump_ui_animation(ui_proc_pump_t *proc);
-void draw_buffer_reset(ui_proc_pump_t *proc);
-int get_ui_pump_mode_index(int pump_mode);
-void init_themes_pump_img_res_id(ui_proc_pump_t *proc);
-void generate_pump_mode_map_list(ui_proc_pump_t *proc);
 void show_pump_result_loop(ui_proc_pump_t *proc);
 int switch_pump_common_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
 int switch_pump_power_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump);

@@ -32,6 +32,7 @@ typedef struct {
 } lcd_tlvs_t;
 
 /// 面板数据类型
+#define LCD_TLVS_DATA_TYPE_MAX_SIZE   6
 typedef enum {
     LCD_IMG_ID = 1,   /// 图片ID数据类型
     LCD_DEVICE_RUNNING_TIME = 2,   /// 运行时长
