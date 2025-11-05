@@ -178,7 +178,7 @@ static int on_post_storage_init(void *ptr)
     ctx->priv.mbdc->name = "storage_ctx";
     ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_PERSIST_INFO_SAVE;
     ctx->priv.mbdc->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
-    ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_SHUTDOWN;
+    ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
     #if IS_SUPPORT_DEEP_SLEEP_FUNCTION
     ctx->priv.mbdc->id.code |= ID_BROADCAST_PM_FREEZE_STATE_CHANGE;
     #endif

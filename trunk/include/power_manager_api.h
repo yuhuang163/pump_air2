@@ -54,7 +54,8 @@ typedef struct power_manager_context {
         bool is_back_ground_wakeup;
         bool is_system_power_on;
         bool is_power_on_timeout_detect;
-        bool allow_shutdown_flag;
+        bool allow_shutdown_or_standby;
+        bool is_goto_sys_standby;
     } priv;
 
 /// public:
@@ -66,6 +67,7 @@ typedef struct power_manager_context {
     int (*enable_pmu_sleep)(const char *caller, bool enable);
     int (*is_pmu_sleep)(void);
     int (*system_power_control)(bool state);
+    void (*goto_suspend_by_user)(void);
     void (*set_period_wake_up)(int ms);
     bool (*is_background_wakeup)(void);
     bool (*is_on_suspend_gotoing)(void);

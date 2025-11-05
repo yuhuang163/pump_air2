@@ -73,24 +73,24 @@ void bsp_night_light_init(void)
 
 void bsp_night_light_resume(void)
 {
-    bsp_night_light_init();
+    // bsp_night_light_init();
 }
 
 void bsp_night_light_suspend(void)
 {
-    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)NIGHT_LIGHT_PIN,  
-        HAL_IOMUX_FUNC_AS_GPIO, 
-        HAL_IOMUX_PIN_VOLTAGE_VIO, 
-        HAL_IOMUX_PIN_PULLUP_ENABLE
-    };
+    // struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+    //     (enum HAL_IOMUX_PIN_T)NIGHT_LIGHT_PIN,  
+    //     HAL_IOMUX_FUNC_AS_GPIO, 
+    //     HAL_IOMUX_PIN_VOLTAGE_VIO, 
+    //     HAL_IOMUX_PIN_PULLUP_ENABLE
+    // };
 
-    for (int i = 0; i < ARRAY_SIZE(night_light_cfg); i++) {
-        hal_pwm_disable(night_light_cfg[i].id);
-        gpio_map.pin = (enum HAL_IOMUX_PIN_T)night_light_cfg[i].pin;
-        hal_iomux_init(&gpio_map, 1);
-        hal_gpio_pin_set_dir(night_light_cfg[i].pin, HAL_GPIO_DIR_OUT, 0);
-    }
+    // for (int i = 0; i < ARRAY_SIZE(night_light_cfg); i++) {
+    //     hal_pwm_disable(night_light_cfg[i].id);
+    //     gpio_map.pin = (enum HAL_IOMUX_PIN_T)night_light_cfg[i].pin;
+    //     hal_iomux_init(&gpio_map, 1);
+    //     hal_gpio_pin_set_dir(night_light_cfg[i].pin, HAL_GPIO_DIR_OUT, 0);
+    // }
 }
 
 int bsp_night_light_status_set(void *args)
