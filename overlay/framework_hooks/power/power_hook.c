@@ -47,8 +47,8 @@ static void system_power_event_cb(hdr_post_args_t *args)
                 pm->system_power_control(false);
             } else {
                 pm->priv.is_power_on_timeout_detect = 0;   
-                SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
                 pm->system_power_control(true);
+                SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
             }
         }
         break;

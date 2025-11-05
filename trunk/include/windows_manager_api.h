@@ -84,7 +84,7 @@ typedef struct window_manager_context {
         struct key_input_context *key; /// 按键管理器
         struct breast_pump_manager_context *pump; /// 泵奶管理器
         struct peripheral_bus_context *pbus; /// 外设总线管理器
-        struct ui_manager_context *ui; /// UI管理器
+        // struct ui_manager_context *ui; /// UI管理器
         thread_context_t window_dispatch_thd; /// 窗口调度线程
         multi_func_msg_data_t new_msg; /// 新消息
         uint16_t go_back_history_flag; /// 回退历史标志

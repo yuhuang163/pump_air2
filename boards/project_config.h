@@ -92,7 +92,8 @@ extern "C" {
 #define AIR_PRESSURE_NUM                               (2)
 /// LVGL定时器周期
 #define LVGL_TIME_TICK_PERIOD                          (20) /// 单位ms
-
+/// 开机长按时间
+#define BOOT_LONG_PRESS_TIME                           (3000)
 #ifdef __cplusplus
 }
 #endif

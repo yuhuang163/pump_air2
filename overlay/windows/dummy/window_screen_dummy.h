@@ -23,7 +23,10 @@ typedef enum {
 
 typedef struct {
     window_context_t w_ctx;
+    window_manager_context_t *wm;
+    ui_manager_context_t *ui;
     broadcast_obj_t receiver;
+    uint32_t margic; /// 窗口标识.
 } ui_proc_dummy_t;
 
 /*

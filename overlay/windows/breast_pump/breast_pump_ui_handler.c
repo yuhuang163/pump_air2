@@ -31,12 +31,7 @@ static const uint16_t s_pump_home_res_array[1] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
-/*
-* GLOBAL FUNCTION DEFINITIONS
-*****************************************************************************************
-*/
-void animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
+static void pump_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {
     static int ani_interval = 0;
     ui_manager_context_t *ui = user_data;
@@ -61,20 +56,24 @@ void animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e s
     }
 }
 
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
 void start_pump_ui_animation(ui_proc_pump_t *proc)
 {
     if (proc->user_pause == 1) {
         LOG_UI("user_pause ignore.");
         return;
     }
-    ui_manager_context_t *ui = proc->w_ctx.wm->priv.ui;
-    if (ui && ui->hook && ui->hook->ui_animation_play_init) {
+    ui_manager_context_t *ui = proc->ui;
+    if (ui->hook && ui->hook->ui_animation_play_init) {
         ui_play_info_t play_info = {
             .tag = "pump_home_screen",
             .fps = PAGE_ANIMATION_FREQ,
             .res_array = (uint16_t *)s_pump_home_res_array,
             .res_count = LENGTH_OF_ARRAY(s_pump_home_res_array),
-            .progress_cb = animation_progress_cb,
+            .progress_cb = pump_animation_progress_cb,
             .user_data = proc,
         };
         ui->hook->ui_animation_play_init(ui, play_info);
@@ -225,6 +224,7 @@ int switch_pump_control_type_ui(ui_proc_pump_t *proc, breast_pump_manager_contex
         args[0] = PUMP_LEFT_CONTROL_BL;
         led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
     }
+    LOG_UI("switch pump control type: %d, led status: %d", control_type, led_status.un.luminous.level);
     return 0;
 }
 

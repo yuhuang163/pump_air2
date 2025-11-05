@@ -114,8 +114,6 @@ typedef struct window_context {
     uint8_t is_popup_window;
     /// 窗口上下文指针
     void *user_data;
-    /// 窗口管理器上下文.
-    window_manager_context_t *wm;
     /// 窗口事件异步处理回调.
     window_async_evt_handler_cb async_evt_handler_cb;
     /// 窗口进入类型

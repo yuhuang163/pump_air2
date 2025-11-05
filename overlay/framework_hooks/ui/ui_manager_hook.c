@@ -78,6 +78,7 @@ static void on_ui_broadcast_receiver(broadcast_mask_id_t id, void *context, int 
 {
     ui_manager_context_t *ui = context;
     EXCEPTION_CHECK_VOID(ui);
+    LOG_UI("on_ui_broadcast_receiver: %d, arg1: %d, arg2: %d", id.code, arg1, arg2);
     switch (id.code) {
         case ID_BROADCAST_PM_WAKEUP_BY_USER:
             ui->hook->set_ui_backlight(ui, 100);
@@ -106,7 +107,13 @@ static bool is_ui_backlight_on(ui_manager_context_t *thiz)
 static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
 {
     EXCEPTION_CHECK_VOID(thiz);
+    power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    EXCEPTION_CHECK_VOID(pm);
     thiz->priv.ui_backlight_val = val;
+    if (pm->is_system_power_on() == 0) {
+        LOGE("system power off, ignore set ui backlight.");
+        return;
+    }
     /// 设置面板背光
     if (thiz->priv.panel_dev) {
         DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_SET_BL, &val);
@@ -119,6 +126,7 @@ static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
         };
         int args[] = {PUMP_LED_ALL_ID, (int)&led_status};
         thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+        LOG_UI("set led backlight: %d", val);
     }
 }
 
