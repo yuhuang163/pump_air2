@@ -18,6 +18,11 @@ PWM1_IOMUX_INDEX ?= 41
 PWM2_IOMUX_INDEX ?= 42
 PWM3_IOMUX_INDEX ?= 43
 
+# -------------- 工具宏定义 --------------
+# 递归查找指定目录下的所有 .c 文件
+# 用法: $(call rwildcard,目录路径)
+rwildcard = $(shell find $(1) -name '*.c')
+
 # -------------- 应用源码与编译参数 --------------
 CSTD ?= gnu11
 CFLAGS ?= -O2 -g -std=$(CSTD) -fvisibility=default
@@ -50,6 +55,11 @@ FACTORY_DATA_SECTION_SIZE ?= 0x2000
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
 # BLE 头文件
 BLE_INC_FLAGS := $(patsubst %,-I%,$(BLE_INC_DIRS))
+
+# UI 头文件子目录
+UI_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/ui -type d)
+# UI 头文件
+UI_INC_FLAGS := $(patsubst %,-I%,$(UI_INC_DIRS))
 
 # BLE 自定义服务开关
 CFG_CUSTOM_BLE_SERVICE ?= 1
@@ -108,7 +118,8 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/table \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/algo \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks/power_manager \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/power \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/ui \
 	-I$(PROJECT_ROOT)/overlay/input_key \
 	-I$(PROJECT_ROOT)/overlay/windows/battery \
 	-I$(PROJECT_ROOT)/overlay/windows/breast_pump \
@@ -128,6 +139,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
 	-I$(PROJECT_ROOT)/overlay/storage/system \
 	-I$(PROJECT_ROOT)/overlay/storage\
+	$(UI_INC_FLAGS)\
 	-I$(PROJECT_ROOT)/trunk/include \
 	-I$(PROJECT_ROOT)/trunk/extern \
 	-I$(PROJECT_ROOT)/trunk/external/littlefs \
@@ -301,7 +313,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/breast_pump/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/power_manager/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/power/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/motor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/input_key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
@@ -316,6 +328,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/system/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/input_key/*.c) \
+	$(call rwildcard,$(PROJECT_ROOT)/overlay/ui) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/breast_pump/*.c) \

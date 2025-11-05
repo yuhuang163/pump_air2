@@ -116,8 +116,6 @@ typedef struct window_context {
     void *user_data;
     /// 窗口管理器上下文.
     window_manager_context_t *wm;
-    /// UI管理器上下文.
-    ui_manager_context_t *ui;
     /// 窗口事件异步处理回调.
     window_async_evt_handler_cb async_evt_handler_cb;
     /// 窗口进入类型

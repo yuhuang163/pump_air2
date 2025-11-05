@@ -23,8 +23,13 @@
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
+    REMOVE_TASK_HANDLER_DIRECTLY(RESET_PLAY_ANI_FPS_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PLAY_ANI_START_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_START_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_STATE_CHANGE_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SHOW_ONCE_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_HDR_TASK_NAME); \
 } while (0)
-
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -143,7 +148,6 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
     }
 }
 
-
 static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
     ui_proc_pump_t *proc = user_data;
@@ -224,7 +228,6 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
         LOG_WM("user_pause ignore.");
         return;
     }
-
     LOG_WM("receive broadcast, code: %lx, code_v2: %lx, flag: %d, status: %d, mode: %ld,\
             working: %d, arg1: %d, arg2: %d.", id.code, id.code_v2, proc->is_mode_changed_by_device,
             pump_status, pump_mode, pump_working, arg1, arg2);
@@ -240,7 +243,6 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                     POST_TASK_HANDLER_DELAYED_ARG5(pump_ui_common_cb, PUMP_MODE_CHANGE_TIMEOUT,
                             HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_HDR_TASK_NAME);
                 }
-                proc->current_ui_mode = get_ui_pump_mode_index(pump_mode);
                 proc->ui_show_state = LOOP_SHOW_SWITCH_MODE;
                 proc->is_mode_changed_by_app = true;
                 /// 接收到APP事件之后仅刷新进入休眠时间
@@ -251,19 +253,12 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
             }
             break;
         }
-        
-        case ID_BROADCAST_SYS_PERSIST_INFO_SAVE: {
-            init_themes_pump_img_res_id(proc);  
-        }
-        break;
-
         case ID_BROADCAST_BREAST_PUMP_FINISH: {
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_PUMP_COMPLETE, 
                 proc, PUMP_COMPLETE_HDR_TASK_NAME);
             LOG_WM("pump finish, post pump complete task.");
         }
         break;
-
         default:
         break;
     }
@@ -299,7 +294,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>ON_CREATE");
-        ui->ui_animation_play_status_update(ui, false); /// 清除动画播放标志
+        ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         start_pump_ui_animation(proc);
     }
     return 0;
@@ -314,22 +309,15 @@ static int exit_event_cb(window_lift_cycle_e new_state,
     switch (new_state) {
 
         case ID_SCR_STATE_ON_PAUSE: {
-            ui->ui_animation_play_status_update(ui, false);
+            ui->animation_play_status_update(ui, false);
             proc->user_pause = 1;
             LOG_WM("==>ON_PAUSE# remove_keyevent_handler");
             wm->priv.key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
-            // REMOVE_TASK_HANDLER_DIRECTLY("reset_play_ani_fps");
-            // REMOVE_TASK_HANDLER_DIRECTLY("play_ani_start");
-            if (proc->goto_charge_ui_flag != 0) {
-                proc->goto_charge_ui_flag = 0;
-                REMOVE_TASK_HANDLER_DIRECTLY(GOTO_CHARGE_HDR_TASK_NAME);
-            }
         }
         break;
 
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>ON_DESTORY start");
-            draw_buffer_reset(proc);
             /// 被弹出框临时打断，不释放资源.
             if (new_scr->is_popup_window) {
                 LOG_WM("popup_window(%d) interrupt, not free instance!", new_scr->new_window_id);
@@ -392,9 +380,6 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     w_ctx->not_push_history = 1;
     // args->user_data = &proc->bridge;
     wm->dispatch_new_window(w_ctx);
-
-    /// 配置动画播放
-
     return ID_WINDOW_DISPLAY_OK;
 }
 

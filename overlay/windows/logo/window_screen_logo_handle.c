@@ -39,7 +39,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
 
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>ON_CREATE");
-        ui->ui_animation_play_status_update(ui, false); /// 清除动画播放标志
+        ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         start_logo_ui_animation(proc);
     }
     return 0;
