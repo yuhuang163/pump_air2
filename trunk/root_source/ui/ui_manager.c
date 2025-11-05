@@ -128,7 +128,6 @@ static int on_post_ui_init(void *self)
 static int on_perpare_ui_init(void *self)
 {
     thiz = self;
-    /// 调用外部钩子.
     if (thiz->hook->on_perpare_init_route) {
         thiz->hook->on_perpare_init_route(thiz);
     }

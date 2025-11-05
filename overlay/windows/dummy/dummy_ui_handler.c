@@ -30,9 +30,9 @@
 */
 int switch_dummy_night_light_onoff_ui(ui_proc_dummy_t *proc)
 {
-    struct storage_manager_context *st = proc->w_ctx.wm->priv.st;
+    struct storage_manager_context *st = proc->wm->priv.st;
     EXCEPTION_CHECK_INT(st);
-    peripheral_bus_context_t *pbus = proc->w_ctx.wm->priv.pbus;
+    peripheral_bus_context_t *pbus = proc->wm->priv.pbus;
     EXCEPTION_CHECK_INT(pbus);
     struct rt_device_node *led_dev = pbus->find_device(ID_DEVICE_LED);
     EXCEPTION_CHECK_INT(led_dev);

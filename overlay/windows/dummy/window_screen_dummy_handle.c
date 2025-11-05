@@ -39,7 +39,7 @@ INIT_WINDOW_CONTEXT();
 */
 static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reason)
 {
-    window_manager_context_t *wm = proc->w_ctx.wm;
+    window_manager_context_t *wm = proc->wm;
     power_manager_context_t *pm =  (power_manager_context_t *)find_module(ID_MODULE_POWER);
     multi_func_msg_data_t msg = {0};
     LOG_WM("goto pump window.");
@@ -52,7 +52,7 @@ static void on_dummy_receive_internal(broadcast_mask_id_t id, void *context,
                                  int pm_state, pm_wakeup_reason_e wakeup_reason, broadcast_priv_data_t *pdata)
 {
     ui_proc_dummy_t *proc = context;
-    window_manager_context_t *wm = proc->w_ctx.wm;
+    window_manager_context_t *wm = proc->wm;
     if (pm_state != ID_SYS_PM_RESUME) {
         LOG_WM("ignore: %d\n", wakeup_reason);
         return;
@@ -89,7 +89,7 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
 static int on_dummy_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
     ui_proc_dummy_t *proc = user_data;
-    window_manager_context_t *wm = proc->w_ctx.wm;
+    window_manager_context_t *wm = proc->wm;
     if (keycode == KEY_CODE_POWER && keytype == KEY_EVENT_CLICK) {
         switch_dummy_night_light_onoff_ui(proc);
     }
@@ -99,9 +99,9 @@ static int on_dummy_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t key
 static int entry_event_cb(window_lift_cycle_e new_state,
     const struct window_context *thiz, const struct window_context *old_scr)
 {
-    window_manager_context_t *wm = thiz->wm;
-    ui_manager_context_t *ui = wm->priv.ui;
     ui_proc_dummy_t *proc = CONTAINER_OF(thiz, ui_proc_dummy_t, w_ctx);
+    window_manager_context_t *wm = proc->wm;
+    ui_manager_context_t *ui = proc->ui;
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_WM("==>ON_RESUME #add dummy keyevent handler");
         wm->priv.key->add_keyevent_handler("dummy_wm", proc, KEY_CODE_1, KEY_EVENT_CLICK,
@@ -146,9 +146,11 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 */
 window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_t *wm, uint8_t window_id)
 {
-    ui_manager_context_t *ui = wm->priv.ui;
     ui_proc_dummy_t *proc = u_malloz(sizeof(ui_proc_dummy_t));
     SET_WINDOW_CONTEXT(proc);
+    proc->margic = UI_WINDOW_MARGIC_CODE;
+    proc->wm = wm;
+    proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     /// 监听PM状态改变.
     LOG_WM("register receiver\n");
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
@@ -158,7 +160,6 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     register_broadcast_receiver(&proc->receiver);
 
     window_context_t *w_ctx = &proc->w_ctx;
-    w_ctx->wm = wm;
     w_ctx->new_window_id = window_id;
     w_ctx->evt_cb_entry = entry_event_cb;
     w_ctx->evt_cb_exit = exit_event_cb;

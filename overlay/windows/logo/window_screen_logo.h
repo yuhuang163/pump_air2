@@ -18,7 +18,8 @@ extern "C" {
 typedef struct ui_proc_logo {
     uint32_t ani_timer_cnt;
     window_context_t w_ctx;
-    // ui_page_handle_t bridge;
+    window_manager_context_t *wm;
+    ui_manager_context_t *ui;
     uint32_t margic; /// 窗口标识.
 } ui_proc_logo_t;
 

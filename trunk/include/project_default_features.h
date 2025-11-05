@@ -10,6 +10,14 @@ extern "C" {
  * Include files
  ******************************************************************************/
 
+
+/**
+ * 开机长按时间
+*/
+#ifndef BOOT_LONG_PRESS_TIME
+#define BOOT_LONG_PRESS_TIME                                         (2000) /// 单位：毫秒
+#endif
+
 /**
  * 屏幕显示分辨率.
 */

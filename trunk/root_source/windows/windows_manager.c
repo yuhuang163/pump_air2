@@ -363,12 +363,6 @@ static void window_dispatch_thread(const void *args)
     }
 }
 
-static void window_boot_completed_cb(hdr_post_args_t *args)
-{
-    LOG_WM("====make up a cut if need====");
-    thiz->window_boot_completed(thiz);
-}
-
 static void on_wm_receive_internal(broadcast_mask_id_t id, void *context, int32_t arg1, 
         int32_t arg2, broadcast_priv_data_t *pdata)
 {
@@ -418,29 +412,32 @@ static int dispatch_new_window_args(struct window_manager_context *wm, multi_fun
     return -1;
 }
 
-static void window_scheduling_start(void)
+static void window_boot_completed_cb(hdr_post_args_t *args)
 {
-    window_manager_context_t *wm = thiz;
-    do {
-        if (wm->priv.window_dispatch_thd.msg_id) {
-            break;
-        }
-        LOG_WM("wait window_dispatch_thd ready..");
-        msleep(50);
-    } while (1);
-
-#if IS_SUPPORT_MODULE_RES
-    if (wm->priv.res) {
-        LOG_WM("wait res ready");
-        wm->priv.res->wait_init_completed(wm->priv.res);
-
-    }
-#endif
+    window_manager_context_t *wm = (window_manager_context_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(wm);
+    wm->window_boot_completed(wm);
     multi_func_msg_data_t __msg = {0};
     __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
     LOG_WM("goto logo screen");
     dispatch_new_window_args(wm, &__msg);
-    POST_TASK_HANDLER_DELAYED_ARG1(window_boot_completed_cb, 2000, wm, "boot_completed_cb");
+}
+
+static void window_scheduling_start(void)
+{
+    window_manager_context_t *wm = thiz;
+#if IS_SUPPORT_MODULE_RES
+    if (wm->priv.res) {
+        LOG_WM("wait res ready");
+        wm->priv.res->wait_init_completed(wm->priv.res);
+    }
+#endif
+    uint32_t delay_time = BOOT_LONG_PRESS_TIME - get_timestamp_ms(0) - 1000;
+    if (delay_time > BOOT_LONG_PRESS_TIME || delay_time == 0) {
+        delay_time = 500;
+    }
+    LOG_WM("delay_time: %d", delay_time);
+    POST_TASK_HANDLER_DELAYED_ARG1(window_boot_completed_cb, delay_time, wm, "boot_completed_cb");
 }
 
 static int post_async_msg_to_window(const char *tag, multi_func_msg_data_t *msg)
@@ -485,7 +482,7 @@ static bool wait_window_ready(int wait_dummy)
 static int window_enter_state_change_cb(window_lift_cycle_e new_state, 
     const struct window_context *ctx, const struct window_context *old_window) 
 {
-    window_manager_context_t *wm = ctx->wm;
+    window_manager_context_t *wm = thiz;
     if (new_state == ID_SCR_STATE_ON_CREATE) {
         wm->set_window_private_context(wm, ctx->new_window_id, (void *)ctx);
     }
@@ -500,7 +497,7 @@ static int window_enter_state_change_cb(window_lift_cycle_e new_state,
 static int window_exit_state_change_cb(window_lift_cycle_e new_state, 
     const struct window_context *ctx, const struct window_context *new_window) 
 {
-    window_manager_context_t *wm = ctx->wm;
+    window_manager_context_t *wm = thiz;
     uint8_t old_window_id = ctx->new_window_id;
     int ret = 0;
 
@@ -522,7 +519,7 @@ static int window_exit_state_change_cb(window_lift_cycle_e new_state,
 static int dispatch_new_window(window_context_t *ctx)
 {
     window_context_handle_t *next = NULL;
-    window_manager_context_t *wm = ctx->wm;
+    window_manager_context_t *wm = thiz;
     window_context_record_t *record = &s_window_record;
     static uint32_t counter = 0;
 
@@ -635,7 +632,6 @@ static int on_perpare_wm_init(void *self)
     wm->priv.key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     wm->priv.pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     wm->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    wm->priv.ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     return 0;
 }
 

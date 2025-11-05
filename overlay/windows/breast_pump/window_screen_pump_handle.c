@@ -126,7 +126,7 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         break;
 
         case HDR_ACTION_GOTO_CHARGE_UI: {
-            window_manager_context_t *wm = proc->w_ctx.wm;
+            window_manager_context_t *wm = proc->wm;
             LOG_WM("%s", args->name);
             if (wm->priv.misc && wm->priv.misc->is_charge_plug_in()) {
                 LOG_WM("goto charge_ui.");
@@ -139,7 +139,7 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         case HDR_ACTION_PUMP_COMPLETE: {
             // REMOVE_ALL_HANDER_TASK();
             LOG_WM("pump complete, show progress time policy.");
-            show_pump_progress_time_policy(proc, proc->w_ctx.wm->priv.pump);
+            show_pump_progress_time_policy(proc, proc->wm->priv.pump);
         }
         break;
 
@@ -151,8 +151,8 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
 static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
     ui_proc_pump_t *proc = user_data;
-    breast_pump_manager_context_t *pump = proc->w_ctx.wm->priv.pump;
-    key_input_context_t *key_ctx = proc->w_ctx.wm->priv.key;
+    breast_pump_manager_context_t *pump = proc->wm->priv.pump;
+    key_input_context_t *key_ctx = proc->wm->priv.key;
     breast_pump_info_t pump_info;
     EXCEPTION_CHECK_INT(pump);
     pump_info.status = pump->get_breast_pump_status();
@@ -213,7 +213,7 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
     }
 
     ui_proc_pump_t *proc = (ui_proc_pump_t *)context;
-    breast_pump_manager_context_t *pump = proc->w_ctx.wm->priv.pump;
+    breast_pump_manager_context_t *pump = proc->wm->priv.pump;
     /// 如果泵奶管理器不存在，忽略.
     if (!pump) {
         LOG_WM("pump is NULL, return.");
@@ -246,7 +246,7 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                 proc->ui_show_state = LOOP_SHOW_SWITCH_MODE;
                 proc->is_mode_changed_by_app = true;
                 /// 接收到APP事件之后仅刷新进入休眠时间
-                proc->w_ctx.wm->priv.pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ);
+                proc->wm->priv.pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ);
             } else {
                 proc->is_mode_changed_by_device = false;
                 proc->is_mode_changed_by_app = false;
@@ -267,9 +267,9 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
 static int entry_event_cb(window_lift_cycle_e new_state,
     const struct window_context *thiz, const struct window_context *old_scr)
 {
-    window_manager_context_t *wm = thiz->wm;
-    ui_manager_context_t *ui = wm->priv.ui;
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
+    window_manager_context_t *wm = proc->wm;
+    ui_manager_context_t *ui = proc->ui;
     struct storage_manager_context *st = wm->priv.st;
     /// 获取泵奶控制类型
     if (st && st->get_store_val) {
@@ -304,8 +304,8 @@ static int exit_event_cb(window_lift_cycle_e new_state,
                          const struct window_context *thiz, const struct window_context *new_scr)
 {
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
-    window_manager_context_t *wm = proc->w_ctx.wm;
-    ui_manager_context_t *ui = wm->priv.ui;
+    window_manager_context_t *wm = proc->wm;
+    ui_manager_context_t *ui = proc->ui;
     switch (new_state) {
 
         case ID_SCR_STATE_ON_PAUSE: {
@@ -358,6 +358,8 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     SET_WINDOW_CONTEXT(proc);
     /// 设置窗口标识.
     proc->margic = UI_WINDOW_MARGIC_CODE;
+    proc->wm = wm;
+    proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "model_delete_update";
@@ -373,7 +375,6 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     }
     /// 设置窗口上下文.
     window_context_t *w_ctx = &proc->w_ctx;
-    w_ctx->wm = wm;
     w_ctx->new_window_id = window_id;
     w_ctx->evt_cb_entry = entry_event_cb;
     w_ctx->evt_cb_exit = exit_event_cb;

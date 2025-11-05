@@ -56,7 +56,8 @@ typedef struct ui_pump_info {
 typedef struct ui_proc_pump {    
     uint32_t ani_timer_cnt;
     window_context_t w_ctx;
-    // ui_page_handle_t bridge;
+    window_manager_context_t *wm;
+    ui_manager_context_t *ui;
     broadcast_obj_t receiver;
     uint32_t margic;
     breast_pump_result_t pump_result; /// 泵奶结果.
