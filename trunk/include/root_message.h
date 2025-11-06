@@ -13,6 +13,7 @@ extern "C" {
 #include "handler_post.h" // IWYU pragma: keep
 #include "broadcast_manager_api.h" // IWYU pragma: keep
 #include "project_config.h" // IWYU pragma: keep
+#include "tests_manager_api.h" // IWYU pragma: keep
 
 /// 描述异步消息类型
 typedef enum {
@@ -226,6 +227,7 @@ typedef struct multi_func_msg_data {
         ota_event_type_t ota_evt_type;
         input_key_event_data_t key_event_data;
         bcr_pkg_struct_t bcr_pkg;
+        product_test_entry_extra_t product_test_extra;
     } union_body;
 } multi_func_msg_data_t;
 

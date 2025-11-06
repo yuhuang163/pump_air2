@@ -138,6 +138,10 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/imu \
 	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
+	-I$(PROJECT_ROOT)/overlay/product_tests/comm \
+	-I$(PROJECT_ROOT)/overlay/product_tests/factory_tests \
+	-I$(PROJECT_ROOT)//overlay/product_tests/hardware_self_tests \
+	-I$(PROJECT_ROOT)//overlay/product_tests/stress_tests \
 	-I$(PROJECT_ROOT)/overlay/storage/factory \
 	-I$(PROJECT_ROOT)/overlay/storage/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
@@ -165,6 +169,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/root_source/pm \
 	-I$(PROJECT_ROOT)/trunk/root_source/protocol \
 	-I$(PROJECT_ROOT)/trunk/root_source/resource \
+	-I$(PROJECT_ROOT)/trunk/root_source/tests \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/storage \
 	-I$(PROJECT_ROOT)/trunk/root_source/ui \
@@ -323,9 +328,14 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/product_tests/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/factory_tests/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/hardware_self_tests/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/stress_tests/*.c) \
+    $(wildcard $(PROJECT_ROOT)/overlay/product_tests/comm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
@@ -365,6 +375,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/tests/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/windows/*.c) 
 
 CC := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)gcc,gcc)

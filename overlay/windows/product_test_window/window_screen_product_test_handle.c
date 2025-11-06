@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "window_screen_product_test.h"
+#include "factory_tests_handler.h"
 
 /*
 * DEFINES
@@ -37,6 +38,23 @@ INIT_WINDOW_CONTEXT();
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+
+static void factory_tests_event_report_cb(void *user_data, uint16_t event_id, void *data, int data_len)
+{
+    ui_proc_product_test_t *proc = (ui_proc_product_test_t *)user_data;
+    LOG_WM("factory_tests_event_report_cb event_id: %d", event_id);
+    switch (event_id) {
+        case FAC_TST_READ_SW_VER_EVENT: {
+            EXCEPTION_CHECK_VOID(data);
+            char *sw_ver = (char *)data;
+            LOG_WM("factory test sw ver: %s", sw_ver);
+        }
+        break;
+        default:
+            break;
+    }
+}
+
 static void product_test_ui_common_cb(hdr_post_args_t *args)
 {
     ui_proc_product_test_t *proc = args->user_data;
@@ -49,7 +67,12 @@ static void product_test_ui_common_cb(hdr_post_args_t *args)
 
     switch (action) {
         case PRODUCT_TEST_START: {
+            window_manager_context_t *wm = proc->wm;
             LOG_WM("%s", args->name);
+            char buffer[64] = {0};
+            wm->priv.product_tst->add_product_tests_evt_lisenser(proc, TST_FACTORY_TYPE, factory_tests_event_report_cb);
+            wm->priv.product_tst->tests_manager_set_enable(true);
+            wm->priv.product_tst->get_factory_tests_event_process(FAC_TST_READ_SW_VER_EVENT, 0, 0, &buffer[0]);
         }
         break;
         case PRODUCT_TEST_E10: {
@@ -167,7 +190,8 @@ static int exit_event_cb(window_lift_cycle_e new_state,
                 return 1;
             }
             REMOVE_ALL_HANDER_TASK();
-            LOG_WM("==>unregister receiver");
+            LOG_UI("==>unregister receiver");
+            wm->priv.product_tst->remove_product_tests_evt_lisenser(factory_tests_event_report_cb);
             unregister_broadcast_receiver(&proc->receiver);
             /// TODO: 释放图片资源.
             u_free(proc);

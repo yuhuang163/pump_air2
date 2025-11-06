@@ -29,6 +29,8 @@ extern "C" {
 #define INPUT_KEY_THREAD_STACKSIZE                     (TASK_SIZE_DEFAULT * 2 + 0)
 /// 传感器线程深度
 #define INPUT_SENSOR_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 2 + 0)
+/// 产品测试线程深度
+#define INPUT_PRODUCT_TESTS_THREAD_STACKSIZE           (TASK_SIZE_DEFAULT * 2 + 0)
 /// 死锁检查线程深度
 #define HG_CHECK_THREAD_STACKSIZE                      (TASK_SIZE_DEFAULT * 2 + 0)
 /// 死锁检测线程深度

@@ -438,7 +438,6 @@ static void window_scheduling_start(void)
     }
     LOG_WM("delay_time: %d", delay_time);
     POST_TASK_HANDLER_DELAYED_ARG1(window_boot_completed_cb, delay_time, wm, "boot_completed_cb");
-
 }
 
 static int post_async_msg_to_window(const char *tag, multi_func_msg_data_t *msg)
@@ -633,6 +632,7 @@ static int on_perpare_wm_init(void *self)
     wm->priv.key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     wm->priv.pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     wm->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    wm->priv.product_tst = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     return 0;
 }
 
