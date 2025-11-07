@@ -39,6 +39,8 @@
 #endif
 #endif
 
+#include "watchdog/watchdog.h"
+
 #define STACK_READY_BT  0x01
 #define STACK_READY_BLE 0x02
 
@@ -658,9 +660,11 @@ extern void root_main(int argc, const char *argv[]);
 #endif
 int main(void)
 {
+    app_wdt_open(15);
+    app_wdt_hung_task_check_enable(true);
+
     hwtimer_init();
     hal_sys_timer_open();
-
     hal_audma_open();
     hal_gpdma_open();
 
