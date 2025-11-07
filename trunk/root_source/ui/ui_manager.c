@@ -75,8 +75,8 @@ static void ui_handler_thread(const void *args)
 static void on_ui_broadcast_receiver(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
     ui_manager_context_t *ui = (ui_manager_context_t *)context;
-    if (ui->hook && ui->hook->on_ui_broadcast_receiver) {
-        ui->hook->on_ui_broadcast_receiver(id, context, arg1, arg2, pdata);
+    if (ui->hook && ui->hook->on_ui_broadcast_receiver_route) {
+        ui->hook->on_ui_broadcast_receiver_route(id, context, arg1, arg2, pdata);
     }
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE: 

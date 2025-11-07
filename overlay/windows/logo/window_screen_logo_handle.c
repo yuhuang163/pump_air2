@@ -51,6 +51,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
     ui_proc_logo_t *proc = CONTAINER_OF(thiz, ui_proc_logo_t, w_ctx);
     switch (new_state) {
         case ID_SCR_STATE_ON_DESTORY:
+            logo_ui_hdr_remove();
             LOG_WM("exit: u_free: %p", proc);
             u_free(proc);
             SET_WINDOW_CONTEXT(NULL);

@@ -35,6 +35,8 @@ typedef enum {
 } breast_pump_status_e;
 
 #define PUMP_IS_GOING(state) (state == BREAST_PUMP_START || state == BREAST_PUMP_CONTINUE)
+#define PUMP_IS_COMMON_MODE(mode) (mode == BREAST_PUMP_PUMP_MODE || mode == BREAST_PUMP_MIX_MODE ||\
+     mode == BREAST_PUMP_STIMULATION_MODE)
 
 typedef struct {
     uint8_t breast_pump_state;

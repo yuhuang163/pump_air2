@@ -68,7 +68,7 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
             break;
 
         case MOTOR_ACTION_VALVE_ON:
-            motor.un.pwm.duty = BREAST_PUMP_VALVE_DUTY;
+            motor.un.pwm.duty = info->original.pump_level > 0 ? BREAST_PUMP_VALVE_DUTY : 0;
             motor.un.pwm.freq = BREAST_PUMP_VALVE_FREQ;
             args[0] = MOTOR_PWM_VALVE_1 + id;
             args[1] = (uint32_t)&motor;

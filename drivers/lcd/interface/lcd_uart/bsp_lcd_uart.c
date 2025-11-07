@@ -171,7 +171,7 @@ int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs, uint8_t tlvs_num)
             break;
         }
         tlvs_data = (uint8_t *)&tlvs[i];
-        BSP_LOG_HEX("tlvs", tlvs_data, tlvs_size);
+        // BSP_LOG_HEX("tlvs", tlvs_data, tlvs_size);
         memcpy(lcd->payload + payload_size, tlvs_data, tlvs_size);
         payload_size += tlvs_size;
     }

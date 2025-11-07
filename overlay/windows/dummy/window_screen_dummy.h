@@ -27,6 +27,7 @@ typedef struct {
     ui_manager_context_t *ui;
     broadcast_obj_t receiver;
     uint32_t margic; /// 窗口标识.
+    uint32_t enter_dummy_time; /// 进入dummy时间.
 } ui_proc_dummy_t;
 
 /*

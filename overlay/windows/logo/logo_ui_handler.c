@@ -9,7 +9,8 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PAGE_ANIMATION_FREQ          (12)
+#define LOGO_ANIMATION_FREQ                 (12)
+#define LOGO_DISPLAY_HDR_TASK_NAME          "logo_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -29,7 +30,7 @@ static const uint16_t s_logo_screen_res_array[1] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void local_work_completed(ui_manager_context_t *ui)
+static void logo_work_completed(hdr_post_args_t *args)
 {
     LOG_UI("logo play finish.\n");
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
@@ -39,13 +40,39 @@ static void local_work_completed(ui_manager_context_t *ui)
     wm->dispatch_new_window_args(wm, &msg);
 }
 
+static void logo_display_completed_cb(hdr_post_args_t *args)
+{
+    ui_proc_logo_t *proc = (ui_proc_logo_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    LOG_UI("logo play finish.\n");
+    window_manager_context_t *wm = proc->wm;
+    EXCEPTION_CHECK_VOID(wm);
+    if (wm->is_current_window(wm, ID_WINDOW_LOGO) == 0) {
+        return;
+    }
+    multi_func_msg_data_t msg = {0};
+    msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+    wm->dispatch_new_window_args(wm, &msg);
+}
+
+static void logo_ui_policy(ui_manager_context_t *ui)
+{
+    ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
+        POST_TASK_HANDLER_DELAYED_ARG1(logo_display_completed_cb, 10, proc,
+            LOGO_DISPLAY_HDR_TASK_NAME);
+    }
+}
+
+
 static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {
     static int ani_interval = 0;
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            local_work_completed(ui);
+            logo_ui_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             break;
@@ -54,6 +81,22 @@ static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progre
         default:
             break;
     }
+}
+
+static void show_logo_ui(ui_proc_logo_t *proc)
+{
+    ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    ui_play_info_t play_info = {
+        .tag = "logo_screen",
+        .fps = LOGO_ANIMATION_FREQ,
+        .res_array = (uint16_t *)s_logo_screen_res_array,
+        .res_count = LENGTH_OF_ARRAY(s_logo_screen_res_array),
+        .progress_cb = logo_animation_progress_cb,
+        .user_data = proc,
+    };
+    ui->hook->ui_animation_play_init(ui, play_info);
+    proc->last_progress_ani_time = get_timestamp();
 }
 
 /*
@@ -71,17 +114,10 @@ void start_logo_ui_animation(ui_proc_logo_t *proc)
         msleep(10);
     }
     LOG_UI("start logo ui animation.");
-    ui_manager_context_t *ui = proc->ui;
-    if (ui->hook && ui->hook->ui_animation_play_init) {
-        ui_play_info_t play_info = {
-            .tag = "logo_screen",
-            .fps = PAGE_ANIMATION_FREQ,
-            .res_array = (uint16_t *)s_logo_screen_res_array,
-            .res_count = LENGTH_OF_ARRAY(s_logo_screen_res_array),
-            .progress_cb = logo_animation_progress_cb,
-            .user_data = proc,
-        };
-        ui->hook->ui_animation_play_init(ui, play_info);
-    }
+    show_logo_ui(proc);
+}
 
+void logo_ui_hdr_remove(void)
+{
+    REMOVE_TASK_HANDLER_DIRECTLY(LOGO_DISPLAY_HDR_TASK_NAME);
 }
