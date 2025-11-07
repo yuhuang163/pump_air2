@@ -149,7 +149,7 @@ typedef struct ui_manager_context {
         int (*on_perpare_init_route)(struct ui_manager_context *thiz);
         void (*lvgl_display_handler)(struct ui_manager_context *thiz);
         void (*ui_animation_play_init)(struct ui_manager_context *thiz, ui_play_info_t play_info);
-        void (*on_ui_broadcast_receiver)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
+        void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
         void (*set_ui_backlight)(struct ui_manager_context *thiz, uint16_t val);
         bool (*is_ui_backlight_on)(struct ui_manager_context *thiz);
     } *hook;

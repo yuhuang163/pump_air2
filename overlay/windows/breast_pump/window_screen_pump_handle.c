@@ -10,7 +10,8 @@
 */
 #define PAGE_STATIC_NAME                    pump
 #define PUMP_UI_KEY_CODE                    (KEY_CODE_POWER |KEY_CODE_START | KEY_CODE_MODE | KEY_CODE_FREQUENCY | \
-                                            KEY_CODE_BREASTFEEDING | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL)
+                                            KEY_CODE_BREASTFEEDING | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL | \
+                                            KEY_CODE_KNOB_LEFT | KEY_CODE_KNOB_RIGHT)
 #define PUMP_UI_KEY_TYPE                    (KEY_EVENT_CLICK)
 #define GOTO_CHARGE_HDR_TASK_NAME           "goto_charge_ui"
 #define RESET_PLAY_ANI_FPS_HDR_TASK_NAME    "reset_play_ani_fps"
@@ -116,7 +117,7 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
 
         case HDR_ACTION_RECOVER_DEFAULT_ANI: {
             LOG_WM("%s: recovery-play..", args->name);
-            start_pump_ui_animation(proc);
+            show_pump_home_ui(proc);
         }
         break;
 
@@ -193,6 +194,12 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             break;
         case KEY_CODE_RIGHT_CONTROL:
             switch_pump_control_type_ui(proc, pump, 1);
+            break;
+        case KEY_CODE_KNOB_LEFT:
+            switch_pump_level_ui(proc, pump, &pump_info, 1);
+            break;
+        case KEY_CODE_KNOB_RIGHT:
+            switch_pump_level_ui(proc, pump, &pump_info, 0);
             break;
 
         default:
@@ -295,7 +302,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>ON_CREATE");
         ui->animation_play_status_update(ui, false); /// 清除动画播放标志
-        start_pump_ui_animation(proc);
+        show_pump_home_ui(proc);
     }
     return 0;
 }

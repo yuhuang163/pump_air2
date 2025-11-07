@@ -87,7 +87,7 @@ static int lcd_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
             return 0;
         case OP_CODE_PANEL_SET_BL:
             tmp = (uint32_t *)args;
-            // lcd_backlight_control(tmp[0]);
+            lcd_backlight_control(tmp[0]);
             return 0;
 
         case OP_CODE_PANEL_ADD_READY_CB:

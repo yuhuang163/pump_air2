@@ -72,7 +72,8 @@ typedef enum {
  * @brief 吸力等级
 */
 typedef enum {
-    SUCTION_LEVEL_6KPA = 0,
+    SUCTION_LEVEL_0KPA = 0,
+    SUCTION_LEVEL_6KPA ,
     SUCTION_LEVEL_7KPA,
     SUCTION_LEVEL_8KPA,
     SUCTION_LEVEL_9KPA,

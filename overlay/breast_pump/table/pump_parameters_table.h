@@ -30,6 +30,7 @@ static const uint16_t short_suction_time_table[SUCTION_SPEED_MAX] = {
 
 /// 吸力参数表（单位kpa）
 static const suction_parameters_t suction_table[SUCTION_LEVEL_MAX] = {
+    {0,  60, 100}, /// 0KPA   
     {40, 60, 100}, /// 6KPA   
     {50, 80, 100}, /// 7KPA      
     {50, 80, 100}, /// 8KPA   
@@ -88,6 +89,7 @@ static const uint16_t long_pump_freq_table[BREAST_PUMP_LEVEL_MAX][SUCTION_SPEED_
 
 /// 短吸力度表 
 static const uint16_t short_level_table[BREAST_PUMP_LEVEL_MAX] = {
+    SUCTION_LEVEL_0KPA, /// 0KPA
     SUCTION_LEVEL_6KPA, /// 6.1KPA
     SUCTION_LEVEL_7KPA, /// 7.5KPA
     SUCTION_LEVEL_9KPA, /// 9KPA
@@ -107,6 +109,7 @@ static const uint16_t short_level_table[BREAST_PUMP_LEVEL_MAX] = {
 
 /// 长吸力度表 
 static const uint16_t long_level_table[BREAST_PUMP_LEVEL_MAX] = {
+    SUCTION_LEVEL_0KPA,  /// 0KPA
     SUCTION_LEVEL_12KPA, /// 12.1KPA
     SUCTION_LEVEL_14KPA, /// 14.3KPA
     SUCTION_LEVEL_15KPA, /// 15.1KPA

@@ -29,6 +29,7 @@ extern "C" {
 *****************************************************************************************
 */
 int bsp_lcd_init(void);
+void lcd_backlight_control(uint8_t level);
 int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs, uint8_t tlvs_num);
 #ifdef __cplusplus
 }

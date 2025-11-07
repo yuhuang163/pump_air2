@@ -30,6 +30,7 @@ static ui_display_process_handle_t ui_display_process_list[] = {
     {UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY, ui_display_pump_right_level},
     {UI_IMG_ID_SETTINGS_SUBMENU, ui_display_chasing_milk_mode},
     {UI_IMG_ID_HOME_SCREEN, ui_display_pump_home_screen},
+    {UI_IMG_ID_PUMP_SPEED, ui_display_pump_speed},
 };
 
 /*
@@ -46,6 +47,7 @@ static int ui_display_process_logo(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t));
     EXCEPTION_CHECK_UINT(p);
     ui_fill_img_id(p, UI_IMG_ID_LOGO);
+    LOG_UI("ui_display_process_logo: %d", UI_IMG_ID_LOGO);
     *tlvs = p;
     return 1;
 }

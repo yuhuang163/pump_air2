@@ -122,22 +122,17 @@ static void reset_breast_pump_result(void)
 
 static void get_breast_pump_setting(pump_setting_t *setting)
 {
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
+        breast_pump_obj->set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT);
+        LOG_PMP("invalid mode, set default mode");
+    } 
     memcpy(setting, &breast_pump_obj->priv.setting, sizeof(pump_setting_t));
 }
 
 static void set_breast_pump_setting(pump_setting_t *setting)
 {
     memcpy(&breast_pump_obj->priv.setting, setting, sizeof(pump_setting_t));
-}
-
-static int get_breast_pump_mode(void)
-{
-    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
-    if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
-        LOG_PMP("invalid, return default mode: %d ", BREAST_PUMP_NORMAL_MODE_DEFAULT);
-        return BREAST_PUMP_NORMAL_MODE_DEFAULT;
-    }
-    return m_info->mode;
 }
 
 static void set_breast_pump_mode(uint32_t mode)
@@ -152,7 +147,19 @@ static void set_breast_pump_mode(uint32_t mode)
     LOG_PMP("new mode is: %d, name: %s", m_info->mode, breast_pump_obj->get_breast_pump_mode_name(m_info->mode));
     EXCEPTION_CHECK_VOID(st);
     st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, m_info->mode, 0, &breast_pump_obj->priv.setting);
+    LOG_PMP("get pump setting info: %d, speed: %d, level: %d, %d",
+         m_info->mode, breast_pump_obj->priv.setting.speed, breast_pump_obj->priv.setting.level[0], breast_pump_obj->priv.setting.level[1]);
     SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_MODE_CHANGE, m_info->mode, 1);
+}
+
+static int get_breast_pump_mode(void)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
+        LOG_PMP("invalid, set default mode");
+        set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT);
+    }
+    return m_info->mode;
 }
 
 static int get_breast_pump_status(void)
@@ -367,7 +374,7 @@ static int on_post_breast_pump_init(void *ptr)
 {
     breast_pump_manager_context_t *ctx = ptr;
     memset(&ctx->priv.m_info , 0, sizeof(breast_pump_info_t));
-    ctx->priv.m_info.mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;      
+    ctx->priv.m_info.mode = BREAST_PUMP_MODE_INVALID;      
     
     /// 注册广播监听.
     ctx->priv.m_bdc.context = ctx;

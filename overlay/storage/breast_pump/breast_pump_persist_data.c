@@ -337,6 +337,8 @@ int read_pump_setting_info_from_ram(store_func_args_t args)
         return -1;
     }
     memcpy(setting, &pump_info->setting[mode], sizeof(pump_setting_t));
+    LOG_STORE_WRAP("read pump setting info: %d, speed: %d, level: %d, %d",
+         mode, setting->speed, setting->level[0], setting->level[1]);
     return 0;
 }
 

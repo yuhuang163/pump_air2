@@ -305,6 +305,13 @@ static uint8_t local_is_charge_plug_in(void)
     return CHARGE_STATE_ERROR;
 }
 
+static uint8_t local_get_charge_status(void)
+{
+    EXCEPTION_CHECK_UINT(thiz->priv.battery);
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_CHARGE_STATUS, ret);
+    return ret;
+}
+
 static uint8_t local_charge_show_ui_if_need(void *wm, int is_fg)
 {
     window_manager_context_t *wm_ctx = (window_manager_context_t *)wm;
@@ -354,6 +361,7 @@ void *register_module_for_misc_manager_new(list_head_t *list_head)
 
     ptr->priv.battery_percent = 5;
     ptr->is_charge_plug_in = local_is_charge_plug_in;
+    ptr->get_charge_status = local_get_charge_status;
     ptr->set_charge_ui_show_flag = local_set_charge_ui_show_flag;
     ptr->show_charge_ui_if_need = local_charge_show_ui_if_need;
     ptr->set_state_change_listener = local_state_change_listener;

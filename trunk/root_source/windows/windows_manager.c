@@ -432,7 +432,7 @@ static void window_scheduling_start(void)
         wm->priv.res->wait_init_completed(wm->priv.res);
     }
 #endif
-    uint32_t delay_time = BOOT_LONG_PRESS_TIME - get_timestamp_ms(0) - 1000;
+    uint32_t delay_time = BOOT_LONG_PRESS_TIME - get_timestamp_ms(0);
     if (delay_time > BOOT_LONG_PRESS_TIME || delay_time == 0) {
         delay_time = 500;
     }

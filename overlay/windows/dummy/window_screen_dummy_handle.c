@@ -13,14 +13,18 @@
 *****************************************************************************************
 */
 #define PAGE_STATIC_NAME                        dummy
+#define DUMMY_TIME_INTERVAL                     (60000 * 1) /// 1分钟
+#define DUMMY_IDLE_POWER_OFF_TIME               (60000 * 5) /// 5分钟
 #define DUMMY_NIGHT_LIGHT_ONOFF_HDR_TASK_NAME   "dummy_night_light_onoff"
 #define DUMMY_NIGHT_LIGHT_LEVEL_HDR_TASK_NAME   "dummy_night_light_level"
+#define DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME    "dummy_system_power_off"
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
     REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_NIGHT_LIGHT_ONOFF_HDR_TASK_NAME); \
     REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_NIGHT_LIGHT_LEVEL_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME); \
 } while (0)
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -37,6 +41,22 @@ INIT_WINDOW_CONTEXT();
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void system_power_off_cb(hdr_post_args_t *args)
+{
+    ui_proc_dummy_t *proc = (ui_proc_dummy_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    uint32_t current_time = platform_get_utc_time();
+    if (current_time - proc->enter_dummy_time > DUMMY_IDLE_POWER_OFF_TIME) {
+        LOG_WM("system power off");
+        power_manager_context_t *pm =  (power_manager_context_t *)find_module(ID_MODULE_POWER);
+        pm->system_power_control(false);
+        return;
+    }
+    POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, 
+        DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME);
+    LOG_WM("dummy time: %d", current_time - proc->enter_dummy_time);
+}
+
 static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reason)
 {
     window_manager_context_t *wm = proc->wm;
@@ -106,6 +126,8 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         LOG_WM("==>ON_RESUME #add dummy keyevent handler");
         wm->priv.key->add_keyevent_handler("dummy_wm", proc, KEY_CODE_1, KEY_EVENT_CLICK,
              on_dummy_keyevent_hdr);
+        proc->enter_dummy_time = platform_get_utc_time();
+        POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME);
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>ON_CREATE");
         if (ui && ui->hook && ui->hook->set_ui_backlight) {
