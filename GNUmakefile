@@ -29,6 +29,9 @@ CFLAGS ?= -O2 -g -std=$(CSTD) -fvisibility=default
 EXTRA_SDK_ARCH_FLAGS := -mthumb -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard
 EXTRA_CFLAGS ?= -std=gnu99 $(EXTRA_SDK_ARCH_FLAGS)
 
+# watchdog switch
+WATCHER_DOG ?= 1
+
 # custom app switch
 CFG_CUSTOM_APP ?= 1
 
@@ -376,6 +379,7 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 	$(MAKE) -C $(SDK_SRCTREE) O=$(O) T=$(SDK_T) CONFIG_CROSS_COMPILE=$(CONFIG_CROSS_COMPILE) \
 		C++_ONLY_FLAGS+=" -fno-threadsafe-statics " \
 		LIB_LDFLAGS+=" $(EXTRA_LIB) -Wl,-defsym,__EXTRA_LIB_MTIME=$(shell stat -c %Y $(EXTRA_LIB)) " \
+		WATCHER_DOG=$(WATCHER_DOG) \
 		REL_TRACE_ENABLE=$(REL_TRACE_ENABLE) \
 		LITTLEFS_SECTION_SIZE=$(LITTLEFS_SECTION_SIZE) \
 		FACTORY_DATA_SECTION_SIZE=$(FACTORY_DATA_SECTION_SIZE) \
