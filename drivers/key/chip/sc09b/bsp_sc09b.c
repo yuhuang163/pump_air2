@@ -155,7 +155,7 @@ static void key_device_thread(void *arg)
         MSG_QUEUE_RECV(s_key_device_thd.msg_id, &msg, OS_WAIT_FOREVER);
         timestamp = get_timestamp();
         sc09b_touch_key_scan();
-        LOG_PBUS("key release time:", get_timestamp_ms(timestamp));
+        // LOG_PBUS("key release time:", get_timestamp_ms(timestamp));
     }
 }
 
@@ -275,6 +275,17 @@ int bsp_read_key_value(uint8_t key_index)
         return hal_gpio_pin_get_val(POWER_KEY_PIN) == 0 ? 1 : 0;
     }
     return s_touch_key[key_index - 1];
+}
+
+int bsp_read_all_key_value(void)
+{
+    int key_value = 0;
+    for (uint8_t i = 1; i <= TOUCH_KEY_NUM; i++) {
+        key_value |= s_touch_key[TOUCH_KEY_NUM - i];
+        key_value <<= 1;
+    }
+    key_value |= hal_gpio_pin_get_val(POWER_KEY_PIN) == 0 ? 1 : 0;
+    return key_value;
 }
 
 int bsp_key_sensitivity_set(uint8_t key_index, uint8_t sensitivity)

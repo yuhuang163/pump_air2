@@ -94,6 +94,10 @@ static const char *to_event_name(uint32_t keytype)
             return ":9s";
         case KEY_EVENT_LONG_10S:
             return ":10s";
+        case KEY_EVENT_LONG_AFTER_DOWN:
+            return ":long_press_after_down";
+        case KEY_EVENT_LONG_AFTER_CLICK:
+            return ":long_press_after_click";
         default:
             LOGE("keytype: %ld", keytype);
             return "unknow";

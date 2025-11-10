@@ -11,6 +11,7 @@ extern "C" {
  ******************************************************************************/
 #include <stdint.h> // IWYU pragma: keep
 
+/// 按键索引
 typedef enum scan_key_id_e {
     SCAN_KEY_ID_BEGIN = 0,
     SCAN_KEY_ID1 = SCAN_KEY_ID_BEGIN,
@@ -23,6 +24,7 @@ typedef enum scan_key_id_e {
     SCAN_KEY_ID_MAX,
 } scan_key_id_e;
 
+/// 按键编码
 typedef enum {
     SCAN_KEY_CODE_BEGIN = 0,
     SCAN_KEY_CODE_1 = SCAN_KEY_CODE_BEGIN,
@@ -32,9 +34,26 @@ typedef enum {
     SCAN_KEY_CODE_5,
     SCAN_KEY_CODE_6,
     SCAN_KEY_CODE_7,
+    SCAN_KEY_CODE_12,
+    SCAN_KEY_CODE_23,
     SCAN_KEY_CODE_MAX,
 } scan_key_code_e;
 
+/// 按键值
+typedef enum {
+    SCAN_KEY_CODE_1_VALUE  = (1 << SCAN_KEY_CODE_1),
+    SCAN_KEY_CODE_2_VALUE  = (1 << SCAN_KEY_CODE_2),
+    SCAN_KEY_CODE_3_VALUE  = (1 << SCAN_KEY_CODE_3),
+    SCAN_KEY_CODE_4_VALUE  = (1 << SCAN_KEY_CODE_4),
+    SCAN_KEY_CODE_5_VALUE  = (1 << SCAN_KEY_CODE_5),
+    SCAN_KEY_CODE_6_VALUE  = (1 << SCAN_KEY_CODE_6),
+    SCAN_KEY_CODE_7_VALUE  = (1 << SCAN_KEY_CODE_7),
+
+    SCAN_KEY_CODE_12_VALUE = (SCAN_KEY_CODE_1_VALUE | SCAN_KEY_CODE_2_VALUE),
+    SCAN_KEY_CODE_23_VALUE = (SCAN_KEY_CODE_2_VALUE | SCAN_KEY_CODE_3_VALUE),
+} scan_key_code_value_e;
+
+/// 按键类型
 typedef enum {
     KEY_TYPE_BEGIN = 0,
     KEY_TYPE_DOWN = KEY_TYPE_BEGIN,     /// 按下. 
@@ -50,10 +69,12 @@ typedef enum {
     KEY_TYPE_LONG_8S,
     KEY_TYPE_LONG_9S,
     KEY_TYPE_LONG_10S,
-  
+    KEY_TYPE_LONG_AFTER_DOWN,         /// 长按后接续按下
+    KEY_TYPE_LONG_AFTER_CLICK,        /// 长按后接续单击
     KEY_TYPE_MAX,
 } scan_key_type_e;
 
+/// 设备节点
 struct rt_device_node;
 
 /*
@@ -62,9 +83,11 @@ struct rt_device_node;
  */
 
 /// 按键IRQ调用此接口,通知启动扫描定时器.
-void scan_key_timer_start(int key);
+void scan_key_timer_start(uint8_t code_index);
 /// 具体平台读取io状态接口
 int platform_read_key_value(int type, int pin);
+/// 具体平台读取所有io状态接口
+int platform_all_key_value(void);
 /// 初始化scankey
 int scan_key_input_init(struct rt_device_node *key_dev, uint8_t key_code_size);
 
