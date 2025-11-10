@@ -48,7 +48,7 @@ window_enter_result_e enter_new_window_special_mode_screen(window_manager_contex
 window_enter_result_e enter_new_window_themes_screen(window_manager_context_t *wm, uint8_t window_id);
 window_enter_result_e enter_new_window_expert_mode_screen(window_manager_context_t *wm, uint8_t window_id);
 window_enter_result_e enter_new_window_customized_key_screen(window_manager_context_t *wm, uint8_t window_id);
-
+window_enter_result_e enter_new_window_product_test_screen(window_manager_context_t *wm, uint8_t window_id);
 /// lvgl 相关.
 #if LV_USE_DEMO_BENCHMARK
 window_enter_result_e enter_new_window_lvgl_benchmark(window_manager_context_t *wm, uint8_t window_id);

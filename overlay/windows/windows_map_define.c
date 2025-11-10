@@ -21,6 +21,7 @@
 #define WINDOW_PRIO_FAC         WINDOW_PRIO_HIGH
 #define WINDOW_PRIO_LOGO        WINDOW_PRIO_HIGH
 #define WINDOW_PRIO_BATTERY     WINDOW_PRIO_TOP
+#define WINDOW_PRIO_PRODUCT_TS  WINDOW_PRIO_HIGH
 
 DECLARE_WM_HANDLE_OBJ(m_window_dummy);
 DECLARE_WM_HANDLE_OBJ(m_window_logo);
@@ -34,6 +35,7 @@ DECLARE_WM_HANDLE_OBJ(m_window_battery);
 DECLARE_WM_HANDLE_OBJ(m_window_pump);
 DECLARE_WM_HANDLE_OBJ(m_window_popup);
 DECLARE_WM_HANDLE_OBJ(m_window_fac);
+DECLARE_WM_HANDLE_OBJ(m_window_product_test);
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -61,7 +63,7 @@ static const window_context_handle_t g_process_handle_list[] = {
     // {ID_WINDOW_FACTORY_MODE,        WINDOW_PRIO_FAC,        PAGE_HANDLE_NAME(fac),      REFS_T(m_window_fac)},
     // {ID_WINDOW_SETTINGS,            WINDOW_PRIO_SETTING,    PAGE_HANDLE_NAME(setting),  REFS_T(m_window_setting)},
     // {ID_WINDOW_AIRPLANE_MODE,       WINDOW_PRIO_SETTING,    PAGE_HANDLE_NAME(apmode),   REFS_T(m_window_apmode)},
-    
+    {ID_WINDOW_PRODUCT_TEST_MODE,  WINDOW_PRIO_PRODUCT_TS, PAGE_HANDLE_NAME(product_test), REFS_T(m_window_product_test)},
 };
 
 /*

@@ -438,6 +438,7 @@ static void window_scheduling_start(void)
     }
     LOG_WM("delay_time: %d", delay_time);
     POST_TASK_HANDLER_DELAYED_ARG1(window_boot_completed_cb, delay_time, wm, "boot_completed_cb");
+
 }
 
 static int post_async_msg_to_window(const char *tag, multi_func_msg_data_t *msg)

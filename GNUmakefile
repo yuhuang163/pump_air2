@@ -133,6 +133,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/windows/ota \
 	-I$(PROJECT_ROOT)/overlay/windows/pop_windows \
 	-I$(PROJECT_ROOT)/overlay/windows/setting \
+	-I$(PROJECT_ROOT)/overlay/windows/product_test_window \
 	-I$(PROJECT_ROOT)/overlay/windows \
 	-I$(PROJECT_ROOT)/overlay/sensor/imu \
 	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
@@ -342,6 +343,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/ota/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/pop_windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/product_test_window/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/fds/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c) \
