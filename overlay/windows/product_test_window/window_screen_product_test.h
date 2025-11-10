@@ -39,6 +39,7 @@ typedef struct ui_proc_product_test {
 *****************************************************************************************
 */
 void show_product_tests_ui(ui_proc_product_test_t *proc);
+void stop_product_tests_ui_animation(ui_proc_product_test_t *proc);
 
 #ifdef __cplusplus
 }

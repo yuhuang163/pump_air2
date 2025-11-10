@@ -43,6 +43,10 @@ extern "C" {
 #define RT_PRIO_SENSOR_INPUT_DISPATCH_THREAD           OS_PRIORITY_REALTIME4
 #endif
 
+#ifndef RT_PRIO_PRODUCT_TESTS_DISPATCH_THREAD
+#define RT_PRIO_PRODUCT_TESTS_DISPATCH_THREAD           OS_PRIORITY_REALTIME4
+#endif
+
 #ifndef RT_PRIO_INTERRUPT_THREAD
 #define RT_PRIO_INTERRUPT_THREAD                       OS_PRIORITY_REALTIME
 #endif
@@ -178,6 +182,7 @@ extern "C" {
 #define IOT_WORK_DISPATCH_MESQ_NUM                    (2)
 #define MOTOR_IAP_DISPATCH_MESQ_NUM                   (2)
 #define MOTOR_PLAY_MESQ_NUM                           (2)
+#define PRODUCT_TEST_EVT_MESQ_NUM                     (2)
 
 #define BREAST_PUMP_WORK_DISPATCH_MESQ_NUM            (2)
 #define PM_WORK_DISPATCH_MESQ_NUM                     (1)
