@@ -13,6 +13,7 @@
 *****************************************************************************************
 */
 #define PAGE_STATIC_NAME                            logo
+#define PAGE_NAME_STR                               "logo"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -38,7 +39,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     if (new_state == ID_SCR_STATE_ON_RESUME) {
 
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
-        LOG_WM("==>ON_CREATE");
+        LOG_WM("==>%s window on create", PAGE_NAME_STR);
         ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         start_logo_ui_animation(proc);
     }
@@ -50,12 +51,16 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 {
     ui_proc_logo_t *proc = CONTAINER_OF(thiz, ui_proc_logo_t, w_ctx);
     switch (new_state) {
+        case ID_SCR_STATE_ON_PAUSE:
+            LOG_WM("==>%s window on pause", PAGE_NAME_STR);
+            stop_logo_ui_animation(proc);
+            break;
         case ID_SCR_STATE_ON_DESTORY:
-            logo_ui_hdr_remove();
-            LOG_WM("exit: u_free: %p", proc);
+            LOG_WM("%s window exit: u_free: %p", PAGE_NAME_STR, proc);
             u_free(proc);
+            proc = NULL;
             SET_WINDOW_CONTEXT(NULL);
-            LOG_WM("exit--end");
+            LOG_WM("%s window exit--end", PAGE_NAME_STR);
             break;
         default:
             break;
@@ -70,7 +75,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 */
 window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_t *wm, uint8_t window_id)
 {
-    LOG_WM("enter, time: %ld.", get_timestamp());
+    LOG_WM("%s window enter, time: %ld.", PAGE_NAME_STR, get_timestamp());
     ui_proc_logo_t *proc = u_malloz(sizeof(ui_proc_logo_t));
     SET_WINDOW_CONTEXT(proc);
     proc->margic = UI_WINDOW_MARGIC_CODE;

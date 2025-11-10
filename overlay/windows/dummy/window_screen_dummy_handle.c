@@ -13,6 +13,7 @@
 *****************************************************************************************
 */
 #define PAGE_STATIC_NAME                        dummy
+#define PAGE_NAME_STR                           "dummy"
 #define DUMMY_TIME_INTERVAL                     (60000 * 1) /// 1分钟
 #define DUMMY_IDLE_POWER_OFF_TIME               (60000 * 5) /// 5分钟
 #define DUMMY_NIGHT_LIGHT_ONOFF_HDR_TASK_NAME   "dummy_night_light_onoff"
@@ -123,16 +124,16 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     window_manager_context_t *wm = proc->wm;
     ui_manager_context_t *ui = proc->ui;
     if (new_state == ID_SCR_STATE_ON_RESUME) {
-        LOG_WM("==>ON_RESUME #add dummy keyevent handler");
+        LOG_WM("==>%s window on resume", PAGE_NAME_STR);
         wm->priv.key->add_keyevent_handler("dummy_wm", proc, KEY_CODE_1, KEY_EVENT_CLICK,
              on_dummy_keyevent_hdr);
         proc->enter_dummy_time = platform_get_utc_time();
         POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME);
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
-        LOG_WM("==>ON_CREATE");
+        LOG_WM("==>%s window on create", PAGE_NAME_STR);
         if (ui && ui->hook && ui->hook->set_ui_backlight) {
             ui->hook->set_ui_backlight(ui, 0);
-            LOG_WM("set backlight off");
+            LOG_WM("%s window set backlight off", PAGE_NAME_STR);
         }
     }
     return 0;
@@ -142,18 +143,21 @@ static int exit_event_cb(window_lift_cycle_e new_state,
     const struct window_context *thiz, const struct window_context *new_scr)
 {
     ui_proc_dummy_t *proc = CONTAINER_OF(thiz, ui_proc_dummy_t, w_ctx);
-
+    window_manager_context_t *wm = proc->wm;
+    ui_manager_context_t *ui = proc->ui;
     switch (new_state) {
         case ID_SCR_STATE_ON_PAUSE:
-            LOG_WM("ON_PAUSE\n");
+            LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             unregister_broadcast_receiver(&proc->receiver);
+            wm->priv.key->remove_keyevent_handler(on_dummy_keyevent_hdr);
             REMOVE_ALL_HANDER_TASK();
         break;
         case ID_SCR_STATE_ON_DESTORY:
-            LOG_WM("ON_DESTORY--begin\n");
+            LOG_WM("==>%s window on destory", PAGE_NAME_STR);
             u_free(proc);
+            proc = NULL;
             SET_WINDOW_CONTEXT(NULL);
-            LOG_WM("ON_DESTORY--end\n");
+            LOG_WM("%s window on destory--end", PAGE_NAME_STR);
         break;
         default:
         break;
@@ -168,13 +172,13 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 */
 window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_t *wm, uint8_t window_id)
 {
+    LOG_WM("%s window enter, time: %ld.", PAGE_NAME_STR, get_timestamp());
     ui_proc_dummy_t *proc = u_malloz(sizeof(ui_proc_dummy_t));
     SET_WINDOW_CONTEXT(proc);
     proc->margic = UI_WINDOW_MARGIC_CODE;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     /// 监听PM状态改变.
-    LOG_WM("register receiver\n");
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.context = proc;
     proc->receiver.name = "dummy_screen";

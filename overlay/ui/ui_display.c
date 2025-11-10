@@ -83,7 +83,8 @@ void ui_fill_img_id(lcd_tlvs_t *tlv, uint16_t img_id)
 }
 
 int lvgl_display_img_data_perpare(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
-{
+{    
+    EXCEPTION_CHECK_UINT(ani->res_array);
     int l = 0;
     int m = 0;
     uint16_t tmp = ani->res_array[ani->played_count];

@@ -9,6 +9,7 @@
 *****************************************************************************************
 */
 #define PAGE_STATIC_NAME                    pump
+#define PAGE_NAME_STR                       "pump"
 #define PUMP_UI_KEY_CODE                    (KEY_CODE_POWER |KEY_CODE_START | KEY_CODE_MODE | KEY_CODE_FREQUENCY | \
                                             KEY_CODE_BREASTFEEDING | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL | \
                                             KEY_CODE_KNOB_LEFT | KEY_CODE_KNOB_RIGHT)
@@ -284,7 +285,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     }
 
     if (new_state == ID_SCR_STATE_ON_RESUME) {
-        LOG_WM("==>ON_RESUME #add pump keyevent handler");
+        LOG_WM("==>%s window on resume", PAGE_NAME_STR);
         wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
              on_pump_ui_keyevent_hdr);
         if (proc->need_start_pump) {
@@ -294,13 +295,13 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
 
         if (wm->priv.misc && wm->priv.misc->is_charge_plug_in()) {
-            LOG_WM("goto charge ui");
+            LOG_WM("%s window goto charge ui", PAGE_NAME_STR);
             proc->goto_charge_ui_flag = 1; /// 设置跳转充电UI标志
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 1500, HDR_ACTION_GOTO_CHARGE_UI, proc, 
                 GOTO_CHARGE_HDR_TASK_NAME);
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
-        LOG_WM("==>ON_CREATE");
+        LOG_WM("==>%s window on create", PAGE_NAME_STR);
         ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         show_pump_home_ui(proc);
     }
@@ -318,21 +319,11 @@ static int exit_event_cb(window_lift_cycle_e new_state,
         case ID_SCR_STATE_ON_PAUSE: {
             ui->animation_play_status_update(ui, false);
             proc->user_pause = 1;
-            LOG_WM("==>ON_PAUSE# remove_keyevent_handler");
+            LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             wm->priv.key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
-        }
-        break;
-
-        case ID_SCR_STATE_ON_DESTORY:
-            LOG_WM("==>ON_DESTORY start");
-            /// 被弹出框临时打断，不释放资源.
-            if (new_scr->is_popup_window) {
-                LOG_WM("popup_window(%d) interrupt, not free instance!", new_scr->new_window_id);
-                return 1;
-            }
-            REMOVE_ALL_HANDER_TASK();
-            LOG_WM("==>unregister receiver");
+            stop_pump_ui_animation(proc);   
             unregister_broadcast_receiver(&proc->receiver);
+            REMOVE_ALL_HANDER_TASK();
             if (wm->priv.pump) {
                 int status = wm->priv.pump->get_breast_pump_status();
                 if (status > BREAST_PUMP_IDLE && status < BREAST_PUMP_FINISH) {
@@ -342,11 +333,20 @@ static int exit_event_cb(window_lift_cycle_e new_state,
                 LOG_WM("==>remove breast_pump_result_listener");
                 wm->priv.pump->remove_breast_pump_result_listener(on_breast_pump_result_cb);
             }
-            /// TODO: 释放图片资源.
+        }
+        break;
+
+        case ID_SCR_STATE_ON_DESTORY:
+            LOG_WM("==>%s window on destory", PAGE_NAME_STR);
+            /// 被弹出框临时打断，不释放资源.
+            // if (new_scr->is_popup_window) {
+            //     LOG_WM("popup_window(%d) interrupt, not free instance!", new_scr->new_window_id);
+            //     return 1;
+            // }
             u_free(proc);
             proc = NULL;
             SET_WINDOW_CONTEXT(NULL);
-            LOG_WM("==>ON_DESTORY end");
+            LOG_WM("%s window on destory--end", PAGE_NAME_STR);
             break;
         default:
             break;
@@ -360,7 +360,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 */
 window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_t *wm, uint8_t window_id)
 {
-    LOG_WM("enter, time: %ld.", get_timestamp());
+    LOG_WM("%s window enter, time: %ld.", PAGE_NAME_STR, get_timestamp());
     ui_proc_pump_t *proc = u_malloz(sizeof(ui_proc_pump_t));
     SET_WINDOW_CONTEXT(proc);
     /// 设置窗口标识.

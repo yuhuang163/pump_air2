@@ -64,3 +64,21 @@ int switch_pump_power_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
     return 0;
 }
 
+void stop_pump_ui_animation(ui_proc_pump_t *proc)
+{
+    ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    ui_play_info_t play_info = {
+        .tag = NULL,
+        .fps = PUMP_ANIMATION_FREQ,
+        .res_array = NULL,
+        .res_count = 0,
+        .progress_cb = NULL,
+        .user_data = proc,
+    };
+    ui->hook->ui_animation_play_init(ui, play_info);
+    proc->last_progress_ani_time = get_timestamp();
+    pumping_ui_hdr_remove();
+    pump_setting_ui_hdr_remove();
+    pump_mode_ui_hdr_remove();
+}

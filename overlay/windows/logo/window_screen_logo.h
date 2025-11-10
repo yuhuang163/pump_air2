@@ -32,7 +32,7 @@ typedef struct ui_proc_logo {
 *****************************************************************************************
 */
 void start_logo_ui_animation(ui_proc_logo_t *proc);
-void logo_ui_hdr_remove(void);
+void stop_logo_ui_animation(ui_proc_logo_t *proc);
 
 #ifdef __cplusplus
 }

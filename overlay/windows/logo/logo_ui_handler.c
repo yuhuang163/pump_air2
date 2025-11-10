@@ -99,6 +99,11 @@ static void show_logo_ui(ui_proc_logo_t *proc)
     proc->last_progress_ani_time = get_timestamp();
 }
 
+static void logo_ui_hdr_remove(void)
+{
+    REMOVE_TASK_HANDLER_DIRECTLY(LOGO_DISPLAY_HDR_TASK_NAME);
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -117,7 +122,19 @@ void start_logo_ui_animation(ui_proc_logo_t *proc)
     show_logo_ui(proc);
 }
 
-void logo_ui_hdr_remove(void)
+void stop_logo_ui_animation(ui_proc_logo_t *proc)
 {
-    REMOVE_TASK_HANDLER_DIRECTLY(LOGO_DISPLAY_HDR_TASK_NAME);
+    logo_ui_hdr_remove();
+    ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    ui_play_info_t play_info = {
+        .tag = NULL,
+        .fps = LOGO_ANIMATION_FREQ,
+        .res_array = NULL,
+        .res_count = 0,
+        .progress_cb = NULL,
+        .user_data = proc,
+    };
+    ui->hook->ui_animation_play_init(ui, play_info);
+    proc->last_progress_ani_time = get_timestamp();
 }
