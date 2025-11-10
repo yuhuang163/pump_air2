@@ -115,6 +115,7 @@ void show_pump_progress_time_policy(ui_proc_pump_t *proc, breast_pump_manager_co
 void pumping_ui_hdr_remove(void);
 void pump_setting_ui_hdr_remove(void);
 void pump_mode_ui_hdr_remove(void);
+void stop_pump_ui_animation(ui_proc_pump_t *proc);
 #ifdef __cplusplus
 }
 #endif
