@@ -9,6 +9,7 @@ extern "C" {
 /*******************************************************************************
  * Include files
  ******************************************************************************/
+#include <stdint.h> // IWYU pragma: keep
 
 /// 按键索引
 typedef enum {
@@ -19,6 +20,8 @@ typedef enum {
     KEY_INDEX_BREASTFEEDING,
     KEY_INDEX_LEFT_CONTROL,
     KEY_INDEX_RIGHT_CONTROL,
+    KEY_INDEX_FACTORY_RESET,
+    KEY_INDEX_TRAVEL_LOCK,
     KEY_INDEX_KNOB_LEFT,
     KEY_INDEX_KNOB_RIGHT,
     KEY_INDEX_MAX,
@@ -33,9 +36,13 @@ typedef enum {
     KEY_CODE_BREASTFEEDING = (1 << KEY_INDEX_BREASTFEEDING),   /// 追奶键
     KEY_CODE_LEFT_CONTROL = (1 << KEY_INDEX_LEFT_CONTROL),   /// 左控制键
     KEY_CODE_RIGHT_CONTROL = (1 << KEY_INDEX_RIGHT_CONTROL),   /// 右控制键
+    KEY_CODE_FACTORY_RESET = (1 << KEY_INDEX_FACTORY_RESET),   /// 工厂重置键
+    KEY_CODE_TRAVEL_LOCK = (1 << KEY_INDEX_TRAVEL_LOCK),   /// 旅行锁键
     KEY_CODE_KNOB_LEFT = (1 << KEY_INDEX_KNOB_LEFT),   /// 旋钮逆时针
     KEY_CODE_KNOB_RIGHT = (1 << KEY_INDEX_KNOB_RIGHT),   /// 旋钮顺时针
 } input_key_code_e;
+
+const char *get_input_key_code_name(uint16_t keycode);
 
 #ifdef __cplusplus
 }

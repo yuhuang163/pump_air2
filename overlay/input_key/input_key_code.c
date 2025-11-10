@@ -29,9 +29,9 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-const char *get_input_key_code_name(uint8_t code)
+const char *get_input_key_code_name(uint16_t keycode)
 {
-    switch (code) {
+    switch (keycode) {
         default:
             return "@unknow";
         case KEY_CODE_POWER:
@@ -44,6 +44,10 @@ const char *get_input_key_code_name(uint8_t code)
             return "@frequency";
         case KEY_CODE_BREASTFEEDING:
             return "@breastfeeding";
+        case KEY_CODE_FACTORY_RESET:
+            return "@factory_reset";
+        case KEY_CODE_TRAVEL_LOCK:
+            return "@travel_lock";
         case KEY_CODE_LEFT_CONTROL:
             return "@left_control";
         case KEY_CODE_RIGHT_CONTROL:

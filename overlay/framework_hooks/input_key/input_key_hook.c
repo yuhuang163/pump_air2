@@ -34,7 +34,6 @@ static int input_keyevent_route(struct key_input_context *ctx, uint16_t keycode,
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-extern const char *get_input_key_code_name(uint8_t code);
 void register_input_key_hook(key_input_context_t *ctx)
 {
     ctx->hook = u_malloz(sizeof(struct __key_input_hook));

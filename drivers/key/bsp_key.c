@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define KEY_CODE_SIZE (6 + 1)
+#define KEY_CODE_SIZE (6 + 1 + 2) // 6个按键 + 1个电源键 + 2个组合按键
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -115,6 +115,11 @@ int platform_read_key_value(int type, int index)
     return bsp_read_key_value(index);
 }
 
+int platform_all_key_value(void)
+{
+    return bsp_read_all_key_value();
+}
+
 void key_irq_event_callback(int index)
 {
     scan_key_timer_start(index);
@@ -123,7 +128,7 @@ void key_irq_event_callback(int index)
 void knob_button_event_handler(int arg1, int arg2, void *param)
 {
     LOGI("knob button event: arg1=%d, arg2=%d", arg1, arg2);
-    int keycode = arg1 == 0 ? KEY_CODE_8 : KEY_CODE_9;
+    int keycode = arg1 == 0 ? KEY_CODE_10 : KEY_CODE_11;
     key_cb(node, keycode, KEY_EVENT_CLICK);
 }
 

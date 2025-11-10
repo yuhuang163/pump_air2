@@ -29,6 +29,8 @@ typedef enum {
     KEY_EVENT_LONG_8S = (1 << 10),
     KEY_EVENT_LONG_9S = (1 << 11),
     KEY_EVENT_LONG_10S = (1 << 12),
+    KEY_EVENT_LONG_AFTER_DOWN = (1 << 13),
+    KEY_EVENT_LONG_AFTER_CLICK = (1 << 14),
     KEY_EVENT_MAX
 } key_event_enum_e;
 
@@ -41,8 +43,10 @@ typedef enum {
     KEY_CODE_5 = (1 << 4),   
     KEY_CODE_6 = (1 << 5),   
     KEY_CODE_7 = (1 << 6),  
-    KEY_CODE_8 = (1 << 7),  /// 旋钮逆时针
-    KEY_CODE_9 = (1 << 8),  /// 旋钮顺时针
+    KEY_CODE_8 = (1 << 7),  /// 工厂重置键
+    KEY_CODE_9 = (1 << 8),  /// 旅行锁键
+    KEY_CODE_10 = (1 << 9),  /// 旋钮逆时针
+    KEY_CODE_11 = (1 << 10),  /// 旋钮顺时针
     KEY_CODE_MAX
 } key_type_enum_e;
 
@@ -71,7 +75,7 @@ typedef struct key_input_context {
     /// 定义外部钩子函数.
     struct __key_input_hook {
         int (*input_keyevent_route)(struct key_input_context *ctx, uint16_t keycode, uint16_t keytype, int flag);
-        const char *(*get_key_code_name)(uint8_t code);
+        const char *(*get_key_code_name)(uint16_t keycode);
     } *hook;
 
 } key_input_context_t;
