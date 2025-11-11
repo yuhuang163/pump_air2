@@ -16,16 +16,17 @@
 #define PAGE_NAME_STR                           "dummy"
 #define DUMMY_TIME_INTERVAL                     (60000 * 1) /// 1分钟
 #define DUMMY_IDLE_POWER_OFF_TIME               (60000 * 5) /// 5分钟
-#define DUMMY_NIGHT_LIGHT_ONOFF_HDR_TASK_NAME   "dummy_night_light_onoff"
-#define DUMMY_NIGHT_LIGHT_LEVEL_HDR_TASK_NAME   "dummy_night_light_level"
-#define DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME    "dummy_system_power_off"
+#define DUMMY_NIGHT_LIGHT_ONOFF_TASK_NAME       "dummy_night_light_onoff"
+#define DUMMY_NIGHT_LIGHT_LEVEL_TASK_NAME       "dummy_night_light_level"
+#define DUMMY_SYSTEM_POWER_OFF_TASK_NAME        "dummy_system_power_off"
+#define EXIT_DUMMY_POLICY_TASK_NAME             "exit_dummy_policy"
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
-    REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_NIGHT_LIGHT_ONOFF_HDR_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_NIGHT_LIGHT_LEVEL_HDR_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_NIGHT_LIGHT_ONOFF_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_NIGHT_LIGHT_LEVEL_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(DUMMY_SYSTEM_POWER_OFF_TASK_NAME); \
 } while (0)
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -54,7 +55,7 @@ static void system_power_off_cb(hdr_post_args_t *args)
         return;
     }
     POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, 
-        DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME);
+        DUMMY_SYSTEM_POWER_OFF_TASK_NAME);
     LOG_WM("dummy time: %d", current_time - proc->enter_dummy_time);
 }
 
@@ -97,8 +98,8 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
                 on_dummy_receive_internal(id, context, pm_state, (pm_wakeup_reason_e)wakeup_reason, pdata);
             }
             break;
-            case ID_BROADCAST_BREAST_PUMP_MODE_CHANGE: {
-                LOG_WM("received BREAST_PUMP_MODE_CHANGE.");
+            case ID_BROADCAST_CHARGE_STATE_CHANGE: {
+                LOG_WM("received CHARGE_STATE_CHANGE.");
                 break;
             }
             default:
@@ -128,7 +129,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         wm->priv.key->add_keyevent_handler("dummy_wm", proc, KEY_CODE_1, KEY_EVENT_CLICK,
              on_dummy_keyevent_hdr);
         proc->enter_dummy_time = platform_get_utc_time();
-        POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, DUMMY_SYSTEM_POWER_OFF_HDR_TASK_NAME);
+        POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, DUMMY_SYSTEM_POWER_OFF_TASK_NAME);
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
         if (ui && ui->hook && ui->hook->set_ui_backlight) {
@@ -180,6 +181,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
+    proc->receiver.id.code |= ID_BROADCAST_CHARGE_STATE_CHANGE;
     proc->receiver.context = proc;
     proc->receiver.name = "dummy_screen";
     proc->receiver.receiver_cb = on_dummy_window_receive;

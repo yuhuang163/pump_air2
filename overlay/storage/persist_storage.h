@@ -171,8 +171,8 @@ typedef enum {
     SOUND_THEMES_GIRL,
     SOUND_THEMES_BOY,
     SOUND_THEMES_CHILD,
-    SOUND_THEMES_OFFICIAL,  ///官方下载
-    SOUND_THEMES_USER,       ///用户自定义
+    SOUND_THEMES_OFFICIAL,  /// 官方下载
+    SOUND_THEMES_USER,       /// 用户自定义
     SOUND_THEMES_MAX,
     SOUND_THEMES_DEFAULT = SOUND_THEMES_0,
 } sound_themes_type_e;

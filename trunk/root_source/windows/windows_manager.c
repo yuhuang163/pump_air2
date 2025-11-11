@@ -146,7 +146,7 @@ static int to_valid_window_id(window_manager_context_t *wm, uint8_t window_id)
                 window_id = ID_WINDOW_CHARGE;
                 break;
             }
-            window_id = wm->is_window_guidance_deployed() ? ID_WINDOW_PUMP : ID_WINDOW_GUIDE;
+            window_id = wm->is_window_guidance_deployed() ? ID_WINDOW_PUMP : ID_WINDOW_HOME;
         } while (0);
     }
     return window_id;

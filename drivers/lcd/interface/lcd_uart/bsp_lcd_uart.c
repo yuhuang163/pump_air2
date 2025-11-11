@@ -45,13 +45,16 @@ POSSIBLY_UNUSED static int lcd_uart_write(uint8_t *buf, uint32_t len)
 {
     uint8_t msg = 0;
     int ret = 0;
-    BSP_LOG_HEX("lcd send", buf, len);
+    BSP_LOG_HEX("lcd tx", buf, len);
     ret = hal_uart_dma_send((enum HAL_UART_ID_T)LCD_UART_ID, (uint8_t *)buf, len, NULL, NULL);
     if (ret) {
         LOGW("uart tx dma error: ret=%d", ret);
         return ret;
     }
     ret = MSG_QUEUE_RECV(lcd_send_msg_id, &msg, 100);
+    if (ret != BSP_OK) {
+        LOGW("uart tx timeout");
+    }
     return ret;
 }
 
@@ -69,7 +72,6 @@ POSSIBLY_UNUSED static int lcd_uart_read(uint8_t *buf, uint32_t len)
 
     int ret = hal_uart_dma_recv_mask((enum HAL_UART_ID_T)LCD_UART_ID, buf, len, NULL, NULL, &mask);
     if (ret) {
-        LOGW("uart rx dma error: ret=%d", ret);
         return msg;
     }
     MSG_QUEUE_RECV(lcd_recv_msg_id, &msg, OS_WAIT_FOREVER);
@@ -142,6 +144,7 @@ static void lcd_uart_event_thread(const void *args)
         if (recv_len > 0) {
             lcd_uart_recv_handler(recv_buf, recv_len);
         }
+        msleep(20);
     }
 }
 
@@ -181,7 +184,7 @@ int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs, uint8_t tlvs_num)
     lcd->header.length[1] = data_length & 0xFF;
     lcd->header.length[0] = data_length >> 8;
     checksum = CRC16(lcd, payload_size + LCD_PROTOCOL_HEADER_SIZE);
-    BSP_LOG("lcd", "srv:%d, size:%d, checksum:%x", srv_id, payload_size, checksum);
+    // BSP_LOG("lcd", "srv:%d, size:%d, checksum:%x", srv_id, payload_size, checksum);
     lcd->payload[payload_size] = checksum >> 8;
     lcd->payload[payload_size + 1] = checksum & 0xFF;
     payload_size += LCD_PROTOCOL_CHECKSUM_SIZE;
@@ -191,7 +194,7 @@ int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs, uint8_t tlvs_num)
         goto ERROR_EXIT;
     }
 
-    ret = MSG_QUEUE_RECV(lcd_rsp_msg_id, &error_code, 100);
+    ret = MSG_QUEUE_RECV(lcd_rsp_msg_id, &error_code, 20);
     if (ret != BSP_OK) {
         LOGE("lcd rsp timeout");
         goto ERROR_EXIT;

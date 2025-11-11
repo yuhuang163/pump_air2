@@ -10,8 +10,8 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PUMP_BREASTFEEDING_MODE_DISPLAY_HDR_TASK_NAME       "brtf_mode_display_cmp"
-#define PUMP_MODE_DISPLAY_HDR_TASK_NAME                     "pump_mode_display_cmp"
+#define PUMP_BREASTFEEDING_MODE_DISPLAY_TASK_NAME       "brtf_mode_display_cmp"
+#define PUMP_MODE_DISPLAY_TASK_NAME                     "pump_mode_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -56,7 +56,7 @@ static void pump_mode_ui_policy(ui_manager_context_t *ui)
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(pump_mode_display_completed_cb, 10, proc,
-            PUMP_MODE_DISPLAY_HDR_TASK_NAME);
+            PUMP_MODE_DISPLAY_TASK_NAME);
     } 
 }
 
@@ -116,7 +116,7 @@ static void pump_breastfeeding_mode_ui_policy(ui_manager_context_t *ui)
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(pump_breastfeeding_mode_display_completed_cb, 10, proc,
-            PUMP_BREASTFEEDING_MODE_DISPLAY_HDR_TASK_NAME);
+            PUMP_BREASTFEEDING_MODE_DISPLAY_TASK_NAME);
     } 
 }
 
@@ -192,6 +192,6 @@ int switch_pump_breastfeeding_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_
 
 void pump_mode_ui_hdr_remove(void)
 {
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_MODE_DISPLAY_HDR_TASK_NAME);
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_BREASTFEEDING_MODE_DISPLAY_HDR_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_MODE_DISPLAY_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_BREASTFEEDING_MODE_DISPLAY_TASK_NAME);
 }

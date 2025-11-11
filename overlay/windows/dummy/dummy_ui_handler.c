@@ -53,7 +53,7 @@ int switch_dummy_night_light_onoff_ui(ui_proc_dummy_t *proc)
     };
     int args[] = {NIGHT_LIGHT_LED_ID_0, (int)&led_status};
     led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)args);
-    LOG_UI("switch pump power: %d, level: %d", night_light_info.onoff, night_light_info.level);
+    LOG_UI("switch dummy night light power: %d, level: %d", night_light_info.onoff, night_light_info.level);
 
     return 0;
 }

@@ -46,6 +46,8 @@ extern "C" {
 #define LCD_POWER_PIN                   HAL_GPIO_PIN_P4_7
 /// 充电中断引脚
 #define CHARGE_INT_PIN                  HAL_GPIO_PIN_P0_1
+/// 充电电源控制引脚
+#define CHARGE_POWER_PIN                HAL_GPIO_PIN_P0_2
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

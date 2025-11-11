@@ -39,7 +39,7 @@ extern "C" {
 typedef enum {
     ID_BROADCAST_BEGIN = 0,
     ID_BROADCAST_UPDATE_BATTERY_INFO = (1 << 0),            /// 电量更新.
-    ID_BROADCAST_CHARGE_PLUG_IN_STATE = (1 << 1),           /// 充电拔插
+    ID_BROADCAST_CHARGE_STATE_CHANGE = (1 << 1),            /// 充电状态改变.
     ID_BROADCAST_PM_STATE_CHANGE = (1 << 2),                /// 休眠唤醒.
     ID_BROADCAST_SYS_BOOT_COMPLETED = (1 << 3),             /// 系统启动完成.
     ID_BROADCAST_BLE_CONNECT_STATE_CHANGE = (1 << 4),       /// 蓝牙连接状态改变.

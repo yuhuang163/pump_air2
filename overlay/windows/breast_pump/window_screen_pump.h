@@ -39,7 +39,6 @@ typedef enum {
     HDR_ACTION_PROGRESS_START,
     HDR_ACTION_PROGRESS_STOP,
     HDR_ACTION_PUMP_COMPLETE,
-    HDR_ACTION_GOTO_CHARGE_UI,
     HDR_ACTION_MAX
 } pump_ui_hdr_action_e;
 
@@ -94,6 +93,7 @@ typedef struct ui_proc_pump {
     uint16_t display_progress; /// 显示进度.
     ui_pump_info_t info; /// 当前泵奶信息.
     pump_setting_t setting; /// 当前泵奶设置信息.
+    uint8_t charging_status; /// 充电状态
 } ui_proc_pump_t;
 
 /// 泵奶模式切换超时时间

@@ -45,7 +45,14 @@ extern "C" {
 #define SG_UNCHARGE_DEBOUNCE_RATE_5          6000.0    ///去抖率  
 #define SG_UNCHARGE_DEBOUNCE_RATE_6          (0.001)   ///去抖率  
 #define SG_UNCHARGE_DEBOUNCE_RATE_7          (0.0005)  ///去抖率 
-#define SG_UNCHARGE_DEBOUNCE_RATE_8          (0.0001)  ///去抖率  
+#define SG_UNCHARGE_DEBOUNCE_RATE_8          (0.0001)  ///去抖率 
+/// 单节电池充电浮压调整阈值
+#define SG_FLOAT_VOLTAGE_THRESHOLD_1         (4000)  ///单位mV  单节电池充电浮压调整阈值
+#define SG_FLOAT_VOLTAGE_THRESHOLD_2         (3800)  ///单位mV  单节电池充电浮压调整阈值
+#define SG_FLOAT_VOLTAGE_THRESHOLD_3         (3000)  ///单位mV  单节电池充电浮压调整阈值
+#define SG_FLOAT_VOLTAGE_RATE_0              80      /// 单节电池充电浮压调整阈值 偏差  
+#define SG_FLOAT_VOLTAGE_RATE_1              220     /// 单节电池充电浮压调整阈值 偏差  
+#define SG_FLOAT_VOLTAGE_RATE_2              100     /// 单节电池充电浮压调整阈值 偏差 
 
 /// 三节电池充电曲线参数
 #define THREE_CHARGING_FORCE_UPDATE_THRESHOLD   300     ///单位mV  偏差超阈值强制更新
@@ -54,8 +61,7 @@ extern "C" {
 #define THREE_CHARGING_UPDATE_THRESHOLD_3       0       ///单位mV  偏差阈值2
 #define THREE_CHARGING_DEBOUNCE_RATE_1          1000.0  ///去抖率  
 #define THREE_CHARGING_DEBOUNCE_RATE_2          0.004   ///去抖率  
-#define THREE_CHARGING_DEBOUNCE_RATE_3          0.001   ///去抖率 
-
+#define THREE_CHARGING_DEBOUNCE_RATE_3          0.001   ///去抖率
 /// 三节电池放电曲线参数
 #define THREE_UNCHARGE_FORCE_UPDATE_THRESHOLD   300    ///单位mV  偏差超阈值强制更新
 #define THREE_UNCHARGE_UPDATE_THRESHOLD_0       (240)  ///单位mV  偏差阈值0
@@ -68,7 +74,6 @@ extern "C" {
 #define THREE_UNCHARGE_DEBOUNCE_RATE_2          500.0   ///去抖率 
 #define THREE_UNCHARGE_DEBOUNCE_RATE_3          200.0   ///去抖率  
 #define THREE_UNCHARGE_DEBOUNCE_RATE_4          120.0   ///去抖率  
-
 /// 三节电池大电流放电曲线参数
 #define THREE_UNCHARGE_UPDATE_THRESHOLD_5       (350)  ///单位mV  偏差阈值5
 #define THREE_UNCHARGE_UPDATE_THRESHOLD_6       (200)  ///单位mV  偏差阈值6
@@ -78,15 +83,22 @@ extern "C" {
 #define THREE_UNCHARGE_DEBOUNCE_RATE_6          (0.001)   ///去抖率  
 #define THREE_UNCHARGE_DEBOUNCE_RATE_7          (0.0005)  ///去抖率 
 #define THREE_UNCHARGE_DEBOUNCE_RATE_8          (0.0001)  ///去抖率  
+/// 三节电池充电浮压调整阈值
+#define THREE_FLOAT_VOLTAGE_THRESHOLD_1         (12000)  ///单位mV  三节电池充电浮压调整阈值
+#define THREE_FLOAT_VOLTAGE_THRESHOLD_2         (11000)  ///单位mV  三节电池充电浮压调整阈值
+#define THREE_FLOAT_VOLTAGE_THRESHOLD_3         (9000)   ///单位mV  三节电池充电浮压调整阈值
+#define THREE_FLOAT_VOLTAGE_RATE_0              110      /// 三节电池充电浮压调整阈值 偏差  
+#define THREE_FLOAT_VOLTAGE_RATE_1              200      /// 三节电池充电浮压调整阈值 偏差
+#define THREE_FLOAT_VOLTAGE_RATE_2              150      /// 三节电池充电浮压调整阈值 偏差
 
 /// 去抖配置
-#define BATT_FORCE_UPDATE_DEBOUNCE           5       /// 强制更新去抖
-#define BATT_CHARGE_FULL_DEBOUNCE            100     
-
+#define BATT_FORCE_UPDATE_DEBOUNCE              5       /// 强制更新去抖
+#define BATT_CHARGE_FULL_DEBOUNCE               100     /// 充满去抖
+#define BATT_CHARGE_FULL_DEBOUNCE_IGNORE        20      /// 充满去抖忽略阈值
 /// 健康状态配置
-#define BATT_CHARGING_TIME_OUT               (162000)   ///(4.5 * 60 * 60 * 1000 / 100)
-#define BATT_HEALTH_COEFF_MIN                (90)
-#define BATT_HEALTH_COEFF_MAX                (100)
+#define BATT_CHARGING_TIME_OUT                  (162000)   ///(4.5 * 60 * 60 * 1000 / 100)
+#define BATT_HEALTH_COEFF_MIN                   (90)
+#define BATT_HEALTH_COEFF_MAX                   (100)
 
 ///电池容量属性
 typedef struct {
@@ -111,6 +123,12 @@ typedef struct {
     int16_t dropout_voltage;
 } battery_para_t;
 
+/// 电池浮压调整
+typedef struct {
+    uint16_t voltage;
+    uint16_t threshold;
+} battery_float_voltage_t;
+
 /// adc 参数
 typedef struct {
     float coeff;
@@ -123,7 +141,7 @@ typedef struct {
 *****************************************************************************************
 */
 bool vbus_is_plug_in(void);
-int charge_device_init(void);
+int bsp_charge_init(void);
 int get_charge_state(void);
 int get_charging_temperature(void);
 int get_charge_full_debounce(void);
