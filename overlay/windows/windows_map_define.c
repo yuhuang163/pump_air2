@@ -15,7 +15,7 @@
 #define WINDOW_PRIO_SETTING     WINDOW_PRIO_LOW
 #define WINDOW_PRIO_PUMP        WINDOW_PRIO_LEVEL2
 #define WINDOW_PRIO_POPUP       WINDOW_PRIO_LEVEL7
-#define WINDOW_PRIO_GUIDE       WINDOW_PRIO_LEVEL8
+#define WINDOW_PRIO_HOME        WINDOW_PRIO_LEVEL8
 #define WINDOW_PRIO_OTA         WINDOW_PRIO_LEVEL9
 #define WINDOW_PRIO_CHARGE      WINDOW_PRIO_LEVEL9
 #define WINDOW_PRIO_FAC         WINDOW_PRIO_HIGH
@@ -52,14 +52,14 @@ const window_life_cycle_t m_ui_screen_null = {
 * 注意: 新增窗口处理集合, 请按window_id顺序排列，便于二分法查找.
 */
 static const window_context_handle_t g_process_handle_list[] = {
-    {ID_WINDOW_DUMMY,               WINDOW_PRIO_DUMMY,      PAGE_HANDLE_NAME(dummy),    REFS_T(m_window_dummy)},
-    {ID_WINDOW_LOGO,                WINDOW_PRIO_LOGO,       PAGE_HANDLE_NAME(logo),     REFS_T(m_window_logo)},
-    // {ID_WINDOW_GUIDE,               WINDOW_PRIO_GUIDE,      PAGE_HANDLE_NAME(guide),    REFS_T(m_window_guide)},
-    // {ID_WINDOW_CHARGE,              WINDOW_PRIO_CHARGE,     PAGE_HANDLE_NAME(charge),   REFS_T(m_window_charge)},
+    {ID_WINDOW_DUMMY, WINDOW_PRIO_DUMMY, PAGE_HANDLE_NAME(dummy), REFS_T(m_window_dummy)},
+    {ID_WINDOW_LOGO, WINDOW_PRIO_LOGO, PAGE_HANDLE_NAME(logo), REFS_T(m_window_logo)},
+    // {ID_WINDOW_HOME,               WINDOW_PRIO_HOME,      PAGE_HANDLE_NAME(guide),    REFS_T(m_window_guide)},
+    {ID_WINDOW_CHARGE, WINDOW_PRIO_CHARGE, PAGE_HANDLE_NAME(charge), REFS_T(m_window_charge)},
     // {ID_WINDOW_BATTERY,             WINDOW_PRIO_BATTERY,    PAGE_HANDLE_NAME(battery ), REFS_T(m_window_battery)},
     // {ID_WINDOW_OTA_UPGRADE,         WINDOW_PRIO_OTA,        PAGE_HANDLE_NAME(ota),      REFS_T(m_window_ota)},
     // {ID_WINDOW_POPUP_WINDOW,        WINDOW_PRIO_POPUP,      PAGE_HANDLE_NAME(popup),    REFS_T(m_window_popup)},
-    {ID_WINDOW_PUMP,          WINDOW_PRIO_PUMP,      PAGE_HANDLE_NAME(pump),    REFS_T(m_window_pump)},
+    {ID_WINDOW_PUMP, WINDOW_PRIO_PUMP, PAGE_HANDLE_NAME(pump), REFS_T(m_window_pump)},
     // {ID_WINDOW_FACTORY_MODE,        WINDOW_PRIO_FAC,        PAGE_HANDLE_NAME(fac),      REFS_T(m_window_fac)},
     // {ID_WINDOW_SETTINGS,            WINDOW_PRIO_SETTING,    PAGE_HANDLE_NAME(setting),  REFS_T(m_window_setting)},
     // {ID_WINDOW_AIRPLANE_MODE,       WINDOW_PRIO_SETTING,    PAGE_HANDLE_NAME(apmode),   REFS_T(m_window_apmode)},
@@ -77,8 +77,8 @@ const char *to_window_name(uint8_t window_id)
             return "dummy";
         case ID_WINDOW_LOGO:
             return "logo";
-        case ID_WINDOW_GUIDE:
-            return "guide";
+        case ID_WINDOW_HOME:
+            return "home";
         case ID_WINDOW_CHARGE:
             return "charging";
         case ID_WINDOW_BATTERY:

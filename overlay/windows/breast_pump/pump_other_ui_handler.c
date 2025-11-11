@@ -77,6 +77,7 @@ void stop_pump_ui_animation(ui_proc_pump_t *proc)
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);
+    ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();
     pumping_ui_hdr_remove();
     pump_setting_ui_hdr_remove();

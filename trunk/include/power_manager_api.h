@@ -67,7 +67,6 @@ typedef struct power_manager_context {
     int (*enable_pmu_sleep)(const char *caller, bool enable);
     int (*is_pmu_sleep)(void);
     int (*system_power_control)(bool state);
-    void (*goto_suspend_by_user)(void);
     void (*set_period_wake_up)(int ms);
     bool (*is_background_wakeup)(void);
     bool (*is_on_suspend_gotoing)(void);
@@ -77,6 +76,8 @@ typedef struct power_manager_context {
     struct __power_manager_hook {
         int (*on_post_init_route)(struct power_manager_context *ctx);
         int (*on_key_event_route)(struct power_manager_context *ctx, uint16_t keycode, uint16_t keytype);
+        /// 禁止进入待机状态的钩子.
+        bool (*is_prohibit_pm_suspend)(struct power_manager_context *ctx);
     } *hook;
 } power_manager_context_t;
 

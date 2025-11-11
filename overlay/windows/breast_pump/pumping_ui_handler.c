@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PUMP_COMPLETE_DISPLAY_HDR_TASK_NAME         "pump_complete_display"
+#define PUMP_COMPLETE_DISPLAY_TASK_NAME         "pump_complete_display"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -42,15 +42,21 @@ static void pumping_work_ui_policy(ui_manager_context_t *ui)
     EXCEPTION_CHECK_VOID(proc);
     breast_pump_manager_context_t *pump = proc->wm->priv.pump;
     EXCEPTION_CHECK_VOID(pump);
-    if (pump->is_on_working() == 0) {
+    /// 如果充电状态发生变化，则刷新UI.
+    if (proc->charging_status != proc->wm->priv.misc->is_charge_plug_in()) {
+        proc->charging_status = proc->wm->priv.misc->is_charge_plug_in();
+        goto UI_DISPLAY_REFRESH;
+    }
+    
+    /// 如果上次动画时间小于更新间隔，则不刷新UI.
+    if (get_timestamp_ms(proc->last_progress_ani_time) < PUMP_RUNNING_TIME_UPDATE_INTERVAL) {
         return;
     }
 
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_RUNNING_TIME_UPDATE_INTERVAL) {
-        proc->last_progress_ani_time = get_timestamp();
-        if (ui->priv.play_info.reset_play_count_cb) {
-            ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
-        }
+UI_DISPLAY_REFRESH: 
+    proc->last_progress_ani_time = get_timestamp();
+    if (ui->priv.play_info.reset_play_count_cb) {
+        ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
     }
 }
 
@@ -92,7 +98,7 @@ static void pump_result_ui_policy(ui_manager_context_t *ui)
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(pump_result_display_completed_cb, 10, proc,
-            PUMP_COMPLETE_DISPLAY_HDR_TASK_NAME);
+            PUMP_COMPLETE_DISPLAY_TASK_NAME);
     }
 }
 
@@ -147,6 +153,8 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
         .progress_cb = pumping_animation_progress_cb,
         .user_data = proc,
     };
+    EXCEPTION_CHECK_VOID(proc->wm->priv.misc);
+    proc->charging_status = proc->wm->priv.misc->is_charge_plug_in();
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
     proc->current_ui_type = PUMP_UI_TYPE_PUMPING;
@@ -192,5 +200,5 @@ void show_pump_progress_time_policy(ui_proc_pump_t *proc, breast_pump_manager_co
 
 void pumping_ui_hdr_remove(void)
 {
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_DISPLAY_HDR_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_DISPLAY_TASK_NAME);
 }

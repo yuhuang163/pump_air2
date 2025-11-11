@@ -60,6 +60,13 @@ static const battery_para_t sc_full_load_tables[] = {
     {SG_UNCHARGE_DEBOUNCE_RATE_7, SG_UNCHARGE_UPDATE_THRESHOLD_7}, 
     {SG_UNCHARGE_DEBOUNCE_RATE_8, SG_UNCHARGE_UPDATE_THRESHOLD_8}, 
 };
+
+static const battery_float_voltage_t sc_charging_float_tables[] = {
+    {SG_FLOAT_VOLTAGE_RATE_0, SG_FLOAT_VOLTAGE_THRESHOLD_1}, 
+    {SG_FLOAT_VOLTAGE_RATE_1, SG_FLOAT_VOLTAGE_THRESHOLD_2}, 
+    {SG_FLOAT_VOLTAGE_RATE_2, SG_FLOAT_VOLTAGE_THRESHOLD_3}, 
+};
+
 #else
 static const capacity_data_t sc_batt_tables[] = {
     {0,  7200, 9449}, 
@@ -98,6 +105,13 @@ static const battery_para_t sc_full_load_tables[] = {
     {THREE_UNCHARGE_DEBOUNCE_RATE_7, THREE_UNCHARGE_UPDATE_THRESHOLD_7}, 
     {THREE_UNCHARGE_DEBOUNCE_RATE_8, THREE_UNCHARGE_UPDATE_THRESHOLD_8}, 
 };
+
+static const battery_float_voltage_t sc_charging_float_tables[] = {
+    {THREE_FLOAT_VOLTAGE_RATE_0, THREE_FLOAT_VOLTAGE_THRESHOLD_1}, 
+    {THREE_FLOAT_VOLTAGE_RATE_1, THREE_FLOAT_VOLTAGE_THRESHOLD_2}, 
+    {THREE_FLOAT_VOLTAGE_RATE_2, THREE_FLOAT_VOLTAGE_THRESHOLD_3}, 
+};
+
 #endif
 
 static uint8_t log_timer = 0;
@@ -196,13 +210,12 @@ static void battery_percent_handler(uint16_t current_voltage)
 
 static uint16_t battery_charging_compensation(uint16_t voltage)
 {
-    if (voltage < 3000) {
-        return voltage;
-    } else if (voltage < 3800) {
-        return (voltage - 220);
-    } else {
-        return (voltage - 150);
+    for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charging_float_tables); i++) {
+        if (voltage > sc_charging_float_tables[i].threshold) {
+            return voltage - sc_charging_float_tables[i].voltage;
+        }
     }
+    return voltage;
 }
 
 static void uncharge_voltage_handler(uint16_t voltage)
@@ -210,7 +223,7 @@ static void uncharge_voltage_handler(uint16_t voltage)
     static RTC_DATA_ATTR double vref = 0;
     static uint8_t comp_count= 0;
     uint8_t vref_flag = 0;
-    int8_t  step = 0;
+    int16_t step = 0;
     int16_t offset = 0;
 
     /// 充电退出策略
@@ -266,7 +279,7 @@ CALC_EXIT:
         comp_count = 0;
     } 
 
-    step = (int8_t) vref;
+    step = (int16_t) vref;
     if (step) {
         battery.voltage = battery.voltage - step;
         vref = vref - step;
@@ -284,7 +297,7 @@ static void charging_voltage_handler(uint16_t voltage)
 {
     static double vref = 0;
     uint8_t vref_flag = 0;
-    int8_t  step = 0;
+    int16_t step = 0;
     int16_t offset = 0;
     uint8_t health_coeff = 0, table_size = 0, debounce = 0;
 
@@ -343,7 +356,7 @@ static void charging_voltage_handler(uint16_t voltage)
     } 
 
 CALC_EXIT:
-    step = (int8_t)vref;
+    step = (int16_t)vref;
     if (step) {
         battery.voltage = battery.voltage + step;
         vref = vref - step;
@@ -395,7 +408,7 @@ static int battery_voltage_poll(void)
     log_timer++;
     ret = battery_adc_single_conversion(&voltage);
     if ( ret != BSP_OK) {
-        LOGE("get batt voltage failed");
+        // LOGE("get batt voltage failed");
         return ret;
     }
 
@@ -428,7 +441,7 @@ static int battery_dev_open(struct rt_device_node *dev)
 {
     battery_adc_init();
     battery_health_update();
-    charge_device_init();
+    bsp_charge_init();
     LOG_PBUS("battery init ok, health:%d%%, percent: %d%% voltage: %d",
         battery.health, battery.percent, battery.voltage); 
     s_batt_poll_time = 0;   

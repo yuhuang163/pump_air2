@@ -192,6 +192,15 @@ static void pm_suspend_check_handler(power_manager_context_t *ctx)
             set_suspend_counter("ota_is_running", get_suspend_timeout(ctx), true);
             return;
         }
+        /// 禁止进入待机状态的钩子.
+        if (thiz->hook && thiz->hook->is_prohibit_pm_suspend) {
+            if (thiz->hook->is_prohibit_pm_suspend(thiz) == true) {
+                set_suspend_counter("now goto suspend, but not allow, ignore", 
+                    get_suspend_timeout(ctx), true);
+                return;
+            }
+        }
+        /// 正常进入待机状态.
         LOG_PM("Now goto suspend!");
         if (!is_pm_suspend_internal()) {
             if (ctx->priv.pm_state_change_progress == PM_RESUME_FINISH) {
@@ -271,6 +280,15 @@ static int pm_key_event_handler(void *user_data, uint16_t keycode, uint16_t keyt
 
 static void pm_goto_suspend_by_user(void)
 {
+    /// 禁止进入待机状态的钩子.
+    if (thiz->hook && thiz->hook->is_prohibit_pm_suspend) {
+        if (thiz->hook->is_prohibit_pm_suspend(thiz) == true) {
+            set_suspend_counter("user request suspend, but not allow, ignore",
+                 get_suspend_timeout(thiz), true);
+            return;
+        }
+    }
+    /// 正常进入待机状态.
     thiz->priv.user_set_to_sleep = true;
     set_suspend_counter("PM_SUSPEND_BY_USER", 0, true);
     clear_all_wakelock(thiz);
@@ -289,7 +307,7 @@ static void on_pm_broadcast_receive(broadcast_mask_id_t id,
             dispatch_pmu_sleep_event(ctx);
             #endif
         } else {
-            ctx->goto_suspend_by_user();
+            pm_goto_suspend_by_user();
         }
         return;
     }
@@ -503,11 +521,9 @@ static int on_post_pm_init(void *ptr)
     ctx->priv.pm_bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.pm_bcd->receiver_cb = on_pm_broadcast_receive;
     register_broadcast_receiver(ctx->priv.pm_bcd);
-
     /// 注册按键唤醒.
     uint16_t keycode = KEY_CODE_1;
     uint16_t keytype = KEY_EVENT_CLICK;
-
     keytype |= KEY_EVENT_DOWN;
     keytype |= KEY_EVENT_UP;
     keytype |= KEY_EVENT_LONG_2S;
@@ -518,7 +534,6 @@ static int on_post_pm_init(void *ptr)
     if (input) {
         input->add_keyevent_handler("pm", ctx, keycode, keytype,  pm_key_event_handler);
     }
-
     RUN_NEW_THREAD(&ctx->priv.pm_suspend_thd, "pm_suspend_thd",
         pm_sleep_thread, RT_PRIO_PM_SLEEP_THREAD, PM_SUSPEND_THREAD_STACKSIZE);
     return 0;
@@ -800,11 +815,9 @@ static bool is_system_power_on(void)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
 void *register_module_for_pm_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, power_manager_context_t);
-
     ptr->is_pm_suspend = is_pm_suspend;
     ptr->acquire_wakelock = pm_acquire_wakelock;
     ptr->release_wakelock = pm_release_wakelock;
@@ -817,7 +830,6 @@ void *register_module_for_pm_new(list_head_t *list_head)
     ptr->is_on_suspend_gotoing = is_on_suspend_gotoing;
     ptr->is_background_wakeup = is_background_wakeup;
     ptr->is_system_power_on = is_system_power_on;
-    ptr->goto_suspend_by_user = pm_goto_suspend_by_user;
     MUTEX_INIT(&ptr->priv.m_wake_lock, mutex_caller_wakelock);
     MUTEX_INIT(&ptr->priv.m_suspend_lock, mutex_suspend_lock);
     USE_INIT_LIST_HEAD(&ptr->priv.wake_lock_list);

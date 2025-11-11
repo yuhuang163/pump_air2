@@ -21,7 +21,7 @@ extern "C" {
 /// 内阻补偿使能控制
 #define IRCOMP_POS                           6
 typedef enum {
-    IRCOMP_0MOHM = 0x00 << IRCOMP_POS,   /**< 0mΩ */
+    IRCOMP_0MOHM   = 0x00 << IRCOMP_POS,   /**< 0mΩ */
     IRCOMP_20MOHM  = 0x01 << IRCOMP_POS, /**< 20mΩ */
     IRCOMP_40MOHM  = 0x02 << IRCOMP_POS, /**< 40mΩ */
     IRCOMP_80MOHM  = 0x03 << IRCOMP_POS, /**< 80mΩ */
@@ -42,14 +42,13 @@ typedef enum {
 #define VCELL_POS                           0
 typedef enum {
     VCELL_4_1V   = 0x00 << VCELL_POS, /**< 4.1V */
-    VCELL_4_15V  = 0x01 << VCELL_POS, /**< 4.1V */
-    VCELL_4_2V   = 0x02 << VCELL_POS, /**< 4.2V */
-    VCELL_4_25V  = 0x03 << VCELL_POS, /**< 4.25V */
-    VCELL_4_3V   = 0x04 << VCELL_POS, /**< 4.3V */
-    VCELL_4_35V  = 0x05 << VCELL_POS, /**< 4.35V */
-    VCELL_4_4V   = 0x06 << VCELL_POS, /**< 4.4V */
-    VCELL_4_45V  = 0x07 << VCELL_POS, /**< 4.45V */
-    VCELL_4_5V   = 0x08 << VCELL_POS, /**< 4.5V */
+    VCELL_4_2V   = 0x01 << VCELL_POS, /**< 4.2V */
+    VCELL_4_25V  = 0x02 << VCELL_POS, /**< 4.25V */
+    VCELL_4_3V   = 0x03 << VCELL_POS, /**< 4.3V */
+    VCELL_4_35V  = 0x04 << VCELL_POS, /**< 4.35V */
+    VCELL_4_4V   = 0x05 << VCELL_POS, /**< 4.4V */
+    VCELL_4_45V  = 0x06 << VCELL_POS, /**< 4.45V */
+    VCELL_4_5V   = 0x07 << VCELL_POS, /**< 4.5V */
     VCELL_DEFAULT = VCELL_4_2V, /**< 默认 */
 } vcell_e;
 
@@ -433,7 +432,7 @@ typedef enum {
 } ibus_scale_e;
 
 /// 电池电压比例
-#define VBAT_SCALE_POS                       2
+#define VBAT_SCALE_POS                       5
 typedef enum {
     VBAT_SCALE_1 = 0x00 << VBAT_SCALE_POS,
     VBAT_SCALE_2 = 0x01 << VBAT_SCALE_POS,
@@ -441,7 +440,7 @@ typedef enum {
 } vbat_scale_e;
 
 /// 充电电流比例
-#define IBAT_SCALE_POS                       3
+#define IBAT_SCALE_POS                       4
 typedef enum {
     IBAT_SCALE_1 = 0x00 << IBAT_SCALE_POS,
     IBAT_SCALE_2 = 0x01 << IBAT_SCALE_POS,
@@ -495,42 +494,42 @@ typedef enum {
  */
 #define CHARGE_STATUS0_REG                   0x1C
 /// AC 适配器检测状态
-#define AC_PRESENT_STATUS_POS                7
+#define AC_PRESENT_STATUS_POS                (7 + 8)
 typedef enum {
     CHARGE_AC_PRESENT_NO_TRIGGER = 0x00 << AC_PRESENT_STATUS_POS,
     CHARGE_AC_PRESENT_TRIGGER  = 0x01 << AC_PRESENT_STATUS_POS,
 } charge_ac_present_trig_e;
 
 /// 插入检测状态
-#define INDET_STATUS_POS                     5
+#define INDET_STATUS_POS                     (5 + 8)
 typedef enum {
     CHARGE_INDET_NO_TRIGGER = 0x00 << INDET_STATUS_POS,
     CHARGE_INDET_TRIGGER  = 0x01 << INDET_STATUS_POS,
 } charge_indet_trig_e;
 
 /// 总线欠压保护充电状态
-#define BUSUVP_CHG_STATUS_POS                3
+#define BUSUVP_CHG_STATUS_POS                (3 + 8)
 typedef enum {
     CHARGE_BUSUVP_CHG_NO_TRIGGER = 0x00 << BUSUVP_CHG_STATUS_POS,
     CHARGE_BUSUVP_CHG_TRIGGER  = 0x01 << BUSUVP_CHG_STATUS_POS,
 } charge_busuvp_chg_trig_e;
 
 /// 电池过压保护状态
-#define BATOVP_STATUS_POS                     2
+#define BATOVP_STATUS_POS                    (2 + 8)
 typedef enum {
     CHARGE_BATOVP_NO_TRIGGER = 0x00 << BATOVP_STATUS_POS,
     CHARGE_BATOVP_TRIGGER  = 0x01 << BATOVP_STATUS_POS,
 } charge_batovp_trig_e;
 
 /// 电池满电状态
-#define BAT_FULL_STATUS_POS                   1
+#define BAT_FULL_STATUS_POS                  (1 + 8)
 typedef enum {
     CHARGE_BAT_FULL_NO_TRIGGER = 0x00 << BAT_FULL_STATUS_POS,
     CHARGE_BAT_FULL_TRIGGER  = 0x01 << BAT_FULL_STATUS_POS,
 } charge_bat_full_trig_e;
 
 /// 重新充电状态
-#define RE_CHG_STATUS_POS                     0
+#define RE_CHG_STATUS_POS                    (0 + 8)
 typedef enum {
     CHARGE_RE_CHG_NO_TRIGGER = 0x00 << RE_CHG_STATUS_POS,
     CHARGE_RE_CHG_TRIGGER  = 0x01 << RE_CHG_STATUS_POS,
@@ -711,8 +710,64 @@ typedef enum {
  * @note 该寄存器用于读取充电芯片的ID
  */
 #define CHARGE_ID_REG                        0xFE
+
 /// 充电芯片ID值
 #define CHARGE_ID_VALUE                      0x04
+
+/// 充电芯片状态
+typedef struct {
+    uint16_t vbus; /// 总线电压 mV
+    uint16_t ibus; /// 总线电流 mA
+    uint16_t vbat; /// 电池电压 mV
+    uint16_t ibat; /// 电池电流 mA
+    uint16_t status; /// 状态寄存器
+    float ntc_resistance; /// ntc电阻值 KΩ
+    uint8_t charge_full; /// 满电状态
+    uint8_t plug_in; /// 插拔状态
+    int8_t temp; /// 温度℃
+} charge_chip_status_t;
+
+/// 输入电流限制
+#define IBUS_SCALE_CFG                      IBAT_SCALE_2
+#define CHARGE_INPUT_CURRENT_LIMIT          3000
+#if IBUS_SCALE_CFG == IBAT_SCALE_2
+#define CHARGE_INPUT_CURRENT_LIMIT_SCALE    50
+#else
+#define CHARGE_INPUT_CURRENT_LIMIT_SCALE    25
+#endif
+
+/// 输入电压限制
+#define VBUS_SCALE_CFG                      VBUS_SCALE_2
+#define CHARGE_INPUT_VOLTAGE_LIMIT          4200
+#if VBUS_SCALE_CFG == VBUS_SCALE_2
+#define CHARGE_INPUT_VOLTAGE_LIMIT_SCALE    40
+#else
+#define CHARGE_INPUT_VOLTAGE_LIMIT_SCALE    20
+#endif
+
+/// 电池输入/输出电流限制
+#define IBAT_SCALE_CFG                      IBAT_SCALE_2
+#define BATT_INPUT_CURRENT_LIMIT            1000
+#define BATT_OUTPUT_CURRENT_LIMIT           3000
+#if IBAT_SCALE_CFG == IBAT_SCALE_2
+#define BATT_CURRENT_LIMIT_SCALE            50
+#else
+#define BATT_CURRENT_LIMIT_SCALE            25
+#endif
+
+/// 电池输入/输出电压限制
+#define VBAT_SCALE_CFG                      VBAT_SCALE_2
+#if VBAT_SCALE_CFG == VBAT_SCALE_2
+#define BATT_VOLTAGE_SCALE                  40
+#else
+#define BATT_VOLTAGE_SCALE                  20
+#endif
+
+/// ntc电压比例
+#define NTC_VOLTAGE_SCALE                   2
+/// ntc电流系数
+#define NTC_CURRENT_COEFF                   30.0f
+
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

@@ -10,7 +10,7 @@
 *****************************************************************************************
 */
 #define LOGO_ANIMATION_FREQ                 (12)
-#define LOGO_DISPLAY_HDR_TASK_NAME          "logo_display_cmp"
+#define LOGO_DISPLAY_TASK_NAME              "logo_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -61,7 +61,7 @@ static void logo_ui_policy(ui_manager_context_t *ui)
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(logo_display_completed_cb, 10, proc,
-            LOGO_DISPLAY_HDR_TASK_NAME);
+            LOGO_DISPLAY_TASK_NAME);
     }
 }
 
@@ -101,7 +101,7 @@ static void show_logo_ui(ui_proc_logo_t *proc)
 
 static void logo_ui_hdr_remove(void)
 {
-    REMOVE_TASK_HANDLER_DIRECTLY(LOGO_DISPLAY_HDR_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(LOGO_DISPLAY_TASK_NAME);
 }
 
 /*
@@ -136,5 +136,6 @@ void stop_logo_ui_animation(ui_proc_logo_t *proc)
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);
+    ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();
 }

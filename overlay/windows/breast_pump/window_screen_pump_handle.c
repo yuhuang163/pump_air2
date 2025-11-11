@@ -14,23 +14,16 @@
                                             KEY_CODE_BREASTFEEDING | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL | \
                                             KEY_CODE_KNOB_LEFT | KEY_CODE_KNOB_RIGHT)
 #define PUMP_UI_KEY_TYPE                    (KEY_EVENT_CLICK)
-#define GOTO_CHARGE_HDR_TASK_NAME           "goto_charge_ui"
-#define RESET_PLAY_ANI_FPS_HDR_TASK_NAME    "reset_play_ani_fps"
-#define PLAY_ANI_START_HDR_TASK_NAME        "play_ani_start"
-#define PUMP_START_HDR_TASK_NAME            "pump_start"
-#define PUMP_STATE_CHANGE_HDR_TASK_NAME     "pump_state_change"
-#define PUMP_SHOW_ONCE_HDR_TASK_NAME        "pump_show_once"
-#define PUMP_COMPLETE_HDR_TASK_NAME         "pump_complete"
+#define PUMP_START_TASK_NAME                "pump_start"
+#define PUMP_STATE_CHANGE_TASK_NAME         "pump_state_change"
+#define PUMP_COMPLETE_TASK_NAME             "pump_complete"
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
-    REMOVE_TASK_HANDLER_DIRECTLY(RESET_PLAY_ANI_FPS_HDR_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(PLAY_ANI_START_HDR_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_START_HDR_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_STATE_CHANGE_HDR_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SHOW_ONCE_HDR_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_HDR_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_START_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_STATE_CHANGE_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_TASK_NAME); \
 } while (0)
 
 /*
@@ -127,17 +120,6 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         }
         break;
 
-        case HDR_ACTION_GOTO_CHARGE_UI: {
-            window_manager_context_t *wm = proc->wm;
-            LOG_WM("%s", args->name);
-            if (wm->priv.misc && wm->priv.misc->is_charge_plug_in()) {
-                LOG_WM("goto charge_ui.");
-            } else {
-                LOG_WM("not charge plug in.");
-            }
-            proc->goto_charge_ui_flag = 0;
-        }
-        break;
         case HDR_ACTION_PUMP_COMPLETE: {
             // REMOVE_ALL_HANDER_TASK();
             LOG_WM("pump complete, show progress time policy.");
@@ -249,7 +231,7 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                     REMOVE_ALL_HANDER_TASK();
                     LOG_WM("start pump state change task after %ds", PUMP_MODE_CHANGE_TIMEOUT);
                     POST_TASK_HANDLER_DELAYED_ARG5(pump_ui_common_cb, PUMP_MODE_CHANGE_TIMEOUT,
-                            HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_HDR_TASK_NAME);
+                            HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_TASK_NAME);
                 }
                 proc->ui_show_state = LOOP_SHOW_SWITCH_MODE;
                 proc->is_mode_changed_by_app = true;
@@ -263,10 +245,11 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
         }
         case ID_BROADCAST_BREAST_PUMP_FINISH: {
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_PUMP_COMPLETE, 
-                proc, PUMP_COMPLETE_HDR_TASK_NAME);
+                proc, PUMP_COMPLETE_TASK_NAME);
             LOG_WM("pump finish, post pump complete task.");
         }
         break;
+
         default:
         break;
     }
@@ -291,14 +274,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         if (proc->need_start_pump) {
             proc->need_start_pump = 0;
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_START_PUMP, proc,
-                 PUMP_START_HDR_TASK_NAME);
-        }
-
-        if (wm->priv.misc && wm->priv.misc->is_charge_plug_in()) {
-            LOG_WM("%s window goto charge ui", PAGE_NAME_STR);
-            proc->goto_charge_ui_flag = 1; /// 设置跳转充电UI标志
-            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 1500, HDR_ACTION_GOTO_CHARGE_UI, proc, 
-                GOTO_CHARGE_HDR_TASK_NAME);
+                 PUMP_START_TASK_NAME);
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
@@ -320,8 +296,8 @@ static int exit_event_cb(window_lift_cycle_e new_state,
             ui->animation_play_status_update(ui, false);
             proc->user_pause = 1;
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
+            stop_pump_ui_animation(proc); 
             wm->priv.key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
-            stop_pump_ui_animation(proc);   
             unregister_broadcast_receiver(&proc->receiver);
             REMOVE_ALL_HANDER_TASK();
             if (wm->priv.pump) {
@@ -338,11 +314,6 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);
-            /// 被弹出框临时打断，不释放资源.
-            // if (new_scr->is_popup_window) {
-            //     LOG_WM("popup_window(%d) interrupt, not free instance!", new_scr->new_window_id);
-            //     return 1;
-            // }
             u_free(proc);
             proc = NULL;
             SET_WINDOW_CONTEXT(NULL);
@@ -369,7 +340,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     /// 注册广播监听.
     proc->receiver.context = proc;
-    proc->receiver.name = "model_delete_update";
+    proc->receiver.name = "pump_screen";
     proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_MODE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_SYS_PERSIST_INFO_SAVE;
     proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_FINISH;

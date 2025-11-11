@@ -11,8 +11,8 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PUMP_LEVEL_DISPLAY_HDR_TASK_NAME       "pump_level_display_cmp"
-#define PUMP_SPEED_DISPLAY_HDR_TASK_NAME       "pump_speed_display_cmp"
+#define PUMP_LEVEL_DISPLAY_TASK_NAME       "pump_level_display_cmp"
+#define PUMP_SPEED_DISPLAY_TASK_NAME       "pump_speed_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -66,7 +66,7 @@ static void pump_level_ui_policy(ui_manager_context_t *ui)
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(pump_level_display_completed_cb, 10, proc,
-            PUMP_LEVEL_DISPLAY_HDR_TASK_NAME);
+            PUMP_LEVEL_DISPLAY_TASK_NAME);
     } else {
         if (proc->display_progress != proc->ui_progress) {
             proc->display_progress++;
@@ -139,7 +139,7 @@ static void pump_speed_ui_policy(ui_manager_context_t *ui)
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(pump_speed_display_completed_cb, 10, proc,
-            PUMP_SPEED_DISPLAY_HDR_TASK_NAME);
+            PUMP_SPEED_DISPLAY_TASK_NAME);
     } 
 }
 
@@ -333,6 +333,6 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
 
 void pump_setting_ui_hdr_remove(void)
 {
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_LEVEL_DISPLAY_HDR_TASK_NAME);
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SPEED_DISPLAY_HDR_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_LEVEL_DISPLAY_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SPEED_DISPLAY_TASK_NAME);
 }

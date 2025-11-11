@@ -62,7 +62,7 @@ static void on_ble_broadcast_receive(broadcast_mask_id_t id, void *context, int 
     LOG_BLE("ble broadcast rcv_id: 0x%lx", id.code);
 
     switch (id.code) {
-        case ID_BROADCAST_CHARGE_PLUG_IN_STATE:
+        case ID_BROADCAST_CHARGE_STATE_CHANGE:
             ble_charge_state_handler(arg1);
             break;
 
@@ -353,7 +353,7 @@ static int on_post_init(void *ptr)
     ctx->priv.bcreceiver = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.bcreceiver->context = ctx;
     ctx->priv.bcreceiver->name = "ble_manager";
-    ctx->priv.bcreceiver->id.code |= ID_BROADCAST_CHARGE_PLUG_IN_STATE;
+    ctx->priv.bcreceiver->id.code |= ID_BROADCAST_CHARGE_STATE_CHANGE;
     ctx->priv.bcreceiver->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     ctx->priv.bcreceiver->id.code |= ID_BROADCAST_OTA_UPGREADING_CHANGE;
     ctx->priv.bcreceiver->id.code |= ID_BROADCAST_BREAST_PUMP_MODE_CHANGE;

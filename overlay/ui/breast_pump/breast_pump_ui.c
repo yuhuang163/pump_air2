@@ -46,7 +46,7 @@ static void ui_fill_pump_speed(lcd_tlvs_t *tlv, uint8_t speed)
     tlv->type = LCD_PUMP_SPEED;
     tlv->data_size = 1;
     tlv->data[0] = speed + 1;
-    LOG_UI("ui_fill_pump_speed: %d", tlv->data[0]);
+    // LOG_UI("ui_fill_pump_speed: %d", tlv->data[0]);
 }
 
 static void ui_fill_pump_mode(lcd_tlvs_t *tlv, uint8_t mode)
