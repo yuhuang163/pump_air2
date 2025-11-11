@@ -52,13 +52,13 @@ static int ble_dev_read(struct rt_device_node *dev, void *buf, uint32_t n_bytes)
 
 static int ble_dev_write(struct rt_device_node *dev, const void *buf, uint32_t n_bytes)
 {
-    uint32_t *tmp = (uint32_t *)buf;
-    uint8_t srv_id = tmp[0];
-    uint8_t bind_state = tmp[1];
-    uint8_t *p_data = (uint8_t *)tmp[2];
-    uint16_t size = tmp[3];
+    ble_service_send_data_t *tmp = (ble_service_send_data_t *)buf;
+    uint8_t srv_id = tmp->srv_id;
+    uint8_t bind_state = tmp->bind_state;
+    uint8_t *p_data = tmp->p_data;
+
     LOG_PBUS("write ble data");
-    return ble_service_data_send(srv_id, p_data, size, bind_state);
+    return ble_service_data_send(srv_id, p_data, n_bytes, bind_state);
 }
 
 static int ble_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *args)

@@ -114,10 +114,14 @@ void on_perpare_common_test_init(tests_manager_context_t *ctx)
 {
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     ctx->priv.comm_ctx.airdev = pbus->find_device(ID_DEVICE_AIR_PRESSURE);
+    ctx->priv.comm_ctx.fcuartdev = pbus->find_device(ID_DEVICE_UART);
     LOGI("air pressure device: %p", ctx->priv.comm_ctx.airdev);
+    LOGI("air pressure device: %p", ctx->priv.comm_ctx.fcuartdev);
 
     breast_pump_manager_context_t *breast_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     ctx->priv.comm_ctx.pump = breast_ctx;
+    ctx->priv.comm_ctx.pump = ble_ctx;
 
     thiz = ctx;
 }

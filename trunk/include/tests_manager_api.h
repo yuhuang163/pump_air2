@@ -18,6 +18,7 @@ typedef struct product_tests_comm_context {
     struct rt_device_node *imudev;
     struct rt_device_node *motordev;
     struct rt_device_node *leddev;
+    struct rt_device_node *fcuartdev;
     /// @brief 相关模块上下文句柄
     struct resource_manager_context *res; /// 资源管理器
     struct storage_manager_context *st; /// 存储管理器
@@ -25,6 +26,7 @@ typedef struct product_tests_comm_context {
     struct power_manager_context *pm; /// 电源管理器
     struct key_input_context *key; /// 按键管理器
     struct breast_pump_manager_context *pump; /// 泵奶管理器
+    struct ble_manager_context *ble_ctx; /// 蓝牙处理管理器
 
 } product_tests_comm_context_t;
 

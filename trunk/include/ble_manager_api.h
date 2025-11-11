@@ -52,6 +52,7 @@ typedef struct {
     ble_srv_data_type_e data_type; /// 数据类型
 } ble_service_data_t;
 
+
 typedef enum {
     BLE_MSG_ADV_START_OK = 0, /// 广播启动成功
     BLE_MSG_ADV_STOP_OK, /// 广播停止成功
@@ -100,6 +101,9 @@ typedef struct {
 } ble_event_connect_t;
 
 /// 描述ble发送数据结构.
+typedef uint16_t (*factory_ble_recv_data_cb)(void *ctx, uint8_t *p_data, uint16_t ulLen);
+
+/// 描述ble发送数据结构.
 typedef uint16_t (*ble_send_data)(uint8_t *p_data, uint16_t ulLen);
 
 /// 描述ble服务接收发送接口结构.
@@ -131,6 +135,8 @@ typedef struct ble_manager_context {
         uint8_t ble_connect_state;
         uint8_t fac_enter_sleep;
         uint16_t connect_idx;
+
+        factory_ble_recv_data_cb cb;
     } priv;
 /// public
     int (*get_mac_addr)(uint8_t *addr);
@@ -145,6 +151,7 @@ typedef struct ble_manager_context {
     int (*set_adv_speed)(int flag);
     int (*get_adv_state)(void);
     int (*set_adv_state)(int state);
+    void (*set_factory_ble_register_cb)(factory_ble_recv_data_cb cb);
     void (*on_connect_status_change)(struct ble_manager_context *ctx, int new_status, int popup);
     int (*dispatch_ble_event_wrapper)(struct ble_manager_context *ctx, uint8_t _msg_id, uint8_t *_data, int _data_len);
     /// 钩子函数指针.
