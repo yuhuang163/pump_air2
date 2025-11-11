@@ -633,6 +633,7 @@ static int on_perpare_wm_init(void *self)
     wm->priv.pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     wm->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     wm->priv.product_tst = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    wm->priv.ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     return 0;
 }
 

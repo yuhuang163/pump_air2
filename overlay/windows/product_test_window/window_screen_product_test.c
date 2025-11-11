@@ -4,6 +4,7 @@
 */
 #include "root_common_api.h" // IWYU pragma: keep
 #include "windows_manager.h" 
+#include "window_screen_product_test.h" // IWYU pragma: keep
 
 /*
 * DEFINES

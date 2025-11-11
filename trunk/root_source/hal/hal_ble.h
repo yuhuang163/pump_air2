@@ -61,6 +61,12 @@ typedef enum {
     BLE_EVENT_CONN_PARAMS_UPDATE,
 } ble_event_e;
 
+typedef struct {
+    uint8_t srv_id;
+    uint8_t bind_state;
+    uint8_t *p_data;
+} ble_service_send_data_t;
+
 /**
  * @brief 描述BLE事件回调
 */
