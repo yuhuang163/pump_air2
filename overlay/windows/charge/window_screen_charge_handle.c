@@ -38,15 +38,13 @@ INIT_WINDOW_CONTEXT();
 *****************************************************************************************
 */
 static int uncharge_enter_new_window_policy(hdr_post_args_t *args)
-{
-    ui_proc_charge_t *proc = (ui_proc_charge_t *)args->user_data;
-    EXCEPTION_CHECK_INT(proc);
-    /// 检查proc的magic number，确保proc未被释放.
-    if (proc->margic != UI_WINDOW_MARGIC_CODE) {
-        LOG_WM("ERROR: proc is invalid (magic: 0x%X), already freed!", proc->margic);
-        return -1;
+{   
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return 0;
     }
-    
+    ui_proc_charge_t *proc = (ui_proc_charge_t *)args->user_data;
+    EXCEPTION_CHECK_INT(proc);    
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_INT(wm);
     EXCEPTION_CHECK_INT(wm->dispatch_new_window_args);
@@ -61,38 +59,42 @@ static int uncharge_enter_new_window_policy(hdr_post_args_t *args)
 static void on_charge_window_receive(broadcast_mask_id_t id, void *context, int arg1, int arg2,
                                      broadcast_priv_data_t *pdata)
 {
-    IS_WINDOW_CONTEXT_PRESENT({
-        switch (id.code) {
-            case ID_BROADCAST_PM_STATE_CHANGE: {
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return;
+    }
+    ui_proc_charge_t *proc = (ui_proc_charge_t *)context;
+    EXCEPTION_CHECK_VOID(proc);
+    switch (id.code) {
+        case ID_BROADCAST_PM_STATE_CHANGE: {
 
-            }
-            break;
-            case ID_BROADCAST_CHARGE_STATE_CHANGE: {
-                ui_proc_charge_t *proc = context;
-                EXCEPTION_CHECK_VOID(proc);
-                if (arg1 != CHARGE_STATE_CHARGING && arg1 != CHARGE_STATE_FULL) {
-                    proc->goto_pump_window_flag = 1;
-                    POST_TASK_HANDLER_DELAYED_ARG1(uncharge_enter_new_window_policy, 200,
-                         proc, EXIT_CHARGE_POLICY_TASK_NAME);
-                } else {
-                    if (proc->goto_pump_window_flag == 1) {
-                        proc->goto_pump_window_flag = 0;
-                        REMOVE_TASK_HANDLER_DIRECTLY(EXIT_CHARGE_POLICY_TASK_NAME);
-                    }
+        }
+        break;
+        case ID_BROADCAST_CHARGE_STATE_CHANGE: {
+            if (arg1 != CHARGE_STATE_CHARGING && arg1 != CHARGE_STATE_FULL) {
+                proc->goto_pump_window_flag = 1;
+                POST_TASK_HANDLER_DELAYED_ARG1(uncharge_enter_new_window_policy, 200,
+                        proc, EXIT_CHARGE_POLICY_TASK_NAME);
+            } else {
+                if (proc->goto_pump_window_flag == 1) {
+                    proc->goto_pump_window_flag = 0;
+                    REMOVE_TASK_HANDLER_DIRECTLY(EXIT_CHARGE_POLICY_TASK_NAME);
                 }
             }
-            break;
-            
-            default:
-            break;
         }
-    });
+        break;      
+        default:
+        break;
+    }
 }
 
 static int on_charge_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return 0;
+    }
     ui_proc_charge_t *proc = user_data;
-    window_manager_context_t *wm = proc->wm;
     if (keycode == KEY_CODE_POWER && keytype == KEY_EVENT_CLICK) {
         switch_charge_night_light_onoff_ui(proc);
     }
@@ -118,25 +120,27 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
 static int exit_event_cb(window_lift_cycle_e new_state, const struct window_context *thiz, const struct window_context *new_scr)
 {
     ui_proc_charge_t *proc = CONTAINER_OF(thiz, ui_proc_charge_t, w_ctx);
+    EXCEPTION_CHECK_INT(proc);
     window_manager_context_t *wm = proc->wm;
+    EXCEPTION_CHECK_INT(wm);
     switch (new_state) {
         case ID_SCR_STATE_ON_PAUSE: {
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             stop_charging_ui(proc);
-            wm->priv.key->remove_keyevent_handler(on_charge_keyevent_hdr);
             unregister_broadcast_receiver(&proc->receiver);
             REMOVE_ALL_HANDER_TASK();
+            EXCEPTION_CHECK_INT(wm->priv.key);
+            wm->priv.key->remove_keyevent_handler(on_charge_keyevent_hdr);
         }
         break;
-        
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);
+            SET_WINDOW_CONTEXT(NULL);
+            proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);
             proc = NULL;
-            SET_WINDOW_CONTEXT(NULL);
             LOG_WM("%s window on destory--end", PAGE_NAME_STR);
         break;
-
         default:
         break;
     }
@@ -152,6 +156,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
 {
     LOG_WM("%s window enter, time: %ld.", PAGE_NAME_STR, get_timestamp());
     ui_proc_charge_t *proc = u_malloz(sizeof(ui_proc_charge_t));
+    EXCEPTION_CHECK_INT(proc);
     SET_WINDOW_CONTEXT(proc);
     proc->margic = UI_WINDOW_MARGIC_CODE;
     proc->wm = wm;

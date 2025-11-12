@@ -49,7 +49,8 @@ static void pumping_work_ui_policy(ui_manager_context_t *ui)
     }
     
     /// 如果上次动画时间小于更新间隔，则不刷新UI.
-    if (get_timestamp_ms(proc->last_progress_ani_time) < PUMP_RUNNING_TIME_UPDATE_INTERVAL) {
+    if ((pump->is_on_working() == 0 && proc->charging_status == 0) ||
+        get_timestamp_ms(proc->last_progress_ani_time) < PUMP_RUNNING_TIME_UPDATE_INTERVAL) {
         return;
     }
 

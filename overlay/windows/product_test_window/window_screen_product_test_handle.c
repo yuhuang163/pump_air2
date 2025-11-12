@@ -10,9 +10,7 @@
 *****************************************************************************************
 */
 #define PAGE_STATIC_NAME                    product_test
-#define PAGE_ANIMATION_FREQ                 (12.5f)
-#define PAGE_ANIMATION_TIME_MS              (uint16_t)((1000.0f / PAGE_ANIMATION_FREQ) + 0.5f)
-#define PAGE_ANIMATION_CNT                  UI_ANIM(PRODUCT_TEST, COMMON, CNT)
+#define PAGE_NAME_STR                       "product_test"
 #define PRODUCT_TEST_UI_KEY_CODE            (KEY_CODE_POWER |KEY_CODE_START | KEY_CODE_MODE | KEY_CODE_FREQUENCY | \
                                             KEY_CODE_BREASTFEEDING | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL)
 #define PRODUCT_TEST_UI_KEY_TYPE            (KEY_EVENT_CLICK)
@@ -41,7 +39,12 @@ INIT_WINDOW_CONTEXT();
 
 static void factory_tests_event_report_cb(void *user_data, uint16_t event_id, void *data, int data_len)
 {
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return;
+    }
     ui_proc_product_test_t *proc = (ui_proc_product_test_t *)user_data;
+    EXCEPTION_CHECK_VOID(proc);
     LOG_WM("factory_tests_event_report_cb event_id: %d", event_id);
     switch (event_id) {
         case FAC_TST_READ_SW_VER_EVENT: {
@@ -57,17 +60,17 @@ static void factory_tests_event_report_cb(void *user_data, uint16_t event_id, vo
 
 static void product_test_ui_common_cb(hdr_post_args_t *args)
 {
-    ui_proc_product_test_t *proc = args->user_data;
-    int action = args->arg1;
-
-    if (proc->margic != UI_WINDOW_MARGIC_CODE) {
-        LOG_WM("invalid margic, ignore");
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
         return;
     }
-
+    ui_proc_product_test_t *proc = args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    int action = args->arg1;
     switch (action) {
         case PRODUCT_TEST_START: {
             window_manager_context_t *wm = proc->wm;
+            EXCEPTION_CHECK_VOID(wm && wm->priv.product_tst);
             LOG_WM("%s", args->name);
             char buffer[64] = {0};
             wm->priv.product_tst->add_product_tests_evt_lisenser(proc, TST_FACTORY_TYPE, factory_tests_event_report_cb);
@@ -89,11 +92,16 @@ static void product_test_ui_common_cb(hdr_post_args_t *args)
 
 }
 
-
 static int product_test_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return 0;
+    }
     ui_proc_product_test_t *proc = user_data;
+    EXCEPTION_CHECK_INT(proc);
     key_input_context_t *key_ctx = proc->wm->priv.key;
+    EXCEPTION_CHECK_INT(key_ctx);
     const char *key_name = NULL;
     if (key_ctx && key_ctx->hook && key_ctx->hook->get_key_code_name) {
         key_name = key_ctx->hook->get_key_code_name(keycode);
@@ -128,7 +136,7 @@ static int product_test_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint1
 static void product_test_broadcast_receive_cb(broadcast_mask_id_t id, void *context, int arg1, int arg2,
      broadcast_priv_data_t *pdata)
 {
-    if(!GET_WINDOW_CONTEXT()) {
+    if (!GET_WINDOW_CONTEXT()) {
         LOG_WM("window context not present, return.");
         return;
     }
@@ -151,12 +159,17 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     const struct window_context *thiz, const struct window_context *old_scr)
 {
     ui_proc_product_test_t *proc = CONTAINER_OF(thiz, ui_proc_product_test_t, w_ctx);
+    EXCEPTION_CHECK_INT(proc);
     window_manager_context_t *wm = proc->wm;
+    EXCEPTION_CHECK_INT(wm);
     ui_manager_context_t *ui = proc->ui;
-
+    EXCEPTION_CHECK_INT(ui);
     if (new_state == ID_SCR_STATE_ON_RESUME) {
-        LOG_WM("==>ON_RESUME,add product_test keyevent handler");
-        wm->priv.key->add_keyevent_handler("product_test_wm", proc, PRODUCT_TEST_UI_KEY_CODE, PRODUCT_TEST_UI_KEY_TYPE, product_test_ui_keyevent_hdr);
+        LOG_WM("==>%s window on resume", PAGE_NAME_STR);
+        if (wm->priv.key) {
+            wm->priv.key->add_keyevent_handler("product_test_wm", proc, PRODUCT_TEST_UI_KEY_CODE, 
+                PRODUCT_TEST_UI_KEY_TYPE, product_test_ui_keyevent_hdr);
+        }
         POST_TASK_HANDLER_DELAYED_ARG2(product_test_ui_common_cb, 100, PRODUCT_TEST_START, proc,
             PRODUCT_TEST_START_TASK_NAME);
         set_product_tests_ble_uart_register(proc);
@@ -173,32 +186,32 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 {
     ui_proc_product_test_t *proc = CONTAINER_OF(thiz, ui_proc_product_test_t, w_ctx);
     window_manager_context_t *wm = proc->wm;
-    ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_INT(wm);
     switch (new_state) {
         case ID_SCR_STATE_ON_PAUSE: {
-            ui->animation_play_status_update(ui, false);
-            LOG_WM("==>ON_PAUSE# remove_keyevent_handler");
-            wm->priv.key->remove_keyevent_handler(product_test_ui_keyevent_hdr);
+            LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             set_product_tests_ble_uart_unregister(proc);
             stop_product_tests_ui_animation(proc);
+            REMOVE_ALL_HANDER_TASK();
+            unregister_broadcast_receiver(&proc->receiver);
+            if (wm->priv.product_tst) {
+                wm->priv.product_tst->remove_product_tests_evt_lisenser(factory_tests_event_report_cb);
+            } else {
+                LOG_WM("product_tst not present, ignore.");
+            }
+            if (wm->priv.key) {
+                wm->priv.key->remove_keyevent_handler(product_test_ui_keyevent_hdr);
+            } else {
+                LOG_WM("key not present, ignore.");
+            }
         }
         break;
-
         case ID_SCR_STATE_ON_DESTORY:
-            LOG_WM("==>PRODUCT_TEST_ON_DESTORY start");
-            /// 被弹出框临时打断，不释放资源.
-            if (new_scr->is_popup_window) {
-                LOG_WM("popup_window(%d) interrupt, not free instance!", new_scr->new_window_id);
-                return 1;
-            }
-            REMOVE_ALL_HANDER_TASK();
-            LOG_UI("==>unregister receiver");
-            wm->priv.product_tst->remove_product_tests_evt_lisenser(factory_tests_event_report_cb);
-            unregister_broadcast_receiver(&proc->receiver);
-            /// TODO: 释放图片资源.
+            LOG_WM("==>%s window on destory", PAGE_NAME_STR);
+            SET_WINDOW_CONTEXT(NULL);
+            proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);
             proc = NULL;
-            SET_WINDOW_CONTEXT(NULL);
             LOG_WM("==>ON_DESTORY end");
             break;
         default:
@@ -215,6 +228,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
 {
     LOG_WM("enter, time: %ld.", get_timestamp());
     ui_proc_product_test_t *proc = u_malloz(sizeof(ui_proc_product_test_t));
+    EXCEPTION_CHECK_INT(proc);
     SET_WINDOW_CONTEXT(proc);
     /// 设置窗口标识.
     proc->margic = UI_WINDOW_MARGIC_CODE;
@@ -233,11 +247,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     w_ctx->evt_cb_entry = entry_event_cb;
     w_ctx->evt_cb_exit = exit_event_cb;
     w_ctx->not_push_history = 1; 
-    // args->user_data = &proc->bridge;
     wm->dispatch_new_window(w_ctx);
-
-    /// 配置动画播放
-
     return ID_WINDOW_DISPLAY_OK;
 }
 
