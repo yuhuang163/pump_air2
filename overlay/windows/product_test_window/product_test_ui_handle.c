@@ -104,5 +104,6 @@ void stop_product_tests_ui_animation(ui_proc_product_test_t *proc)
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);
+    ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();
 }

@@ -49,8 +49,9 @@ typedef enum {
     SCAN_KEY_CODE_6_VALUE  = (1 << SCAN_KEY_CODE_6),
     SCAN_KEY_CODE_7_VALUE  = (1 << SCAN_KEY_CODE_7),
 
-    SCAN_KEY_CODE_12_VALUE = (SCAN_KEY_CODE_1_VALUE | SCAN_KEY_CODE_2_VALUE),
+    SCAN_KEY_CODE_13_VALUE = (SCAN_KEY_CODE_1_VALUE | SCAN_KEY_CODE_3_VALUE),
     SCAN_KEY_CODE_23_VALUE = (SCAN_KEY_CODE_2_VALUE | SCAN_KEY_CODE_3_VALUE),
+    SCAN_KEY_CODE_56_VALUE = (SCAN_KEY_CODE_5_VALUE | SCAN_KEY_CODE_6_VALUE),
 } scan_key_code_value_e;
 
 /// 按键类型
@@ -89,7 +90,7 @@ int platform_read_key_value(int type, int pin);
 /// 具体平台读取所有io状态接口
 int platform_all_key_value(void);
 /// 初始化scankey
-int scan_key_input_init(struct rt_device_node *key_dev, uint8_t key_code_size);
+int scan_key_input_init(struct rt_device_node *key_dev, const uint32_t *code_value, uint8_t key_code_size);
 
 #ifdef __cplusplus
 }

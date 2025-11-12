@@ -36,17 +36,17 @@ typedef enum {
 
 /// 按键类型
 typedef enum {
-    KEY_CODE_1 = (1 << 0),   /// 支持唤醒
-    KEY_CODE_2 = (1 << 1),  
-    KEY_CODE_3 = (1 << 2),   
-    KEY_CODE_4 = (1 << 3),   
-    KEY_CODE_5 = (1 << 4),   
-    KEY_CODE_6 = (1 << 5),   
-    KEY_CODE_7 = (1 << 6),  
-    KEY_CODE_8 = (1 << 7),  /// 工厂重置键
-    KEY_CODE_9 = (1 << 8),  /// 旅行锁键
-    KEY_CODE_10 = (1 << 9),  /// 旋钮逆时针
-    KEY_CODE_11 = (1 << 10),  /// 旋钮顺时针
+    KEY_CODE_1  = (1 << 0),   /// 支持唤醒
+    KEY_CODE_2  = (1 << 1),  
+    KEY_CODE_3  = (1 << 2),   
+    KEY_CODE_4  = (1 << 3),   
+    KEY_CODE_5  = (1 << 4),   
+    KEY_CODE_6  = (1 << 5),   
+    KEY_CODE_7  = (1 << 6),  
+    KEY_CODE_8  = (1 << 7),  
+    KEY_CODE_9  = (1 << 8),  
+    KEY_CODE_10 = (1 << 9),  
+    KEY_CODE_11 = (1 << 10),  
     KEY_CODE_MAX
 } key_type_enum_e;
 
