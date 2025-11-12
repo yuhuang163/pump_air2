@@ -31,7 +31,7 @@ typedef enum {
     UI_IMG_ID_CHASING_MILK_MODE_GUIDE = 0x10,    /// 追奶模式切换引导
     UI_IMG_ID_PUMP_LEVEL_ADJUST_GUIDE = 0x11,    /// 泵奶力度调节引导
     UI_IMG_ID_APP_MILK_RECORD_GUIDE = 0x12,    /// APP奶量记录引导
-    UI_IMG_ID_PRODUCT_TESTS_RESOUCE = 0x13,    /// APP奶量记录引导
+    UI_IMG_ID_PRODUCT_TESTS_RESOUCE = 0x13,    /// 产测主界面资源显示
 
 } ui_img_id_type_e;
 
