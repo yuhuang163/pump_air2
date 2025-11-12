@@ -30,7 +30,7 @@ typedef enum {
     CHARGE_UI_TYPE_MAX
 } charge_ui_type_e;
 
-typedef struct ui_proc_pump {    
+typedef struct ui_proc_charge {    
     uint32_t ani_timer_cnt;
     window_context_t w_ctx;
     window_manager_context_t *wm;

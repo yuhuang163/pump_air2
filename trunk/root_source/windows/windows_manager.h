@@ -93,6 +93,7 @@ typedef enum {
 
 /// 窗口生命周期记录code.
 #define UI_WINDOW_MARGIC_CODE (0x44556677)
+#define UI_WINDOW_MARGIC_CODE_INVALID (0x00000000)
 /// UI生命周期监听
 struct window_context;
 typedef int (*window_life_cycle_enter_cb)(window_lift_cycle_e new_state, 
