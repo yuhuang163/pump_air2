@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "cmsis_os_api.h"
 #include "scan_key_base.h"
 #include "scan_key.h"
 #include "root_common_api.h"// IWYU pragma: keep
@@ -18,28 +17,16 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-static uint8_t  long_press_flag = 0;
+static uint8_t long_press_flag = 0;
+static uint8_t s_key_code_size = 0;
 static uint16_t key_idle_count = 0;
 static uint32_t timer_flag = 0;
-static os_timer_id g_input_key_timer_id = NULL;
+static uint32_t *long_press_count = NULL;
+static scan_key_ctrl_data_t *scan_key_ctrl = NULL;
+static scan_key_data_t *scan_key_data = NULL;
 
-static int long_press_count[SCAN_KEY_CODE_MAX];
-static scan_key_ctrl_data_t scan_key_ctrl[SCAN_KEY_CODE_MAX];
-static scan_key_data_t scan_key_data[SCAN_KEY_CODE_MAX];
 static rt_device_node_t *s_key_dev = NULL;
-static uint8_t s_key_code_size = SCAN_KEY_CODE_MAX;
-static const uint32_t s_key_code_value[SCAN_KEY_CODE_MAX] = {
-    SCAN_KEY_CODE_1_VALUE,
-    SCAN_KEY_CODE_2_VALUE,
-    SCAN_KEY_CODE_3_VALUE,
-    SCAN_KEY_CODE_4_VALUE,
-    SCAN_KEY_CODE_5_VALUE,
-    SCAN_KEY_CODE_6_VALUE,
-    SCAN_KEY_CODE_7_VALUE,
-    SCAN_KEY_CODE_12_VALUE,
-    SCAN_KEY_CODE_23_VALUE,
-};
-
+static os_timer_id g_input_key_timer_id = NULL;
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -65,8 +52,10 @@ static void bsp_post_key_event(uint16_t keycode, uint16_t keytype)
 static void scan_common_key_cb(scan_key_data_t* scan_key, uint8_t code_index)
 {
     const uint16_t keycode = code_index;
-
-    // LOG_KEY("scan_common_key_cb: %d --- %d --- %d", keycode, scan_key->event, scan_key->status);
+    if (keycode >= s_key_code_size) {
+        LOGE("keycode is out of range: %d", keycode);
+        return;
+    }
 
     if (scan_key->event == DE_SK_EVENT_DOWN_YES && scan_key->status == DE_SK_STATUS_DOWN) {
         bsp_post_key_event(keycode, long_press_flag == 1 ? KEY_TYPE_LONG_AFTER_DOWN : KEY_TYPE_DOWN);
@@ -88,7 +77,7 @@ static void scan_common_key_cb(scan_key_data_t* scan_key, uint8_t code_index)
         bsp_post_key_event(keycode, KEY_TYPE_UP);
     }
     
-    if((scan_key->event != 0 && scan_key->status == 0)) {
+    if ((scan_key->event != 0 && scan_key->status == 0)) {
         long_press_count[keycode] = 0;
         CLR_BIT(timer_flag, keycode);
     }
@@ -134,18 +123,17 @@ static void scan_key_timer_cb(const void *args)
     }
 }
 
-static void scan_key_init(void)
+static void scan_key_init(const uint32_t *code_value, uint8_t key_code_size)
 {
-    memset(scan_key_ctrl, 0, sizeof(scan_key_ctrl));
-    memset(scan_key_data, 0, sizeof(scan_key_data));
-
-    for (uint8_t i = 0; i < SCAN_KEY_CODE_MAX; i++) {
-        scan_key_data[i].code_value = s_key_code_value[i];
+    EXCEPTION_CHECK_VOID(code_value);
+    memset(scan_key_ctrl, 0, sizeof(scan_key_ctrl_data_t) * s_key_code_size);
+    memset(scan_key_data, 0, sizeof(scan_key_data_t) * s_key_code_size);
+    for (uint8_t i = 0; i < s_key_code_size; i++) {
+        scan_key_data[i].code_value = code_value[i];
         scan_key_data[i].cb = (u_scan_key_cb)scan_common_key_cb;
     }
 
-    CREATE_TIMER(&g_input_key_timer_id, "input_key_timer", 
-        NULL, OS_TIMER_PERIODIC, scan_key_timer_cb);
+    CREATE_TIMER(&g_input_key_timer_id, "input_key_timer", NULL, OS_TIMER_PERIODIC, scan_key_timer_cb);
     if (g_input_key_timer_id == NULL) {
         LOGE("key timer create fail");
     }
@@ -163,7 +151,6 @@ void scan_key_timer_start(uint8_t code_index)
         return;
     }
     key_idle_count = 0;
-    // LOG_KEY("scan_key_timer_start: %d", code_index);
     START_TIMER(g_input_key_timer_id, DEBOUNCE_TIMER_SLOT_MS);
     if (code_index < SCAN_KEY_CODE_MAX && code_index >= SCAN_KEY_CODE_BEGIN) {
         SET_BIT(timer_flag, code_index);
@@ -177,21 +164,25 @@ void scan_key_timer_start(uint8_t code_index)
     // LOG_KEY("scan_key_timer_start: %x", timer_flag);
 }
 
-int scan_key_input_init(struct rt_device_node *key_dev, uint8_t key_code_size)
+int scan_key_input_init(struct rt_device_node *key_dev, const uint32_t *code_value, uint8_t key_code_size)
 {
     s_key_dev = key_dev;
     s_key_code_size = key_code_size > SCAN_KEY_CODE_MAX ? SCAN_KEY_CODE_MAX : key_code_size;
-    scan_key_init();
+    long_press_count = u_malloz(sizeof(uint32_t) * s_key_code_size);
+    EXCEPTION_CHECK_INT(long_press_count);
+    scan_key_ctrl = u_malloz(sizeof(scan_key_ctrl_data_t) * s_key_code_size);
+    EXCEPTION_CHECK_INT(scan_key_ctrl);
+    scan_key_data = u_malloz(sizeof(scan_key_data_t) * s_key_code_size);
+    EXCEPTION_CHECK_INT(scan_key_data);
+    scan_key_init(code_value, s_key_code_size);
     scan_key_timer_start(SCAN_KEY_ID1);
     return 0;
 }
-
 
 __attribute__((weak)) int platform_read_key_value(int type, int pin)
 {
     return 0;
 }
-
 
 __attribute__((weak)) int platform_all_key_value(void)
 {

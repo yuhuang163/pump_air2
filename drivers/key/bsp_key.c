@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "bsp_common.h" // IWYU pragma: keep
-#include "cmsis_os_api.h"
 #include "scan_key.h" // IWYU pragma: keep
 #include "bsp_key_internal.h"
 
@@ -19,6 +18,17 @@
 */
 static rt_device_node_t *node = NULL;
 static key_input_evt_cb_fptr key_cb = NULL;
+static const uint32_t key_code_value[SCAN_KEY_CODE_MAX] = {
+    SCAN_KEY_CODE_1_VALUE,
+    SCAN_KEY_CODE_2_VALUE,
+    SCAN_KEY_CODE_3_VALUE,
+    SCAN_KEY_CODE_4_VALUE,
+    SCAN_KEY_CODE_5_VALUE,
+    SCAN_KEY_CODE_6_VALUE,
+    SCAN_KEY_CODE_7_VALUE,
+    SCAN_KEY_CODE_56_VALUE,
+    SCAN_KEY_CODE_23_VALUE,
+};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -37,7 +47,7 @@ static int scan_key_module_init(void)
         LOGE("key init fail:%d", ret);
         return ret;
     }
-    ret = scan_key_input_init(node, KEY_CODE_SIZE);
+    ret = scan_key_input_init(node, key_code_value, KEY_CODE_SIZE);
     if (node) {
         node->status = DEVICE_BUS_INIT;
     }

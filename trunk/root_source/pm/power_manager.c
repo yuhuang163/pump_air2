@@ -532,7 +532,7 @@ static int on_post_pm_init(void *ptr)
     keytype |= KEY_EVENT_LONG_9S;
     key_input_context_t *input = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     if (input) {
-        input->add_keyevent_handler("pm", ctx, keycode, keytype,  pm_key_event_handler);
+        input->add_keyevent_handler("pm", ctx, keycode, keytype, pm_key_event_handler);
     }
     RUN_NEW_THREAD(&ctx->priv.pm_suspend_thd, "pm_suspend_thd",
         pm_sleep_thread, RT_PRIO_PM_SLEEP_THREAD, PM_SUSPEND_THREAD_STACKSIZE);
