@@ -29,7 +29,7 @@ typedef enum {
     BATTERY_UI_TYPE_MAX
 } battery_ui_type_e;
 
-typedef struct ui_proc_pump {    
+typedef struct ui_proc_battery {    
     uint32_t ani_timer_cnt;
     window_context_t w_ctx;
     window_manager_context_t *wm;

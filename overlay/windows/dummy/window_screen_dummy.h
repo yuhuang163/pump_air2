@@ -21,7 +21,7 @@ typedef enum {
     HDR_ACTION_MAX
 } dummy_ui_hdr_action_e;
 
-typedef struct {
+typedef struct ui_proc_dummy {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;

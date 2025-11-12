@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "breast_pump_manager_api.h"
 #include "window_screen_pump.h"// IWYU pragma: keep
 
 /*
@@ -41,39 +42,24 @@ INIT_WINDOW_CONTEXT();
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void local_work_completed(window_manager_context_t *wm)
-{
-    LOG_WM("pump play finish.\n");
-}
-
 static void on_breast_pump_result_cb(void *user_data, breast_pump_result_t *result)
 {
-
-}
-
-static const char *ui_state_to_string(int state)
-{
-    switch (state) {
-        case LOOP_SHOW_SWITCH_MODE:
-            return "ui:switch_mode";
-        case LOOP_SHOW_PUMPING:
-            return "ui:brushing";
-        default:
-            return "ui:unknown";
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return;
     }
 }
 
 static void pump_ui_common_cb(hdr_post_args_t *args)
 {
-    ui_proc_pump_t *proc = args->user_data;
-    LOG_WM("pump_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
-    EXCEPTION_CHECK_VOID(proc);
-    int action = args->arg1;
-    if (proc->margic != UI_WINDOW_MARGIC_CODE) {
-        LOG_WM("invalid margic:%x, ignore.", proc->margic);
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
         return;
     }
-
+    ui_proc_pump_t *proc = args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    LOG_WM("pump_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
+    int action = args->arg1;
     switch (action) {
         case HDR_ACTION_START_PUMP: {
             LOG_WM("%s", args->name);
@@ -134,21 +120,27 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
 
 static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return 0;
+    }
     ui_proc_pump_t *proc = user_data;
+    EXCEPTION_CHECK_INT(proc);
     breast_pump_manager_context_t *pump = proc->wm->priv.pump;
-    key_input_context_t *key_ctx = proc->wm->priv.key;
-    breast_pump_info_t pump_info;
     EXCEPTION_CHECK_INT(pump);
-    pump_info.status = pump->get_breast_pump_status();
-    pump_info.mode = pump->get_breast_pump_mode();
-    pump_info.do_work = pump->is_on_working();
+    key_input_context_t *key_ctx = proc->wm->priv.key;
+    EXCEPTION_CHECK_INT(key_ctx);
+    breast_pump_info_t pump_info = {
+        .status = pump->get_breast_pump_status(),
+        .mode = pump->get_breast_pump_mode(),
+        .do_work = pump->is_on_working()
+    };
     const char *key_name = NULL;
     if (key_ctx && key_ctx->hook && key_ctx->hook->get_key_code_name) {
         key_name = key_ctx->hook->get_key_code_name(keycode);
     } else {
         key_name = "@unknow";
     }
-
     LOG_WM("%s, keyevent:%d/%d, pump working: %d.", key_name, keycode, keytype, pump_info.do_work);
 
     if (proc->goto_charge_ui_flag != 0) {
@@ -197,18 +189,15 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
 static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *context, int arg1, int arg2,
      broadcast_priv_data_t *pdata)
 {
-    if(!GET_WINDOW_CONTEXT()) {
-        LOG_WM("window context not present, return.");
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
         return;
     }
 
     ui_proc_pump_t *proc = (ui_proc_pump_t *)context;
+    EXCEPTION_CHECK_VOID(proc);
     breast_pump_manager_context_t *pump = proc->wm->priv.pump;
-    /// 如果泵奶管理器不存在，忽略.
-    if (!pump) {
-        LOG_WM("pump is NULL, return.");
-        return;
-    }
+    EXCEPTION_CHECK_VOID(pump);
     /// 获取泵奶状态.
     int pump_status = pump->get_breast_pump_status();
     int pump_mode = pump->get_breast_pump_mode();
@@ -221,7 +210,6 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
     LOG_WM("receive broadcast, code: %lx, code_v2: %lx, flag: %d, status: %d, mode: %ld,\
             working: %d, arg1: %d, arg2: %d.", id.code, id.code_v2, proc->is_mode_changed_by_device,
             pump_status, pump_mode, pump_working, arg1, arg2);
-
     switch (id.code) {
         case ID_BROADCAST_BREAST_PUMP_MODE_CHANGE: {
             /// 监测APP端切换模式动作，同步手柄端
@@ -259,14 +247,18 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     const struct window_context *thiz, const struct window_context *old_scr)
 {
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
+    EXCEPTION_CHECK_INT(proc);
     window_manager_context_t *wm = proc->wm;
+    EXCEPTION_CHECK_INT(wm);
     ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_INT(ui);
     struct storage_manager_context *st = wm->priv.st;
+    EXCEPTION_CHECK_INT(st);
     /// 获取泵奶控制类型
     if (st && st->get_store_val) {
         st->get_store_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
     }
-
+    /// 处理窗口进入事件.
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
         wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
@@ -284,39 +276,43 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     return 0;
 }
 
+static void remove_breast_pump_result_cb(breast_pump_manager_context_t *pump)
+{
+    EXCEPTION_CHECK_VOID(pump);
+    int status = pump->get_breast_pump_status();
+    if (status > BREAST_PUMP_IDLE && status < BREAST_PUMP_FINISH) {
+        LOG_WM("pump status: %d => set_breast_pump_status:FINISH", status);
+        pump->set_breast_pump_status(BREAST_PUMP_FINISH);
+    }
+    LOG_WM("==>remove breast_pump_result_listener");
+    pump->remove_breast_pump_result_listener(on_breast_pump_result_cb);
+}
+
 static int exit_event_cb(window_lift_cycle_e new_state,
                          const struct window_context *thiz, const struct window_context *new_scr)
 {
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
+    EXCEPTION_CHECK_INT(proc);
     window_manager_context_t *wm = proc->wm;
-    ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_INT(wm);
     switch (new_state) {
-
         case ID_SCR_STATE_ON_PAUSE: {
-            ui->animation_play_status_update(ui, false);
             proc->user_pause = 1;
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             stop_pump_ui_animation(proc); 
-            wm->priv.key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
-            unregister_broadcast_receiver(&proc->receiver);
             REMOVE_ALL_HANDER_TASK();
-            if (wm->priv.pump) {
-                int status = wm->priv.pump->get_breast_pump_status();
-                if (status > BREAST_PUMP_IDLE && status < BREAST_PUMP_FINISH) {
-                    LOG_WM("==>BREAST_PUMP_FINISH");
-                    wm->priv.pump->set_breast_pump_status(BREAST_PUMP_FINISH);
-                }
-                LOG_WM("==>remove breast_pump_result_listener");
-                wm->priv.pump->remove_breast_pump_result_listener(on_breast_pump_result_cb);
-            }
+            remove_breast_pump_result_cb(wm->priv.pump);
+            EXCEPTION_CHECK_INT(wm->priv.key);
+            wm->priv.key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
         }
         break;
 
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);
+            SET_WINDOW_CONTEXT(NULL);
+            proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);
             proc = NULL;
-            SET_WINDOW_CONTEXT(NULL);
             LOG_WM("%s window on destory--end", PAGE_NAME_STR);
             break;
         default:
@@ -333,6 +329,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
 {
     LOG_WM("%s window enter, time: %ld.", PAGE_NAME_STR, get_timestamp());
     ui_proc_pump_t *proc = u_malloz(sizeof(ui_proc_pump_t));
+    EXCEPTION_CHECK_INT(proc);
     SET_WINDOW_CONTEXT(proc);
     /// 设置窗口标识.
     proc->margic = UI_WINDOW_MARGIC_CODE;
@@ -346,7 +343,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_FINISH;
     proc->receiver.receiver_cb = on_pump_ui_broadcast_receive_cb;
     register_broadcast_receiver(&proc->receiver);
-    /// 设置泵奶状态.
+    /// 配置泵奶管理器.
     if (wm->priv.pump) {
         wm->priv.pump->set_breast_pump_status(BREAST_PUMP_IDLE);
         wm->priv.pump->add_breast_pump_result_listener(proc, on_breast_pump_result_cb);
@@ -357,7 +354,6 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     w_ctx->evt_cb_entry = entry_event_cb;
     w_ctx->evt_cb_exit = exit_event_cb;
     w_ctx->not_push_history = 1;
-    // args->user_data = &proc->bridge;
     wm->dispatch_new_window(w_ctx);
     return ID_WINDOW_DISPLAY_OK;
 }
