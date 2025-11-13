@@ -56,9 +56,13 @@ static void airplane_mode_ui_policy(ui_manager_context_t *ui)
         goto UI_DISPLAY_REFRESH;
     }
     
-    /// 如果电池电量百分比未发生变化，或上次动画时间小于更新间隔，则不刷新UI
-    if (proc->battery_percent == proc->wm->priv.misc->get_battery_percent() || 
-        get_timestamp_ms(proc->last_progress_ani_time) < AIRPLANE_MODE_ANIMATION_UPDATE_INTERVAL) {
+    /// 如果上次动画时间小于更新间隔，则不刷新UI
+    if (get_timestamp_ms(proc->last_progress_ani_time) < AIRPLANE_MODE_ANIMATION_UPDATE_INTERVAL) {
+        return;
+    }
+
+    /// 如果电池电量百分比发生变化，则刷新UI.
+    if (proc->battery_percent == proc->wm->priv.misc->get_battery_percent()) {
         return;
     }
 
