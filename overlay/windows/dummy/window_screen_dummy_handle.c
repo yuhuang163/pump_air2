@@ -57,7 +57,7 @@ static void system_power_off_cb(hdr_post_args_t *args)
     uint32_t current_time = platform_get_utc_time();
     if (current_time - proc->enter_dummy_time > DUMMY_IDLE_POWER_OFF_TIME) {
         LOG_WM("system power off");
-        pm->system_power_control(false);
+        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
         return;
     }
     POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, 

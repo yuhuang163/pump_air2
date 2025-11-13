@@ -94,6 +94,7 @@ typedef struct ui_proc_pump {
     ui_pump_info_t info; /// 当前泵奶信息.
     pump_setting_t setting; /// 当前泵奶设置信息.
     uint8_t charging_status; /// 充电状态
+    uint8_t battery_percent; /// 电池电量百分比
 } ui_proc_pump_t;
 
 /// 泵奶模式切换超时时间

@@ -45,16 +45,22 @@ static void pumping_work_ui_policy(ui_manager_context_t *ui)
     /// 如果充电状态发生变化，则刷新UI.
     if (proc->charging_status != proc->wm->priv.misc->is_charge_plug_in()) {
         proc->charging_status = proc->wm->priv.misc->is_charge_plug_in();
+        LOG_UI("charging status changed: %d", proc->charging_status);
         goto UI_DISPLAY_REFRESH;
     }
-    
+
     /// 如果上次动画时间小于更新间隔，则不刷新UI.
-    if ((pump->is_on_working() == 0 && proc->charging_status == 0) ||
-        get_timestamp_ms(proc->last_progress_ani_time) < PUMP_RUNNING_TIME_UPDATE_INTERVAL) {
+    if (get_timestamp_ms(proc->last_progress_ani_time) < PUMP_RUNNING_TIME_UPDATE_INTERVAL) {
+        return;
+    }
+    
+    /// 如果泵奶停止且电池电量百分比未发生变化，则不刷新UI.
+    if (pump->is_on_working() == 0 && proc->battery_percent == proc->wm->priv.misc->get_battery_percent()) {
         return;
     }
 
 UI_DISPLAY_REFRESH: 
+    proc->battery_percent = proc->wm->priv.misc->get_battery_percent();
     proc->last_progress_ani_time = get_timestamp();
     if (ui->priv.play_info.reset_play_count_cb) {
         ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
