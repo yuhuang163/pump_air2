@@ -71,21 +71,19 @@ static void led_timer_start(uint32_t period)
 
 static void led_timeout_handler(void *param)
 {
-    uint8_t level_count = 0;
-
+    uint8_t level_refresh_flag = 0;
+    soft_level_status = soft_level_status > 0 ? 0 : 1;
     for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
         if (led_status[i].mode != LED_MODE_LEVEL) {
+            // PRINT_LOG("index: %d, mode: %d; ", i, led_status[i].mode);
             continue;
         }
-        level_count++;
-        // led_status[i].un.onoff.status = !led_status[i].un.onoff.status;
-        // GPIO_PIN_CTRL(led_cfg[i].pin, led_status[i].un.onoff.status > 0 ? 1 : 0);
-        soft_level_status = soft_level_status > 0 ? 0 : 1;
+        // PRINT_LOG("index: %d, mode: %d; ", i, led_status[i].mode);
+        level_refresh_flag = true;
         GPIO_PIN_CTRL(led_cfg[i].pin, soft_level_status);
     }
-
-    if (level_count > 0) {
-        // led_timer_start(LED_PWM_PERIOD);
+    // PRINT_LOG("\r\n");
+    if (level_refresh_flag > 0) {
         led_timer_start(soft_level_status == 0 ? LED_OFF_TIME : LED_ON_TIME);
     } else {
         led_time_is_running = 0;
@@ -272,6 +270,7 @@ int bsp_led_status_set(void *args)
         LOGE("led is NULL");
         return BSP_ERROR;
     }
+
 
     switch (led->mode) {
         case LED_MODE_ONOFF:
