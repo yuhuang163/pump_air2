@@ -29,11 +29,20 @@ CFLAGS ?= -O2 -g -std=$(CSTD) -fvisibility=default
 EXTRA_SDK_ARCH_FLAGS := -mthumb -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard
 EXTRA_CFLAGS ?= -std=gnu99 $(EXTRA_SDK_ARCH_FLAGS)
 
+# Add -Werror if WERROR_ENABLE is set to 1
+ifeq ($(WERROR_ENABLE),1)
+CFLAGS += -Werror
+EXTRA_CFLAGS += -Werror
+endif
+
 # crash reboot switch
 CRASH_REBOOT ?= 1
 
 # watchdog switch
 WATCHER_DOG ?= 1
+
+# warnings as errors switch (0=disabled, 1=enabled)
+WERROR_ENABLE ?= 0
 
 # custom app switch
 CFG_CUSTOM_APP ?= 1
@@ -124,10 +133,12 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/table \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/algo \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/airplane_mode \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/power \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/ui \
 	-I$(PROJECT_ROOT)/overlay/input_key \
 	-I$(PROJECT_ROOT)/overlay/windows/battery \
+	-I$(PROJECT_ROOT)/overlay/windows/airplane_mode \
 	-I$(PROJECT_ROOT)/overlay/windows/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/windows/charge \
 	-I$(PROJECT_ROOT)/overlay/windows/dummy \
@@ -156,7 +167,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/trunk/external/littlefs \
 	-I$(PROJECT_ROOT)/trunk/external/littlefs/fds \
 	-I$(PROJECT_ROOT)/trunk/external/scan_key \
-	-I$(PROJECT_ROOT)/trunk/root_source/airplane \
+	-I$(PROJECT_ROOT)/trunk/root_source/airplane_mode \
 	-I$(PROJECT_ROOT)/trunk/root_source/algorithm \
 	-I$(PROJECT_ROOT)/trunk/root_source/audio \
 	-I$(PROJECT_ROOT)/trunk/root_source/base \
@@ -324,6 +335,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/table/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/airplane_mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/power/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/motor/*.c) \
@@ -347,6 +359,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/input_key/*.c) \
 	$(call rwildcard,$(PROJECT_ROOT)/overlay/ui) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/airplane_mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/charge/*.c) \
@@ -360,7 +373,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/fds/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/airplane/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/airplane_mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/audio/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ble/*.c) \
@@ -397,6 +410,7 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		LIB_LDFLAGS+=" $(EXTRA_LIB) -Wl,-defsym,__EXTRA_LIB_MTIME=$(shell stat -c %Y $(EXTRA_LIB)) " \
 		WATCHER_DOG=$(WATCHER_DOG) \
 		CRASH_REBOOT=$(CRASH_REBOOT) \
+		WERROR_ENABLE=$(WERROR_ENABLE) \
 		REL_TRACE_ENABLE=$(REL_TRACE_ENABLE) \
 		LITTLEFS_SECTION_SIZE=$(LITTLEFS_SECTION_SIZE) \
 		FACTORY_DATA_SECTION_SIZE=$(FACTORY_DATA_SECTION_SIZE) \
@@ -494,6 +508,7 @@ print-vars:
 	@echo REL_TRACE_ENABLE=$(REL_TRACE_ENABLE)
 	@echo RTC_CALENDAR=$(RTC_CALENDAR)
 	@echo PMU_CLK_USE_EXT_CRYSTAL=$(PMU_CLK_USE_EXT_CRYSTAL)
+	@echo WERROR_ENABLE=$(WERROR_ENABLE)
 
 # -------------- 便捷目标：固件与 Bootloader 隔离构建 --------------
 
@@ -509,6 +524,7 @@ export DEBUG
 export FLASH_REMAP
 export CHIP_HAS_CP
 export CHIP
+export WERROR_ENABLE
 
 # 固件构建（默认参数）
 firmware:

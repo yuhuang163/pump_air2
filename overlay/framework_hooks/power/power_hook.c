@@ -16,6 +16,7 @@
 #define POWER_ON_TIMEOUT_MS                         (POWER_ON_TIMEOUT_MS_DEFAULT - get_timestamp_ms(0))
 #define POWER_ON_DETECT_TASK_NAME                   "power_on_detect"
 #define POWER_ON_INVALID_TASK_NAME                  "power_on_invalid"
+#define POWER_OFF_TASK_NAME                         "power_off"
 #define SYS_STANDBY_TASK_NAME                       "sys_standby"
 
 /*
@@ -90,7 +91,6 @@ static void system_power_event_cb(hdr_post_args_t *args)
         case HDR_ACTION_POWER_OFF: {
             LOG_PM("%s", args->name);
             pm->priv.allow_shutdown_or_standby = 0;
-            SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
             pm->system_power_control(false);
         }
         break;
@@ -157,6 +157,23 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
     return 0;
 }
 
+static int on_power_broadcast_receive_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
+{
+    power_manager_context_t *ctx = context;
+    EXCEPTION_CHECK_INT(ctx);
+    switch (id.code) {
+        case ID_BROADCAST_SYS_POWER_STATE_CHANGE: {
+            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+                LOG_PM("--> system power off"); /// 1000ms 后关机.
+                POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 1000, HDR_ACTION_POWER_OFF,
+                    ctx, POWER_OFF_TASK_NAME);
+            }
+        }
+        break;
+    }
+    return 0;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -166,5 +183,6 @@ void register_power_manager_hook(power_manager_context_t *ctx)
     ctx->hook = u_malloz(sizeof(struct __power_manager_hook));
     ctx->hook->on_post_init_route = on_post_power_init_route;
     ctx->hook->on_key_event_route = on_key_event_route;
+    ctx->hook->on_broadcast_receive_route = on_power_broadcast_receive_route;
     ctx->hook->is_prohibit_pm_suspend = is_prohibit_pm_suspend;
 }

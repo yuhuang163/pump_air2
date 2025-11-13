@@ -236,6 +236,7 @@ typedef struct {
 typedef struct {
     uint8_t guide_deployed;       /// 向导部署标志
     uint8_t battery_health;       /// 电池健康
+    uint8_t airplane_mode_state;  /// 飞行模式状态
     night_light_info_t night_light; /// 夜灯亮度信息
     uint32_t log_filter;          /// 日志过滤
     uint32_t sync_sys_time;       /// 保存第一次同步系统时间时 本地经历的最终时间点 用于计算泵奶记录的差值.

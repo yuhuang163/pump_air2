@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "persist_storage.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "factory_persist_data.h"
 #include "system_persist_data.h"
@@ -11,6 +12,7 @@
 * DEFINES
 *****************************************************************************************
 */
+#define STORAGE_RAM_SYNC_FLASH_INTERVAL_MS    (20 * 1000)  /// 20s
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -65,7 +67,7 @@ const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
     {STORE_ID_REMIND_PUMP_FINISH, write_pump_finish_remind_to_ram},
     {STORE_ID_PUMP_CONTROL_TYPE, write_pump_control_type_to_ram},
     {STORE_ID_SYS_NIGHT_LIGHT_INFO, write_night_light_info_to_ram},
-
+    {STORE_ID_SYS_AIRPLANE_MODE_STATE, write_airplane_mode_state_to_ram},
 };
 
 const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
@@ -92,6 +94,7 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_REMIND_PUMP_MODE_CHANGE, read_pump_mode_change_remind_from_ram},
     {STORE_ID_REMIND_PUMP_FINISH, read_pump_finish_remind_from_ram},
     {STORE_ID_SYS_NIGHT_LIGHT_INFO, read_night_light_info_from_ram},
+    {STORE_ID_SYS_AIRPLANE_MODE_STATE, read_airplane_mode_state_from_ram},
 };
 
 static storage_manager_context_t *thiz = NULL;
@@ -162,25 +165,24 @@ static int system_persist_info_sync_flash(storage_manager_context_t *ctx)
     if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_CONFIG]) {
         args.val = &sys_info->config;
         write_sys_config_info_to_flash(args);
+        LOG_STORE("-->system config info sync flash");
     }
-
     ///  系统状态
     info_crc = CRC16(&sys_info->state, sizeof(sys_state_info_t));
     if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_STATE]) {
         args.val = &sys_info->state;
         write_sys_state_info_to_flash(args);
+        LOG_STORE("-->system state info sync flash");
     }
-
     ///  泵奶信息
     info_crc = CRC16(&sys_info->pump_info, sizeof(sys_pump_info_t));
     if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_INFO]) {
         args.val = &sys_info->pump_info;
         write_pump_info_to_flash(args);
+        LOG_STORE("-->pump info sync flash");
     }
-
     return 0;
 }
-
 
 static int user_database_reset(void)
 {
@@ -202,8 +204,23 @@ static int user_database_reset(void)
 static void hdr_storage_work_cb(hdr_post_args_t *args)
 {
     if (args->arg1 == 0) {
-        // system_persist_info_sync_flash(thiz);
+        system_persist_info_sync_flash(thiz);
     }
+}
+
+static void storage_ram_sync_flash_cb(hdr_post_args_t *args)
+{
+    breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump);
+    storage_manager_context_t *st = args->user_data;
+    EXCEPTION_CHECK_VOID(st);
+    if (pump->is_on_working()) {
+        LOG_STORE("-->pump working, ignore ram sync flash");
+        goto EXIT_LABEL;
+    }
+    system_persist_info_sync_flash(st);
+EXIT_LABEL:
+    POST_TASK_HANDLER_DELAYED_ARG1(storage_ram_sync_flash_cb, STORAGE_RAM_SYNC_FLASH_INTERVAL_MS, st, "ram_sync_flash_task");
 }
 
 static void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
@@ -218,18 +235,20 @@ static void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, in
                 POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 500, 0, st, "persist_store_task1");
             }
             break;
-        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
-            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
-                LOG_STORE("-->save persist_store");
-                POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 0, st, "persist_store_task2");
-            }
-            break;
         case ID_BROADCAST_SYS_PERSIST_INFO_SAVE:
                 PRIV_DATA_TO_USER_DATA_V2(user_data, pdata, pump_result_info_t);
                 if (user_data) {
                     LOG_STORE("-->save insert_one");
                     POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 1, user_data, "persist_store_task3");
                 }
+            break;
+        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
+            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+                LOG_STORE("-->system shutdown");
+                POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 0, st, "persist_store_task4");
+            } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
+                POST_TASK_HANDLER_DELAYED_ARG1(storage_ram_sync_flash_cb, STORAGE_RAM_SYNC_FLASH_INTERVAL_MS, st, "ram_sync_flash_task");
+            }
             break;
         default:
                 break;
@@ -244,7 +263,6 @@ static int on_post_storage_init_route(storage_manager_context_t *ctx)
     init_system_persist_info(ctx);
     /// 加载系统版本信息
     init_system_ver_info(ctx);
-
     return 0;
 }
 

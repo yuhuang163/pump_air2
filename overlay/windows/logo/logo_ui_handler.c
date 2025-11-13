@@ -30,16 +30,6 @@ static const uint16_t s_logo_screen_res_array[1] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void logo_work_completed(hdr_post_args_t *args)
-{
-    LOG_UI("logo play finish.\n");
-    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    EXCEPTION_CHECK_VOID(wm);
-    multi_func_msg_data_t msg = {0};
-    msg.union_body.extra.window_id = ID_WINDOW_PUMP;
-    wm->dispatch_new_window_args(wm, &msg);
-}
-
 static void logo_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_logo_t *proc = (ui_proc_logo_t *)args->user_data;
@@ -47,7 +37,18 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
     LOG_UI("logo play finish.\n");
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_VOID(wm);
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(st);
+    uint8_t airplane_mode_state = 0;
     if (wm->is_current_window(wm, ID_WINDOW_LOGO) == 0) {
+        return;
+    }
+    st->get_store_ram_val(STORE_ID_SYS_AIRPLANE_MODE_STATE, 0, 0, &airplane_mode_state);
+    LOG_UI("airplane_mode_state: %d", airplane_mode_state);
+    if (airplane_mode_state == 1) {
+        multi_func_msg_data_t msg = {0};
+        msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
+        wm->dispatch_new_window_args(wm, &msg);
         return;
     }
     multi_func_msg_data_t msg = {0};
@@ -64,7 +65,6 @@ static void logo_ui_policy(ui_manager_context_t *ui)
             LOGO_DISPLAY_TASK_NAME);
     }
 }
-
 
 static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {

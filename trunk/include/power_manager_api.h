@@ -10,6 +10,7 @@ extern "C" {
  * Include files
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
+#include "broadcast_manager_api.h"
 
 typedef enum {
     PM_WAKEUP_REASON_BOOT = 80,
@@ -76,6 +77,7 @@ typedef struct power_manager_context {
     struct __power_manager_hook {
         int (*on_post_init_route)(struct power_manager_context *ctx);
         int (*on_key_event_route)(struct power_manager_context *ctx, uint16_t keycode, uint16_t keytype);
+        int (*on_broadcast_receive_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
         /// 禁止进入待机状态的钩子.
         bool (*is_prohibit_pm_suspend)(struct power_manager_context *ctx);
     } *hook;

@@ -59,17 +59,21 @@ void framework_extra_hook(void)
         register_breast_pump_hook(pump_ctx);
     });
 
+    /// 注册电源管理钩子.
     power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     CHECK_IF_VALID(power_ctx, {
         register_power_manager_hook(power_ctx);
     });
-
+    /// 注册飞行模式钩子.
+    airplane_mode_context_t *airplane_ctx = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
+    CHECK_IF_VALID(airplane_ctx, {
+        register_airplane_mode_hook(airplane_ctx);
+    });
     /// 注册UI管理钩子.
     ui_manager_context_t *ui_ctx = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     CHECK_IF_VALID(ui_ctx, {
         register_ui_manager_hook(ui_ctx);
     });
-
     /// 注册产品测试钩子.
     tests_manager_context_t *product_tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     CHECK_IF_VALID(product_tests_ctx, {

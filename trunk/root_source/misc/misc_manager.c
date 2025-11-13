@@ -98,7 +98,7 @@ static void polling_charge_status(misc_manager_context_t *ctx, window_manager_co
 
 /// 飞行模式下不弹充电界面
 #if IS_SUPPORT_AIRPLANE_MODE
-    airplane_mode_context_t *ap = (airplane_mode_context_t *)find_module(ID_MODULE_AP_MODE);
+    airplane_mode_context_t *ap = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
     if (ap && ap->is_on_airplane_mode()) {
         LOG_MISC("airplane_mode ignore");
         return;
@@ -136,9 +136,7 @@ static void misc_work_broadcast_receive(broadcast_mask_id_t id, void *context, i
             START_TIMER(ctx->priv.misc_timer, MISC_POLLING_PERIOD);
             ctx->priv.battery_ui_has_show = 0;
         }
-    } else if (id.code == ID_BROADCAST_PM_FREEZE_STATE_CHANGE) {
-        platform_sysinfo_print(ctx);
-    }
+    } 
 }
 
 static void charge_irq_callback(uint8_t *data)
@@ -235,16 +233,13 @@ static void local_set_battery_ui_show_flag(int flag)
 static int on_post_misc_init(void *ptr)
 {
     misc_manager_context_t *ctx = ptr;
-
     /// 注册广播监听.
     ctx->priv.misc_bcd = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.misc_bcd->context = ctx;
     ctx->priv.misc_bcd->name = "misc_bcd_ctx";
     ctx->priv.misc_bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
-    ctx->priv.misc_bcd->id.code |= ID_BROADCAST_PM_FREEZE_STATE_CHANGE;
     ctx->priv.misc_bcd->receiver_cb = misc_work_broadcast_receive;
     register_broadcast_receiver(ctx->priv.misc_bcd);
-    
     /// 电量状态初始化
     DEVICE_IOCTL_NO_RET(thiz->priv.battery, OP_CODE_BAT_POLL_VOLTAGE);
     ctx->priv.low_battery = check_if_low_battery(ctx);

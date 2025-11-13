@@ -330,15 +330,15 @@ int read_pump_setting_info_from_ram(store_func_args_t args)
     sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
     pump_setting_t *setting = (pump_setting_t *)args.val;
     EXCEPTION_CHECK_INT(setting);
-    LOG_STORE("read pump setting info: %d", args.arg1);
+    // LOG_STORE("read pump setting info: %d", args.arg1);
     uint8_t mode = args.arg1;
     if (mode >= BREAST_PUMP_MODE_MAX) {
         LOGE("read pump setting info: %d, out of range ", args.arg1);
         return -1;
     }
     memcpy(setting, &pump_info->setting[mode], sizeof(pump_setting_t));
-    LOG_STORE_WRAP("read pump setting info: %d, speed: %d, level: %d, %d",
-         mode, setting->speed, setting->level[0], setting->level[1]);
+    // LOG_STORE_WRAP("read pump setting info: %d, speed: %d, level: %d, %d",
+    //      mode, setting->speed, setting->level[0], setting->level[1]);
     return 0;
 }
 
