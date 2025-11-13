@@ -255,14 +255,18 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     struct storage_manager_context *st = wm->priv.st;
     EXCEPTION_CHECK_INT(st);
     /// 获取泵奶控制类型
-    if (st && st->get_store_val) {
-        st->get_store_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
+    if (st) {
+        st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
     }
     /// 处理窗口进入事件.
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
-        wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
-             on_pump_ui_keyevent_hdr);
+        if (wm->priv.key) {
+            wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
+                 on_pump_ui_keyevent_hdr);
+        } else {
+            LOG_WM("key not present, ignore.");
+        }
         if (proc->need_start_pump) {
             proc->need_start_pump = 0;
             POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_START_PUMP, proc,
