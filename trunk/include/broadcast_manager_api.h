@@ -55,7 +55,6 @@ typedef enum {
     ID_BROADCAST_OTA_UI_SCREEN_STATE_CHANGE = (1 << 14),    /// ota升级ui进入/退出
     ID_BROADCAST_SYS_POWER_STATE_CHANGE = (1 << 16),        /// 系统电源状态改变.
     ID_BROADCAST_SET_BLACKLIGHT_BY_USER = (1 << 17),        /// 设置背光状态.
-    ID_BROADCAST_PM_FREEZE_STATE_CHANGE = (1 << 18),        /// PM freeze状态改变.
     ID_BROADCAST_BREAST_PUMP_STATE_CHANGE = (1 << 21),      /// 吸奶状态改变.
     ID_BROADCAST_BREAST_PUMP_FINISH = (1 << 22),            /// 吸奶完成.
     ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE = (1 << 23),    /// 飞行模式状态改变.

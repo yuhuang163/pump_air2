@@ -313,6 +313,15 @@ int write_battery_health_to_ram(store_func_args_t args)
     return 0;
 }
 
+int write_airplane_mode_state_to_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
+    sys_state->airplane_mode_state = (uint8_t)args.arg1;
+    LOG_STORE_WRAP("write airplane mode state: %d", args.arg1);
+    return 0;
+}
+
 int write_night_light_info_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
@@ -418,6 +427,16 @@ int read_battery_health_from_ram(store_func_args_t args)
     int *tmp = (int *)args.val;
     EXCEPTION_CHECK_INT(tmp);
     *tmp = sys_state->battery_health;
+    return 0;
+}
+
+int read_airplane_mode_state_from_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_state_info_t *sys_state = &args.ctx->priv.sys_info.state;
+    int *tmp = (int *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = sys_state->airplane_mode_state;
     return 0;
 }
 

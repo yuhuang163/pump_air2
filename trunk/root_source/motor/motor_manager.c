@@ -134,7 +134,9 @@ static void on_motor_broadcast_receiver(broadcast_mask_id_t id, void *context, i
             break;
         case ID_BROADCAST_BREAST_PUMP_MODE_CHANGE:
             {
-                internal_start_motor(MOTOR_POLICY_CHANGE_MODE);
+                if (motor_obj->priv.pump_ctx && motor_obj->priv.pump_ctx->is_on_working() > 0) {
+                    internal_start_motor(MOTOR_POLICY_CHANGE_MODE);
+                }
                 LOG_MOTOR("mode change: %d", breast_pump_mode);
             }
             break;

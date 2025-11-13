@@ -37,6 +37,9 @@ int read_sys_time_zone_from_ram(store_func_args_t args);
 /// 飞行/旅行锁
 int write_ap_mode_onoff_to_ram(store_func_args_t args);
 int read_ap_mode_onoff_from_ram(store_func_args_t args);
+/// 飞行模式状态
+int write_airplane_mode_state_to_ram(store_func_args_t args);
+int read_airplane_mode_state_from_ram(store_func_args_t args);
 /// 静默升级
 int write_slient_upgrade_onoff_to_ram(store_func_args_t args);
 int read_slient_upgrade_onoff_from_ram(store_func_args_t args);

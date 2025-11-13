@@ -10,6 +10,7 @@ extern "C" {
  * Include files
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
+#include "broadcast_manager_api.h"
 
 typedef enum {
     AIRPLANE_MODE_EXIT = 0,
@@ -38,13 +39,18 @@ typedef struct airplane_mode_context {
         struct misc_manager_context *misc;
         struct time_system_context *time_sys;
     } priv;
-
 /// public:
-    int (*enter)(void);
-    int (*exit)(int wakeup_reason);
+    int (*enter)(int enter_reason);
+    int (*exit)(int exit_reason);
     int (*is_on_airplane_mode)(void);
     void (*set_airplane_mode)(int state);
-    int (*delay_enter)(const char *tag, int delay_ms);
+/// 外部hook点.
+    struct __airplane_mode_hook {
+        int (*on_post_init_route)(struct airplane_mode_context *ctx);
+        int (*on_airplane_mode_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
+        int (*enter_airplane_mode_route)(struct airplane_mode_context *ctx, int enter_reason);
+        int (*exit_airplane_mode_route)(struct airplane_mode_context *ctx, int exit_reason);
+    } *hook;
 } airplane_mode_context_t;
 
 #ifdef __cplusplus

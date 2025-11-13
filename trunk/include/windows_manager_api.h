@@ -38,7 +38,7 @@ typedef enum {
     ID_WINDOW_PUMP,                /// 泵奶主流程
     ID_WINDOW_FACTORY_MODE,        /// 工厂模式
     ID_WINDOW_SETTINGS,            /// 系统设置
-    ID_WINDOW_AIRPLANE_MODE,       /// 进入飞行模式后和退出飞行模式前处理飞行模式事件的中间窗口
+    ID_WINDOW_AIRPLANE_MODE,       /// 飞行模式
     ID_WINDOW_PRODUCT_TEST_MODE,   /// 测试模式
     /// add new screen id above this.
     ID_WINDOW_MAX

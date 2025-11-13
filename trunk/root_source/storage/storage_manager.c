@@ -161,7 +161,7 @@ static void put_store_ram_val(persist_store_id_e id, int arg1, int arg2, void *v
     }
 }
 
-static void on_storage_save_receive(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
+static void on_storage_broadcast_receive(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
     if (thiz->hook && thiz->hook->on_storage_broadcast_route) {
         thiz->hook->on_storage_broadcast_route(id, context, arg1, arg2, pdata);
@@ -171,7 +171,6 @@ static void on_storage_save_receive(broadcast_mask_id_t id, void *context, int a
 static int on_post_storage_init(void *ptr)
 {
     storage_manager_context_t *ctx = ptr;
-
     /// 注册存储更新广播.
     ctx->priv.mbdc = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.mbdc->context = ctx;
@@ -179,12 +178,8 @@ static int on_post_storage_init(void *ptr)
     ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_PERSIST_INFO_SAVE;
     ctx->priv.mbdc->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
-    #if IS_SUPPORT_DEEP_SLEEP_FUNCTION
-    ctx->priv.mbdc->id.code |= ID_BROADCAST_PM_FREEZE_STATE_CHANGE;
-    #endif
-    ctx->priv.mbdc->receiver_cb = on_storage_save_receive;
+    ctx->priv.mbdc->receiver_cb = on_storage_broadcast_receive;
     register_broadcast_receiver(ctx->priv.mbdc);
-    
     /// 钩子参数初始化
     if (ctx->hook && ctx->hook->on_post_init_route) {
         ctx->hook->on_post_init_route(ctx);
@@ -257,47 +252,49 @@ static int storage_flash_protect(int protect_enable)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int user_database_put(storage_manager_context_t *ctx, database_key_t key, const uint8_t *buf, int buf_len)
+int user_database_put(storage_manager_context_t *ctx, int database_id, const uint8_t *buf, int buf_len)
 {
     int ret = -1;
     rt_device_node_t *db_dev = ctx->priv.db_dev;
     if (db_dev && db_dev->write) {
-        uint32_t buf_wr[] = { (uint32_t)key, (uint32_t)buf, (uint32_t)buf_len };
+        uint32_t buf_wr[] = { database_id, (uint32_t)buf, (uint32_t)buf_len };
         ret = DEVICE_WRITE(db_dev, buf_wr, sizeof(buf_wr));
         if (ret == 0) {
             uint8_t *tmp_buf = u_malloz(buf_len);
-            uint32_t buf_rd[] = { (uint32_t)key, (uint32_t)tmp_buf, (uint32_t)buf_len };
+            uint32_t buf_rd[] = {database_id, (uint32_t)tmp_buf, (uint32_t)buf_len };
             DEVICE_READ_ARGS(db_dev, buf_rd, sizeof(buf_rd));
+            // LOG_STORE("write database id: %d, buf_len: %d", database_id, buf_len);
+            // LOG_HEX("tx buf", tmp_buf, buf_len);
+            // LOG_HEX("rx buf", buf, buf_len);
             if (memcmp(tmp_buf, buf, buf_len) != 0) {
-                LOGE("storage key 0x%x fail, retry write.", key);
+                LOGE("storage database id %d fail, retry write.", database_id);
                 ret = DEVICE_WRITE(db_dev, buf_rd, sizeof(buf_rd));
             }
             u_free(tmp_buf);
-        } else {
-            LOGE("write key failure: 0x%x, buf_len: %d, ret: %d", key, buf_len, ret);
         }
     }
     return ret;
 }
 
-int user_database_get(storage_manager_context_t *ctx, database_key_t key, uint8_t *buf, int buf_len)
+int user_database_get(storage_manager_context_t *ctx, int database_id, uint8_t *buf, int buf_len)
 {
     int ret = -1;
     rt_device_node_t *db_dev = ctx->priv.db_dev;
     if (db_dev && db_dev->read) {
-        uint32_t buf_rd[] = { (uint32_t)key, (uint32_t)buf, (uint32_t)buf_len };
-        ret = db_dev->read(db_dev, buf_rd, sizeof(buf_rd));
+        uint32_t buf_rd[] = {database_id, (uint32_t)buf, (uint32_t)buf_len };
+        ret = DEVICE_READ_ARGS(db_dev, buf_rd, sizeof(buf_rd));
+        // LOG_STORE("read database id: %d, buf_len: %d", database_id, buf_len);
+        // LOG_HEX("buf_rd", buf, buf_len);
     }
-
     return ret;
 }
 
-int user_database_remove(storage_manager_context_t *ctx, database_key_t key)
+int user_database_remove(storage_manager_context_t *ctx, int database_id)
 {
     int ret = -1;
     rt_device_node_t *db_dev = ctx->priv.db_dev;
     if (db_dev && db_dev->ioctl) {
-        ret = DEVICE_IOCTL_ARGS(db_dev, OP_CODE_DB_DELETE, &key);
+        ret = DEVICE_IOCTL_ARGS(db_dev, OP_CODE_DB_DELETE, &database_id);
     }    
     return ret;
 }

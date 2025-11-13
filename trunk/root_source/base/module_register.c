@@ -69,7 +69,7 @@ static const module_register_fptr s_module_register[] = {
     #if IS_SUPPORT_MODULE_AUDIO
     register_module_for_audio_manager_new,
     #endif
-    #if IS_SUPPORT_MODULE_AIRPLANE
+    #if IS_SUPPORT_MODULE_AIRPLANE_MODE
     register_module_for_airplane_mode_new,
     #endif
 };

@@ -216,7 +216,7 @@ static void set_factory_ble_register_cb(factory_ble_recv_data_cb cb)
 static void on_connect_status_change(ble_manager_context_t *ctx, int new_status, int forbid_popup)
 {
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    airplane_mode_context_t *ap = (airplane_mode_context_t *)find_module(ID_MODULE_AP_MODE);
+    airplane_mode_context_t *ap = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
 
     if (forbid_popup) {
         LOGW("forbid_popup");
@@ -358,7 +358,6 @@ static int on_post_init(void *ptr)
     ctx->priv.bcreceiver->id.code |= ID_BROADCAST_OTA_UPGREADING_CHANGE;
     ctx->priv.bcreceiver->id.code |= ID_BROADCAST_BREAST_PUMP_MODE_CHANGE;
     ctx->priv.bcreceiver->id.code |= ID_BROADCAST_BREAST_PUMP_STATE_CHANGE;
-    ctx->priv.bcreceiver->id.code |= ID_BROADCAST_PM_FREEZE_STATE_CHANGE;
     ctx->priv.bcreceiver->id.code |= ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE;
     ctx->priv.bcreceiver->receiver_cb = on_ble_broadcast_receive;
     register_broadcast_receiver(ctx->priv.bcreceiver);
