@@ -172,7 +172,6 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
         POST_TASK_HANDLER_DELAYED_ARG2(product_test_ui_common_cb, 100, PRODUCT_TEST_START, proc,
             PRODUCT_TEST_START_TASK_NAME);
-        set_product_tests_ble_uart_register(proc);
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>PRODUCT_TEST_ON_CREATE");
         ui->animation_play_status_update(ui, false); /// 清除动画播放标志
@@ -190,7 +189,6 @@ static int exit_event_cb(window_lift_cycle_e new_state,
     switch (new_state) {
         case ID_SCR_STATE_ON_PAUSE: {
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
-            set_product_tests_ble_uart_unregister(proc);
             stop_product_tests_ui_animation(proc);
             REMOVE_ALL_HANDER_TASK();
             unregister_broadcast_receiver(&proc->receiver);
