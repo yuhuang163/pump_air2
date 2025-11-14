@@ -81,7 +81,7 @@ static int on_post_protocol_manager_init(void *self)
     /// 注册广播监听.
     ctx->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.bcd->context = ctx;
-    ctx->priv.bcd->name = "product_test_thread";
+    ctx->priv.bcd->name = "product_protocol_thread";
     ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     ctx->priv.bcd->id.code |= ID_BROADCAST_UPDATE_BATTERY_INFO;
@@ -101,7 +101,7 @@ void *register_module_for_protocol_manager_new(list_head_t *list_head)
 
     ptr->protocol_parse = protocol_parse;
     thiz = ptr;
-    return ADD_MODULE("tests", ID_MODULE_PROTOCOL, on_prepare_protocol_manager_init, on_post_protocol_manager_init,
+    return ADD_MODULE("protocol", ID_MODULE_PROTOCOL, on_prepare_protocol_manager_init, on_post_protocol_manager_init,
                       ptr, list_head, sizeof(protocol_manager_context_t));
 }
 

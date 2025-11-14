@@ -40,9 +40,6 @@ typedef struct ui_proc_product_test {
 */
 void show_product_tests_ui(ui_proc_product_test_t *proc);
 void stop_product_tests_ui_animation(ui_proc_product_test_t *proc);
-void set_product_tests_ble_uart_register(ui_proc_product_test_t *proc);
-void set_product_tests_ble_uart_unregister(ui_proc_product_test_t *proc);
-void product_tests_send_data_via_ble_uart(uint8_t *data, uint16_t data_len);
 
 #ifdef __cplusplus
 }

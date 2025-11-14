@@ -41,7 +41,7 @@ void register_protocol_manager_hook(protocol_manager_context_t *ctx)
     ctx->hook->on_perpare_init_route = on_post_protocol_manager_init_route;
     ctx->hook->on_post_init_route = on_perpare_protocol_manager_init_route;
     ctx->hook->on_protocol_manager_receiver_route = on_protocol_manager_br_receiver_route;
-    ctx->hook->factory_tests_protocol_parse_route = factory_tests_protocol_parse_route;
+    ctx->hook->factory_tests_protocol_parse_route = product_tests_protocol_parse_route;
     ctx->hook->app_commication_protocol_parse_route = NULL;
 
 }

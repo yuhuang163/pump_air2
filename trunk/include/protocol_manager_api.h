@@ -24,6 +24,8 @@ typedef struct protocol_manager_context {
 /// private:
     struct __protocol_manager_private {
         broadcast_obj_t *bcd; /// 广播对象
+        struct rt_device_node *fcuartdev;
+        struct ble_manager_context *ble_ctx; /// 蓝牙处理管理器
     } priv;
 
     uint8_t (*protocol_parse)(uint8_t *data, uint16_t len, uint8_t proto_type);
