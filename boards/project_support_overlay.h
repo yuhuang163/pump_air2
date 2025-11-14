@@ -47,6 +47,7 @@ extern "C" {
 #define IS_SUPPORT_MODULE_AIRPLANE_MODE                  (1)
 #define IS_SUPPORT_MODULE_DATA_BURIAL                    (0)
 #define IS_SUPPORT_WEEKLY_STAT                           (0)
+#define IS_SUPPORT_MODULE_PROTOCOL                       (1)
 /// 日志功能
 #define IS_SUPPORT_LOG_OUT                               (1)
 #define IS_SUPPORT_LOG_COLOR                             (0)

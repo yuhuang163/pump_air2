@@ -37,6 +37,7 @@ extern "C" {
 #include "algorithm_manager_api.h" // IWYU pragma: keep
 #include "ble_manager_api.h" // IWYU pragma: keep
 #include "ui_manager_api.h" // IWYU pragma: keep
+#include "protocol_manager_api.h" // IWYU pragma: keep
 
 #define ADD_MODULE(name, id, perpare_init_cb, post_init_cb, ptr, list_head, mem_usage) \
     add_new_module(name, id, perpare_init_cb, post_init_cb, ptr, list_head, mem_usage)
@@ -74,6 +75,7 @@ typedef enum {
     ID_MODULE_WEEKLY_STAT,
 
     ID_MODULE_TESTS,
+    ID_MODULE_PROTOCOL,
 
     ID_MODULE_MAX
 } module_desc_id_e;

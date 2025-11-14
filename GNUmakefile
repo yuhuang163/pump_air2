@@ -136,6 +136,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/airplane_mode \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/power \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/ui \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/protocol \
 	-I$(PROJECT_ROOT)/overlay/input_key \
 	-I$(PROJECT_ROOT)/overlay/windows/battery \
 	-I$(PROJECT_ROOT)/overlay/windows/airplane_mode \
@@ -156,6 +157,8 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/product_tests/factory_tests \
 	-I$(PROJECT_ROOT)//overlay/product_tests/hardware_self_tests \
 	-I$(PROJECT_ROOT)//overlay/product_tests/stress_tests \
+	-I$(PROJECT_ROOT)//overlay/protocol/factory_protocol \
+	-I$(PROJECT_ROOT)//overlay/protocol/app_commication \
 	-I$(PROJECT_ROOT)/overlay/storage/factory \
 	-I$(PROJECT_ROOT)/overlay/storage/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
@@ -344,6 +347,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/product_tests/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/protocol/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
@@ -351,6 +355,8 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/hardware_self_tests/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/stress_tests/*.c) \
     $(wildcard $(PROJECT_ROOT)/overlay/product_tests/comm/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/protocol/app_commication/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/protocol/factory_protocol/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
