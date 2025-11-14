@@ -171,6 +171,14 @@ do_build_bootloader() {
 	echo "Bootloader 编译完成，用时: $(duration_since "$t0")"
 }
 
+do_build_all() {
+	local t0=$(date +%s)
+	echo "开始编译 固件+Bootloader（不拷贝）..."
+	do_build_firmware
+	do_build_bootloader
+	echo "固件+Bootloader 编译完成，总用时: $(duration_since "$t0")"
+}
+
 do_bear_build() {
 	local t0=$(date +%s)
 	echo "开始使用 bear 编译（生成编译数据库）..."
@@ -310,6 +318,7 @@ show_menu() {
 	6) 生成 OTA（并拷贝）
 	7) 仅拷贝产物到共享目录（固件+Bootloader+OTA）
 	8) 重命名并归档产物（APP/BOOT/OTA）
+	9) 编译 固件+Bootloader（不拷贝）
 0) 退出
 ---------------------------------------------
 目标共享目录: $SHARE_DIR
@@ -341,15 +350,17 @@ main() {
 				do_bear_build ;;
 			build-bootloader-only)
 				do_build_bootloader ;;
+			build-all)
+				do_build_all ;;
 			*)
-				echo "用法: $0 --non-interactive [build-firmware|build-bootloader|build-bootloader-only|clean-firmware|clean-bootloader|rebuild-firmware|build-only|copy|bear]" ; exit 2 ;;
+				echo "用法: $0 --non-interactive [build-firmware|build-bootloader|build-bootloader-only|clean-firmware|clean-bootloader|rebuild-firmware|build-only|copy|bear|build-all]" ; exit 2 ;;
 		esac
 		return 0
 	fi
 
 			while true; do
 		show_menu
-	read -rp "请选择功能 [0-8]: " choice
+	read -rp "请选择功能 [0-9]: " choice
 		case "$choice" in
 			1)
 				do_build_firmware
@@ -377,6 +388,9 @@ main() {
 				;;
 			8)
 				do_rename_and_archive
+				;;
+			9)
+				do_build_all
 				;;
 			0)
 				echo "已退出"; exit 0 ;;
