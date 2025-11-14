@@ -138,8 +138,9 @@ static int is_on_running(void)
 
 static void sensor_manager_internal_dispatch_thread(const void *args)
 {
-    thread_context_t *thd = (thread_context_t *)args;
     uint8_t msg = 0;
+    uint32_t log_time = 0;
+    thread_context_t *thd = (thread_context_t *)args;
     sensor_wrapper_data_t sensor_data = {0};
     sensor_manager_context_t *obj = thiz;
     CREATE_MSG_TYPE_QUEUE(&thd->msg_id, INPUT_DISPATCH_SENSOR_EVT_MESQ_NUM, 1);
@@ -151,13 +152,16 @@ static void sensor_manager_internal_dispatch_thread(const void *args)
         if (obj->hook && obj->hook->on_post_init_route) {
             obj->hook->sensor_thread_route(obj, &sensor_data);
         }
+        log_time++;
+        if (log_time % 100 == 0) {
+            LOG_SENSOR("sensor polling: %d", log_time);
+        }
     }
 }
 
 static int on_post_sensor_init(void *ptr)
 {
     sensor_manager_context_t *ctx = ptr;
-
     /// 注册广播监听.
     ctx->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.bcd->context = ctx;

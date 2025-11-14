@@ -17,7 +17,7 @@ extern "C" {
 #include "thread_api.h" // IWYU pragma: keep
 #include "handler_post.h" // IWYU pragma: keep
 #include "hang_detect.h" // IWYU pragma: keep
-#include "app_algo.h" // IWYU pragma: keep
+#include "root_algo.h" // IWYU pragma: keep
 
 #include "broadcast_manager_api.h" // IWYU pragma: keep
 #include "peripheral_bus_api.h" // IWYU pragma: keep

@@ -11,7 +11,7 @@ extern "C" {
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 #include "broadcast_manager_api.h"
-#include "app_algo.h" // IWYU pragma: keep
+#include "root_algo.h" // IWYU pragma: keep
 
 struct breast_pump_context;
 struct input_dispatcher_context;
@@ -29,18 +29,24 @@ typedef struct algo_manager_context {
 /// private
     struct __algo_private {
         broadcast_obj_t m_bcd;
-        pump_result_info_t algo_breast_pump[ALGO_BREAST_PUMP_DATA_MAX];  
         int algo_inited;
+        uint8_t is_sampling;          /// 是否正在采集
     } priv;
 
 /// public
-    int (*get_version)(void);
-    pump_result_info_t *(*get_breast_pump_info)(int index);
-    struct __algo_fusion_hook {
-        int (*on_sensor_data_cb_route)(struct algo_manager_context *ctx, uint8_t *data, int data_len);
+    int (*get_algo_version)(void);
+    struct __algo_manager_hook {
+        int (*on_post_init_route)(struct algo_manager_context *ctx);
+        int (*on_algo_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
+    #if IS_SUPPORT_ALGO_SAMPLING
+        void (*algo_sampling_start)(struct algo_manager_context *ctx);
+        void (*algo_sampling_stop)(struct algo_manager_context *ctx);
+    #endif
+    #if IS_SUPPORT_DEVICE_IMU
         int (*add_static_calib_cmpl_cb)(void (*cb)(void));
         void (*imu_static_calib_start)(void);
         void (*imu_static_calib_stop)(void);
+    #endif
     } *hook;
 
 } algo_manager_context_t;

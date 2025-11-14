@@ -34,31 +34,26 @@ void framework_extra_hook(void)
     CHECK_IF_VALID(storage_ctx, {
         register_storage_hook(storage_ctx);
     });
-
     /// 注册输入按键钩子.
     key_input_context_t *input_key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     CHECK_IF_VALID(input_key_ctx, {
         register_input_key_hook(input_key_ctx);
     });
-
     /// 注册电机钩子.
     motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     CHECK_IF_VALID(motor_ctx, {
         register_motor_hook(motor_ctx);
     });
-
     /// 注册传感器钩子.
     sensor_manager_context_t *sensor_ctx = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     CHECK_IF_VALID(sensor_ctx, {
         register_sensor_hook(sensor_ctx);
     });
-
     /// 注册泵奶钩子.
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     CHECK_IF_VALID(pump_ctx, {
         register_breast_pump_hook(pump_ctx);
     });
-
     /// 注册电源管理钩子.
     power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     CHECK_IF_VALID(power_ctx, {
@@ -73,6 +68,11 @@ void framework_extra_hook(void)
     ui_manager_context_t *ui_ctx = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     CHECK_IF_VALID(ui_ctx, {
         register_ui_manager_hook(ui_ctx);
+    });
+    /// 注册算法钩子.
+    algo_manager_context_t *algo_ctx = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+    CHECK_IF_VALID(algo_ctx, {
+        register_algo_hook(algo_ctx);
     });
     /// 注册产品测试钩子.
     tests_manager_context_t *product_tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);

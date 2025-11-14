@@ -88,7 +88,7 @@ static int air_pressure_start_conversion(uint8_t index)
 
 static int wait_air_pressure_conversion_completed(uint8_t index)
 {
-    uint8_t reg_val = 0, wait_timeout = 3;
+    uint8_t reg_val = 0, wait_timeout = 10;
     i2c_master_data_t air_pressure = {
         .data = &reg_val,
         .len  = 1,
@@ -123,7 +123,7 @@ static int air_pressure_result_get(uint8_t index, air_pressue_status_t *out_stat
     raw_data = (int32_t)((((uint32_t)reg_data[0]) << 16) | (((uint32_t)reg_data[1]) << 8) | ((uint32_t)reg_data[2]));
     out_status->pressure = PRESSURE_CALC_KPA(PRESSURE_RAW_DATA_CALC(raw_data));
     out_status->temp = TEMP_CALC_CELSIUS(reg_data[3], reg_data[4]);
-
+    out_status->raw_data = raw_data;
     return ret;
 }
 
@@ -173,16 +173,21 @@ int bsp_air_pressure_deinit(void)
 int bsp_read_air_pressure_status(void *args)
 {
     air_pressue_status_t *out_status = (air_pressue_status_t *)args;
+    // uint32_t start_time = get_timestamp();
+    memset(out_status, 0, sizeof(air_pressue_status_t) * AIR_PRESSURE_NUM);
     for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
         if (air_pressure_start_conversion(i) != BSP_OK) {
             continue;
         }
+    }
 
+    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
         if (wait_air_pressure_conversion_completed(i) != BSP_OK) {
             continue;
         }
-
         air_pressure_result_get(i, &out_status[i]);
     }
+    // PRINT_LOG("time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
+    //     get_timestamp_ms(start_time), out_status[0].pressure, out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
     return BSP_OK;
 }

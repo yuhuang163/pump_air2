@@ -124,10 +124,10 @@ static int motor_debug_test_cb(void)
 
 static void sys_dump_wdg_test_cb(void)
 {
-    // window_manager_context_t *wm = NULL;
-    // LOG_PBUS("===> sys dump wdg test!!!!! wm: %p", wm);
-    // msleep(100);
-    // wm->window_scheduling_start();
+    window_manager_context_t *wm = NULL;
+    LOG_PBUS("===> sys dump wdg test!!!!! wm: %p", wm);
+    msleep(100);
+    wm->window_scheduling_start();
     while(1) {
     }
 }
@@ -151,7 +151,7 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
 int run_user_thread_dispatch(void)
 {
 #if IS_SUPPORT_PRESSURE_TEST  
-    //POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 2000, "pressure_test");
+    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 2000, "pressure_test");
 #endif
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     if (wm) {
