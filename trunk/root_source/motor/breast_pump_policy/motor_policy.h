@@ -15,9 +15,7 @@ extern "C" {
 #define PUMP_POLICY_RUN_TIME_INTERVAL            10  /// 策略运行时间间隔，单位ms
 #define IS_SUPPORT_RELATIVE_RUN_TIME             1 /// 支持相对运行时间
 
-/**
- * @brief 马达调试ID
-*/
+/// 马达调试ID
 typedef enum {
     MOTOR_USER_DEBUG_PUMP_ON = 0,
     MOTOR_USER_DEBUG_PUMP_OFF,
@@ -27,9 +25,7 @@ typedef enum {
     MOTOR_USER_DEBUG_ID_MAX,
 } motor_user_debug_id_e;
 
-/**
- * @brief 马达动作类型
-*/
+/// 马达动作类型
 typedef enum {
     MOTOR_ACTION_IDLE = 0,
     MOTOR_ACTION_PUMP_ON,
@@ -38,9 +34,7 @@ typedef enum {
     MOTOR_ACTION_VALVE_OFF,
 } motor_action_type_e;
 
-/**
- * @brief 吸力状态
-*/
+/// 吸力状态
 typedef enum {
     SUCTION_STATUS_IDLE = 0,
     SUCTION_STATUS_GENERATE,    /// 生成
@@ -49,18 +43,14 @@ typedef enum {
     SUCTION_STATUS_SLEEP,       /// 休眠
 } suction_status_e;
 
-/**
- * @brief 吸力模式类型
-*/
+/// 吸力模式类型
 typedef enum {
     SUCTION_MODE_IDLE = 0,
     SUCTION_MODE_SHORT,
     SUCTION_MODE_LONG, 
 } suction_mode_type_e;
 
-/**
- * @brief 吸力速度等级
-*/
+/// 吸力速度等级
 typedef enum {
     SUCTION_SPEED_LOW = 0,
     SUCTION_SPEED_MID,
@@ -68,12 +58,11 @@ typedef enum {
     SUCTION_SPEED_MAX
 } suction_speed_e;
 
-/**
- * @brief 吸力等级
-*/
+/// 吸力等级
+#define SUCTION_DEFAULT_LEVEL_VALUE   6  /// 默认吸力等级，默认6KPA为初始值
 typedef enum {
     SUCTION_LEVEL_0KPA = 0,
-    SUCTION_LEVEL_6KPA ,
+    SUCTION_LEVEL_6KPA,
     SUCTION_LEVEL_7KPA,
     SUCTION_LEVEL_8KPA,
     SUCTION_LEVEL_9KPA,
@@ -110,18 +99,14 @@ typedef enum {
     SUCTION_LEVEL_MAX
 } suction_level_e;
 
-/**
- * @brief 吸奶频次参数
-*/
+/// 吸奶频次参数
 typedef struct {
     // uint16_t sleep_time;  /// 循环间隔
     uint16_t pump_freq;   /// 泵频次 1分/次
     uint16_t hold_time;   /// 吸力保持时间，单位ms
 } pump_freq_parameters_t;
 
-/**
- * @brief 吸力参数，电磁阀动作时间与吸力强度成正比
-*/
+/// 吸力参数，电磁阀动作时间与吸力强度成正比
 typedef struct {
     uint8_t  pump_level;    /// 泵力度
     uint16_t pumping_time;  /// 抽气时间
@@ -133,26 +118,20 @@ typedef struct {
     uint16_t period;      /// 周期时间，单位ms, 由频次计算得出
 } suction_policy_config_t;
 
-/**
- * @brief 吸力策略映射参数，用来生成吸力参数
-*/
+/// 吸力策略映射参数，用来生成吸力参数
 typedef struct {
     uint8_t speed;             /// 吸力生成速度，suction_speed_e
     uint8_t level;             /// 吸力等级 suction_level_e
     uint8_t mode_type;         /// 吸力模式类型
 } suction_strategy_mapping_t;
 
-/**
- * @brief 马达参数类型
-*/
+/// 马达参数类型
 typedef enum {
     MOTOR_PARAM_TABLE = 0,      ///< 查表模式
     MOTOR_PARAM_PASS_THROUGH,   ///< 数据透传模式
 } motor_param_type_e;
 
-/**
- * @brief 马达策略原始参数
-*/
+/// 马达策略原始参数
 typedef struct {
     uint8_t  pump_level;    /// 泵力度
     uint16_t pumping_time;  /// 抽气时间
@@ -161,9 +140,7 @@ typedef struct {
     uint16_t hold_time;     /// 吸力保持时间，单位ms
 } motor_policy_original_para_t;
 
-/**
- * @brief 马达策略核心参数
-*/
+/// 马达策略核心参数
 typedef struct {
     uint8_t type;                  /// 参数类型 motor_param_type_e
     union {
@@ -173,15 +150,16 @@ typedef struct {
     suction_policy_config_t config;
 } motor_policy_core_t;
 
-/**
- * @brief 马达策略运行状态
-*/
+/// 马达策略运行状态
 typedef struct {
-    uint8_t status;               /// 吸力状态 suction_status_e
-    uint8_t action;               /// 动作 motor_action_type_e
     uint8_t n_pressure_flag;      /// 负压标志，负压状态下不允许切换策略
     uint8_t policy_update_req;    /// 策略更新请求
     uint8_t cycles_count;         /// 循环计数
+    uint8_t action;               /// 动作 motor_action_type_e
+    uint8_t status;               /// 吸力状态 suction_status_e
+    uint8_t pump_level;           /// 泵奶力度
+    uint8_t valve_level;          /// 吸乳器电磁阀门力度
+    uint8_t target_pressure;      /// 目标压力
 #if IS_SUPPORT_RELATIVE_RUN_TIME
     uint32_t run_time;            /// 运行时间，单位ms
 #else
@@ -190,34 +168,35 @@ typedef struct {
 #endif
 } motor_policy_state_t;
 
-/**
- * @brief 马达策略信息
-*/
+/// 马达组件状态, 给算法采集用，顺序与motor_policy_state_t保持一致
+typedef struct {
+    uint8_t state;    /// 吸力状态 suction_status_e
+    uint8_t pump_level;       /// 泵奶力度
+    uint8_t valve_level;      /// 吸乳器电磁阀门力度
+    uint8_t target_pressure;  /// 目标压力
+    uint16_t run_time;     /// 运行时间，单位ms
+ } motor_component_state_t;
+
+/// 马达策略信息
 typedef struct {
     motor_policy_original_para_t original;
     suction_policy_config_t config;
     motor_policy_state_t state;
 } motor_policy_info_t;
 
-/**
- * @brief 马达调试参数
-*/
+/// 马达调试参数
 typedef struct {
     uint8_t  duty;    /// 占空比
     uint16_t hold_time;    /// 保持时间
 } motor_debug_para_t;
 
-/**
- * @brief 马达策略类型
-*/
+/// 马达策略类型枚举
 typedef enum {
     MOTOR_TIME_POLICY = 0,
     MOTOR_TIME_SUB_POLICY,
 } motor_policy_type_e;
 
-/**
- * @brief 马达策略配置
-*/
+/// 马达策略配置
 typedef struct {  
     uint8_t policy_type;       /// 策略类型 motor_policy_type_e
     uint16_t duration;         /// 持续时间，单位s
@@ -265,9 +244,7 @@ typedef const motor_policy_manager_t *(*get_policy_obj_func)(void *user_data);
 typedef void (*add_breast_pump_policy_fptr)(list_head_t *head, const char *name, int breast_pump_mode, 
     void *user_data, breast_pump_policy_init_func init_cb, get_policy_obj_func policy_cb);
 
-/* 
-* 每种策略节点容器描述.
-*/
+/// 每种策略节点容器描述.
 typedef struct breast_pump_policy_node {
     char *name;
     void *user_data;

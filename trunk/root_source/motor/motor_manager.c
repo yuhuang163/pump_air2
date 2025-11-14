@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h"
+#include <string.h>
 #include "motor_manager.h" // IWYU pragma: keep
 
 /*
@@ -108,8 +109,8 @@ static int internal_stop_motor(void)
     if (motor_obj->priv.motor_dev && motor_obj->priv.motor_dev->ioctl) {
         ret = DEVICE_IOCTL_ARGS(motor_obj->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
     }
+    memset(motor_obj->priv.runtime.info, 0, sizeof(motor_policy_info_t) * BREAST_PUMP_NUM);
     LOG_MOTOR("ret: %d", ret);
-
     return ret;
 }
  

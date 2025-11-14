@@ -202,21 +202,10 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
     }
 }
 
-static void on_sensor_data_motor_callback(void *user_data, uint8_t *data, int data_len)
-{
-
-}
-
 static int on_post_motor_init_route(struct motor_manager_context *ctx)
 {
     /// 将模式策略参数挂载到列表中s
     breast_pump_policy_init(ctx);
-    /// 注册sensor数据.
-    sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
-    if (sensor) {
-        sensor->add_sensor_evt_lisenser(ctx, AIR_PRESSURE_EVT_POLLING, 1, on_sensor_data_motor_callback);
-    }
-
     return 0;
 }
 

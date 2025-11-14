@@ -35,6 +35,15 @@ int pump_user_policy_update(struct motor_manager_context *thiz, suction_strategy
     uint8_t update_flag = 0;
 
     thiz->priv.pump_ctx->get_breast_pump_setting(&setting);
+    
+    /// 边界检查，确保参数在有效范围内
+    if (setting.speed >= SUCTION_SPEED_MAX) {
+        setting.speed = SUCTION_SPEED_MAX - 1;
+    }
+    if (setting.level[pump_id] >= BREAST_PUMP_LEVEL_MAX) {
+        setting.level[pump_id] = BREAST_PUMP_LEVEL_MAX - 1;
+    }
+    
     if (map->speed != setting.speed) {
         map->speed = setting.speed;
         update_flag = 1;
