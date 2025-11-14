@@ -295,11 +295,14 @@ static void charging_work_policy_handler(void *arg)
         charge_status_poll(&s_charge_status);
         s_charge_status.charge_full = (s_charge_status.status & BAT_FULL_STATUS_POS) > 0 ? true : false;
         if (s_charge_status.vbus < CHARGE_INPUT_VOLTAGE_LIMIT) {
-            plug_out_count++;
-            if (plug_out_count > 2) {
-                s_charge_status.plug_in = false;
-                LOG_PBUS("charge plug out");
-                return;
+            if (s_charge_status.plug_in) {
+                plug_out_count++;
+                if (plug_out_count > 2) {     
+                    s_charge_status.plug_in = false;
+                    LOG_PBUS("charge plug out");
+                }
+            } else {
+                return; /// 插头未插入，直接返回
             }
         } else {
             plug_out_count = 0;

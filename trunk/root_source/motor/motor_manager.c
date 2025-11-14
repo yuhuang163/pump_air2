@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "root_common_api.h"
-#include <string.h>
 #include "motor_manager.h" // IWYU pragma: keep
 
 /*

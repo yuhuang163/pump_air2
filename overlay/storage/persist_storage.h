@@ -10,7 +10,7 @@ extern "C" {
  * Include files
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
-#include "app_algo.h" // IWYU pragma: keep
+#include "root_algo.h" // IWYU pragma: keep
 
 #define ROOT_WRITE_INFO_LEN                         64
 #define ROOT_BREAST_PUMP_TIME_VALID                 30000   /// 30s

@@ -9,6 +9,8 @@ extern "C" {
  * Include files
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
+#include "broadcast_manager_api.h"
+#include "root_message.h"
 #if IS_SUPPORT_DEVICE_IMU
 #include "imu_module.h" // IWYU pragma: keep
 #endif

@@ -126,6 +126,7 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/drivers/motor/chip/motor_pwm \
 	-I$(PROJECT_ROOT)/drivers/uart \
 	-I$(PROJECT_ROOT)/drivers/wifi \
+	-I$(PROJECT_ROOT)/overlay/algo \
 	-I$(PROJECT_ROOT)/overlay/ble/factory_service \
 	-I$(PROJECT_ROOT)/overlay/ble/master_service \
 	-I$(PROJECT_ROOT)/overlay/ble/remot_service \
@@ -331,6 +332,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/motor/chip/motor_pwm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/uart/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/wifi/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/algo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ble/factory_service/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ble/master_service/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ble/remot_service/*.c) \

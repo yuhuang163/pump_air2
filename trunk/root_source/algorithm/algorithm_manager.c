@@ -25,63 +25,16 @@ static algo_manager_context_t *algo_obj = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void on_sensor_data_algo_cb(void *user_data, uint8_t *data, int data_len)
-{
-    algo_manager_context_t *ctx = user_data;
-
-    if (ctx->hook && ctx->hook->on_sensor_data_cb_route) {
-        ctx->hook->on_sensor_data_cb_route(ctx, data, data_len);
-    }
-}
-
 static int algo_version_get(void)
 {
     return 0;
 }
 
-static void  hdr_broadcast_sys_boot_completed(hdr_post_args_t *args)
-{
-    algo_manager_context_t *ctx = algo_obj;
-    sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
-    sensor->add_sensor_evt_lisenser(ctx, IMU_EVT_POLLING, 1, on_sensor_data_algo_cb);
-    // root_algo_init(ctx);
-    ctx->priv.algo_inited = 1;
-    LOG_ALGO("algo_inited ok, get_version: %d", algo_version_get());
-}
-
 static void algo_on_receive_internal(broadcast_mask_id_t id, void *context, int args1, int args2, broadcast_priv_data_t *pdata)
 {
     algo_manager_context_t *ctx = context;
-
-    switch (id.code) {
-        case ID_BROADCAST_SYS_BOOT_COMPLETED:
-            {
-                LOG_ALGO("algo_inited");
-                POST_TASK_HANDLER_DELAYED_ARG0(hdr_broadcast_sys_boot_completed, 0, "algo_fusion");
-            }
-            break;
-        case ID_BROADCAST_PM_STATE_CHANGE: 
-            {
-                int pm_state = args1;
-                if (pm_state == ID_SYS_PM_SUSPEND) {
-                    LOG_ALGO("algo cannot use");
-                } else {
-                    /// 算法初始化完成才能向算法端传数据
-                    if (ctx->priv.algo_inited == 1) {
-                        // root_algo_reset(ctx);
-                    }
-                    LOG_ALGO("algo_inited:ok");
-                }
-            }
-            break;
-        case ID_BROADCAST_BREAST_PUMP_STATE_CHANGE:
-            {
-                LOGW("brush change: %d", args2);
-            }
-            break;
-
-        default:
-            break;
+    if (ctx->hook && ctx->hook->on_algo_receiver_route) {
+        ctx->hook->on_algo_receiver_route(id, context, args1, args2, pdata);
     }
 }
 
@@ -102,31 +55,21 @@ static int on_post_algo_init(void *ptr)
     bdc->name = "algo_fusion";
     bdc->receiver_cb = algo_on_receive_internal;
     register_broadcast_receiver(bdc);
-
+    /// 钩子参数初始化
+    if (ctx->hook && ctx->hook->on_post_init_route) {
+        ctx->hook->on_post_init_route(ctx);
+    }
     return 0;
 }
 
-static pump_result_info_t *get_breast_pump_info(int index)
-{
-    if (index < ALGO_BREAST_PUMP_DATA_MAX) {
-        return &algo_obj->priv.algo_breast_pump[index];
-    }
-    LOGE("error input index: %d", index);
-    return NULL;
-}
- 
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
-
 void *register_module_for_algo_fusion_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, algo_manager_context_t);
-
-    ptr->get_version = algo_version_get;
-    ptr->get_breast_pump_info = get_breast_pump_info;
+    ptr->get_algo_version = algo_version_get;
     ptr->priv.algo_inited = 0;
     algo_obj = ptr;
 

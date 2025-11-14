@@ -42,7 +42,7 @@ extern "C" {
 #define IS_SUPPORT_MODULE_MOTOR                          (1)
 #define IS_SUPPORT_MODULE_BREAST_PUMP                    (1)
 #define IS_SUPPORT_MODULE_TESTS                          (1)
-#define IS_SUPPORT_MODULE_US_ALGO                        (0)
+#define IS_SUPPORT_MODULE_US_ALGO                        (1)
 #define IS_SUPPORT_MODULE_AUDIO                          (0)
 #define IS_SUPPORT_MODULE_AIRPLANE_MODE                  (1)
 #define IS_SUPPORT_MODULE_DATA_BURIAL                    (0)
@@ -64,7 +64,8 @@ extern "C" {
 #define IS_SUPPORT_PRESSURE_TEST                         (1)
 /// 支持爬升策略
 #define IS_SUPPORT_CLIMB_POLICY                          (1)
-
+/// 支持算法采集
+#define IS_SUPPORT_ALGO_SAMPLING                         (1)
 #ifdef __cplusplus
 }
 #endif

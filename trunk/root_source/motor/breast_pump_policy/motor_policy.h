@@ -157,8 +157,8 @@ typedef struct {
     uint8_t cycles_count;         /// 循环计数
     uint8_t action;               /// 动作 motor_action_type_e
     uint8_t status;               /// 吸力状态 suction_status_e
-    uint8_t pump_level;           /// 泵奶力度
-    uint8_t valve_level;          /// 吸乳器电磁阀门力度
+    uint8_t pump_duty;            /// 泵奶占空比
+    uint8_t valve_duty;           /// 电磁阀门占空比
     uint8_t target_pressure;      /// 目标压力
 #if IS_SUPPORT_RELATIVE_RUN_TIME
     uint32_t run_time;            /// 运行时间，单位ms
@@ -171,8 +171,8 @@ typedef struct {
 /// 马达组件状态, 给算法采集用，顺序与motor_policy_state_t保持一致
 typedef struct {
     uint8_t state;    /// 吸力状态 suction_status_e
-    uint8_t pump_level;       /// 泵奶力度
-    uint8_t valve_level;      /// 吸乳器电磁阀门力度
+    uint8_t pump_duty;       /// 泵奶力度
+    uint8_t valve_duty;      /// 吸乳器电磁阀门力度
     uint8_t target_pressure;  /// 目标压力
     uint16_t run_time;     /// 运行时间，单位ms
  } motor_component_state_t;

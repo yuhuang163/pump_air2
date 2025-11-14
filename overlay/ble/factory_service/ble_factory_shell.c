@@ -17,6 +17,7 @@
 #define BLE_SYSTEM_RESET_SHELL_CMD             "#sysRst"
 #define BLE_FORBID_SLEEP_SHELL_CMD             "#forbidSlp"
 #define BLE_IMG_TEST_SHELL_CMD                 "#imgTest"
+#define BLE_ALGO_SAMPLING_DATA_SHELL_CMD       "#algoSmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -28,6 +29,7 @@ static void ble_shell_valve_ctrl(const uint8_t *param, uint16_t len);
 static void ble_shell_system_reset(const uint8_t *param, uint16_t len);
 static void ble_shell_forbid_sleep(const uint8_t *param, uint16_t len);
 static void ble_shell_img_test(const uint8_t *param, uint16_t len);
+static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len);
 static const ble_factory_shell_t shell_list[] = {
     {BLE_PUMP_POLICY_SHELL_CMD,   ble_shell_pump_policy},
     {BLE_PUMP_CTRL_SHELL_CMD,     ble_shell_pump_ctrl},
@@ -35,6 +37,7 @@ static const ble_factory_shell_t shell_list[] = {
     {BLE_SYSTEM_RESET_SHELL_CMD,  ble_shell_system_reset},
     {BLE_FORBID_SLEEP_SHELL_CMD,  ble_shell_forbid_sleep},
     {BLE_IMG_TEST_SHELL_CMD,      ble_shell_img_test},
+    {BLE_ALGO_SAMPLING_DATA_SHELL_CMD, ble_shell_algo_sampling_control},
 };
 
 /*
@@ -153,6 +156,19 @@ static void ble_shell_img_test(const uint8_t *param, uint16_t len)
     int args[] = {LCD_DISPLAY_EVENT_SRV, (uint32_t)tlvs, 6};
     lcd->ioctl(lcd, OP_CODE_PANEL_DATA_SEND, (void *)args);
     u_free(tlvs);
+}
+
+static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len)
+{
+    algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+    int control_type = 0;
+    sscanf((const char *)param, "%d", &control_type);
+    LOG_BLE("shell algo sampling control");
+    if (control_type) {
+        algo->hook->algo_sampling_start(algo);
+    } else {
+        algo->hook->algo_sampling_stop(algo);
+    }
 }
 
 /*
