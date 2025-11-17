@@ -5,6 +5,7 @@
 #include "pmu.h"
 #include "watchdog/watchdog.h"
 #include "norflash_api.h"
+#include "hal_bootmode.h"
 #include "root_common_api.h" // IWYU pragma: keep
 
 /*
@@ -18,6 +19,7 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
+static uint32_t s_bootmode = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -38,6 +40,20 @@ static void platform_wdt_refresh(void)
     watchdog_ping();
 }
 
+static char *platform_get_reboot_reason(uint32_t bootmode)
+{
+    if (bootmode & HAL_SW_BOOTMODE_REBOOT_FROM_CRASH) {
+        return "crash/wdt";
+    } else if (bootmode & HAL_SW_BOOTMODE_ENTER_HIDE_BOOT) {
+        return "hide/ota boot";
+    } else if (bootmode & HAL_SW_BOOTMODE_REBOOT) {
+        return "reboot";
+    }  else if (bootmode == HAL_SW_BOOTMODE_DLD_TRANS_UART) {
+        return "power on/hw reset";
+    } else {
+        return "unknown";
+    }
+}
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -47,7 +63,20 @@ void platform_prepare_init(void)
 {
     u_heap_init();
     os_mutex_module_init();
-    LOGI("platform_prepare_init");
+    s_bootmode = hal_sw_bootmode_get();
+    LOGI("bootmode: %x, reason: %s", s_bootmode, platform_get_reboot_reason(s_bootmode));
+}
+
+bool platform_is_startup_caused_by_reboot(void)
+{
+    if (s_bootmode & HAL_SW_BOOTMODE_REBOOT) {
+        return true;
+    } else if (s_bootmode & HAL_SW_BOOTMODE_REBOOT_FROM_CRASH) {
+        return true;
+    } else if (s_bootmode & HAL_SW_BOOTMODE_ENTER_HIDE_BOOT) {
+        return true;
+    } 
+    return false;
 }
 
 void platform_post_init(void) 
@@ -69,6 +98,7 @@ int platform_get_tid(void)
 void platform_system_reboot(void)
 {
     LOGW("======bes_restart!======");
+    hal_sw_bootmode_set(HAL_SW_BOOTMODE_REBOOT);
     pmu_reboot();
 }
 

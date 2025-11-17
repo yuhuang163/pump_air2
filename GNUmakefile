@@ -547,22 +547,29 @@ firmware:
 		FLASH_SIZE=0x400000 \
 		FREEMAN_OTA_ENABLE=1 \
 		OTA_BIN_COMPRESSED=1 \
+		OTA_CODE_OFFSET=0x66000 \
+		OTA_BOOT_INFO_OFFSET=0x62000 \
+		DEBUG_PORT=1 \
 		all
 
 # Bootloader 构建（默认参数）
 bootloader:
 	@$(MAKE) \
-		T=prod_test/ota_copy \
+		T=ota_boot_v2 \
 		CHIP=best1306p \
 		O=$(PROJECT_ROOT)/project/build/bootloader \
 		BIN_DIR=$(PROJECT_ROOT)/project/bin/bootloader \
-		DEBUG=1 \
-		BES_OTA=1 \
-		FLASH_REMAP=0 \
-		FLASH_SIZE=0x400000 \
-		CHIP_HAS_CP=0 \
-		FREEMAN_OTA_ENABLE=1 \
+		SYS_AS_MAIN=1 \
+		OTA_BOOT_SIZE=0x62000 \
+		OTA_BOOT_INFO_OFFSET=0x62000 \
+		OTA_CODE_OFFSET=0x66000 \
 		OTA_BIN_COMPRESSED=1 \
+		FLASH_SIZE=0x400000 \
+		OTA_BOOT_OFFSET=0 \
+		DEBUG_PORT=1 \
+		TRACE_CPU_IMM_OUTPUT=1 \
+		TRACE_BUF_SIZE=0 \
+		APP_BOOT_GPIO_CONTROL=1 \
 		sdk_only
 
 

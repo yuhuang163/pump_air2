@@ -165,6 +165,8 @@ void msleep(uint32_t time_ms);
 void platform_prepare_init(void);
 /// 后期初始化接口.
 void platform_post_init(void);
+/// 判断是否是重启.
+bool platform_is_startup_caused_by_reboot(void);
 /// 日志初始化接口.
 void platform_log_init(void);
 /// 平台相关轮询信息打印接口.

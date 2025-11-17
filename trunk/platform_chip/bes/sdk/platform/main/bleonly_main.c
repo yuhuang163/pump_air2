@@ -44,6 +44,8 @@
 #define STACK_READY_BT  0x01
 #define STACK_READY_BLE 0x02
 
+static osThreadId main_thread_tid = NULL;
+
 #if defined(BLE_ONLY_LT)
 #ifdef FIRMWARE_REV
 #define SYS_STORE_FW_VER(x) \
@@ -72,8 +74,6 @@ void system_get_info(uint8_t *fw_rev_0, uint8_t *fw_rev_1, uint8_t *fw_rev_2, ui
   SYS_STORE_FW_VER(3);
 }
 #endif
-
-static osThreadId main_thread_tid = NULL;
 
 int system_reset(void)
 {
@@ -156,8 +156,6 @@ void SelectEnterApp(void)
     }
 }
 void boot_loader_pre_init_hook(void) __attribute__((alias("SelectEnterApp")));
-
-static osThreadId main_thread_tid = NULL;
 #endif
 
 int signal_send_to_main_thread(uint32_t signals)
@@ -547,7 +545,6 @@ void app_factorymode_bt_nosignalingtest_handler(void)
     bt_drv_reg_op_key_gen_after_reset(false);
     btdrv_hci_reset();
     btdrv_sleep_config(0);
-    btdrv_delay_for_wakeup();
     btdrv_testmode_start();
     btdrv_feature_default();
     devinfo.btd_addr = bt_get_local_address();
