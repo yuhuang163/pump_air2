@@ -14,7 +14,7 @@ extern "C" {
 #include "persist_storage.h" // IWYU pragma: keep
 
 #define PUMP_WORK_TIME_INC                           (60000)      
-#define SINGLE_PUMP_TIME_MAX                         (600000)   /// 单次泵奶(包含续刷)最多10分钟
+#define SINGLE_PUMP_TIME_MAX                         (600000 * 120)   /// 单次泵奶(包含续刷)最多120分钟
 #define SETTING_PUMP_TIME_MAX                        (3600000)  /// app设置的单次泵奶时间最大值 1小时
 
 typedef enum {

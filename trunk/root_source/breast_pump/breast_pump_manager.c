@@ -46,10 +46,11 @@ static void notify_breast_pump_completed(void)
     }
 
     if (need_save) {
-        // pump_result_info_t *pumping_info = algo->get_breast_pump_info(ALGO_BREAST_PUMP_DATA_PUMPING);
+        pump_result_info_t *pumping_info = breast_pump_obj->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
         // USER_DATA_TO_PRIV_DATA(pumping_info, pdata);
         // SEND_BROADCAST_ARGS4_EXTRA(ID_BROADCAST_SYS_PERSIST_INFO_SAVE, 1, pdata, sizeof(pdata));
-        // LOG_PMP("save success, work valid time: %lu", pumping_info->work_valid_time);
+        // memset(pumping_info, 0, sizeof(pump_result_info_t));
+        LOG_PMP("save success, work valid time: %lu", pumping_info->work_valid_time);
     }
 }
 
@@ -364,6 +365,13 @@ static void on_breast_pump_broadcast_receiver(broadcast_mask_id_t id, void *cont
     
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
+            if (arg1 == ID_SYS_PM_SUSPEND) {
+                LOG_PMP("PM_SUSPEND, reset breast pump result");
+                pump_result_info_t *pumping_info = breast_pump_obj->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
+                if (pumping_info) {
+                    memset(pumping_info, 0, sizeof(pump_result_info_t));
+                }
+            }
             break;
         default:
             break;
