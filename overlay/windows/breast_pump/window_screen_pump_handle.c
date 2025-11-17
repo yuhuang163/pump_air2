@@ -304,6 +304,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
             proc->user_pause = 1;
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             stop_pump_ui_animation(proc); 
+            unregister_broadcast_receiver(&proc->receiver);  // 注销广播接收器，防止use-after-free
             REMOVE_ALL_HANDER_TASK();
             remove_breast_pump_result_cb(wm->priv.pump);
             EXCEPTION_CHECK_INT(wm->priv.key);

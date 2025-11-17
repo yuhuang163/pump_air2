@@ -58,7 +58,7 @@ static void ble_shell_pump_ctrl(const uint8_t *param, uint16_t len)
     LOG_BLE("shell pump ctrl duty %d, hold_time %d", duty, hold_time);
     para.duty = duty;
     para.hold_time = hold_time;
-    motor->hook->motor_debug_with_user_para(motor, para.duty == 0 ? MOTOR_USER_DEBUG_PUMP_ON : MOTOR_USER_DEBUG_PUMP_OFF, &para);
+    motor->hook->motor_debug_with_user_para(motor, para.duty == 0 ? MOTOR_USER_DEBUG_PUMP_OFF : MOTOR_USER_DEBUG_PUMP_ON, &para);
 }
 
 static void ble_shell_valve_ctrl(const uint8_t *param, uint16_t len)
@@ -70,7 +70,7 @@ static void ble_shell_valve_ctrl(const uint8_t *param, uint16_t len)
     LOG_BLE("shell valve ctrl duty %d, hold_time %d", duty, hold_time);
     para.duty = duty;
     para.hold_time = hold_time;
-    motor->hook->motor_debug_with_user_para(motor, para.duty == 0 ? MOTOR_USER_DEBUG_VALVE_ON : MOTOR_USER_DEBUG_VALVE_OFF, &para);
+    motor->hook->motor_debug_with_user_para(motor, para.duty == 0 ? MOTOR_USER_DEBUG_VALVE_OFF : MOTOR_USER_DEBUG_VALVE_ON, &para);
 }
 
 static void ble_shell_pump_policy(const uint8_t *param, uint16_t len)
