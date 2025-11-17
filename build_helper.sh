@@ -91,7 +91,7 @@ copy_all_artifacts() {
 	ensure_share_dir
 	local any=0
 	( FORCED_TARGET_NAME="ble_only_lt" FORCED_OUTPUT_DIR="$PROJECT_DIR/project/bin/firmware" copy_artifacts ) && any=1 || true
-	( FORCED_TARGET_NAME="ota_copy" FORCED_OUTPUT_DIR="$PROJECT_DIR/project/bin/bootloader" copy_artifacts ) && any=1 || true
+	( FORCED_TARGET_NAME="ota_boot_v2" FORCED_OUTPUT_DIR="$PROJECT_DIR/project/bin/bootloader" copy_artifacts ) && any=1 || true
 	# 同时尝试拷贝 OTA 产物
 	if copy_ota_artifact; then
 		any=1
@@ -127,8 +127,8 @@ do_clean_firmware() {
 
 do_clean_bootloader() {
 	local t0=$(date +%s)
-	echo "开始清理 Bootloader(prod_test/ota_copy)..."
-	make -C "$PROJECT_DIR" -j16 T=prod_test/ota_copy \
+	echo "开始清理 Bootloader(ota_boot_v2)..."
+	make -C "$PROJECT_DIR" -j16 T=ota_boot_v2 \
 		O="$PROJECT_DIR/project/build/bootloader" \
 		BIN_DIR="$PROJECT_DIR/project/bin/bootloader" \
 		allclean
@@ -163,10 +163,10 @@ do_build_firmware() {
 
 do_build_bootloader() {
 	local t0=$(date +%s)
-	echo "开始编译 Bootloader(prod_test/ota_copy)..."
+	echo "开始编译 Bootloader(ota_boot_v2)..."
 	make -C "$PROJECT_DIR" -j16 bootloader
-	# 记录本次构建的产物目录与产物前缀（basename: ota_copy）
-	FORCED_TARGET_NAME="ota_copy"
+	# 记录本次构建的产物目录与产物前缀（basename: ota_boot_v2）
+	FORCED_TARGET_NAME="ota_boot_v2"
 	FORCED_OUTPUT_DIR="$PROJECT_DIR/project/bin/bootloader"
 	echo "Bootloader 编译完成，用时: $(duration_since "$t0")"
 }
@@ -264,7 +264,7 @@ do_rename_and_archive() {
 
 	# 原始产物路径
 	local app_in="$PROJECT_DIR/project/bin/firmware/ble_only_lt.bin"
-	local boot_in="$PROJECT_DIR/project/bin/bootloader/ota_copy.bin"
+	local boot_in="$PROJECT_DIR/project/bin/bootloader/ota_boot_v2.bin"
 	local ota_in="$PROJECT_DIR/project/bin/firmware/ble_only_lt_ota.bin"
 
 	# 目标文件名（文件用点分 01.01；目录用下划线 01_01）

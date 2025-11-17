@@ -69,7 +69,14 @@ void platform_prepare_init(void)
 
 bool platform_is_startup_caused_by_reboot(void)
 {
-    return (s_bootmode & HAL_SW_BOOTMODE_REBOOT) ? true : false;
+    if (s_bootmode & HAL_SW_BOOTMODE_REBOOT) {
+        return true;
+    } else if (s_bootmode & HAL_SW_BOOTMODE_REBOOT_FROM_CRASH) {
+        return true;
+    } else if (s_bootmode & HAL_SW_BOOTMODE_ENTER_HIDE_BOOT) {
+        return true;
+    } 
+    return false;
 }
 
 void platform_post_init(void) 
