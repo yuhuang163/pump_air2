@@ -100,8 +100,10 @@ typedef struct {
     int16_t connect_id;
 } ble_event_connect_t;
 
-/// 描述ble发送数据结构.
+/// 描述工厂ble接收回调.
 typedef uint16_t (*factory_ble_recv_data_cb)(void *ctx, uint8_t *p_data, uint16_t ulLen);
+/// 描述master ble接收回调.
+typedef uint16_t (*master_ble_recv_data_cb)(void *ctx, uint8_t *p_data, uint16_t ulLen);
 
 /// 描述ble发送数据结构.
 typedef uint16_t (*ble_send_data)(uint8_t *p_data, uint16_t ulLen);
@@ -136,7 +138,8 @@ typedef struct ble_manager_context {
         uint8_t fac_enter_sleep;
         uint16_t connect_idx;
 
-        factory_ble_recv_data_cb cb;
+        factory_ble_recv_data_cb factory_cb;
+        master_ble_recv_data_cb master_cb;
     } priv;
 /// public
     int (*get_mac_addr)(uint8_t *addr);
@@ -152,6 +155,7 @@ typedef struct ble_manager_context {
     int (*get_adv_state)(void);
     int (*set_adv_state)(int state);
     void (*set_factory_ble_register_cb)(factory_ble_recv_data_cb cb);
+    void (*set_master_ble_register_cb)(master_ble_recv_data_cb cb);
     void (*on_connect_status_change)(struct ble_manager_context *ctx, int new_status, int popup);
     int (*dispatch_ble_event_wrapper)(struct ble_manager_context *ctx, uint8_t _msg_id, uint8_t *_data, int _data_len);
     /// 钩子函数指针.
