@@ -121,18 +121,18 @@ void product_tests_send_data_via_ble_uart(uint8_t *data, uint16_t data_len)
 
     /* 参数验证 */
     if (!data || data_len == 0) {
-        LOG_WM("invalid data or length");
+        LOGI("invalid data or length");
         return;
     }
 
     if (!thiz) {
-        LOG_WM("protocol manager context is NULL");
+        LOGI("protocol manager context is NULL");
         return;
     }
 
     /* 长度限制 */
     if (data_len > MAX_SEND_LEN) {
-        LOG_WM("data_len(%d) > MAX_SEND_LEN(%d), truncate", data_len, MAX_SEND_LEN);
+        LOGI("data_len(%d) > MAX_SEND_LEN(%d), truncate", data_len, MAX_SEND_LEN);
         data_len = MAX_SEND_LEN;
     }
 
@@ -143,12 +143,12 @@ void product_tests_send_data_via_ble_uart(uint8_t *data, uint16_t data_len)
             int ret = thiz->priv.ble_ctx->dispatch_ble_event_wrapper(
                 thiz->priv.ble_ctx, BLE_MSG_FAC_SEND_DATA, data, data_len);
             if (ret < 0) {
-                LOG_WM("send via BLE failed, ret=%d", ret);
+                LOGI("send via BLE failed, ret=%d", ret);
             } else {
-                LOG_WM("send data via BLE[%d]", data_len);
+                LOGI("send data via BLE[%d]", data_len);
             }
         } else {
-            LOG_WM("ble dispatch wrapper missing");
+            LOGI("ble dispatch wrapper missing");
         }
     }
 
@@ -158,12 +158,12 @@ void product_tests_send_data_via_ble_uart(uint8_t *data, uint16_t data_len)
         if (uart && uart->write) {
             int ret = uart->write(uart, data, data_len);
             if (ret < 0) {
-                LOG_WM("send via UART failed, ret=%d", ret);
+                LOGI("send via UART failed, ret=%d", ret);
             } else {
-                LOG_WM("send data via UART[%d bytes sent]", ret);
+                LOGI("send data via UART[%d bytes sent]", ret);
             }
         } else {
-            LOG_WM("uart device or write callback missing");
+            LOGI("uart device or write callback missing");
         }
     }
 }

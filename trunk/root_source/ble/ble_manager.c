@@ -210,7 +210,13 @@ static int ble_adv_state_set(int state)
 static void set_factory_ble_register_cb(factory_ble_recv_data_cb cb)
 {
     EXCEPTION_CHECK_VOID(cb);
-    ble_obj->priv.cb = cb;
+    ble_obj->priv.factory_cb = cb;
+}
+
+static void set_master_ble_register_cb(master_ble_recv_data_cb cb)
+{
+    EXCEPTION_CHECK_VOID(cb);
+    ble_obj->priv.master_cb = cb;
 }
 
 static void on_connect_status_change(ble_manager_context_t *ctx, int new_status, int forbid_popup)
@@ -396,6 +402,7 @@ void *register_module_for_ble_manager_new(list_head_t *list_head)
     ptr->on_connect_status_change = on_connect_status_change;
     ptr->dispatch_ble_event_wrapper = dispatch_ble_event_wrapper;
     ptr->set_factory_ble_register_cb = set_factory_ble_register_cb;
+    ptr->set_master_ble_register_cb = set_master_ble_register_cb;
     ble_obj = ptr;
     return ADD_MODULE("ble_module", ID_MODULE_BLE, 0, on_post_init, 
         ptr, list_head, sizeof(ble_manager_context_t));

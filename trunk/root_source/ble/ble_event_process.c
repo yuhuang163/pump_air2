@@ -228,7 +228,14 @@ static void ble_event_notify_app_settings(void *context, void *data, int data_le
 
 static void ble_event_master_send_data(void *context, void *data, int data_len)
 {
-
+    EXCEPTION_CHECK_VOID(context);
+    ble_service_send_data_t send_data = {
+        .srv_id = BLE_SRV_ID_MASTER,
+        .bind_state = BLE_BIND_STATE_COMPLETE,
+        .p_data = data,
+    };
+    ble_manager_context_t *pble = context;
+    pble->priv.ble_dev->write(pble->priv.ble_dev, &send_data, data_len);
 }
 
 static void ble_event_master_recive_data(void *context, void *data, int data_len)
@@ -241,6 +248,9 @@ static void ble_event_master_recive_data(void *context, void *data, int data_len
         .data_type = BLE_SRV_DATA_TYPE_RAW,
     };
     ble_master_srv_recv_data(pble, &srv_data);
+    CHECK_IF_VALID(pble->priv.master_cb, {
+        pble->priv.master_cb(pble, data, data_len);
+    });
 }
 
 static void ble_event_fac_send_data(void *context, void *data, int data_len)
@@ -265,8 +275,8 @@ static void ble_event_fac_recive_data(void *context, void *data, int data_len)
         .data_type = BLE_SRV_DATA_TYPE_RAW,
     };
     ble_factory_srv_recv_data(pble, &srv_data);
-    CHECK_IF_VALID(pble->priv.cb, {
-        pble->priv.cb(pble, data, data_len);
+    CHECK_IF_VALID(pble->priv.factory_cb, {
+        pble->priv.factory_cb(pble, data, data_len);
     });
 }
 
