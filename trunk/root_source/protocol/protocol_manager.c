@@ -85,6 +85,9 @@ static int on_post_protocol_manager_init(void *self)
     ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     ctx->priv.bcd->id.code |= ID_BROADCAST_UPDATE_BATTERY_INFO;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_BLE_CONNECT_STATE_CHANGE;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.bcd->receiver_cb = on_protocol_manager_receiver;
     register_broadcast_receiver(ctx->priv.bcd);
 

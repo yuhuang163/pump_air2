@@ -59,7 +59,7 @@ static uint16_t product_tests_ble_recv_data_cb(void *ctx, uint8_t *p_data, uint1
     EXCEPTION_CHECK_INT(p_data);
     if (!p_data || ulLen== 0) {
         LOGE("recv data is NULL or size is 0");
-        return -1;
+        return 0;
     }
     LOGI("ble_factory_recv_data[%d]", ulLen);
     LOG_HEX("recv_data hex", p_data, ulLen);
