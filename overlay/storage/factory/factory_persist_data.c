@@ -207,11 +207,42 @@ int read_factory_flag_info_from_flash(store_func_args_t args)
 
 int write_factory_dev_info_to_flash(store_func_args_t args)
 {
+    int ret = 0;
+    EXCEPTION_CHECK_INT(args.ctx);
+    factory_dev_info_t *device_info = (factory_dev_info_t *)args.val;
+    EXCEPTION_CHECK_INT(device_info);
+    factory_dev_info_storage_t *store_flag = u_malloz(sizeof(factory_dev_info_storage_t));
+    EXCEPTION_CHECK_INT(store_flag);
+    store_flag->magic = STORAGE_FAC_DEVINFO_MAGIC_NUM;
+    memcpy(&store_flag->dev_info, device_info, sizeof(factory_dev_info_t));
+    store_flag->crc = CRC16(&store_flag->dev_info, sizeof(factory_dev_info_t));
+    ret = user_database_put(args.ctx, STORE_ID_FACTORY_DEV_INFO, (uint8_t *)store_flag,
+        sizeof(factory_dev_info_storage_t));
+    if (ret != 0) {
+        LOGE("write factory device_info failure! ret: %d", ret);
+    }
+    u_free(store_flag);
     return 0; 
 }
 
 int read_factory_dev_info_from_flash(store_func_args_t args)
 {
+    int ret = 0;
+    EXCEPTION_CHECK_INT(args.ctx);
+    factory_dev_info_t *device_info = (factory_dev_info_t *)args.val;
+    EXCEPTION_CHECK_INT(device_info);
+    factory_dev_info_storage_t *store_flag = u_malloz(sizeof(factory_dev_info_storage_t));
+    EXCEPTION_CHECK_INT(store_flag);
+    ret = user_database_get(args.ctx, STORE_ID_FACTORY_DEV_INFO, (uint8_t *)store_flag,
+        sizeof(factory_dev_info_storage_t));
+    uint16_t crc = CRC16(&store_flag->dev_info, sizeof(factory_dev_info_t));
+    if (ret == 0 && store_flag->magic == STORAGE_FAC_DEVINFO_MAGIC_NUM && store_flag->crc == crc) {
+        memcpy(device_info, &store_flag->dev_info, sizeof(factory_dev_info_t));
+    } else {
+        memset(device_info, 0, sizeof(factory_dev_info_t));
+        LOGE("read factory device_info failure! ret: %d, magic: %d, crc: %d, expect_crc: %d", ret, store_flag->magic, store_flag->crc, crc);
+    }
+    u_free(store_flag);
     return 0;
 }
 

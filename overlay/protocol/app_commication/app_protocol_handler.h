@@ -60,10 +60,28 @@ typedef struct {
     uint8_t travel_lock;     // Travel lock status (0=exit, 1=enter)
 } AppOldCommDeviceStatus;
 
+typedef struct app_old_protocol_handler_context {
+    os_timer_id poll_timer;
+
+} app_old_protocol_handler_context_t;
 
 void app_old_comm_handle_request_cmd(AppOldCommCmdId cid, uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_response_cmd(AppOldCommCmdType ct, AppOldCommCmdId cid, uint8_t cal, uint8_t *cab);
 void app_old_comm_variable_init(void);
+void app_old_protocol_data_cryption(uint8_t key, uint8_t *dat, uint8_t len);
+void rc4(unsigned char *key, unsigned int keyLength, unsigned char *data, unsigned int dataLength);
+AppOldCommDeviceInfo* app_old_comm_dev_info_get(void);
+AppOldCommDeviceStatus* app_old_comm_dev_status_get(void);
+void app_old_protocol_ctx_init(void);
+
+//auth
+void app_old_comm_handle_get_triple_req(void);
+void app_old_comm_handle_set_productid_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_set_deviceid_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_set_encryption_key_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_set_sn_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_get_sn_req(void);
+
 #ifdef __cplusplus
 }
 #endif

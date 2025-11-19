@@ -32,6 +32,7 @@ const static put_store_process_handle_t put_store_process_list[] = {
     {STORE_ID_SYS_UTC_TIMESTAMP, write_utc_timestamp_to_flash},
     {STORE_ID_SYS_STATE_INFO, write_sys_state_info_to_flash},    
     {STORE_ID_USER_BIND_INFO, write_user_bind_info_to_flash},
+    {STORE_ID_FACTORY_DEV_INFO, write_factory_dev_info_to_flash},
 };
 
 const static get_store_process_handle_t get_store_process_list[] = {
