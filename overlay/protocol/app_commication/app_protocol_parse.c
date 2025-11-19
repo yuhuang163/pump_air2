@@ -34,19 +34,6 @@ static uint8_t app_old_comm_frame_buf[APP_OLD_COMM_MAX_PACKET_LEN];
 // Function prototype declarations
 static AppOldCommParseResult app_old_comm_protocol_parse(uint8_t *frame_buf, uint16_t frame_len);
 
-// Get command type string for logging
-static const char* app_old_comm_get_cmd_type_str(AppOldCommCmdType ct)
-{
-    switch (ct) {
-        case APP_OLD_COMM_CT_REQ: return "REQ";
-        case APP_OLD_COMM_CT_ACK: return "ACK";
-        case APP_OLD_COMM_CT_NACK: return "NACK";
-        case APP_OLD_COMM_CT_NOTIFY: return "NOTIFY";
-        case APP_OLD_COMM_CT_DEVICE: return "DEVICE";
-        default: return "UNKNOWN";
-    }
-}
-
 // Get parse result string for logging
 static const char* app_old_comm_get_parse_result_str(AppOldCommParseResult result)
 {
@@ -122,18 +109,6 @@ static uint8_t app_old_comm_ring_queue_peek(AppOldCommRingQueue *queue, uint16_t
     if (offset >= queue->len) return 0;
     uint16_t pos = (queue->head + offset) % APP_OLD_COMM_RX_QUEUE_SIZE;
     return queue->buffer[pos];
-}
-
-// Checksum calculation (sum bytes and invert)
-static uint8_t app_old_comm_calc_checksum(uint8_t *data, uint16_t len)
-{
-    uint32_t sum = 0;
-    for (uint16_t i = 0; i < len; i++) {
-        sum += data[i];
-    }
-    uint8_t checksum = ~((uint8_t)sum);
-    LOG_PROTOCOL(" Calculated checksum: 0x%02X (for %d bytes)\n", checksum, len);
-    return checksum;
 }
 
 // Frame timeout detection
@@ -312,6 +287,16 @@ static AppOldCommParseResult app_old_comm_protocol_parse(uint8_t *frame_buf, uin
     uint8_t cal = frame_buf[4];
     uint8_t *cab = frame_buf + 5;
 
+#if BLE_PAYLOAD_CRYPTION
+    // 对除了传输加密key和测试以外的所有指令数据进行加密
+    AppOldCommDeviceInfo* comm_dev_info = app_old_comm_dev_info_get();
+    if (comm_dev_info->encrypt_status == 1) {
+        if ((cid != APP_OLD_COMM_CID_GET_ENCRYPT) && (cid != APP_OLD_COMM_CID_GET_DEV_INFO)) {
+            app_old_protocol_data_cryption(comm_dev_info->encrypt_key, frame_buf+5, cal); //解密密ble数据
+        }
+    }
+    LOG_HEX("app_recv_data cryption hex", frame_buf, frame_len);
+#endif
     LOG_PROTOCOL(" Parsed frame - Type: %s (0x%02X), Command: %s (0x%02X), Data len: %d\n",
            app_old_comm_get_cmd_type_str(ct), ct,
            app_old_comm_get_cmd_id_str(cid), cid,
@@ -341,6 +326,7 @@ static void app_old_comm_init(void)
 {
     app_old_comm_ring_queue_init(&app_old_comm_rx_queue);
     app_old_comm_variable_init();
+    app_old_protocol_ctx_init();
 }
 
 static uint16_t app_commication_ble_data_recv_cb(void *ctx, uint8_t *p_data, uint16_t ulLen)
@@ -366,120 +352,7 @@ static uint16_t app_commication_ble_data_recv_cb(void *ctx, uint8_t *p_data, uin
     return 1;
 }
 
-/*
-* GLOBAL FUNCTION DEFINITIONS
-*****************************************************************************************
-*/
-
-// Get command ID string for logging
-const char* app_old_comm_get_cmd_id_str(AppOldCommCmdId cid)
-{
-    switch (cid) {
-        case APP_OLD_COMM_CID_HEARTBEAT: return "HEARTBEAT";
-        case APP_OLD_COMM_CID_GET_DEV_INFO: return "GET_DEV_INFO";
-        case APP_OLD_COMM_CID_GET_SN: return "GET_SN";
-        case APP_OLD_COMM_CID_SET_RTC: return "SET_RTC";
-        case APP_OLD_COMM_CID_SYS_CTRL: return "SYS_CTRL";
-        case APP_OLD_COMM_CID_GET_ENCRYPT: return "GET_ENCRYPT";
-        case APP_OLD_COMM_CID_GET_STATUS: return "GET_STATUS";
-        case APP_OLD_COMM_CID_CTRL_DEV: return "CTRL_DEV";
-        case APP_OLD_COMM_CID_SET_BIND: return "SET_BIND";
-        case APP_OLD_COMM_CID_SET_HEAT: return "SET_HEAT";
-        case APP_OLD_COMM_CID_SET_TRAVEL_LOCK: return "SET_TRAVEL_LOCK";
-        case APP_OLD_COMM_CID_NOTIFY_STATUS: return "NOTIFY_STATUS";
-        case APP_OLD_COMM_CID_NOTIFY_BIND: return "NOTIFY_BIND";
-        case APP_OLD_COMM_CID_NOTIFY_DISCON: return "NOTIFY_DISCON";
-        default: return "UNKNOWN";
-    }
-}
-
-void app_old_comm_send_ack(AppOldCommCmdId cid, uint8_t data_len, uint8_t *data)
-{
-    uint8_t send_buf[APP_OLD_COMM_MAX_PACKET_LEN] = {0};
-    uint16_t len = 0;
-
-    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 8) & 0xFF;
-    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 0) & 0xFF;
-    send_buf[len++] = APP_OLD_COMM_CT_ACK;
-    send_buf[len++] = (uint8_t)cid;
-    send_buf[len++] = data_len;
-    if (data_len > 0 && data != NULL) {
-        memcpy(send_buf + len, data, data_len);
-        len += data_len;
-    }
-    send_buf[len++] = app_old_comm_calc_checksum(send_buf, len);
-
-    LOG_PROTOCOL(" Sending ACK for %s (len: %d)\n", app_old_comm_get_cmd_id_str(cid), len);
-    app_commication_send_data_via_ble(send_buf, len);
-}
-
-void app_old_comm_send_nack(AppOldCommCmdId cid, uint8_t err_code)
-{
-    uint8_t send_buf[8] = {0};
-    uint16_t len = 0;
-
-    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 8) & 0xFF;
-    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 0) & 0xFF;
-    send_buf[len++] = APP_OLD_COMM_CT_NACK;
-    send_buf[len++] = (uint8_t)cid;
-    send_buf[len++] = 0x01;
-    send_buf[len++] = err_code;
-    send_buf[len++] = app_old_comm_calc_checksum(send_buf, len);
-
-    LOG_PROTOCOL(" Sending NACK for %s (error code: 0x%02X, len: %d)\n",
-           app_old_comm_get_cmd_id_str(cid), err_code, len);
-    app_commication_send_data_via_ble(send_buf, len);
-}
-
-void app_old_comm_send_notify(AppOldCommCmdId cid, uint8_t data_len, uint8_t *data)
-{
-    uint8_t send_buf[APP_OLD_COMM_MAX_PACKET_LEN] = {0};
-    uint16_t len = 0;
-
-    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 8) & 0xFF;
-    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 0) & 0xFF;
-    send_buf[len++] = APP_OLD_COMM_CT_NOTIFY;
-    send_buf[len++] = (uint8_t)cid;
-    send_buf[len++] = data_len;
-    if (data_len > 0 && data != NULL) {
-        memcpy(send_buf + len, data, data_len);
-        len += data_len;
-    }
-    send_buf[len++] = app_old_comm_calc_checksum(send_buf, len);
-
-    LOG_PROTOCOL(" Sending NOTIFY for %s (len: %d)\n", app_old_comm_get_cmd_id_str(cid), len);
-    app_commication_send_data_via_ble(send_buf, len);
-}
-
-
-void set_app_commication_ble_register(protocol_manager_context_t *ctx)
-{
-    EXCEPTION_CHECK_VOID(ctx);
-
-    /* 注册 BLE 回调（存在时） */
-    if (ctx->priv.ble_ctx && ctx->priv.ble_ctx->set_master_ble_register_cb) {
-        ctx->priv.ble_ctx->set_master_ble_register_cb(app_commication_ble_data_recv_cb);
-        LOG_PROTOCOL("register app_commication ble cb");
-    } else {
-        LOG_PROTOCOL("ble ctx or register cb not available");
-    }
-
-}
-
-void set_app_commication_ble_unregister(protocol_manager_context_t *ctx)
-{
-    EXCEPTION_CHECK_VOID(ctx);
-
-    if (ctx->priv.ble_ctx && ctx->priv.ble_ctx->set_master_ble_register_cb) {
-        ctx->priv.ble_ctx->set_master_ble_register_cb(NULL); /// 清除工厂模式蓝牙数据接收回调函数.
-        LOG_PROTOCOL("unregister app_commication ble cb");
-    } else {
-        LOG_PROTOCOL("ble ctx or unregister cb not available");
-    }
- 
-}
-
-void app_commication_send_data_via_ble(uint8_t *data, uint16_t data_len)
+static void app_commication_send_data_via_ble(uint8_t *data, uint16_t data_len)
 {
     const uint16_t MAX_SEND_LEN = 128;
 
@@ -518,6 +391,117 @@ void app_commication_send_data_via_ble(uint8_t *data, uint16_t data_len)
 
 }
 
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+
+// Get command ID string for logging
+const char* app_old_comm_get_cmd_id_str(AppOldCommCmdId cid)
+{
+    switch (cid) {
+        case APP_OLD_COMM_CID_HEARTBEAT: return "HEARTBEAT";
+        case APP_OLD_COMM_CID_GET_DEV_INFO: return "GET_DEV_INFO";
+        case APP_OLD_COMM_CID_GET_SN: return "GET_SN";
+        case APP_OLD_COMM_CID_SET_RTC: return "SET_RTC";
+        case APP_OLD_COMM_CID_SYS_CTRL: return "SYS_CTRL";
+        case APP_OLD_COMM_CID_GET_ENCRYPT: return "GET_ENCRYPT";
+        case APP_OLD_COMM_CID_GET_STATUS: return "GET_STATUS";
+        case APP_OLD_COMM_CID_CTRL_DEV: return "CTRL_DEV";
+        case APP_OLD_COMM_CID_SET_BIND: return "SET_BIND";
+        case APP_OLD_COMM_CID_SET_HEAT: return "SET_HEAT";
+        case APP_OLD_COMM_CID_SET_TRAVEL_LOCK: return "SET_TRAVEL_LOCK";
+        case APP_OLD_COMM_CID_NOTIFY_STATUS: return "NOTIFY_STATUS";
+        case APP_OLD_COMM_CID_NOTIFY_BIND: return "NOTIFY_BIND";
+        case APP_OLD_COMM_CID_NOTIFY_DISCON: return "NOTIFY_DISCON";
+        default: return "UNKNOWN";
+    }
+}
+
+// Get command type string for logging
+const char* app_old_comm_get_cmd_type_str(AppOldCommCmdType ct)
+{
+    switch (ct) {
+        case APP_OLD_COMM_CT_REQ: return "REQ";
+        case APP_OLD_COMM_CT_ACK: return "ACK";
+        case APP_OLD_COMM_CT_NACK: return "NACK";
+        case APP_OLD_COMM_CT_NOTIFY: return "NOTIFY";
+        case APP_OLD_COMM_CT_DEVICE: return "DEVICE";
+        default: return "UNKNOWN";
+    }
+}
+
+// Checksum calculation (sum bytes and invert)
+uint8_t app_old_comm_calc_checksum(uint8_t *data, uint16_t len)
+{
+    uint32_t sum = 0;
+    for (uint16_t i = 0; i < len; i++) {
+        sum += data[i];
+    }
+    uint8_t checksum = ~((uint8_t)sum);
+    LOG_PROTOCOL(" Calculated checksum: 0x%02X (for %d bytes)\n", checksum, len);
+    return checksum;
+}
+
+void set_app_commication_ble_register(protocol_manager_context_t *ctx)
+{
+    EXCEPTION_CHECK_VOID(ctx);
+
+    /* 注册 BLE 回调（存在时） */
+    if (ctx->priv.ble_ctx && ctx->priv.ble_ctx->set_master_ble_register_cb) {
+        ctx->priv.ble_ctx->set_master_ble_register_cb(app_commication_ble_data_recv_cb);
+        LOG_PROTOCOL("register app_commication ble cb");
+    } else {
+        LOG_PROTOCOL("ble ctx or register cb not available");
+    }
+
+}
+
+void set_app_commication_ble_unregister(protocol_manager_context_t *ctx)
+{
+    EXCEPTION_CHECK_VOID(ctx);
+
+    if (ctx->priv.ble_ctx && ctx->priv.ble_ctx->set_master_ble_register_cb) {
+        ctx->priv.ble_ctx->set_master_ble_register_cb(NULL); /// 清除工厂模式蓝牙数据接收回调函数.
+        LOG_PROTOCOL("unregister app_commication ble cb");
+    } else {
+        LOG_PROTOCOL("ble ctx or unregister cb not available");
+    }
+ 
+}
+
+void app_old_comm_cmd_send(AppOldCommCmdType cmdtype, AppOldCommCmdId cid, uint8_t data_len, uint8_t *data)
+{
+    uint8_t send_buf[APP_OLD_COMM_MAX_PACKET_LEN] = {0};
+    uint16_t len = 0;
+
+    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 8) & 0xFF;
+    send_buf[len++] = (APP_OLD_COMM_SOP_FCF >> 0) & 0xFF;
+    send_buf[len++] = cmdtype;
+    send_buf[len++] = (uint8_t)cid;
+    send_buf[len++] = data_len;
+    if (data_len > 0 && data != NULL) {
+        memcpy(send_buf + len, data, data_len);
+#if BLE_PAYLOAD_CRYPTION
+        AppOldCommDeviceInfo *app_old_comm_dev_info = app_old_comm_dev_info_get();
+        // 对除了传输加密key和测试以外的所有指令数据进行加密
+        if (app_old_comm_dev_info->encrypt_status == 1) {
+            if ((cid != APP_OLD_COMM_CID_GET_ENCRYPT) && (cid != APP_OLD_COMM_CID_GET_DEV_INFO)) {
+                app_old_protocol_data_cryption(app_old_comm_dev_info->encrypt_key, &send_buf[len], data_len); // 加密ble数据
+            }
+        }
+#endif
+        len += data_len;
+    }
+    send_buf[len++] = app_old_comm_calc_checksum(send_buf, len);
+#if BLE_PAYLOAD_CRYPTION
+    LOG_HEX("app_send_data hex", send_buf, len);
+#endif
+    LOG_PROTOCOL(" Sending cmdtype %s for %s (len: %d)\n", app_old_comm_get_cmd_type_str(cmdtype), app_old_comm_get_cmd_id_str(cid), len);
+    app_commication_send_data_via_ble(send_buf, len);
+}
+
+
 uint8_t app_commication_protocol_parse_route(uint8_t *data, uint16_t len)
 {
     // 这里添加APP协议的解析逻辑
@@ -543,9 +527,20 @@ int on_app_commication_protocol_br_receiver_route(broadcast_mask_id_t id, void *
 
             }
             break;
-        case ID_BROADCAST_BLE_CONNECT_STATE_CHANGE:
+            case ID_BROADCAST_BLE_CONNECT_STATE_CHANGE:
             {
-
+                #if BLE_PAYLOAD_CRYPTION
+                AppOldCommDeviceInfo *comm_dev_info = app_old_comm_dev_info_get();
+                comm_dev_info->encrypt_status = 0; //断开或连接后重置加密状态
+                if (arg1) {
+                    do {
+                        comm_dev_info->encrypt_key = (uint8_t)rand();
+                    } while ((comm_dev_info->encrypt_key == 0) || (comm_dev_info->encrypt_key == 0xFF)); // 不能为0或者0xFF
+                } else {
+                    ;
+                }
+                LOG_PROTOCOL("comm_dev_info->encrypt_key %d", comm_dev_info->encrypt_key);
+                #endif
             }
             break;
         case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
@@ -566,7 +561,6 @@ int on_app_commication_protocol_br_receiver_route(broadcast_mask_id_t id, void *
 /// 初始化工厂协议模块
 void on_perpare_app_commication_protocol_init(protocol_manager_context_t *ctx)
 {
-
     ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     ctx->priv.ble_ctx = ble_ctx;
     LOG_PROTOCOL("ble ctx: %p", ctx->priv.ble_ctx);
@@ -577,5 +571,6 @@ void on_perpare_app_commication_protocol_init(protocol_manager_context_t *ctx)
 void on_post_app_commication_protocol_init(protocol_manager_context_t *ctx)
 {
     set_app_commication_ble_register(ctx);
+    app_old_comm_init();
     thiz = ctx;
 }

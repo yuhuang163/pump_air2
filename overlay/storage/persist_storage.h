@@ -20,8 +20,11 @@ extern "C" {
 #define USER_BIND_AES_KEY_LEN                       16
 
 #define DEVICE_UNIQUE_DID_LEN                       10
+#define DEVICE_PRODUCT_ID_LEN                       6
+#define DEVICE_DEVICE_ID_LEN                        16
+#define DEVICE_ENCTYPTION_KEY_LEN                   16
 #define DEVICE_UNIQUE_CODE_LEN                      16
-#define DEVICE_UNIQUE_SN_LEN                        18
+#define DEVICE_UNIQUE_SN_LEN                        40
 #define DEVICE_FW_VERSION_LEN                       18
 
 typedef enum  { 
@@ -61,12 +64,16 @@ typedef struct {
 } factory_flag_info_t;
 
 typedef struct {
-    uint8_t did[DEVICE_UNIQUE_DID_LEN];
-    uint8_t code[DEVICE_UNIQUE_CODE_LEN];
+    uint8_t product_id[DEVICE_PRODUCT_ID_LEN];
+    uint8_t device_id[DEVICE_DEVICE_ID_LEN];
+    uint8_t enctyption_key[DEVICE_ENCTYPTION_KEY_LEN];
     uint8_t sn[DEVICE_UNIQUE_SN_LEN];
+    uint8_t product_id_len;    // ProductId length
+    uint8_t device_id_len;     // DeviceId length
+    uint8_t enctyption_key_len;// enctyption_key length
+    uint8_t sn_len;            // sn length
     uint8_t body_color;
     uint8_t region_id;   /// 区域ID, 中版，俄版，欧版，美版...
-    uint8_t product_id;  /// 产品ID
 } factory_dev_info_t;
 
 /// 工厂老化标志
