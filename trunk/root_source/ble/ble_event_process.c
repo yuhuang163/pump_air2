@@ -262,6 +262,7 @@ static void ble_event_fac_send_data(void *context, void *data, int data_len)
         .p_data = data,
     };
     ble_manager_context_t *pble = context;
+    // LOG_BLE("fac send data size %d", data_len);
     pble->priv.ble_dev->write(pble->priv.ble_dev, &send_data, data_len);
 }
 

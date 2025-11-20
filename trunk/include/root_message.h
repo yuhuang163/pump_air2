@@ -133,7 +133,7 @@ typedef struct {
 /// ble事件类型
 typedef struct {
     uint8_t msg_id;
-    uint8_t data_len;
+    uint16_t data_len;
     void *ble_data;
 } ble_event_type_t;
 
