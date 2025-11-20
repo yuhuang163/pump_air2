@@ -15,7 +15,7 @@
 #define I2C_MASTER_TIMEOUT_MS(x)                    ((x > 20) ? ((x / 20) * 50) : 50)
 #define I2C_MASTER_COUNT                            3
 #define I2C_MASTER_SPEED                            400000
-#define IS_SUPPORT_I2C_MASTER_TASK                  1 
+#define IS_SUPPORT_I2C_MASTER_TASK                  0 
 #define I2C_MASTER_ID_IS_INVALID(x) \
 do { \
     if ((x >= I2C_MASTER_ID_MAX) || (x < 0)) { \

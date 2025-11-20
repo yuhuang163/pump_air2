@@ -74,6 +74,12 @@ static int wf100d_read_nbyte(uint8_t index, i2c_master_data_t *data)
     return ret;
 }
 
+static int wf100d_read_nbyte_no_retry(uint8_t index, i2c_master_data_t *data)
+{
+    data->dev_address = W100DP_I2C_ADDR;
+    return bsp_i2c_read_byte(index == 0 ? W100DP_I2C_ID1 : W100DP_I2C_ID2, data);
+}
+
 static int air_pressure_start_conversion(uint8_t index)
 {
     uint8_t reg_val = WF100D_SINGLE_CONVERSION;
@@ -88,7 +94,7 @@ static int air_pressure_start_conversion(uint8_t index)
 
 static int wait_air_pressure_conversion_completed(uint8_t index)
 {
-    uint8_t reg_val = 0, wait_timeout = 10;
+    uint8_t reg_val = 0,  wait_timeout = 10;
     i2c_master_data_t air_pressure = {
         .data = &reg_val,
         .len  = 1,
@@ -96,13 +102,12 @@ static int wait_air_pressure_conversion_completed(uint8_t index)
     };
 
     while(wait_timeout --) {
-        wf100d_read_nbyte(index, &air_pressure);
+        wf100d_read_nbyte_no_retry(index, &air_pressure);
         if (reg_val == 1) {
             return BSP_OK;
         }
-        msleep(2);
+        msleep(1);
     }
-
     return BSP_TIMEOUT;
 }
 
@@ -180,7 +185,7 @@ int bsp_read_air_pressure_status(void *args)
             continue;
         }
     }
-
+    msleep(4);
     for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
         if (wait_air_pressure_conversion_completed(i) != BSP_OK) {
             continue;
