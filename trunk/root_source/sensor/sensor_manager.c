@@ -153,7 +153,7 @@ static void sensor_manager_internal_dispatch_thread(const void *args)
             obj->hook->sensor_thread_route(obj, &sensor_data);
         }
         log_time++;
-        if (log_time % 100 == 0) {
+        if (log_time % 500 == 0) {
             LOG_SENSOR("sensor polling: %d", log_time);
         }
     }

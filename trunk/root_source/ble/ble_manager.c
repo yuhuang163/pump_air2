@@ -278,6 +278,7 @@ static int dispatch_ble_event_wrapper(ble_manager_context_t *ctx, uint8_t _msg_i
             msg.union_body.ble_evt_type.data_len = _data_len;
             memcpy(msg.union_body.ble_evt_type.ble_data, _data, _data_len);
         }
+        
         if (MSG_QUEUE_SEND(ctx->priv.ble_work_thd.msg_id, &msg, 0) != 0) {
             LOGE("dispatch ble event fail. msg_id: %d", _msg_id);
             u_free(msg.union_body.ble_evt_type.ble_data);

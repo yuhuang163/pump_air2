@@ -11,6 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
+#define BLE_MTU_SIZE_DEFAULT      31 /// ATT头大小
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -18,6 +19,7 @@
 */
 static rt_device_node_t *node = NULL;
 static ble_event_cb_func s_ble_event_callback = NULL;
+static uint16_t s_ble_mtu_size = BLE_MTU_SIZE_DEFAULT;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -57,7 +59,7 @@ static int ble_dev_write(struct rt_device_node *dev, const void *buf, uint32_t n
     uint8_t bind_state = tmp->bind_state;
     uint8_t *p_data = tmp->p_data;
 
-    LOG_PBUS("write ble data");
+    // LOG_PBUS("write ble data");
     return ble_service_data_send(srv_id, p_data, n_bytes, bind_state);
 }
 
@@ -136,13 +138,16 @@ int ble_custom_event_callback(uintptr_t connhdl, gap_adv_event_t event, gap_adv_
             s_ble_event_callback(BLE_EVENT_CONN_OPENED, &connhdl);
             break;
         case GAP_ADV_EVENT_CONN_CLOSED:
+            s_ble_mtu_size = BLE_MTU_SIZE_DEFAULT;
             s_ble_event_callback(BLE_EVENT_CONN_CLOSED, &connhdl);
             break;
         case GAP_ADV_EVENT_CONN_FAILED:
             s_ble_event_callback(BLE_EVENT_CONN_FAILED, &connhdl);
             break;
         case GAP_ADV_EVENT_CONN_MTU_EXCHANGED:
-            s_ble_event_callback(BLE_EVENT_CONN_MTU_EXCHANGED, NULL);
+            s_ble_mtu_size = param.mtu_exchanged->mtu;
+            LOG_PBUS("ble mtu size: %d", s_ble_mtu_size);
+            s_ble_event_callback(BLE_EVENT_CONN_MTU_EXCHANGED, &s_ble_mtu_size);
             break;
         case GAP_ADV_EVENT_USER_CONFIRM:
             s_ble_event_callback(BLE_EVENT_USER_CONFIRM, NULL);
@@ -160,6 +165,11 @@ int ble_custom_event_callback(uintptr_t connhdl, gap_adv_event_t event, gap_adv_
             break;
     }
     return 0;
+}
+
+uint16_t ble_custom_mtu_size_get(void)
+{
+    return s_ble_mtu_size;
 }
 
 void ble_custom_service_init(void)
