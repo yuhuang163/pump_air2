@@ -205,7 +205,7 @@ static void app_old_comm_handle_set_heat_req(uint8_t cal, uint8_t *cab)
     LOG_PROTOCOL(" Setting heat parameters - Auto: %d, Switch: %d, Gear: %d\n",
            auto_heat, heat_switch, heat_gear);
     // TODO: Execute heating control logic
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_HEAT, 0, NULL);
+    //app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_HEAT, 0, NULL);
 }
 
 static void app_old_comm_handle_set_travel_lock_req(uint8_t cal, uint8_t *cab)
@@ -361,9 +361,9 @@ void app_old_comm_handle_request_cmd(AppOldCommCmdId cid, uint8_t cal, uint8_t *
         case APP_OLD_COMM_CID_SET_BIND:
             app_old_comm_handle_set_bind_req(cal, cab);
             break;
-        case APP_OLD_COMM_CID_SET_HEAT:
-            app_old_comm_handle_set_heat_req(cal, cab);
-            break;
+        //case APP_OLD_COMM_CID_SET_HEAT:
+        //    app_old_comm_handle_set_heat_req(cal, cab);
+        //    break;
         case APP_OLD_COMM_CID_SET_TRAVEL_LOCK:
             app_old_comm_handle_set_travel_lock_req(cal, cab);
             break;
@@ -389,9 +389,7 @@ void app_old_comm_handle_request_cmd(AppOldCommCmdId cid, uint8_t cal, uint8_t *
 // Handle response/report commands (device->APP)
 void app_old_comm_handle_response_cmd(AppOldCommCmdType ct, AppOldCommCmdId cid, uint8_t cal, uint8_t *cab)
 {
-    LOG_PROTOCOL(" Handling %s (data len: %d)\n",
-           app_old_comm_get_cmd_id_str(cid),
-           cal);
+    LOG_PROTOCOL(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
 
     switch (cid) {
         case APP_OLD_COMM_CID_NOTIFY_STATUS:

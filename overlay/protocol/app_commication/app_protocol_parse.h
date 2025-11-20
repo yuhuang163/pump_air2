@@ -51,29 +51,29 @@ typedef enum {
 
     APP_OLD_COMM_CID_GET_STATUS = 0xB0,           // 获取吸奶器状态
     APP_OLD_COMM_CID_GET_BAND = 0xB1,             // 获取吸奶器绑定状态
-    APP_OLD_COMM_CID_SET_PRIVATE_PARAM = 0xB2,    // 设置吸奶参数
-    APP_OLD_COMM_CID_GET_RECORD_NUM = 0xB3,       // 获取使用记录数量
-    APP_OLD_COMM_CID_GET_RECORD_DATA = 0xB4,      // 获取使用记录内容
+    APP_OLD_COMM_CID_SET_PRIVATE_PARAM = 0xB2,    // 设置泵的运行参数
+    //APP_OLD_COMM_CID_GET_RECORD_NUM = 0xB3,       // 获取使用记录数量
+    //APP_OLD_COMM_CID_GET_RECORD_DATA = 0xB4,      // 获取使用记录内容
     APP_OLD_COMM_CID_GET_UD_ID = 0xB5,            // 获取自定义模式ID
-    APP_OLD_COMM_CID_GET_HEAT_STATE = 0xB6,       // 获取加热状态
+    //APP_OLD_COMM_CID_GET_HEAT_STATE = 0xB6,       // 获取加热状态
     APP_OLD_COMM_CID_GET_TASTE_MODE_STATE = 0xB8, // 获取体验模式状态
-    APP_OLD_COMM_CID_GET_MOTOR_STATE = 0xB9,      // 获取振子状态
+    //APP_OLD_COMM_CID_GET_MOTOR_STATE = 0xB9,      // 获取振子状态
     APP_OLD_COMM_CID_GET_BURY_POINT_NUM = 0xBA,   // 获取埋点数量
     APP_OLD_COMM_CID_GET_BURY_POINT_DATA = 0xBB,  // 获取埋点数据
-    APP_OLD_COMM_CID_GET_FLANGE_STATUS = 0xBC,    // 获取法兰状态
+    //APP_OLD_COMM_CID_GET_FLANGE_STATUS = 0xBC,    // 获取法兰状态
 
     APP_OLD_COMM_CID_CTRL_DEV = 0xC0, // 功能控制
     APP_OLD_COMM_CID_SET_BIND = 0xC1, // 设置绑定
-#if (LUTE_PUMP_TYPE == LUTE_PUMP_M8PRO)
-    PUMP_BLE_RGB_SET_CTRL = 0xC2, // 小夜灯灯控制
-#endif
+    //PUMP_BLE_RGB_SET_CTRL = 0xC2, // 小夜灯灯控制
+    APP_OLD_COMM_CID_CTRL_DEV_STATUS = 0xC3, // 设备状态控制
+
     APP_OLD_COMM_CID_USER_DEFINE = 0xC4,     // 自定义模式设置
-    APP_OLD_COMM_CID_PARA_DOWNLOAD = 0xC5,   // 自定义参数下载
-    APP_OLD_COMM_CID_SET_TK_PARA = 0xC6,     // 满奶检测参数设置
-    APP_OLD_COMM_CID_TK_FUN_CTRL = 0xC7,     // 满奶检测功能控制
+    APP_OLD_COMM_CID_PARA_DOWNLOAD = 0xC5,   // 自定义参数下载写入flash
+    //APP_OLD_COMM_CID_SET_TK_PARA = 0xC6,     // 满奶检测参数设置
+    //APP_OLD_COMM_CID_TK_FUN_CTRL = 0xC7,     // 满奶检测功能控制
     APP_OLD_COMM_CID_TASTE_CTRL = 0xC8,      // 体验模式控制
-    APP_OLD_COMM_CID_MOTOR_CTRL = 0xC9,      // 体验振子模式控制
-    APP_OLD_COMM_CID_SET_HEAT = 0xCA,        // 体验加热模式控制
+    //APP_OLD_COMM_CID_MOTOR_CTRL = 0xC9,      // 体验振子模式控制
+    //APP_OLD_COMM_CID_SET_HEAT = 0xCA,        // 体验加热模式控制
     APP_OLD_COMM_CID_SET_TRAVEL_LOCK = 0xCF, // Travel lock control
 
     APP_OLD_COMM_CID_NOTIFY_STATUS = 0xD0,     // 设备主动上报状态变化
@@ -89,17 +89,17 @@ typedef enum {
     APP_OLD_COMM_CID_SET_PRODUCTID = 0xF8,     // 写入产品名称
     APP_OLD_COMM_CID_SET_DEVICEID = 0xF9,      // 写入设备号
     APP_OLD_COMM_CID_SET_ENCRYPTIONKEY = 0XFA, // 写入密钥
-    APP_OLD_COMM_CID_SET_DEVIECESIDE = 0XFB,   // 设置设备左右边
-    APP_OLD_COMM_CID_SYS_CTRL = 0xFC,          // 系统控制
+    //APP_OLD_COMM_CID_SET_DEVIECESIDE = 0XFB,   // 设置设备左右边
+    APP_OLD_COMM_CID_SYS_CTRL = 0xFC,          // 系统控制,设备的开关重启,ota完成，ota复位
     APP_OLD_COMM_CID_GET_ENCRYPT = 0xFD,       // 获取加密信息
-    APP_OLD_COMM_CID_TEST_CTRL = 0xFE,         // 实验参数控制
+    //APP_OLD_COMM_CID_TEST_CTRL = 0xFE,         // 实验参数控制
 
     // 测试命令
-    BLE_CMD_GET_VOLT = 0XE0,          // 获取电池电压
-    BLE_CMD_GET_BAT = 0XE1,           // 获取电池电量
-    BLE_CMD_GET_FLANGER = 0XE2,       // 获取法兰温度
-    BLE_CMD_UD_MODE_SET_HEAT = 0XE7,  // 自定义模式设置加热参数
-    BLE_CMD_UD_MODE_SET_SHAKE = 0XE8, // 自定义模式设置振子参数
+    //BLE_CMD_GET_VOLT = 0XE0,          // 获取电池电压
+    //BLE_CMD_GET_BAT = 0XE1,           // 获取电池电量
+    //BLE_CMD_GET_FLANGER = 0XE2,       // 获取法兰温度
+    //BLE_CMD_UD_MODE_SET_HEAT = 0XE7,  // 自定义模式设置加热参数
+    //BLE_CMD_UD_MODE_SET_SHAKE = 0XE8, // 自定义模式设置振子参数
 
 } AppOldCommCmdId;
 

@@ -409,7 +409,6 @@ const char* app_old_comm_get_cmd_id_str(AppOldCommCmdId cid)
         case APP_OLD_COMM_CID_GET_STATUS: return "GET_STATUS";
         case APP_OLD_COMM_CID_CTRL_DEV: return "CTRL_DEV";
         case APP_OLD_COMM_CID_SET_BIND: return "SET_BIND";
-        case APP_OLD_COMM_CID_SET_HEAT: return "SET_HEAT";
         case APP_OLD_COMM_CID_SET_TRAVEL_LOCK: return "SET_TRAVEL_LOCK";
         case APP_OLD_COMM_CID_NOTIFY_STATUS: return "NOTIFY_STATUS";
         case APP_OLD_COMM_CID_NOTIFY_BIND: return "NOTIFY_BIND";
