@@ -63,6 +63,8 @@ const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
 
     {STORE_ID_BREAST_PUMP_TIME, write_pump_time_to_ram},
     {STORE_ID_PUMP_SETTING_INFO, write_pump_setting_info_to_ram},
+    {STORE_ID_PUMP_CUSTOM_SETTING_INFO, write_pump_custom_setting_info_to_ram},
+    {STORE_ID_PUMP_CUSTOM_STEPS_PARAMETER_INFO, write_pump_custom_steps_parameter_to_ram},
     {STORE_ID_REMIND_PUMP_EXCEPTION, write_pump_exception_remind_to_ram},
     {STORE_ID_REMIND_PUMP_MODE_CHANGE, write_pump_mode_change_remind_to_ram},
     {STORE_ID_REMIND_PUMP_FINISH, write_pump_finish_remind_to_ram},
@@ -90,6 +92,8 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_USER_BIND_INFO, user_is_binded_from_ram},
     {STORE_ID_BREAST_PUMP_TIME, read_pump_time_from_ram},
     {STORE_ID_PUMP_SETTING_INFO, read_pump_setting_info_from_ram},
+    {STORE_ID_PUMP_CUSTOM_SETTING_INFO, read_pump_custom_setting_info_from_ram},
+    {STORE_ID_PUMP_CUSTOM_STEPS_PARAMETER_INFO, read_pump_custom_steps_parameter_from_ram},
     {STORE_ID_PUMP_CONTROL_TYPE, read_pump_control_type_from_ram},
     {STORE_ID_REMIND_PUMP_EXCEPTION, read_pump_exception_remind_from_ram},
     {STORE_ID_REMIND_PUMP_MODE_CHANGE, read_pump_mode_change_remind_from_ram},
@@ -120,6 +124,9 @@ static int init_system_ver_info(storage_manager_context_t *ctx)
 
     info->sw_version = ROOT_FIRMWARE_VERSION;
     info->sw_version_type = ROOT_FIRMWARE_TYPE;
+    info->hw_version = ROOT_HARDWARE_VERSION;
+    info->soc_version = ROOT_SOC_PLAT;
+
     info->dfu_type = 0; 
     strcpy(info->device_name, ROOT_DEVICE_NAME);
     return 0;

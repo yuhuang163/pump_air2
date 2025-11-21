@@ -32,6 +32,12 @@ int del_pump_data_body_from_flash(store_func_args_t args);
 int write_pump_setting_info_to_ram(store_func_args_t args);
 int read_pump_setting_info_from_ram(store_func_args_t args);
 
+int read_pump_custom_setting_info_from_ram(store_func_args_t args);
+int write_pump_custom_setting_info_to_ram(store_func_args_t args);
+
+int write_pump_custom_steps_parameter_to_ram(store_func_args_t args);
+int read_pump_custom_steps_parameter_from_ram(store_func_args_t args);
+
 /// 泵奶时间信息接口
 int write_pump_time_to_ram(store_func_args_t args);
 int read_pump_time_from_ram(store_func_args_t args);

@@ -311,7 +311,6 @@ static AppOldCommParseResult app_old_comm_protocol_parse(uint8_t *frame_buf, uin
         case APP_OLD_COMM_CT_NACK:
         case APP_OLD_COMM_CT_NOTIFY:
         case APP_OLD_COMM_CT_DEVICE:
-            app_old_comm_handle_response_cmd(ct, cid, cal, cab);
             break;
         default:
             LOG_PROTOCOL(" Unknown command type 0x%02X\n", ct);
