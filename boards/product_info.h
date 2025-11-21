@@ -21,10 +21,10 @@ typedef enum {
  * 产品信息
 */
 #ifndef ROOT_PRODUCT_ID
-#define ROOT_PRODUCT_ID                               1
+#define ROOT_PRODUCT_ID                               0X09
 #endif
 
-#if (ROOT_PRODUCT_ID == 1)
+#if (ROOT_PRODUCT_ID == 0x09)
 #define ROOT_FW_NAME                                  "BREAST_PUMP_V3PRO"
 #define ROOT_DEVICE_NAME                              "V3PRO"
 #else
@@ -46,6 +46,19 @@ typedef enum {
 */
 #define ROOT_BLE_PROTOCOL_VERSION                      100
 #define ROOT_OTA_UPGRADE_TYPE                          4
+
+/**
+ * 硬件版本从100-900
+*/
+#define ROOT_HARDWARE_VERSION                          100
+#define ROOT_HW_VERSION_STR                            "100"
+
+
+/**
+ * 芯片平台从10-90
+*/
+#define ROOT_SOC_PLAT                                 10
+#define ROOT_SOC_PLAT_STR                            "10"
 
 /**
  * 正式版本从100-900
