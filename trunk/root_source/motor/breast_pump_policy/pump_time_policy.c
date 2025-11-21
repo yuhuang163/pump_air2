@@ -79,8 +79,13 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
     uint32_t hold_time = get_timestamp_ms(runtime->timed_policy_start_time)  / 1000; 
     if (hold_time >= runtime->timed_policy->duration_seconds) {
         /// 执行下一个时间策略
-        runtime->timed_policy = runtime->timed_policy->next == NULL ? \
-                &runtime->manager->head : runtime->timed_policy->next;
+        if (runtime->timed_policy->next) {
+            runtime->current_timed_policy_index++;
+            runtime->timed_policy = runtime->timed_policy->next;
+        } else {
+            runtime->current_timed_policy_index = 0;
+            runtime->timed_policy = &runtime->manager->head;
+        }
         /// 释放负压
         negative_pressure_release(thiz);
         for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
@@ -109,9 +114,11 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
 
             if (runtime->policy[i].next) {
                 memcpy(&runtime->policy[i], runtime->policy[i].next, sizeof(motor_policy_node_t)); /// 切换到下一个子策略
+                runtime->current_policy_index++;
                 // LOG_MOTOR("dev-%d goto next policy", id);
             } else {
                 memcpy(&runtime->policy[i], &runtime->timed_policy->policy, sizeof(motor_policy_node_t)); /// 切换到第一个子策略 
+                runtime->current_policy_index = 0;
                 // LOG_MOTOR("dev-%d goto first policy", id);
             }
             pump_policy_info_reset(thiz, runtime, i);

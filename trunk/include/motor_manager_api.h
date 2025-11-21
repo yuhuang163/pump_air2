@@ -1,6 +1,7 @@
 #ifndef __MOTOR_MANAGER_API_H__
 #define __MOTOR_MANAGER_API_H__
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,6 +102,8 @@ typedef struct motor_manager_context {
     int (*is_can_play_now)(void);  
     /// 马达任务运行状态.
     bool (*is_on_motor_task_running)(struct motor_manager_context *ctx);
+    /// 获取马达策略索引
+    int (*get_runtime_policy_index)(motor_policy_type_e type);
     /// 外部钩子函数.
     struct __motor_manager_hook {
         int (*on_post_init_route)(struct motor_manager_context *ctx);
