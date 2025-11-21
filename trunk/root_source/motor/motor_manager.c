@@ -210,6 +210,15 @@ static int get_motor_state(void)
     return (int)motor_obj->priv.motor_state;
 }
 
+static int get_runtime_policy_index(uint8_t type)
+{
+    if (type == 0) {
+        return motor_obj->priv.runtime.current_timed_policy_index;
+    } else {
+        return motor_obj->priv.runtime.current_policy_index;
+    }
+}
+
 int motor_is_can_play_now(void)
 {
     if (motor_obj->priv.interrupt_play_reason) {
@@ -238,6 +247,7 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
     ptr->stop_motor = stop_motor;
     ptr->is_on_motor_task_running = is_on_motor_task_running;
     ptr->is_can_play_now = motor_is_can_play_now;
+    ptr->get_runtime_policy_index = get_runtime_policy_index;
     motor_obj = ptr;
     
     return ADD_MODULE("motor", ID_MODULE_MOTOR, 0, on_post_motor_init, 
