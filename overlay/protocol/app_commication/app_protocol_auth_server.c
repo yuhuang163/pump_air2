@@ -130,7 +130,7 @@ void app_old_comm_handle_set_deviceid_req(uint8_t cal, uint8_t *cab)
 	}
 	else
 	{
-		factory_dev_info.device_id_len= cal;
+		factory_dev_info.device_id_len = cal;
 	}
 
 	memset(factory_dev_info.device_id, 0, factory_dev_info.device_id_len);
@@ -156,7 +156,7 @@ void app_old_comm_handle_set_encryption_key_req(uint8_t cal, uint8_t *cab)
 	}
 	else
 	{
-		factory_dev_info.enctyption_key_len= cal;
+		factory_dev_info.enctyption_key_len = cal;
 	}
 
 	memset(factory_dev_info.enctyption_key, 0, factory_dev_info.enctyption_key_len);
@@ -192,11 +192,11 @@ void app_old_comm_handle_set_sn_req(uint8_t cal, uint8_t *cab)
 
 	if (cal >= DEVICE_UNIQUE_SN_LEN)
 	{
-		factory_dev_info.sn_len= DEVICE_UNIQUE_SN_LEN;
+		factory_dev_info.sn_len = DEVICE_UNIQUE_SN_LEN;
 	}
 	else
 	{
-		factory_dev_info.sn_len= cal;
+		factory_dev_info.sn_len = cal;
 	}
 
 	memset(factory_dev_info.sn, 0, factory_dev_info.sn_len);

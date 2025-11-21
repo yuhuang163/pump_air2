@@ -27,6 +27,8 @@ extern "C" {
 #define DEVICE_UNIQUE_SN_LEN                        40
 #define DEVICE_FW_VERSION_LEN                       18
 
+#define ROOT_BREAST_CUSTM_PUMP_STEP_MAX             8
+
 typedef enum  { 
     SYS_DAY_MONDAY = 0,
     SYS_DAY_TUESDAY = 1,
@@ -81,6 +83,28 @@ typedef struct {
     uint8_t complete;
     uint8_t display; 
 } factory_aging_flag_t;   
+
+typedef union
+{
+	uint32_t dat32;
+	uint8_t dat[4];
+} DATA32;
+
+typedef struct
+{
+    // uint8_t work; //0-pause 1-work
+    uint8_t mode;  // 0-short 1-long 2-mix1 3-mix2
+    uint8_t level; // strength level 1-15
+    uint8_t freq;  // frequency level 1-15
+    uint16_t time; // section time long
+} user_define_pump_step_data_s;
+
+typedef struct
+{
+	DATA32 id;	  // user define mode id
+	uint8_t num;  // section number 1-8
+	user_define_pump_step_data_s data[ROOT_BREAST_CUSTM_PUMP_STEP_MAX];
+} user_def_pump_steps_data_t;
 
 /// 泵奶模式
 typedef enum {
@@ -167,6 +191,8 @@ typedef struct
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
     uint8_t control_type;                 /// 泵奶控制类型 breast_pump_control_type_e
     pump_setting_t setting[BREAST_PUMP_MODE_MAX];
+    pump_setting_t custom_setting[ROOT_BREAST_CUSTM_PUMP_STEP_MAX];
+    user_def_pump_steps_data_t custom_steps_parameter;
     uint16_t pump_time[BREAST_PUMP_MODE_MAX];   /// 泵奶时长,单位s
 } sys_pump_info_t;
 
@@ -279,6 +305,7 @@ typedef struct {
     uint16_t ui_res_id;
     uint16_t hw_version;
     uint16_t sw_version;
+    uint16_t soc_version;
     uint16_t sw_version_type;
     uint8_t dfu_type;  /// 0:dfu  1:fast dfu
 } sec_sys_ver_t;

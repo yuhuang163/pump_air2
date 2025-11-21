@@ -306,6 +306,68 @@ int read_pump_finish_remind_from_ram(store_func_args_t args)
     return 0;
 }
 
+int write_pump_custom_setting_info_to_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    pump_setting_t *custom_setting = (pump_setting_t *)args.val;
+    EXCEPTION_CHECK_INT(custom_setting);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+    LOG_STORE("write pump step setting info: %d", args.arg1);
+    uint8_t mode_step = args.arg1;
+    if (mode_step >= ROOT_BREAST_CUSTM_PUMP_STEP_MAX) {
+        LOGE("write pump custom step setting info: %d, out of range", args.arg1);
+        return -1;
+    }
+    memcpy(&pump_info->setting[mode_step], custom_setting, sizeof(pump_setting_t));
+    return 0;
+}
+
+int read_pump_custom_setting_info_from_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+    pump_setting_t *custom_setting = (pump_setting_t *)args.val;
+    EXCEPTION_CHECK_INT(custom_setting);
+    // LOG_STORE("read pump setting info: %d", args.arg1);
+    uint8_t mode_step = args.arg1;
+    if (mode_step >= ROOT_BREAST_CUSTM_PUMP_STEP_MAX) {
+        LOGE("read pump step setting info: %d, out of range ", args.arg1);
+        return -1;
+    }
+    memcpy(custom_setting, &pump_info->setting[mode_step], sizeof(pump_setting_t));
+     LOG_STORE_WRAP("read pump step setting info: %d, speed: %d, level: %d, %d",
+          mode_step, custom_setting->speed, custom_setting->level[0], custom_setting->level[1]);
+    return 0;
+}
+
+int write_pump_custom_steps_parameter_to_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    pump_setting_t *custom_steps_parameter = (pump_setting_t *)args.val;
+    EXCEPTION_CHECK_INT(custom_steps_parameter);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+
+    memcpy(&pump_info->custom_steps_parameter, custom_steps_parameter, sizeof(pump_setting_t));
+    return 0;
+}
+
+int read_pump_custom_steps_parameter_from_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+    user_def_pump_steps_data_t *custom_steps_parameter = (user_def_pump_steps_data_t *)args.val;
+    EXCEPTION_CHECK_INT(custom_steps_parameter);
+
+    // copy from ram
+    memcpy(custom_steps_parameter, &pump_info->custom_steps_parameter, sizeof(user_def_pump_steps_data_t));
+    return 0;
+}
+
+
 int write_pump_setting_info_to_ram(store_func_args_t args)
 {
     struct storage_manager_context *st = args.ctx;
