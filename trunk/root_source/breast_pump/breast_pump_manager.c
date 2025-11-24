@@ -121,19 +121,28 @@ static void reset_breast_pump_result(void)
     LOG_PMP("reset result.");
 }
 
-static void get_breast_pump_setting(pump_setting_t *setting)
+static void get_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
         breast_pump_obj->set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT);
         LOG_PMP("invalid mode, set default mode");
     } 
-    memcpy(setting, &breast_pump_obj->priv.setting, sizeof(pump_setting_t));
+
+    if (step_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        memcpy(setting, breast_pump_obj->priv.setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
+    } else {
+        memcpy(setting, &breast_pump_obj->priv.setting[step_index], sizeof(pump_setting_t));
+    }
 }
 
-static void set_breast_pump_setting(pump_setting_t *setting)
+static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
 {
-    memcpy(&breast_pump_obj->priv.setting, setting, sizeof(pump_setting_t));
+    if (step_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        memcpy(breast_pump_obj->priv.setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
+    } else {
+        memcpy(&breast_pump_obj->priv.setting[step_index], setting, sizeof(pump_setting_t));
+    }
 }
 
 static void set_breast_pump_mode(uint32_t mode)
@@ -147,9 +156,11 @@ static void set_breast_pump_mode(uint32_t mode)
     }
     LOG_PMP("new mode is: %d, name: %s", m_info->mode, breast_pump_obj->get_breast_pump_mode_name(m_info->mode));
     EXCEPTION_CHECK_VOID(st);
-    st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, m_info->mode, 0, &breast_pump_obj->priv.setting);
-    LOG_PMP("get pump setting info: %d, speed: %d, level: %d, %d",
-         m_info->mode, breast_pump_obj->priv.setting.speed, breast_pump_obj->priv.setting.level[0], breast_pump_obj->priv.setting.level[1]);
+    st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, m_info->mode, ROOT_BREAST_PUMP_STEP_MAX, &breast_pump_obj->priv.setting);
+    for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+        LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
+            breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
+    }
     SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_MODE_CHANGE, m_info->mode, 1);
 }
 

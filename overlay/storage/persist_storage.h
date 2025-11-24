@@ -27,7 +27,7 @@ extern "C" {
 #define DEVICE_UNIQUE_SN_LEN                        40
 #define DEVICE_FW_VERSION_LEN                       18
 
-#define ROOT_BREAST_CUSTM_PUMP_STEP_MAX             8
+#define ROOT_BREAST_PUMP_STEP_MAX                   8
 
 typedef enum  { 
     SYS_DAY_MONDAY = 0,
@@ -103,7 +103,7 @@ typedef struct
 {
 	DATA32 id;	  // user define mode id
 	uint8_t num;  // section number 1-8
-	user_define_pump_step_data_s data[ROOT_BREAST_CUSTM_PUMP_STEP_MAX];
+	user_define_pump_step_data_s data[ROOT_BREAST_PUMP_STEP_MAX];
 } user_def_pump_steps_data_t;
 
 /// 泵奶模式
@@ -190,8 +190,13 @@ typedef struct
     uint8_t is_remind_pump_finish;        /// 泵奶完成提醒
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
     uint8_t control_type;                 /// 泵奶控制类型 breast_pump_control_type_e
-    pump_setting_t setting[BREAST_PUMP_MODE_MAX];
-    pump_setting_t custom_setting[ROOT_BREAST_CUSTM_PUMP_STEP_MAX];
+    pump_setting_t stimulation_setting[ROOT_BREAST_PUMP_STEP_MAX];
+    pump_setting_t pump_setting[ROOT_BREAST_PUMP_STEP_MAX];
+    pump_setting_t mix_setting[ROOT_BREAST_PUMP_STEP_MAX];
+    pump_setting_t milk_boost_setting[ROOT_BREAST_PUMP_STEP_MAX];
+    pump_setting_t lactation_start_setting[ROOT_BREAST_PUMP_STEP_MAX];
+    pump_setting_t pp_milk_track_setting[ROOT_BREAST_PUMP_STEP_MAX];
+    pump_setting_t custom_setting[ROOT_BREAST_PUMP_STEP_MAX];
     user_def_pump_steps_data_t custom_steps_parameter;
     uint16_t pump_time[BREAST_PUMP_MODE_MAX];   /// 泵奶时长,单位s
 } sys_pump_info_t;

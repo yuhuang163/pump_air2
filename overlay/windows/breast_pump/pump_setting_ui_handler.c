@@ -248,19 +248,24 @@ int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t
 {
     struct storage_manager_context *st = pump->priv.st;
     EXCEPTION_CHECK_INT(st);
+    EXCEPTION_CHECK_INT(pump->priv.motor);
+    int time_index = pump->priv.motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
 
     if (!BREAST_PUMP_IS_COMMON_MODE(pump_info->mode)) {
         LOG_UI("pump is not common mode, ignore.");
         return 0;
     }
-    pump->get_breast_pump_setting(&proc->setting);
+    pump->get_breast_pump_setting(&proc->setting, time_index);
     if (proc->setting.speed < BREAST_PUMP_SPEED_HIGH) {
         proc->setting.speed++;
     } else {
         proc->setting.speed = BREAST_PUMP_SPEED_LOW;
     }
-    pump->set_breast_pump_setting(&proc->setting);
-    st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, pump_info->mode, 0, &proc->setting);
+    pump->set_breast_pump_setting(&proc->setting, time_index);
+    st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, pump_info->mode, time_index, &proc->setting);
     show_pump_speed_ui(proc);
     LOG_UI("switch pump frequency: %d, mode: %s", proc->setting.speed,
          pump->get_breast_pump_mode_name(pump_info->mode));
@@ -274,7 +279,12 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
     storage_manager_context_t *st = pump->priv.st;
     EXCEPTION_CHECK_INT(st);
     uint32_t ui_type = 0;
-    pump->get_breast_pump_setting(&proc->setting);
+    EXCEPTION_CHECK_INT(pump->priv.motor);
+    int time_index = pump->priv.motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
+    pump->get_breast_pump_setting(&proc->setting, time_index);
     if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
         if (is_left) {
             if (proc->setting.level[0] > 0) {
@@ -311,8 +321,8 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
         }
         ui_type = PUMP_UI_TYPE_BILATERAL_LEVEL;
     }
-    pump->set_breast_pump_setting(&proc->setting);
-    st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, pump_info->mode, 0, &proc->setting);
+    pump->set_breast_pump_setting(&proc->setting, time_index);
+    st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, pump_info->mode, time_index, &proc->setting);
     if (proc->current_ui_type != ui_type) {
         show_pump_level_ui(proc, ui_type);
         proc->ui_progress = 0;

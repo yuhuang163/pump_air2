@@ -210,7 +210,7 @@ static int get_motor_state(void)
     return (int)motor_obj->priv.motor_state;
 }
 
-static int get_runtime_policy_index(uint8_t type)
+static int get_runtime_policy_index(motor_policy_type_e type)
 {
     if (type == 0) {
         return motor_obj->priv.runtime.current_timed_policy_index;
