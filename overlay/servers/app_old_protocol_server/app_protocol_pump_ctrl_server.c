@@ -97,7 +97,7 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct)
     report_data[data_len++] = (app_old_comm_dev_status.custom_total_time >> 8) & 0xFF;
     report_data[data_len++] = app_old_comm_dev_status.travel_lock;*/
 
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_STATUS, data_len, report_data);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_STATUS, data_len, report_data);
 }
 
 //0xb0
@@ -126,7 +126,7 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = app_old_comm_dev_status.travel_lock;*/
 
     LOG_PROTOCOL(" Sending device status ACK (data len: %d)\n", data_len);
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_STATUS, data_len, ack_data);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_STATUS, data_len, ack_data);
 }
 
 //0xc0
@@ -146,7 +146,7 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
            new_status, new_mode, new_gear);
 
     // TODO: Send parameters to pump valve component
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_CTRL_DEV, 0, NULL);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_CTRL_DEV, 0, NULL);
     app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
     app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
 }
@@ -193,5 +193,5 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
 #endif
 
     LOG_PROTOCOL(" Sending device info ACK (data len: %d)\n", data_len);
-   app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_DEV_INFO, data_len, ack_data);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_DEV_INFO, data_len, ack_data);
 }

@@ -21,7 +21,6 @@ app_old_protocol_handler_context_t ctx_app_old_protocol_handler;
 // Module internal global variables
 static AppOldCommDeviceInfo app_old_comm_dev_info;
 static AppOldCommDeviceStatus app_old_comm_dev_status;
-
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -48,7 +47,7 @@ static void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_ri
 static void app_old_comm_handle_heartbeat_req()
 {
     LOG_PROTOCOL(" Sending heartbeat ACK\n");
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_HEARTBEAT, 0, NULL);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_HEARTBEAT, 0, NULL);
 }
 
 static void app_old_comm_handle_set_rtc_req(uint8_t cal, uint8_t *cab)
@@ -61,7 +60,7 @@ static void app_old_comm_handle_set_rtc_req(uint8_t cal, uint8_t *cab)
     uint32_t utc_time = (cab[3] << 24) | (cab[2] << 16) | (cab[1] << 8) | cab[0];
     LOG_PROTOCOL(" Setting RTC time to 0x%08X\n", utc_time);
     // TODO: Call RTC setting interface
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_RTC, 0, NULL);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_RTC, 0, NULL);
 }
 
 static void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
@@ -74,7 +73,7 @@ static void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
     uint8_t ctrl_cmd = cab[0];
     LOG_PROTOCOL(" Executing system control command 0x%02X\n", ctrl_cmd);
     // TODO: Execute system control logic
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SYS_CTRL, 1, &ctrl_cmd);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SYS_CTRL, 1, &ctrl_cmd);
 }
 
 static void app_old_comm_handle_get_encrypt_req()
@@ -85,7 +84,7 @@ static void app_old_comm_handle_get_encrypt_req()
     ack_data[1] = app_old_comm_dev_info.encrypt_key;
     LOG_PROTOCOL(" Sending encryption info ACK (status: 0x%02X, key: 0x%02X)\n",
            ack_data[0], ack_data[1]);
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_ENCRYPT, 2, ack_data);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_ENCRYPT, 2, ack_data);
 }
 
 static void app_old_comm_handle_set_bind_req(uint8_t cal, uint8_t *cab)
@@ -99,7 +98,7 @@ static void app_old_comm_handle_set_bind_req(uint8_t cal, uint8_t *cab)
     uint8_t left_right = cab[1];
     LOG_PROTOCOL(" Setting bind status - Status: %d, Side: %d\n", bind_status, left_right);
     // TODO: Update binding status
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_BIND, 2, cab);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_BIND, 2, cab);
     app_old_comm_report_bind_status(bind_status, left_right);
 }
 
@@ -116,7 +115,7 @@ static void app_old_comm_handle_set_heat_req(uint8_t cal, uint8_t *cab)
     LOG_PROTOCOL(" Setting heat parameters - Auto: %d, Switch: %d, Gear: %d\n",
            auto_heat, heat_switch, heat_gear);
     // TODO: Execute heating control logic
-    //app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_HEAT, 0, NULL);
+    //ctx_app_old_protocol_handler.protocol_ctx->app_old_protocol_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_HEAT, 0, NULL);
 }
 
 static void app_old_comm_handle_set_travel_lock_req(uint8_t cal, uint8_t *cab)
@@ -129,7 +128,7 @@ static void app_old_comm_handle_set_travel_lock_req(uint8_t cal, uint8_t *cab)
     app_old_comm_dev_status.travel_lock = cab[0];
     LOG_PROTOCOL(" Setting travel lock status to %d\n", app_old_comm_dev_status.travel_lock);
     // TODO: Execute travel lock control logic
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_TRAVEL_LOCK, 0, NULL);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_TRAVEL_LOCK, 0, NULL);
 }
 
 // -------------------------- Report command parsing implementations --------------------------
@@ -189,7 +188,7 @@ static void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_ri
 {
     LOG_PROTOCOL(" Reporting bind status - Status: %d, Side: %d\n", bind_status, left_right);
     uint8_t report_data[2] = {bind_status, left_right};
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_BIND, 2, report_data);
+   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_BIND, 2, report_data);
 }
 
 static void app_old_comm_poll_timer_handler(void *handle)
@@ -204,7 +203,7 @@ static void app_old_comm_poll_timer_handler(void *handle)
 *****************************************************************************************
 */
 // Handle request commands (APP->device)
-void app_old_comm_handle_request_cmd(AppOldCommCmdId cid, uint8_t cal, uint8_t *cab)
+void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab)
 {
     LOG_PROTOCOL(" Handling %s request (data len: %d)\n",
            app_old_comm_get_cmd_id_str(cid), cal);
@@ -273,7 +272,7 @@ void app_old_comm_handle_request_cmd(AppOldCommCmdId cid, uint8_t cal, uint8_t *
 }
 
 // Handle response/report commands (device->APP)
-void app_old_comm_handle_response_cmd(AppOldCommCmdType ct, AppOldCommCmdId cid, uint8_t cal, uint8_t *cab)
+void app_old_comm_handle_response_cmd(app_old_commcmd_type_e ct, app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab)
 {
     LOG_PROTOCOL(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
 
@@ -335,10 +334,18 @@ void app_old_comm_variable_init(void)
     memcpy(&app_old_comm_dev_status, &dev_status, sizeof(AppOldCommDeviceStatus));
 }
 
+void app_old_protocol_hander_frame_builder_send(app_old_commcmd_type_e cmdtype, app_old_comm_cmd_id_e cid,
+                                                uint8_t data_len, uint8_t *data)
+{
+    EXCEPTION_CHECK_VOID(ctx_app_old_protocol_handler.protocol_ctx);
+    ctx_app_old_protocol_handler.protocol_ctx->app_old_protocol_frame_builder_send(cmdtype, cid, data_len, data);
+}
+
 void app_old_protocol_ctx_init(void)
 {
     memset(&ctx_app_old_protocol_handler, 0, sizeof(app_old_protocol_handler_context_t));
     CREATE_TIMER(&ctx_app_old_protocol_handler.poll_timer, "protocol_poll_timer", &ctx_app_old_protocol_handler,
                  OS_TIMER_PERIODIC, app_old_comm_poll_timer_handler);
     START_TIMER(ctx_app_old_protocol_handler.poll_timer, APP_OLD_COMM_HEARTBEAT_INTERVAL);
+    ctx_app_old_protocol_handler.protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
 }

@@ -17,6 +17,10 @@ static protocol_manager_context_t *thiz = NULL;
 */
 static int on_post_protocol_manager_init(void *self)
 {
+    protocol_manager_context_t *ctx = self;
+    ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+    ctx->priv.ble_ctx = ble_ctx;
+    LOG_PROTOCOL("ble ctx: %p", ctx->priv.ble_ctx);
     return 0;
 }
 
@@ -34,10 +38,13 @@ void *register_module_for_protocol_manager_new(list_head_t *list_head)
     ptr->comm_protocol_builder_free = comm_protocol_builder_free;
     ptr->comm_protocol_assemble_packet = comm_protocol_assemble_packet;
     ptr->comm_protocol_frame_deserialize = comm_protocol_frame_deserialize;
-
+    ptr->app_old_protocol_assemble_packet = app_old_protocol_assemble_packet;
+    ptr->app_old_protocol_frame_deserialize = app_old_protocol_frame_deserialize;
+    ptr->app_old_protocol_frame_builder_send = app_old_protocol_frame_builder_send;
     thiz = ptr;
     return ADD_MODULE("protocol", ID_MODULE_PROTOCOL, NULL, on_post_protocol_manager_init,
                       ptr, list_head, sizeof(protocol_manager_context_t));
 }
 
 
+ 
