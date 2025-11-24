@@ -9,7 +9,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "stdint.h" // IWYU pragma: keep
-#include "comm_protocol_builder.h" // IWYU pragma: keep
+#include "comm_protocol_defs.h" // IWYU pragma: keep
 #include "algo_tlvs_protocol.h" // IWYU pragma: keep
 #include "pump_tlvs_protocol.h" // IWYU pragma: keep
 #include "iot_tlvs_protocol.h" // IWYU pragma: keep
@@ -28,9 +28,6 @@ typedef struct {
     uint16_t tlv_id;                        /// TLV ID
     protocol_service_tlv_func tlv_func;     /// TLV功能函数.
 } protocol_service_tlvs_handle_t;
-
-/// 描述协议帧服务error code tlv id
-#define PROTOCOL_SERVICE_ERROR_CODE_TLV_ID         (0xF000)
 
 typedef struct {
     char *name;

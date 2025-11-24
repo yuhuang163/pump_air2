@@ -12,7 +12,7 @@ extern "C" {
 
 /// 协议常量定义
 #define COMM_PROTOCOL_SOF                 0x5CC5             ///< Start Of Frame 标识
-#define COMM_PROTOCOL_HEADER_SIZE         4                  ///< Header大小: SOF(2) + Length(2)
+#define COMM_PROTOCOL_HEADER_SIZE         6                  ///< Header大小: SOF(2) + Seq(2) + Length(2)
 #define COMM_PROTOCOL_FOOTER_SIZE         2                  ///< Footer大小: Checksum(2)
 #define COMM_PROTOCOL_SERVICE_HEADER_SIZE 4                  ///< Service Header: SvrID(2) + Length(2)
 #define COMM_PROTOCOL_TLV_HEADER_SIZE     4                  ///< TLV Header: Type(2) + Length(2)
@@ -69,7 +69,8 @@ typedef struct {
 
 /// 完整的通讯帧结构（用于数据流解析）
 typedef struct {
-    uint16_t sof;             ///< Start Of Frame: 0x5C5C
+    uint16_t sof;             ///< Start Of Frame: 0x5CC5
+    uint16_t seq;             ///< 帧序列号
     uint16_t payload_length; ///< Payload字段的长度（不包含Header和Footer）
     uint8_t  payload[];      ///< 柔性数组成员，Payload数据
     // uint16_t checksum;      ///< CRC16校验和，覆盖Header和Payload域
@@ -77,7 +78,8 @@ typedef struct {
 
 /// 完整的通讯帧节点（用于构建和解析）
 typedef struct {
-    uint16_t sof;           ///< Start Of Frame: 0x5C5C
+    uint16_t sof;           ///< Start Of Frame: 0x5CC5
+    uint16_t seq;    ///< 帧序列号
     uint16_t payload_length;        ///< Payload字段的长度（不包含Header和Footer）
     comm_protocol_payload_node_t  payload;    ///< Payload节点
     uint16_t checksum;      ///< CRC16校验和，覆盖Header和Payload域
@@ -106,9 +108,32 @@ typedef enum {
     COMM_PROTOCOL_SYSTEM_STATE_SERVICE = 5,
     COMM_PROTOCOL_TESTS_SERVICE = 6,
     COMM_PROTOCOL_TRACKING_DATA_SERVICE = 7,
-
-    COMM_PROTOCOL_SERVICE_ID_RSP = 0xFF00, // 应答服务ID
 } comm_protocol_service_id_e;
+
+/// 错误码
+typedef enum {
+    COMM_PROTOCOL_ERROR_NONE = 0,
+    COMM_PROTOCOL_ERROR_INVALID_FRAME_SIZE,
+    COMM_PROTOCOL_ERROR_INVALID_FRAME_SOF,
+    COMM_PROTOCOL_ERROR_INVALID_FRAME_PAYLOAD_LENGTH,
+    COMM_PROTOCOL_ERROR_INVALID_CRC,
+    COMM_PROTOCOL_ERROR_INVALID_SERVICE_ID,
+    COMM_PROTOCOL_ERROR_INVALID_SERVICE_LENGTH,
+    COMM_PROTOCOL_ERROR_INVALID_TLV_ID,
+    COMM_PROTOCOL_ERROR_INVALID_TLV_LENGTH,
+    COMM_PROTOCOL_ERROR_INVALID_SERVICE_COUNT, /// 服务数量不合法
+    COMM_PROTOCOL_ERROR_INVALID_BUILDER,
+    COMM_PROTOCOL_ERROR_INVALID_TLV_FUNC,
+    COMM_PROTOCOL_ERROR_INVALID_SIZE,
+    COMM_PROTOCOL_ERROR_INVALID_DATA,
+    COMM_PROTOCOL_ERROR_INVALID_RSP_SERVICE,
+} comm_protocol_error_code_t;
+
+/// 描述协议帧服务error code tlv id
+#define PROTOCOL_SERVICE_ERROR_CODE_TLV_ID         (0xF000)
+
+/// 协议帧回调函数类型
+typedef void (*comm_protocol_frame_callback_t)(const uint8_t *frame_data, uint16_t frame_len);
 
 #ifdef __cplusplus
 }

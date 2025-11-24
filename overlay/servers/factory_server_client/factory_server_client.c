@@ -15,8 +15,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-static protocol_manager_context_t *protocol_ctx = NULL;
-static ble_manager_context_t *ble_ctx = NULL;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -53,9 +51,14 @@ static void on_factory_server_event_cb(void *user_data, uint8_t *data, uint16_t 
 */
 void factory_server_client_init(void)
 {
-    ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+    ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     EXCEPTION_CHECK_VOID(ble_ctx);
-    protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
-    EXCEPTION_CHECK_VOID(protocol_ctx);
     ble_ctx->add_ble_evt_lisenser(ble_ctx, DEVICE_BLE_FAC_MSG_CHANNEL, on_factory_server_event_cb);
+}
+
+int factory_server_data_publish(servers_publish_data_id_e id, servers_publish_data_args_t *args)
+{
+    comm_protocol_publish_func func = get_comm_protocol_publish_func(id);
+    EXCEPTION_CHECK_INT(func);
+    return func(args);
 }

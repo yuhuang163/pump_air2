@@ -10,6 +10,7 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 #include "comm_protocol_builder.h" // IWYU pragma: keep
+#include "servers_manager_api.h" // IWYU pragma: keep
 
 /// TLV ID
 typedef enum {
@@ -33,7 +34,7 @@ int algo_tlvs_sample_onoff_get(comm_protocol_builder_t *builder, comm_protocol_s
                     uint8_t *data, uint16_t data_len);
 int algo_tlvs_sample_interval_get(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
-
+int algo_sampling_data_publish(servers_publish_data_args_t *args);
 #ifdef __cplusplus
 }
 #endif

@@ -17,14 +17,6 @@ extern "C" {
 */
 
 /**
- * @brief 组包完成回调函数类型
- * @param frame_data 完整的帧数据
- * @param frame_len 帧数据长度
- * @param user_data 用户自定义数据
- */
-typedef void (*comm_protocol_frame_callback_t)(const uint8_t *frame_data, uint16_t frame_len);
-
-/**
  * @brief 组包接口 - 处理分片数据并组装成完整帧
  * @param data 接收到的数据片段
  * @param len 数据片段长度

@@ -30,7 +30,7 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_size)
+int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_size, uint16_t seq)
 {
     EXCEPTION_CHECK_INT(builder);
     if (max_size < COMM_PROTOCOL_FRAME_SIZE_MIN || max_size > COMM_PROTOCOL_FRAME_SIZE_MAX) {
@@ -41,6 +41,7 @@ int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_si
     EXCEPTION_CHECK_INT(builder->frame);
     builder->payload_size = max_size - COMM_PROTOCOL_PAYLOAD_SIZE_MIN;
     builder->frame->sof = COMM_PROTOCOL_SOF;
+    builder->frame->seq = seq;
     builder->frame->payload_length = 0;
     return 0;
 }
@@ -103,8 +104,8 @@ uint8_t* comm_protocol_builder_finalize(comm_protocol_builder_t *builder, uint16
     uint8_t *buffer = (uint8_t *)builder->frame;
     uint16_t checksum = CRC16(buffer, COMM_PROTOCOL_HEADER_SIZE + builder->frame->payload_length);
     uint16_t footer_offset = COMM_PROTOCOL_HEADER_SIZE + builder->frame->payload_length;
-    buffer[footer_offset] = (checksum >> 8) & 0xFF;
-    buffer[footer_offset + 1] = checksum & 0xFF;
+    buffer[footer_offset] = checksum & 0xFF;         // 低字节在前（小端序）
+    buffer[footer_offset + 1] = (checksum >> 8) & 0xFF;  // 高字节在后（小端序）
     *out_size = frame_size;
     return buffer;
 }

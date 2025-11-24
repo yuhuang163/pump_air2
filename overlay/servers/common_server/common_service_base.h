@@ -9,7 +9,6 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "stdint.h" // IWYU pragma: keep
-#include "comm_protocol_builder.h" // IWYU pragma: keep
 #include "comm_protocol_defs.h" // IWYU pragma: keep
 
 /*

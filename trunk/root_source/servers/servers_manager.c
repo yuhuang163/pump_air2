@@ -57,6 +57,7 @@ static int on_post_servers_init(void *ptr)
     if (ctx->hook && ctx->hook->on_post_init_route) {
         ctx->hook->on_post_init_route(ctx);
     }
+    ctx->priv.protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
 
     /// 注册广播监听.
     ctx->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
