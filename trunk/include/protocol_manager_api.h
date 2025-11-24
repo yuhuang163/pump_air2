@@ -27,12 +27,14 @@ typedef struct protocol_manager_context {
         broadcast_obj_t *bcd; /// 广播对象
         struct rt_device_node *fcuartdev;
         struct ble_manager_context *ble_ctx; /// 蓝牙处理管理器
+        uint16_t packet_seq; /// 包序列号
     } priv;
 
 /// public:
-
+    /// 获取包序列号
+    uint16_t (*get_packet_seq)(void);
     /// 公共协议构建器接口.
-    int (*comm_protocol_builder_init)(comm_protocol_builder_t *builder, uint16_t max_size);
+    int (*comm_protocol_builder_init)(comm_protocol_builder_t *builder, uint16_t max_size, uint16_t seq);
     comm_protocol_service_t *(*comm_protocol_builder_init_service)(comm_protocol_builder_t *builder, uint16_t service_id);
     int (*comm_protocol_builder_add_tlv)(comm_protocol_builder_t *builder, comm_protocol_service_t *service, comm_protocol_tlv_node_t *tlv_node);
     uint8_t *(*comm_protocol_builder_finalize)(comm_protocol_builder_t *builder, uint16_t *out_size);

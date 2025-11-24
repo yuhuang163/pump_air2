@@ -13,22 +13,33 @@ extern "C" {
 #include "broadcast_manager_api.h" // IWYU pragma: keep
 #include "root_message.h" // IWYU pragma: keep
 
+typedef enum {
+    SERVERS_PUBLISH_DATA_ALGO_SAMPLING = 100,        /// 算法采样数据
+    SERVERS_PUBLISH_DATA_ID_MAX
+} servers_publish_data_id_e;
+
+typedef struct {
+    int arg1;
+    int arg2;
+    void *val;
+} servers_publish_data_args_t;
+
 struct rt_device_node;
+struct protocol_manager_context;
 typedef struct servers_manager_context {
     /// private:
     struct __servers_manager_private {
-        thread_context_t servers_hdr_thd; /// Servers显示调度线程
-        os_timer_id servers_tick_timer; /// Servers定时器
-        os_mutex_id servers_draw_lock; /// Servers显示刷新锁
         broadcast_obj_t *bcd; /// 广播监听对象
+        struct protocol_manager_context *protocol_ctx; /// 协议管理器
         uint8_t encrypt_status;///payload 是否加密
     } priv;
 
     /// public:
-    void (*servers_display_handler)(struct servers_manager_context *thiz);
     struct __servers_manager_hook {
         int (*on_perpare_init_route)(struct servers_manager_context *ctx);
         int (*on_post_init_route)(struct servers_manager_context *ctx);
+        int (*factory_server_data_publish)(servers_publish_data_id_e id, servers_publish_data_args_t *args);
+        int (*app_server_data_publish)(servers_publish_data_id_e id, servers_publish_data_args_t *args);
          /// 广播路由
         int (*on_servers_manager_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
     } *hook;

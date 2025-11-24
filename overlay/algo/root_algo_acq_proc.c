@@ -2,10 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "ble_manager_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "algorithm_manager.h"  // IWYU pragma: keep
-#include "common_tlvs.h" // IWYU pragma: keep
+#include "root_algo_acq_proc.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -20,9 +19,6 @@
 static uint16_t sampling_count = 0; /// 算法采集数据次数
 static algo_sampling_data_t *algo_sampling_data = NULL;
 static motor_manager_context_t *motor_ctx = NULL;
-static protocol_manager_context_t *protocol_ctx = NULL;
-static ble_manager_context_t *ble_ctx = NULL;
-
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -63,52 +59,15 @@ void algo_sampling_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_
     }
     sampling_count++;
     if (sampling_count >= ALGO_SAMPLING_DATA_POINT_NUM) {
+        servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+        EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
+        servers_publish_data_args_t args = {
+            .arg1 = sampling_count,
+            .arg2 = 0,
+            .val = algo_sampling_data,
+        };
+        servers_ctx->hook->factory_server_data_publish(SERVERS_PUBLISH_DATA_ALGO_SAMPLING, &args);
         sampling_count = 0;
-        /// 构建协议数据结构
-        comm_protocol_builder_t builder = {0};
-        ret = comm_protocol_builder_init(&builder, 1024);
-        if (ret != 0) {
-            LOG_ALGO("comm_protocol_builder_init failed");
-            return;
-        }
-        /// 初始化服务节点
-        comm_protocol_service_t *service = comm_protocol_builder_init_service(&builder, COMM_PROTOCOL_ALGO_SERVICE);
-        if (service == NULL) {
-            LOGE("==> algo service begin error");
-            comm_protocol_builder_free(&builder);
-            return;
-        }
-        /// 添加TLV
-        comm_protocol_tlv_node_t rsp_tlv_node = {0};
-        uint16_t data_num = ALGO_SAMPLING_DATA_POINT_NUM;
-        rsp_tlv_node.type = ALGO_TLV_SAMPLE_DATA_NUM;
-        rsp_tlv_node.length = 2;
-        rsp_tlv_node.value = (uint8_t *)&data_num;
-        ret = comm_protocol_builder_add_tlv(&builder, service, &rsp_tlv_node);
-        if (ret != 0) {
-            LOG_ALGO("comm_protocol_builder_add_tlv failed");
-            comm_protocol_builder_free(&builder);
-            return;
-        }
-        rsp_tlv_node.type = ALGO_TLV_SAMPLE_AIR_PRESSURE_DATA;
-        rsp_tlv_node.length = sizeof(algo_sampling_data_t) * ALGO_SAMPLING_DATA_POINT_NUM;
-        rsp_tlv_node.value = (uint8_t *)algo_sampling_data;
-        ret = comm_protocol_builder_add_tlv(&builder, service, &rsp_tlv_node);
-        if (ret != 0) {
-            LOG_ALGO("comm_protocol_builder_add_tlv failed");
-            comm_protocol_builder_free(&builder);
-            return;
-        }
-        uint16_t out_size = 0;
-        uint8_t *data = comm_protocol_builder_finalize(&builder, &out_size);
-        if (data == NULL) {
-            LOG_ALGO("comm_protocol_builder_finalize failed");
-            comm_protocol_builder_free(&builder);   
-            return;
-        }
-        // LOG_ALGO("algo sampling data size %d", out_size);
-        ble_ctx->dispatch_ble_event_wrapper(ble_ctx, BLE_MSG_FAC_SEND_DATA, (uint8_t *)data, out_size);
-        comm_protocol_builder_free(&builder);
     }
 
 #if 0
@@ -128,13 +87,7 @@ void algo_sampling_start(algo_manager_context_t *ctx)
 {
     EXCEPTION_CHECK_VOID(ctx);
     motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
-    protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
-    ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
-    if (protocol_ctx == NULL || motor_ctx == NULL || ble_ctx == NULL) {
-        LOG_ALGO("protocol_ctx or motor_ctx not found");
-        return;
-    }
-    EXCEPTION_CHECK_VOID(motor_ctx && protocol_ctx);
+    EXCEPTION_CHECK_VOID(motor_ctx);
     sampling_count = 0;
     ctx->priv.is_sampling = 1;
     algo_sampling_data = u_malloz(sizeof(algo_sampling_data_t) * ALGO_SAMPLING_DATA_POINT_NUM);

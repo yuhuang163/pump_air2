@@ -11,18 +11,7 @@ extern "C" {
 #include "stdint.h" // IWYU pragma: keep
 #include "comm_protocol_builder.h" // IWYU pragma: keep
 #include "comm_protocol_defs.h" // IWYU pragma: keep
-
-/// 错误码
-typedef enum {
-    COMM_SERVICE_ERROR_NONE = 0,
-    COMM_SERVICE_ERROR_INVALID_FRAME,
-    COMM_SERVICE_ERROR_INVALID_PAYLOAD,
-    COMM_SERVICE_ERROR_INVALID_BUILDER,
-    COMM_SERVICE_ERROR_INVALID_CRC,
-    COMM_SERVICE_ERROR_INVALID_SIZE,
-    COMM_SERVICE_ERROR_INVALID_DATA,
-    COMM_SERVICE_ERROR_INVALID_RSP_SERVICE,
-} comm_service_error_code_t;
+#include "servers_manager_api.h" // IWYU pragma: keep
 
 /// 描述订阅服务回调函数.
 typedef void (*comm_protocol_subscribe_cb_t)(int err_code, uint8_t *data, uint16_t len);
@@ -41,12 +30,20 @@ typedef struct {
     comm_protocol_subscribe_func subscribe_func;     /// 订阅服务功能函数.
 } comm_protocol_subscribe_handle_t;
 
+/// 发布服务处理函数.
+typedef int (*comm_protocol_publish_func)(servers_publish_data_args_t *args);
+/// 描述发布服务处理结构.
+typedef struct {
+    servers_publish_data_id_e id;                    /// 数据id   
+    comm_protocol_publish_func publish_func;         /// 发布服务功能函数.
+} comm_protocol_publish_handle_t;
+
 /*
 * INTERNAL FUNCTION DECLARATION
 *****************************************************************************************
 */
 int comm_protocol_subscribe_handler(comm_protocol_subscribe_context_t *ctx);
-
+comm_protocol_publish_func get_comm_protocol_publish_func(servers_publish_data_id_e id);
 #ifdef __cplusplus
 }
 #endif

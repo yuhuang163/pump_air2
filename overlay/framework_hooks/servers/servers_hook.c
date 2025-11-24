@@ -36,5 +36,5 @@ void register_servers_manager_hook(servers_manager_context_t *ctx)
 {
     ctx->hook = u_malloz(sizeof(struct __servers_manager_hook));
     ctx->hook->on_post_init_route = on_post_servers_init_route;
-    ctx->hook->on_servers_manager_receiver_route = on_servers_manager_receiver_route;
+    ctx->hook->factory_server_data_publish = factory_server_data_publish;
 }

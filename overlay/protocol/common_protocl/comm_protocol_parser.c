@@ -181,9 +181,9 @@ int comm_protocol_assemble_packet(const uint8_t *data, uint16_t len, comm_protoc
             packet_assembly_reset();
             return -4;
         }
-        /// 验证Checksum
+        /// 验证Checksum（小端序：低字节在前，高字节在后）
         uint16_t checksum_expected = CRC16(frame_buffer, frame_size - COMM_PROTOCOL_FOOTER_SIZE);
-        uint16_t checksum_received = ((uint16_t)frame_buffer[frame_size - 1] << 8) | frame_buffer[frame_size - 2];
+        uint16_t checksum_received = frame_buffer[frame_size - 2] | ((uint16_t)frame_buffer[frame_size - 1] << 8);
         if (checksum_expected != checksum_received) {
             LOGE("checksum mismatch: expected 0x%04X, received 0x%04X", 
                  checksum_expected, checksum_received);
@@ -209,32 +209,33 @@ int comm_protocol_frame_deserialize(const uint8_t *buffer, uint16_t buffer_size,
     /// 验证buffer长度是否合理
     if (buffer_size < COMM_PROTOCOL_FRAME_SIZE_MIN || buffer_size > COMM_PROTOCOL_FRAME_SIZE_MAX) {
         LOGE("buffer size error: %d", buffer_size);
-        return -1;
+        return COMM_PROTOCOL_ERROR_INVALID_FRAME_SIZE;
     }    
-    /// 解析Header
-    frame->sof = ((uint16_t)buffer[1] << 8) | buffer[0];
-    frame->payload_length = ((uint16_t)buffer[3] << 8) | buffer[2];
-    frame->checksum = ((uint16_t)buffer[buffer_size - 1] << 8) | buffer[buffer_size - 2];
+    /// 解析Header（小端序）
+    frame->sof = buffer[0] | ((uint16_t)buffer[1] << 8);
+    frame->seq = buffer[2] | ((uint16_t)buffer[3] << 8);
+    frame->payload_length = buffer[4] | ((uint16_t)buffer[5] << 8);
+    frame->checksum = buffer[buffer_size - 2] | ((uint16_t)buffer[buffer_size - 1] << 8);
     /// 验证SOF是否正确
     if (frame->sof != COMM_PROTOCOL_SOF) {
         LOGE("invalid sof: %04X", frame->sof);
-        return -2;
+        return COMM_PROTOCOL_ERROR_INVALID_FRAME_SOF;
     }
     /// 验证Payload长度是否合理
     if (frame->payload_length < COMM_PROTOCOL_PAYLOAD_SIZE_MIN) {
         LOGE("payload length too small: %d", frame->payload_length);
-        return -3;
+        return COMM_PROTOCOL_ERROR_INVALID_FRAME_PAYLOAD_LENGTH;
     }
     /// 验证总长度是否匹配
     if (buffer_size != COMM_PROTOCOL_HEADER_SIZE + frame->payload_length + COMM_PROTOCOL_FOOTER_SIZE) {
         LOGE("buffer size error: %d, payload_length: %d", buffer_size, frame->payload_length);
-        return -4;
+        return COMM_PROTOCOL_ERROR_INVALID_FRAME_SIZE;
     }
     /// 验证Checksum
     uint16_t checksum = CRC16(buffer, buffer_size - COMM_PROTOCOL_FOOTER_SIZE);
     if (frame->checksum != checksum) {
         LOGE("invalid checksum: %x, expected: %x", frame->checksum, checksum);
-        return -5;
+        return COMM_PROTOCOL_ERROR_INVALID_CRC;
     }
     /// 获取Payload指针
     const uint8_t *payload = buffer + COMM_PROTOCOL_HEADER_SIZE;
@@ -254,5 +255,5 @@ int comm_protocol_frame_deserialize(const uint8_t *buffer, uint16_t buffer_size,
         payload_offset += service->srv_length + COMM_PROTOCOL_SERVICE_HEADER_SIZE;
         LOGI("payload_length: %d, payload_offset: %d, service_count: %d", frame->payload_length, payload_offset, frame->payload.service_count);
     }
-    return 0;
+    return COMM_PROTOCOL_ERROR_NONE;
 }
