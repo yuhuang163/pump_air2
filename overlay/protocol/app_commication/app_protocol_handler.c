@@ -195,7 +195,8 @@ static void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_ri
 static void app_old_comm_poll_timer_handler(void *handle)
 {
     LOG_PROTOCOL(" Poll timer triggered - reporting device status\n");
-    app_old_comm_report_device_status();
+    app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
+    app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
 }
 
 /*
@@ -237,7 +238,8 @@ void app_old_comm_handle_request_cmd(AppOldCommCmdId cid, uint8_t cal, uint8_t *
             app_old_comm_handle_get_encrypt_req();
             break;
         case APP_OLD_COMM_CID_GET_STATUS:
-            app_old_comm_handle_get_status_req();
+            app_old_comm_handle_get_status_req(APP_OLD_COMM_LEFT_CT);
+            app_old_comm_handle_get_status_req(APP_OLD_COMM_RIGHT_CT);
             break;
         case APP_OLD_COMM_CID_CTRL_DEV:
             app_old_comm_handle_ctrl_dev_req(cal, cab);
