@@ -51,9 +51,7 @@ typedef struct {
     uint8_t gretting_which_time;
     uint8_t show_breast_pump_ui;
     void *user_data;
-    /**
-     * 弹出框入参数参数描述.
-    */
+    ///弹出框入参数参数描述.
     puoup_window_id_e popup_bg_res_index;
     uint8_t popup_bg_which;
     uint32_t popup_exit_time;
@@ -230,6 +228,15 @@ typedef struct multi_func_msg_data {
         product_test_entry_extra_t product_test_extra;
     } union_body;
 } multi_func_msg_data_t;
+
+/// 消息通道ID枚举
+typedef enum {
+    DEVICE_BLE_FAC_MSG_CHANNEL = 0, /// 蓝牙工厂通道
+    DEVICE_BLE_MASTER_MSG_CHANNEL,  /// 蓝牙主通道
+    DEVICE_BLE_REMOTE_MSG_CHANNEL,  /// 蓝牙远程通道
+    DEVICE_UART_MSG_CHANNEL,        /// 串口通道
+    DEVICE_MSG_CHANNEL_ID_MAX
+} device_message_channel_id_e;
 
 #ifdef __cplusplus
 }

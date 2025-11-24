@@ -75,6 +75,9 @@ static const module_register_fptr s_module_register[] = {
     #if IS_SUPPORT_MODULE_PROTOCOL
     register_module_for_protocol_manager_new,
     #endif
+    #if IS_SUPPORT_MODULE_SERVERS
+    register_module_for_servers_new,
+    #endif
 };
 
 /*
