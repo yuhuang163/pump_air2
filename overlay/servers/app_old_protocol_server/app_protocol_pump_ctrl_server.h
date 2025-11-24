@@ -9,7 +9,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
-#include "app_protocol_parse.h"
+#include "app_old_protocol_parser.h"
 
 typedef enum {
     APP_OLD_COMM_SYS_STOP      = 0x00,

@@ -1,5 +1,5 @@
-#ifndef __APP_PROTOCOL_PARSE_H__
-#define __APP_PROTOCOL_PARSE_H__
+#ifndef __APP_OLD_PROTOCOL_PARSER_H__
+#define __APP_OLD_PROTOCOL_PARSER_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +25,7 @@ typedef enum {
     APP_OLD_COMM_CT_NACK   = 0x02,  // Negative acknowledge
     APP_OLD_COMM_CT_NOTIFY = 0x03,  // Active notification
     APP_OLD_COMM_CT_DEVICE = 0x04   // Hardware control report
-} AppOldCommCmdType;
+} app_old_commcmd_type_e;
 
 // Core command ID definitions
 typedef enum {
@@ -101,7 +101,7 @@ typedef enum {
     //BLE_CMD_UD_MODE_SET_HEAT = 0XE7,  // 自定义模式设置加热参数
     //BLE_CMD_UD_MODE_SET_SHAKE = 0XE8, // 自定义模式设置振子参数
 
-} AppOldCommCmdId;
+} app_old_comm_cmd_id_e;
 
 // Protocol parsing result enumeration
 typedef enum {
@@ -112,7 +112,7 @@ typedef enum {
     APP_OLD_COMM_PARSE_ERR_CMD_UNKNOWN,   // Unknown command
     APP_OLD_COMM_PARSE_ERR_INCOMPLETE,    // Incomplete data
     APP_OLD_COMM_PARSE_ERR_TIMEOUT        // Frame timeout
-} AppOldCommParseResult;
+} app_old_comm_par_re_result_e;
 
 // Ring queue structure
 typedef struct {
@@ -121,16 +121,40 @@ typedef struct {
     uint16_t tail;                           // Tail index
     uint16_t len;                            // Current queue length
     uint32_t last_recv_time;                 // Last received data timestamp (ms)
-} AppOldCommRingQueue;
+} app_old_comm_ring_queue_t;
 
-void on_perpare_app_commication_protocol_init(protocol_manager_context_t *ctx);
-void on_post_app_commication_protocol_init(protocol_manager_context_t *ctx);
-uint8_t app_commication_protocol_parse_route(uint8_t *data, uint16_t len);
-int on_app_commication_protocol_br_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
-const char* app_old_comm_get_cmd_id_str(AppOldCommCmdId cid);
-const char* app_old_comm_get_cmd_type_str(AppOldCommCmdType ct);
-uint8_t app_old_comm_calc_checksum(uint8_t *data, uint16_t len);
-void app_old_comm_cmd_send(AppOldCommCmdType cmdtype, AppOldCommCmdId cid, uint8_t data_len, uint8_t *data);
+typedef struct {
+    uint16_t sof;               ///< Start Of Frame: 0xAA55
+    uint8_t ct;                 ///<  指令类型节点
+    uint8_t cid;                 ///< cmd节点
+    uint8_t cal;                 ///< Payload长度
+    uint8_t *cab;                 ///< Payload数据
+    uint8_t checksum;            ///< CRC8校验和，覆盖Header和Payload域
+} old_protocol_frame_node_t;
+
+/**
+ * @brief 组包完成回调函数类型
+ * @param frame_data 完整的帧数据
+ * @param frame_len 帧数据长度
+ * @param user_data 用户自定义数据
+ */
+typedef void (*app_old_protocol_frame_callback_t)(uint8_t *frame_data, uint16_t frame_len);
+
+/**
+ * @brief 组包接口 - 处理分片数据并组装成完整帧
+ * @param data 接收到的数据片段
+ * @param len 数据片段长度
+ * @param callback 当组装完成时的回调函数
+ * @param user_data 用户自定义数据，会传递给回调函数
+ * @return 0-成功处理, 1-需要更多数据, <0-错误
+ */
+int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protocol_frame_callback_t callback);
+
+int app_old_protocol_frame_deserialize(uint8_t *frame_buf, uint16_t len, old_protocol_frame_node_t *frame);
+int app_old_protocol_frame_builder_send(app_old_commcmd_type_e cmdtype, app_old_comm_cmd_id_e cid, uint8_t data_len, uint8_t *data);
+
+const char* app_old_comm_get_cmd_id_str(app_old_comm_cmd_id_e cid);
+const char* app_old_comm_get_cmd_type_str(app_old_commcmd_type_e ct);
 #ifdef __cplusplus
 }
 #endif

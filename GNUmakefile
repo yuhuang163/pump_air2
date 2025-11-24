@@ -86,10 +86,20 @@ COMMON_SERVERS_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/common_s
 # Servers 头文件
 COMMON_SERVERS_INC_FLAGS := $(patsubst %,-I%,$(COMMON_SERVERS_INC_DIRS))
 
+# App old protocol Servers 头文件子目录
+APP_OLD_PROTOCOL_SERVERS_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/app_old_protocol_server -type d)
+# App old protocol Servers 头文件
+APP_OLD_PROTOCOL_SERVERS_INC_FLAGS := $(patsubst %,-I%,$(APP_OLD_PROTOCOL_SERVERS_INC_DIRS))
+
 # Factory Server Client 头文件子目录
 FACTORY_SERVER_CLIENT_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/factory_server_client -type d)
 # Factory Server Client 头文件
 FACTORY_SERVER_CLIENT_INC_FLAGS := $(patsubst %,-I%,$(FACTORY_SERVER_CLIENT_INC_DIRS))
+
+# master Server Client 头文件子目录
+MASTER_SERVER_CLIENT_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/master_server_client -type d)
+# master Server Client 头文件
+MASTER_SERVER_CLIENT_INC_FLAGS := $(patsubst %,-I%,$(MASTER_SERVER_CLIENT_INC_DIRS))
 
 # BLE 自定义服务开关
 CFG_CUSTOM_BLE_SERVICE ?= 1
@@ -176,6 +186,8 @@ SDK_INCLUDE_PATHS := \
 	$(PROTOCOL_INC_FLAGS) \
 	$(COMMON_SERVERS_INC_FLAGS) \
 	$(FACTORY_SERVER_CLIENT_INC_FLAGS) \
+	$(APP_OLD_PROTOCOL_SERVERS_INC_FLAGS) \
+	$(MASTER_SERVER_CLIENT_INC_FLAGS) \
 	-I$(PROJECT_ROOT)/overlay/storage/factory \
 	-I$(PROJECT_ROOT)/overlay/storage/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
@@ -375,12 +387,14 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/hardware_self_tests/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/stress_tests/*.c) \
     $(wildcard $(PROJECT_ROOT)/overlay/product_tests/comm/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/protocol/app_commication/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/protocol/app_old_commication_protocol/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/protocol/factory_protocol/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/protocol/common_protocl/*.c) \
 	$(call rwildcard,$(PROJECT_ROOT)/overlay/protocol/services) \
 	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/common_server) \
 	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/factory_server_client) \
+	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/master_server_client) \
+	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/app_old_protocol_server) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \

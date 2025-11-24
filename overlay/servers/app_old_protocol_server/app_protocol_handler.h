@@ -9,7 +9,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
-#include "app_protocol_parse.h"
+#include "app_old_protocol_parser.h"
 // Device status definitions
 typedef enum {
     APP_OLD_COMM_DEV_STOP        = 0x00,  // Stopped
@@ -62,17 +62,22 @@ typedef struct {
 
 typedef struct app_old_protocol_handler_context {
     os_timer_id poll_timer;
+    protocol_manager_context_t *protocol_ctx;
+
 
 } app_old_protocol_handler_context_t;
 
-void app_old_comm_handle_request_cmd(AppOldCommCmdId cid, uint8_t cal, uint8_t *cab);
-void app_old_comm_handle_response_cmd(AppOldCommCmdType ct, AppOldCommCmdId cid, uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_response_cmd(app_old_commcmd_type_e ct, app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab);
 void app_old_comm_variable_init(void);
 void app_old_protocol_data_cryption(uint8_t key, uint8_t *dat, uint8_t len);
 void rc4(unsigned char *key, unsigned int keyLength, unsigned char *data, unsigned int dataLength);
 AppOldCommDeviceInfo* app_old_comm_dev_info_get(void);
 AppOldCommDeviceStatus* app_old_comm_dev_status_get(void);
 void app_old_protocol_ctx_init(void);
+
+void app_old_protocol_hander_frame_builder_send(app_old_commcmd_type_e cmdtype, app_old_comm_cmd_id_e cid,
+                                                uint8_t data_len, uint8_t *data);
 
 //auth
 void app_old_comm_handle_get_triple_req(void);

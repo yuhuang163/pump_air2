@@ -82,7 +82,7 @@ void app_old_comm_handle_get_triple_req(void)
 	memcpy(tmp_buf + len_prod, devid, len_devid);
 	memcpy((tmp_buf + len_prod + len_devid), send_secret, len_sec);
 
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_TRIPLE,  30, tmp_buf);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_TRIPLE,  30, tmp_buf);
 	u_free(tmp_buf);
 	tmp_buf = NULL;
 }
@@ -110,7 +110,7 @@ void app_old_comm_handle_set_productid_req(uint8_t cal, uint8_t *cab)
 	memset(factory_dev_info.product_id, 0, factory_dev_info.product_id_len);
 	memcpy(factory_dev_info.product_id, cab, factory_dev_info.product_id_len);
 	ctx->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &factory_dev_info);
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_PRODUCTID, 0, NULL);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_PRODUCTID, 0, NULL);
 }
 
 void app_old_comm_handle_set_deviceid_req(uint8_t cal, uint8_t *cab)
@@ -136,7 +136,7 @@ void app_old_comm_handle_set_deviceid_req(uint8_t cal, uint8_t *cab)
 	memset(factory_dev_info.device_id, 0, factory_dev_info.device_id_len);
 	memcpy(factory_dev_info.device_id, cab, factory_dev_info.device_id_len);
 	ctx->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &factory_dev_info);
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_DEVICEID, 0, NULL);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_DEVICEID, 0, NULL);
 }
 
 void app_old_comm_handle_set_encryption_key_req(uint8_t cal, uint8_t *cab)
@@ -162,7 +162,7 @@ void app_old_comm_handle_set_encryption_key_req(uint8_t cal, uint8_t *cab)
 	memset(factory_dev_info.enctyption_key, 0, factory_dev_info.enctyption_key_len);
 	memcpy(factory_dev_info.enctyption_key, cab, factory_dev_info.enctyption_key_len);
 	ctx->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &factory_dev_info);
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_ENCRYPTIONKEY, 0, NULL);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_ENCRYPTIONKEY, 0, NULL);
 }
 
 void app_old_comm_handle_get_sn_req(void)
@@ -176,7 +176,7 @@ void app_old_comm_handle_get_sn_req(void)
     ctx->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &factory_dev_info);
     LOG_HEX("SN:", factory_dev_info.sn, factory_dev_info.sn_len);
 
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_SN, factory_dev_info.sn_len, factory_dev_info.sn);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_SN, factory_dev_info.sn_len, factory_dev_info.sn);
 }
 
 void app_old_comm_handle_set_sn_req(uint8_t cal, uint8_t *cab)
@@ -202,5 +202,5 @@ void app_old_comm_handle_set_sn_req(uint8_t cal, uint8_t *cab)
 	memset(factory_dev_info.sn, 0, factory_dev_info.sn_len);
 	memcpy(factory_dev_info.sn, cab, factory_dev_info.sn_len);
 	ctx->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &factory_dev_info);
-    app_old_comm_cmd_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_SN, 0, NULL);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_SN, 0, NULL);
 }

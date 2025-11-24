@@ -13,7 +13,7 @@ extern "C" {
 #include "broadcast_manager_api.h"
 #include "root_message.h" // IWYU pragma: keep
 #include "comm_protocol.h" // IWYU pragma: keep
-
+#include "app_old_protocol_parser.h"
 typedef enum {
     PROTO_TYPE_INVIAL = 0,
     PROTO_TYPE_FACTORY_TEST,
@@ -40,6 +40,12 @@ typedef struct protocol_manager_context {
     int (*comm_protocol_assemble_packet)(const uint8_t *data, uint16_t len, comm_protocol_frame_callback_t callback);
     /// 反序列化协议帧
     int (*comm_protocol_frame_deserialize)(const uint8_t *buffer, uint16_t buffer_size, comm_protocol_frame_node_t *frame);
+    ///old app组包回调函数
+    int (*app_old_protocol_assemble_packet)(uint8_t *data, uint16_t len, app_old_protocol_frame_callback_t callback);
+    /// old app反序列化协议帧
+    int (*app_old_protocol_frame_deserialize)(uint8_t *frame_buf, uint16_t len, old_protocol_frame_node_t *frame);
+    /// old app组帧发送
+    int (*app_old_protocol_frame_builder_send)(app_old_commcmd_type_e cmdtype, app_old_comm_cmd_id_e cid, uint8_t data_len, uint8_t *data);
 } protocol_manager_context_t;
 
 #ifdef __cplusplus
