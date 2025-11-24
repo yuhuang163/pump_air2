@@ -31,7 +31,7 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-const motor_policy_cfg_t *get_breast_pump_mode_para (int mode)
+const motor_policy_cfg_t *get_breast_pump_mode_para(int mode)
 {
     switch (mode) {
         case BREAST_PUMP_STIMULATION_MODE:   
@@ -41,6 +41,7 @@ const motor_policy_cfg_t *get_breast_pump_mode_para (int mode)
         case BREAST_PUMP_MIX_MODE:   
             return mix_default;
         case BREAST_PUMP_CUSTOM_MODE:   
+            /// todo: 补全自定义模式参数
             return custom_default;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:   
             return pp_milk_track_default;
@@ -50,6 +51,103 @@ const motor_policy_cfg_t *get_breast_pump_mode_para (int mode)
             return lactation_start_default;  
     }
     return NULL;
+}
+
+int breast_pump_mode_time_step_number_get(int mode)
+{
+    switch (mode) {
+        case BREAST_PUMP_STIMULATION_MODE:
+            return STIMULATION_MODE_LEN;
+        case BREAST_PUMP_PUMP_MODE:
+            return PUMP_MODE_LEN;
+        case BREAST_PUMP_MIX_MODE:
+            return MIX_MODE_LEN / 2; /// 混合模式步数为2，因为短吸和长吸各占一个步数.
+        case BREAST_PUMP_CUSTOM_MODE:
+            /// todo: 补全自定义模式步数
+            return CUSTOM_MODE_LEN;
+        case BREAST_PUMP_PP_MILK_TRACK_MODE:
+            return PP_MODE_LEN;
+        case BREAST_PUMP_MILK_BOOST_MODE:
+            return MILK_BOOST_MODE_LEN;
+        case BREAST_PUMP_LACTATION_START_MODE:
+            return LACTATION_START_MODE_LEN;
+        default:
+            return 0;
+    }
+}
+
+void breast_pump_setting_reset (sys_pump_info_t *pump_info, int mode)
+{
+    EXCEPTION_CHECK_VOID(pump_info);
+    pump_setting_t *setting = NULL;
+    const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(mode);
+    EXCEPTION_CHECK_VOID(cfg);
+    uint8_t step_count = breast_pump_mode_time_step_number_get(mode);
+    if (step_count == 0 || step_count > ROOT_BREAST_PUMP_STEP_MAX) {
+        LOGE("step count error, mode: %d, step count: %d", mode, step_count);
+        return;
+    }
+    switch (mode) {
+        case BREAST_PUMP_STIMULATION_MODE:   
+            setting = pump_info->stimulation_setting;
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_PUMP_MODE:   
+            setting = pump_info->pump_setting;
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_MIX_MODE:   
+            setting = pump_info->mix_setting;
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_CUSTOM_MODE:   
+            setting = pump_info->custom_setting;
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_PP_MILK_TRACK_MODE:   
+            setting = pump_info->pp_milk_track_setting;
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_MILK_BOOST_MODE:   
+            setting = pump_info->milk_boost_setting;
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_LACTATION_START_MODE:   
+            setting = pump_info->lactation_start_setting;  
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        default:
+            LOGE("mode error, mode: %d", mode);
+            break;
+    }
 }
 
 int breast_pump_mode_work_time_get(int mode)
@@ -75,7 +173,7 @@ int breast_pump_mode_work_time_get(int mode)
         case BREAST_PUMP_CUSTOM_MODE:
             mode_num = CUSTOM_MODE_LEN;
             for (uint8_t i = 0; i < mode_num; i++) {
-                work_time += custom_default[i].duration;
+                work_time += cfg[i].duration;
             }
             return work_time;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:

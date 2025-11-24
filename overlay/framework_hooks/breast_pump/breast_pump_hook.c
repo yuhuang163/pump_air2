@@ -70,7 +70,7 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     result_info->work_total_time += PUMP_WORK_STEP_TIME_MS;
     /// 更新模式和力度.
     result_info->mode = ctx->priv.m_info.mode;
-    ctx->get_breast_pump_setting(&result_info->setting);
+    ctx->get_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX);
     /// 有效时间累加，更新各区域有效时间.
     result_info->work_valid_time += PUMP_WORK_STEP_TIME_MS;
     if (log_timer > PUMP_INFO_LOG_INTERVAL) {
@@ -89,7 +89,7 @@ static int make_progress_route(breast_pump_manager_context_t *ctx, pump_result_i
 
     EXCEPTION_CHECK_INT(result_info);
     result_info->mode = ctx->priv.m_info.mode;
-    ctx->get_breast_pump_setting(&result_info->setting);
+    ctx->get_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX);
     notify_id = local_breast_pump_process(ctx, result_info);
 
     return notify_id;
@@ -150,7 +150,7 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
     }
     result_info->setting_time = work_time * 1000;
     result_info->mode = ctx->priv.m_info.mode;
-    ctx->get_breast_pump_setting(&result_info->setting);
+    ctx->get_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX);
     LOG_PMP("start pump work, mode: %d, work_time: %d, setting_time: %d", result_info->mode, work_time, result_info->setting_time);
     /// 初始化泵奶数据.
     if (status == BREAST_PUMP_START) {
@@ -168,8 +168,8 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
     /// 获取当前模式.
     result_info->mode = ctx->get_breast_pump_mode();
     /// 从ram中获取当前模式下的设置信息.
-    st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, result_info->mode, 0, &result_info->setting);
-    ctx->set_breast_pump_setting(&result_info->setting);    
+    st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, result_info->mode, ROOT_BREAST_PUMP_STEP_MAX, &result_info->setting);
+    ctx->set_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX);    
 
     return 0;
 }

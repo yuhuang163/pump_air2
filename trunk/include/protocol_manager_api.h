@@ -30,6 +30,7 @@ typedef struct protocol_manager_context {
     } priv;
 
 /// public:
+
     /// 公共协议构建器接口.
     int (*comm_protocol_builder_init)(comm_protocol_builder_t *builder, uint16_t max_size);
     comm_protocol_service_t *(*comm_protocol_builder_init_service)(comm_protocol_builder_t *builder, uint16_t service_id);

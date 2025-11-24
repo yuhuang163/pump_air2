@@ -13,8 +13,6 @@ extern "C" {
 #include "comm_protocol_parser.h" // IWYU pragma: keep
 #include "comm_protocol_defs.h" // IWYU pragma: keep
 
-
-
 /// 描述发布数据回调函数.
 typedef int (*comm_protocol_publish_data_cb_t)(uint8_t msg_channel, uint8_t *data, uint16_t len);
 /// 描述发布数据上下文.

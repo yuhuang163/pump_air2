@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "motor_manager_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"
 #include "ui_page_define.h"
@@ -66,11 +67,17 @@ int ui_display_pump_home_screen(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
     EXCEPTION_CHECK_UINT(p);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump);
+    motor_manager_context_t *motor = pump->priv.motor;
+    EXCEPTION_CHECK_UINT(motor);
+    int time_index = motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
     const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     uint16_t hold_time = result->work_valid_time / 1000;
     pump_setting_t setting;
-    pump->get_breast_pump_setting(&setting);
-
+    pump->get_breast_pump_setting(&setting, time_index);
     ui_fill_img_id(&p[0], UI_IMG_ID_HOME_SCREEN);
     ui_fill_running_time(&p[1], hold_time);
     ui_fill_pump_level(&p[2], setting.level[0], setting.level[1]);
@@ -90,9 +97,16 @@ int ui_display_pump_left_level(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
     EXCEPTION_CHECK_UINT(p);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump); 
+    motor_manager_context_t *motor = pump->priv.motor;
+    EXCEPTION_CHECK_UINT(motor);
+    int time_index = motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
     const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     pump_setting_t setting;
-    pump->get_breast_pump_setting(&setting);
+    pump->get_breast_pump_setting(&setting, time_index);
     ui_fill_img_id(&p[0], UI_IMG_ID_LEFT_LEVEL_ADJUST_DISPLAY);
     ui_fill_pump_level(&p[1], setting.level[0], setting.level[1]);
     ui_fill_pump_speed(&p[2], setting.speed);
@@ -107,9 +121,16 @@ int ui_display_pump_right_level(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
     EXCEPTION_CHECK_UINT(p);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump);
+    motor_manager_context_t *motor = pump->priv.motor;
+    EXCEPTION_CHECK_UINT(motor);
+    int time_index = motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
     const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     pump_setting_t setting;
-    pump->get_breast_pump_setting(&setting);
+    pump->get_breast_pump_setting(&setting, time_index);
     ui_fill_img_id(&p[0], UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY);
     ui_fill_pump_level(&p[1], setting.level[0], setting.level[1]);
     ui_fill_pump_speed(&p[2], setting.speed);
@@ -161,8 +182,15 @@ int ui_display_pump_speed(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
     EXCEPTION_CHECK_UINT(p);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump);
+    motor_manager_context_t *motor = pump->priv.motor;
+    EXCEPTION_CHECK_UINT(motor);
+    int time_index = motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
     pump_setting_t setting;
-    pump->get_breast_pump_setting(&setting);
+    pump->get_breast_pump_setting(&setting, time_index);
     ui_fill_img_id(&p[0], UI_IMG_ID_PUMP_SPEED);
     ui_fill_pump_speed(&p[1], setting.speed);
     *tlvs = p;
