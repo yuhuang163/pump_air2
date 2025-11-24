@@ -76,6 +76,21 @@ UI_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/ui -type d)
 # UI 头文件
 UI_INC_FLAGS := $(patsubst %,-I%,$(UI_INC_DIRS))
 
+# Protocol 头文件子目录
+PROTOCOL_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/protocol -type d)
+# Protocol 头文件
+PROTOCOL_INC_FLAGS := $(patsubst %,-I%,$(PROTOCOL_INC_DIRS))
+
+# Servers 头文件子目录
+COMMON_SERVERS_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/common_server -type d)
+# Servers 头文件
+COMMON_SERVERS_INC_FLAGS := $(patsubst %,-I%,$(COMMON_SERVERS_INC_DIRS))
+
+# Factory Server Client 头文件子目录
+FACTORY_SERVER_CLIENT_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/factory_server_client -type d)
+# Factory Server Client 头文件
+FACTORY_SERVER_CLIENT_INC_FLAGS := $(patsubst %,-I%,$(FACTORY_SERVER_CLIENT_INC_DIRS))
+
 # BLE 自定义服务开关
 CFG_CUSTOM_BLE_SERVICE ?= 1
 
@@ -158,8 +173,9 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/product_tests/factory_tests \
 	-I$(PROJECT_ROOT)//overlay/product_tests/hardware_self_tests \
 	-I$(PROJECT_ROOT)//overlay/product_tests/stress_tests \
-	-I$(PROJECT_ROOT)//overlay/protocol/factory_protocol \
-	-I$(PROJECT_ROOT)//overlay/protocol/app_commication \
+	$(PROTOCOL_INC_FLAGS) \
+	$(COMMON_SERVERS_INC_FLAGS) \
+	$(FACTORY_SERVER_CLIENT_INC_FLAGS) \
 	-I$(PROJECT_ROOT)/overlay/storage/factory \
 	-I$(PROJECT_ROOT)/overlay/storage/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
@@ -297,6 +313,7 @@ endif
 CPPFLAGS += $(CHIP_DEFINES)
 
 # 应用源码（满足链接 root_main 与 platform_prepare_init 等）
+
 EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
@@ -346,6 +363,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/motor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/input_key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/servers/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/product_tests/*.c) \
@@ -359,6 +377,10 @@ EXTRA_SRCS := \
     $(wildcard $(PROJECT_ROOT)/overlay/product_tests/comm/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/protocol/app_commication/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/protocol/factory_protocol/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/protocol/common_protocl/*.c) \
+	$(call rwildcard,$(PROJECT_ROOT)/overlay/protocol/services) \
+	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/common_server) \
+	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/factory_server_client) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
@@ -396,6 +418,7 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/protocol/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/resource/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/servers/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/storage/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \

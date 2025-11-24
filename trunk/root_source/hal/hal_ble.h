@@ -41,7 +41,7 @@ typedef enum {
 typedef enum {
     BLE_SRV_ID_MASTER = 0,  /**< 主服务 */
     BLE_SRV_ID_FACTORY,     /**< 工厂配置服务 */
-    BLE_SRV_ID_REMOT,       /**< 远程服务 */
+    BLE_SRV_ID_REMOTE,       /**< 远程服务 */
     BLE_SRV_ID_MAX,
 } ble_service_id_e;
 

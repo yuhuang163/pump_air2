@@ -3,9 +3,6 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include "factory_protocol_handler.h"
-#include "factory_protocol_parse.h"
-#include "protocol_manager_api.h"
 
 /*
 * DEFINES
@@ -16,7 +13,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -32,4 +28,3 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-

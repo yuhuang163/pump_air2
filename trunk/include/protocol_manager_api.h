@@ -11,7 +11,8 @@ extern "C" {
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 #include "broadcast_manager_api.h"
-#include "root_message.h"
+#include "root_message.h" // IWYU pragma: keep
+#include "comm_protocol.h" // IWYU pragma: keep
 
 typedef enum {
     PROTO_TYPE_INVIAL = 0,
@@ -28,17 +29,17 @@ typedef struct protocol_manager_context {
         struct ble_manager_context *ble_ctx; /// 蓝牙处理管理器
     } priv;
 
-    uint8_t (*protocol_parse)(uint8_t *data, uint16_t len, uint8_t proto_type);
-
-    struct protocol_manager_hook {
-        int (*on_perpare_init_route)(struct protocol_manager_context *ctx);
-        int (*on_post_init_route)(struct protocol_manager_context *ctx);
-        /// 广播路由
-        int (*on_protocol_manager_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
-        uint8_t (*factory_tests_protocol_parse_route)(uint8_t *data, uint16_t len);
-        uint8_t (*app_commication_protocol_parse_route)(uint8_t *data, uint16_t len);
-        
-    } *hook;
+/// public:
+    /// 公共协议构建器接口.
+    int (*comm_protocol_builder_init)(comm_protocol_builder_t *builder, uint16_t max_size);
+    comm_protocol_service_t *(*comm_protocol_builder_init_service)(comm_protocol_builder_t *builder, uint16_t service_id);
+    int (*comm_protocol_builder_add_tlv)(comm_protocol_builder_t *builder, comm_protocol_service_t *service, comm_protocol_tlv_node_t *tlv_node);
+    uint8_t *(*comm_protocol_builder_finalize)(comm_protocol_builder_t *builder, uint16_t *out_size);
+    void (*comm_protocol_builder_free)(comm_protocol_builder_t *builder);
+    /// 组包回调函数
+    int (*comm_protocol_assemble_packet)(const uint8_t *data, uint16_t len, comm_protocol_frame_callback_t callback);
+    /// 反序列化协议帧
+    int (*comm_protocol_frame_deserialize)(const uint8_t *buffer, uint16_t buffer_size, comm_protocol_frame_node_t *frame);
 } protocol_manager_context_t;
 
 #ifdef __cplusplus

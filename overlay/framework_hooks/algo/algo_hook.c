@@ -89,5 +89,6 @@ void register_algo_hook(algo_manager_context_t *ctx)
 #if IS_SUPPORT_ALGO_SAMPLING
     ctx->hook->algo_sampling_start = algo_sampling_start;
     ctx->hook->algo_sampling_stop = algo_sampling_stop;
+    ctx->hook->algo_sampling_is_sampling = algo_sampling_is_sampling;
 #endif
 }

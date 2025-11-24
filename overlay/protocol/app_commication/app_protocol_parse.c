@@ -6,7 +6,6 @@
 #include "app_protocol_handler.h"
 #include "app_protocol_parse.h"
 #include "protocol_manager_api.h"
-#include <stdio.h>
 
 /*
 * DEFINES
@@ -328,27 +327,27 @@ static void app_old_comm_init(void)
     app_old_protocol_ctx_init();
 }
 
-static uint16_t app_commication_ble_data_recv_cb(void *ctx, uint8_t *p_data, uint16_t ulLen)
+static void app_commication_ble_data_recv_cb(void *user_data, uint8_t *data, uint16_t data_len)
 {
-    EXCEPTION_CHECK_INT(ctx);
-    EXCEPTION_CHECK_INT(p_data);
-    if (!p_data || ulLen== 0) {
-        LOGE("recv data is NULL or size is 0");
-        return 0;
-    }
-    LOG_PROTOCOL("app_commication_ble_recv[%d]", ulLen);
-    LOG_HEX("app_recv_data hex", p_data, ulLen);
-    LOG_PROTOCOL("app_recv_data str %s", p_data);
+    // EXCEPTION_CHECK_INT(ctx);
+    // EXCEPTION_CHECK_INT(p_data);
+    // if (!p_data || ulLen== 0) {
+    //     LOGE("recv data is NULL or size is 0");
+    //     return 0;
+    // }
+    // LOG_PROTOCOL("app_commication_ble_recv[%d]", ulLen);
+    // LOG_HEX("app_recv_data hex", p_data, ulLen);
+    // LOG_PROTOCOL("app_recv_data str %s", p_data);
 
-    //选择协议解析器
-    if (thiz->protocol_parse == NULL)
-    {
-        LOGE("protocol_parse is NULL");
-        return 0;
-    }
-    thiz->protocol_parse(p_data, ulLen, PROTO_TYPE_APP_COMMINICATION);
+    // //选择协议解析器
+    // if (thiz->protocol_parse == NULL)
+    // {
+    //     LOGE("protocol_parse is NULL");
+    //     return 0;
+    // }
+    // thiz->protocol_parse(p_data, ulLen, PROTO_TYPE_APP_COMMINICATION);
 
-    return 1;
+    // return 1;
 }
 
 static void app_commication_send_data_via_ble(uint8_t *data, uint16_t data_len)
@@ -446,25 +445,14 @@ void set_app_commication_ble_register(protocol_manager_context_t *ctx)
     EXCEPTION_CHECK_VOID(ctx);
 
     /* 注册 BLE 回调（存在时） */
-    if (ctx->priv.ble_ctx && ctx->priv.ble_ctx->set_master_ble_register_cb) {
-        ctx->priv.ble_ctx->set_master_ble_register_cb(app_commication_ble_data_recv_cb);
-        LOG_PROTOCOL("register app_commication ble cb");
-    } else {
-        LOG_PROTOCOL("ble ctx or register cb not available");
-    }
-
+    ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+    EXCEPTION_CHECK_VOID(ble_ctx);
+    ble_ctx->add_ble_evt_lisenser(ble_ctx, DEVICE_BLE_FAC_MSG_CHANNEL, app_commication_ble_data_recv_cb);
 }
 
 void set_app_commication_ble_unregister(protocol_manager_context_t *ctx)
 {
-    EXCEPTION_CHECK_VOID(ctx);
 
-    if (ctx->priv.ble_ctx && ctx->priv.ble_ctx->set_master_ble_register_cb) {
-        ctx->priv.ble_ctx->set_master_ble_register_cb(NULL); /// 清除工厂模式蓝牙数据接收回调函数.
-        LOG_PROTOCOL("unregister app_commication ble cb");
-    } else {
-        LOG_PROTOCOL("ble ctx or unregister cb not available");
-    }
  
 }
 

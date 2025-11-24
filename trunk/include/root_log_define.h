@@ -87,7 +87,7 @@ typedef enum{
     FILTER_AIR = 1 << 20,
     FILTER_STORE = 1 << 21,
     FILTER_HG = 1 << 22,
-    FILTER_LED = 1 << 23,
+    FILTER_SRV = 1 << 23,
     FILTER_STEP = 1 << 24,
     FILTER_FULL = -1,
 } log_filter_enum_t;
@@ -146,8 +146,7 @@ typedef enum{
 #define LOG_AIR(...)        do { IS_FILTER(FILTER_AIR)      { LOGD_TAG("LOG_AIR", __VA_ARGS__); } } while(0)
 #define LOG_STORE(...)      do { IS_FILTER(FILTER_STORE)    { LOGW_TAG("LOG_STORE", __VA_ARGS__); } } while(0)
 #define LOG_HG(...)         do { IS_FILTER(FILTER_HG)       { LOGW_TAG("LOG_HG", __VA_ARGS__); } } while(0)
-#define LOG_LED(...)        do { IS_FILTER(FILTER_LED)      { LOGW_TAG("LOG_LED", __VA_ARGS__); } } while(0)
-
+#define LOG_SRV(...)        do { IS_FILTER(FILTER_SRV)      { LOGI_TAG("LOG_SRV", __VA_ARGS__); } } while(0)
 /*
 * 进度日志输出.
 */
