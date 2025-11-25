@@ -84,25 +84,23 @@ typedef struct {
     uint8_t display; 
 } factory_aging_flag_t;   
 
-typedef union
-{
-	uint32_t dat32;
-	uint8_t dat[4];
-} DATA32;
-
 typedef struct
 {
     // uint8_t work; //0-pause 1-work
     uint8_t mode;  // 0-short 1-long 2-mix1 3-mix2
     uint8_t level; // strength level 1-15
     uint8_t freq;  // frequency level 1-15
-    uint16_t time; // section time long
+    uint32_t time; // section time long //存的是单位ms
 } user_define_pump_step_data_s;
 
 typedef struct
 {
-	DATA32 id;	  // user define mode id
-	uint8_t num;  // section number 1-8
+    union {
+        uint32_t dat32;
+        uint8_t dat[4];
+    } id;         // user define mode id
+    uint8_t num;  // section number 1-8
+    uint32_t custom_total_time;
 	user_define_pump_step_data_s data[ROOT_BREAST_PUMP_STEP_MAX];
 } user_def_pump_steps_data_t;
 

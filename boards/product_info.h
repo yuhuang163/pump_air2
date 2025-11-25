@@ -21,7 +21,7 @@ typedef enum {
  * 产品信息
 */
 #ifndef ROOT_PRODUCT_ID
-#define ROOT_PRODUCT_ID                               0X09
+#define ROOT_PRODUCT_ID                               0X08
 #endif
 
 #if (ROOT_PRODUCT_ID == 0x09)

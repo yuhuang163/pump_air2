@@ -65,6 +65,7 @@ void reset_pump_info(storage_manager_context_t *ctx, sys_pump_info_t *pump_info)
         pump_info->pump_time[i] = breast_pump_mode_work_time_get(i);
         breast_pump_setting_reset(pump_info, i);
     }
+    breast_pump_custom_step_para_reset(pump_info);
     EXCEPTION_CHECK_VOID(ctx);
     store_func_args_t args = {
         .ctx = ctx,
@@ -303,11 +304,11 @@ int write_pump_custom_steps_parameter_to_ram(store_func_args_t args)
 {
     struct storage_manager_context *st = args.ctx;
     EXCEPTION_CHECK_INT(st);
-    pump_setting_t *custom_steps_parameter = (pump_setting_t *)args.val;
+    user_def_pump_steps_data_t *custom_steps_parameter = (user_def_pump_steps_data_t *)args.val;
     EXCEPTION_CHECK_INT(custom_steps_parameter);
     sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
 
-    memcpy(&pump_info->custom_steps_parameter, custom_steps_parameter, sizeof(pump_setting_t));
+    memcpy(&pump_info->custom_steps_parameter, custom_steps_parameter, sizeof(user_def_pump_steps_data_t));
     return 0;
 }
 
