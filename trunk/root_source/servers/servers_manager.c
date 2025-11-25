@@ -30,7 +30,7 @@ static void on_servers_manager_receiver(broadcast_mask_id_t id, void *context, i
 {
     servers_manager_context_t *ctx = context;
 
-    if (ctx->hook && ctx->hook->on_post_init_route) {
+    if (ctx->hook && ctx->hook->on_servers_manager_receiver_route) {
         ctx->hook->on_servers_manager_receiver_route(id, context, arg1, arg2, pdata);
     }
 
