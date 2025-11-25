@@ -66,6 +66,9 @@ LITTLEFS_SECTION_SIZE ?= 0x4000
 # factory data section size
 FACTORY_DATA_SECTION_SIZE ?= 0x2000
 
+# BLE 自定义服务开关
+CFG_CUSTOM_BLE_SERVICE ?= 1
+
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
 # BLE 头文件
@@ -75,6 +78,10 @@ BLE_INC_FLAGS := $(patsubst %,-I%,$(BLE_INC_DIRS))
 UI_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/ui -type d)
 # UI 头文件
 UI_INC_FLAGS := $(patsubst %,-I%,$(UI_INC_DIRS))
+# UI 源码目录
+UI_DIR := $(PROJECT_ROOT)/overlay/ui
+# UI 源码文件
+UI_SRCS := $(call rwildcard,$(UI_DIR))
 
 # Protocol 头文件子目录
 PROTOCOL_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/protocol -type d)
@@ -85,85 +92,252 @@ PROTOCOL_INC_FLAGS := $(patsubst %,-I%,$(PROTOCOL_INC_DIRS))
 COMMON_SERVERS_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/common_server -type d)
 # Servers 头文件
 COMMON_SERVERS_INC_FLAGS := $(patsubst %,-I%,$(COMMON_SERVERS_INC_DIRS))
+# Servers 源码目录
+COMMON_SERVERS_DIR := $(PROJECT_ROOT)/overlay/servers/common_server
+# Servers 源码文件
+COMMON_SERVERS_SRCS := $(call rwildcard,$(COMMON_SERVERS_DIR))
 
 # App old protocol Servers 头文件子目录
 APP_OLD_PROTOCOL_SERVERS_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/app_old_protocol_server -type d)
 # App old protocol Servers 头文件
 APP_OLD_PROTOCOL_SERVERS_INC_FLAGS := $(patsubst %,-I%,$(APP_OLD_PROTOCOL_SERVERS_INC_DIRS))
+# App old protocol Servers 源码目录
+APP_OLD_PROTOCOL_SERVERS_DIR := $(PROJECT_ROOT)/overlay/servers/app_old_protocol_server
+# App old protocol Servers 源码文件
+APP_OLD_PROTOCOL_SERVERS_SRCS := $(call rwildcard,$(APP_OLD_PROTOCOL_SERVERS_DIR))
 
 # Factory Server Client 头文件子目录
 FACTORY_SERVER_CLIENT_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/factory_server_client -type d)
 # Factory Server Client 头文件
 FACTORY_SERVER_CLIENT_INC_FLAGS := $(patsubst %,-I%,$(FACTORY_SERVER_CLIENT_INC_DIRS))
+# Factory Server Client 源码目录
+FACTORY_SERVER_CLIENT_DIR := $(PROJECT_ROOT)/overlay/servers/factory_server_client
+# Factory Server Client 源码文件
+FACTORY_SERVER_CLIENT_SRCS := $(call rwildcard,$(FACTORY_SERVER_CLIENT_DIR))
 
 # master Server Client 头文件子目录
 MASTER_SERVER_CLIENT_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/servers/master_server_client -type d)
 # master Server Client 头文件
 MASTER_SERVER_CLIENT_INC_FLAGS := $(patsubst %,-I%,$(MASTER_SERVER_CLIENT_INC_DIRS))
+# master Server Client 源码目录
+MASTER_SERVER_CLIENT_DIR := $(PROJECT_ROOT)/overlay/servers/master_server_client
+# master Server Client 源码文件
+MASTER_SERVER_CLIENT_SRCS := $(call rwildcard,$(MASTER_SERVER_CLIENT_DIR))
 
-# BLE 自定义服务开关
-CFG_CUSTOM_BLE_SERVICE ?= 1
+# -------------- SDK 头文件路径（按功能模块拆分）--------------
 
-# SDK 头文件（最小必需集）
-SDK_INCLUDE_PATHS := \
+# SDK 核心头文件
+SDK_CORE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/include \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/include \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/apps/main
+
+# SDK RTOS 头文件
+SDK_RTOS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/include/rtos/rtx5 \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/include/rtos/rtx \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/rtos/rtx5 \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/rtos/rtx5/rtx_config \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/rtos/rtx5/rtx_config
+
+# SDK HAL 头文件
+SDK_HAL_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/hal \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/ana \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc
+
+# SDK 服务头文件
+SDK_SERVICES_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/include \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/log_section \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/norflash_api \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/factory_section \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/factory_section
+
+# SDK 工具头文件
+SDK_UTILS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/heap \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/libc/inc \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/hwtimer_list \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/apps/main \
-	$(BLE_INC_FLAGS) \
-	-I$(PROJECT_ROOT)/boards \
-	-I$(PROJECT_ROOT)/drivers/adc \
-	-I$(PROJECT_ROOT)/drivers/audio \
-	-I$(PROJECT_ROOT)/drivers/base \
-	-I$(PROJECT_ROOT)/drivers/battery \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/hwtimer_list
+
+# Boards 头文件
+BOARDS_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/boards
+
+# ADC 驱动头文件
+DRIVERS_ADC_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/adc
+
+# 气压传感器驱动头文件
+DRIVERS_AIR_PRESSURE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/air_pressure
+
+# 音频驱动头文件
+DRIVERS_AUDIO_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/audio
+
+# 基础驱动头文件
+DRIVERS_BASE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/base
+
+# 电池驱动头文件
+DRIVERS_BATTERY_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/battery
+
+# BLE 驱动头文件
+DRIVERS_BLE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/ble \
 	-I$(PROJECT_ROOT)/drivers/ble/services \
 	-I$(PROJECT_ROOT)/drivers/ble/advs \
-	-I$(PROJECT_ROOT)/drivers/ble/connect \
-	-I$(PROJECT_ROOT)/drivers/common \
-	-I$(PROJECT_ROOT)/drivers/database \
-	-I$(PROJECT_ROOT)/drivers/fatfs \
-	-I$(PROJECT_ROOT)/drivers/flash \
-	-I$(PROJECT_ROOT)/drivers/force_sensor \
-	-I$(PROJECT_ROOT)/drivers/i2c \
-	-I$(PROJECT_ROOT)/drivers/imu \
+	-I$(PROJECT_ROOT)/drivers/ble/connect
+
+# 通用驱动头文件
+DRIVERS_COMMON_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/common
+
+# 数据库驱动头文件
+DRIVERS_DATABASE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/database
+
+# FatFS 驱动头文件
+DRIVERS_FATFS_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/fatfs
+
+# Flash 驱动头文件
+DRIVERS_FLASH_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/flash
+
+# 力传感器驱动头文件
+DRIVERS_FORCE_SENSOR_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/force_sensor
+
+# I2C 驱动头文件
+DRIVERS_I2C_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/i2c
+
+# IMU 驱动头文件
+DRIVERS_IMU_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/imu
+
+# 按键驱动头文件
+DRIVERS_KEY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/key \
-	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b \
+	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b
+
+# LCD 驱动头文件
+DRIVERS_LCD_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/lcd \
+	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_spi \
 	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart \
-	-I$(PROJECT_ROOT)/drivers/lcd/chip/uart_extension \
-	-I$(PROJECT_ROOT)/drivers/led \
+	-I$(PROJECT_ROOT)/drivers/lcd/chip/uart_extension
+
+# LED 驱动头文件
+DRIVERS_LED_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/led
+
+# 电机驱动头文件
+DRIVERS_MOTOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/motor \
-	-I$(PROJECT_ROOT)/drivers/motor/chip/motor_pwm \
-	-I$(PROJECT_ROOT)/drivers/uart \
-	-I$(PROJECT_ROOT)/drivers/wifi \
+	-I$(PROJECT_ROOT)/drivers/motor/chip/motor_pwm
+
+# UART 驱动头文件
+DRIVERS_UART_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/uart
+
+# WiFi 驱动头文件
+DRIVERS_WIFI_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/wifi
+
+# 汇总所有驱动头文件
+DRIVERS_INC_FLAGS := \
+	$(BOARDS_INC_FLAGS) \
+	$(DRIVERS_ADC_INC_FLAGS) \
+	$(DRIVERS_AIR_PRESSURE_INC_FLAGS) \
+	$(DRIVERS_AUDIO_INC_FLAGS) \
+	$(DRIVERS_BASE_INC_FLAGS) \
+	$(DRIVERS_BATTERY_INC_FLAGS) \
+	$(DRIVERS_BLE_INC_FLAGS) \
+	$(DRIVERS_COMMON_INC_FLAGS) \
+	$(DRIVERS_DATABASE_INC_FLAGS) \
+	$(DRIVERS_FATFS_INC_FLAGS) \
+	$(DRIVERS_FLASH_INC_FLAGS) \
+	$(DRIVERS_FORCE_SENSOR_INC_FLAGS) \
+	$(DRIVERS_I2C_INC_FLAGS) \
+	$(DRIVERS_IMU_INC_FLAGS) \
+	$(DRIVERS_KEY_INC_FLAGS) \
+	$(DRIVERS_LCD_INC_FLAGS) \
+	$(DRIVERS_LED_INC_FLAGS) \
+	$(DRIVERS_MOTOR_INC_FLAGS) \
+	$(DRIVERS_UART_INC_FLAGS) \
+	$(DRIVERS_WIFI_INC_FLAGS)
+
+# 基础模块头文件
+BASE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/include \
+	-I$(PROJECT_ROOT)/trunk/extern \
+	-I$(PROJECT_ROOT)/trunk/root_source/base \
+	-I$(PROJECT_ROOT)/trunk/root_source/hal \
+	-I$(PROJECT_ROOT)/trunk/root_source/utils \
+	-I$(PROJECT_ROOT)/trunk/root_source/misc
+
+# 外部库头文件
+EXTERNAL_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/external/littlefs \
+	-I$(PROJECT_ROOT)/trunk/external/littlefs/fds \
+	-I$(PROJECT_ROOT)/trunk/external/scan_key
+
+# 算法模块头文件
+ALGORITHM_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/algo \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/algo \
+	-I$(PROJECT_ROOT)/trunk/root_source/algorithm
+
+# BLE 模块头文件
+BLE_MODULE_INC_FLAGS := \
+	$(BLE_INC_FLAGS) \
 	-I$(PROJECT_ROOT)/overlay/ble/factory_service \
 	-I$(PROJECT_ROOT)/overlay/ble/master_service \
 	-I$(PROJECT_ROOT)/overlay/ble/remot_service \
+	-I$(PROJECT_ROOT)/trunk/root_source/ble
+
+# 吸奶泵模块头文件
+BREAST_PUMP_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/mode \
 	-I$(PROJECT_ROOT)/overlay/breast_pump/table \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks/algo \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks/airplane_mode \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks/power \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks/ui \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks/protocol \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/breast_pump \
+	-I$(PROJECT_ROOT)/trunk/root_source/breast_pump
+
+# 电机模块头文件
+MOTOR_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/motor \
+	-I$(PROJECT_ROOT)/trunk/root_source/motor \
+	-I$(PROJECT_ROOT)/trunk/root_source/motor/breast_pump_policy
+
+# 传感器模块头文件
+SENSOR_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/sensor/imu \
+	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
+	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/sensor \
+	-I$(PROJECT_ROOT)/trunk/root_source/sensor
+
+# 音频模块头文件
+AUDIO_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/root_source/audio
+
+# 按键输入模块头文件
+INPUT_KEY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/input_key \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/input_key \
+	-I$(PROJECT_ROOT)/trunk/root_source/key_input
+
+# UI 模块头文件
+UI_MODULE_INC_FLAGS := \
+	$(UI_INC_FLAGS) \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/ui \
+	-I$(PROJECT_ROOT)/trunk/root_source/ui
+
+# 窗口模块头文件
+WINDOWS_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/windows \
 	-I$(PROJECT_ROOT)/overlay/windows/battery \
 	-I$(PROJECT_ROOT)/overlay/windows/airplane_mode \
 	-I$(PROJECT_ROOT)/overlay/windows/breast_pump \
@@ -175,52 +349,91 @@ SDK_INCLUDE_PATHS := \
 	-I$(PROJECT_ROOT)/overlay/windows/pop_windows \
 	-I$(PROJECT_ROOT)/overlay/windows/setting \
 	-I$(PROJECT_ROOT)/overlay/windows/product_test_window \
-	-I$(PROJECT_ROOT)/overlay/windows \
-	-I$(PROJECT_ROOT)/overlay/sensor/imu \
-	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
-	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
-	-I$(PROJECT_ROOT)/overlay/product_tests/comm \
-	-I$(PROJECT_ROOT)/overlay/product_tests/factory_tests \
-	-I$(PROJECT_ROOT)//overlay/product_tests/hardware_self_tests \
-	-I$(PROJECT_ROOT)//overlay/product_tests/stress_tests \
+	-I$(PROJECT_ROOT)/trunk/root_source/windows
+
+# 飞行模式模块头文件
+AIRPLANE_MODE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/airplane_mode \
+	-I$(PROJECT_ROOT)/trunk/root_source/airplane_mode
+
+# 电源管理模块头文件
+POWER_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/power \
+	-I$(PROJECT_ROOT)/trunk/root_source/pm
+
+# 协议模块头文件
+PROTOCOL_MODULE_INC_FLAGS := \
 	$(PROTOCOL_INC_FLAGS) \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/protocol \
+	-I$(PROJECT_ROOT)/trunk/root_source/protocol
+
+# 服务模块头文件
+SERVERS_INC_FLAGS := \
 	$(COMMON_SERVERS_INC_FLAGS) \
 	$(FACTORY_SERVER_CLIENT_INC_FLAGS) \
 	$(APP_OLD_PROTOCOL_SERVERS_INC_FLAGS) \
 	$(MASTER_SERVER_CLIENT_INC_FLAGS) \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/servers
+
+# 存储模块头文件
+STORAGE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/storage \
 	-I$(PROJECT_ROOT)/overlay/storage/factory \
 	-I$(PROJECT_ROOT)/overlay/storage/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/storage/resource \
 	-I$(PROJECT_ROOT)/overlay/storage/system \
-	-I$(PROJECT_ROOT)/overlay/storage\
-	$(UI_INC_FLAGS)\
-	-I$(PROJECT_ROOT)/trunk/include \
-	-I$(PROJECT_ROOT)/trunk/extern \
-	-I$(PROJECT_ROOT)/trunk/external/littlefs \
-	-I$(PROJECT_ROOT)/trunk/external/littlefs/fds \
-	-I$(PROJECT_ROOT)/trunk/external/scan_key \
-	-I$(PROJECT_ROOT)/trunk/root_source/airplane_mode \
-	-I$(PROJECT_ROOT)/trunk/root_source/algorithm \
-	-I$(PROJECT_ROOT)/trunk/root_source/audio \
-	-I$(PROJECT_ROOT)/trunk/root_source/base \
-	-I$(PROJECT_ROOT)/trunk/root_source/ble \
-	-I$(PROJECT_ROOT)/trunk/root_source/breast_pump \
-	-I$(PROJECT_ROOT)/trunk/root_source/hal \
-	-I$(PROJECT_ROOT)/trunk/root_source/key_input \
-	-I$(PROJECT_ROOT)/trunk/root_source/misc \
-	-I$(PROJECT_ROOT)/trunk/root_source/motor \
-	-I$(PROJECT_ROOT)/trunk/root_source/motor/breast_pump_policy \
-	-I$(PROJECT_ROOT)/trunk/root_source/network \
-	-I$(PROJECT_ROOT)/trunk/root_source/ota \
-	-I$(PROJECT_ROOT)/trunk/root_source/pm \
-	-I$(PROJECT_ROOT)/trunk/root_source/protocol \
-	-I$(PROJECT_ROOT)/trunk/root_source/resource \
-	-I$(PROJECT_ROOT)/trunk/root_source/tests \
-	-I$(PROJECT_ROOT)/trunk/root_source/sensor \
-	-I$(PROJECT_ROOT)/trunk/root_source/storage \
-	-I$(PROJECT_ROOT)/trunk/root_source/ui \
-	-I$(PROJECT_ROOT)/trunk/root_source/utils \
-	-I$(PROJECT_ROOT)/trunk/root_source/windows
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/storage \
+	-I$(PROJECT_ROOT)/trunk/root_source/storage
+
+# 资源模块头文件
+RESOURCE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/root_source/resource
+
+# 网络模块头文件
+NETWORK_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/root_source/network
+
+# OTA 模块头文件
+OTA_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/root_source/ota
+
+# 产品测试模块头文件
+PRODUCT_TESTS_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/product_tests/comm \
+	-I$(PROJECT_ROOT)/overlay/product_tests/factory_tests \
+	-I$(PROJECT_ROOT)/overlay/product_tests/hardware_self_tests \
+	-I$(PROJECT_ROOT)/overlay/product_tests/stress_tests \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/product_tests \
+	-I$(PROJECT_ROOT)/trunk/root_source/tests
+
+# 汇总所有 SDK 头文件路径
+SDK_INCLUDE_PATHS := \
+	$(SDK_CORE_INC_FLAGS) \
+	$(SDK_RTOS_INC_FLAGS) \
+	$(SDK_HAL_INC_FLAGS) \
+	$(SDK_SERVICES_INC_FLAGS) \
+	$(SDK_UTILS_INC_FLAGS) \
+	$(DRIVERS_INC_FLAGS) \
+	$(BASE_INC_FLAGS) \
+	$(EXTERNAL_INC_FLAGS) \
+	$(ALGORITHM_INC_FLAGS) \
+	$(BLE_MODULE_INC_FLAGS) \
+	$(BREAST_PUMP_INC_FLAGS) \
+	$(MOTOR_INC_FLAGS) \
+	$(SENSOR_INC_FLAGS) \
+	$(AUDIO_INC_FLAGS) \
+	$(INPUT_KEY_INC_FLAGS) \
+	$(UI_MODULE_INC_FLAGS) \
+	$(WINDOWS_INC_FLAGS) \
+	$(AIRPLANE_MODE_INC_FLAGS) \
+	$(POWER_INC_FLAGS) \
+	$(PROTOCOL_MODULE_INC_FLAGS) \
+	$(SERVERS_INC_FLAGS) \
+	$(STORAGE_INC_FLAGS) \
+	$(RESOURCE_INC_FLAGS) \
+	$(NETWORK_INC_FLAGS) \
+	$(OTA_INC_FLAGS) \
+	$(PRODUCT_TESTS_INC_FLAGS)
 
 # 添加项目根目录和 SDK 头文件路径
 CPPFLAGS ?= -I$(PROJECT_ROOT) -I$(PROJECT_ROOT)/trunk $(SDK_INCLUDE_PATHS)
@@ -324,84 +537,186 @@ CHIP_DEFINES := -DCHIP_$(shell echo $(CHIP) | tr '[:lower:]' '[:upper:]')
 endif
 CPPFLAGS += $(CHIP_DEFINES)
 
-# 应用源码（满足链接 root_main 与 platform_prepare_init 等）
+# -------------- 应用源码（按功能模块拆分）--------------
 
-EXTRA_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/base/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/adc/*.c) \
+# OS 基础源码
+OS_BASE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/*.c)
+
+# ADC 驱动源码
+DRIVERS_ADC_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/adc/*.c)
+
+# 气压传感器驱动源码
+DRIVERS_AIR_PRESSURE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/audio/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/base/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d/*.c)
+
+# 音频驱动源码
+DRIVERS_AUDIO_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/audio/*.c)
+
+# 基础驱动源码
+DRIVERS_BASE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/base/*.c)
+
+# 电池驱动源码
+DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
+
+# BLE 驱动源码
+DRIVERS_BLE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/ble/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/ble/advs/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/ble/connect/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/ble/services/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/common/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/database/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/fatfs/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/flash/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/force_sensor/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/i2c/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/imu/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/ble/services/*.c)
+
+# 通用驱动源码
+DRIVERS_COMMON_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/common/*.c)
+
+# 数据库驱动源码
+DRIVERS_DATABASE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/database/*.c)
+
+# FatFS 驱动源码
+DRIVERS_FATFS_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/fatfs/*.c)
+
+# Flash 驱动源码
+DRIVERS_FLASH_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/flash/*.c)
+
+# 力传感器驱动源码
+DRIVERS_FORCE_SENSOR_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/force_sensor/*.c)
+
+# I2C 驱动源码
+DRIVERS_I2C_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/i2c/*.c)
+
+# IMU 驱动源码
+DRIVERS_IMU_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/imu/*.c)
+
+# 按键驱动源码
+DRIVERS_KEY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c)
+
+# LCD 驱动源码
+DRIVERS_LCD_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c)
+
+# LED 驱动源码
+DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
+
+# 电机驱动源码
+DRIVERS_MOTOR_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/motor/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/motor/chip/motor_pwm/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/uart/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/wifi/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/motor/chip/motor_pwm/*.c)
+
+# UART 驱动源码
+DRIVERS_UART_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/uart/*.c)
+
+# WiFi 驱动源码
+DRIVERS_WIFI_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/wifi/*.c)
+
+# 汇总所有驱动源码
+DRIVERS_SRCS := \
+	$(DRIVERS_ADC_SRCS) \
+	$(DRIVERS_AIR_PRESSURE_SRCS) \
+	$(DRIVERS_AUDIO_SRCS) \
+	$(DRIVERS_BASE_SRCS) \
+	$(DRIVERS_BATTERY_SRCS) \
+	$(DRIVERS_BLE_SRCS) \
+	$(DRIVERS_COMMON_SRCS) \
+	$(DRIVERS_DATABASE_SRCS) \
+	$(DRIVERS_FATFS_SRCS) \
+	$(DRIVERS_FLASH_SRCS) \
+	$(DRIVERS_FORCE_SENSOR_SRCS) \
+	$(DRIVERS_I2C_SRCS) \
+	$(DRIVERS_IMU_SRCS) \
+	$(DRIVERS_KEY_SRCS) \
+	$(DRIVERS_LCD_SRCS) \
+	$(DRIVERS_LED_SRCS) \
+	$(DRIVERS_MOTOR_SRCS) \
+	$(DRIVERS_UART_SRCS) \
+	$(DRIVERS_WIFI_SRCS)
+
+# 基础模块源码
+BASE_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/base/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/misc/*.c)
+
+# 外部库源码
+EXTERNAL_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/fds/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c)
+
+# 算法模块源码
+ALGORITHM_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/algo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c)
+
+# BLE 模块源码
+BLE_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/ble/factory_service/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ble/master_service/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ble/remot_service/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ble/*.c)
+
+# 吸奶泵模块源码
+BREAST_PUMP_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/breast_pump/table/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/airplane_mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/breast_pump/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/power/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/breast_pump/*.c)
+
+# 电机模块源码
+MOTOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/motor/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/input_key/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/servers/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/storage/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/product_tests/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/protocol/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/motor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/motor/breast_pump_policy/*.c)
+
+# 传感器模块源码
+SENSOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/factory_tests/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/hardware_self_tests/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/stress_tests/*.c) \
-    $(wildcard $(PROJECT_ROOT)/overlay/product_tests/comm/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/protocol/app_old_commication_protocol/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/protocol/factory_protocol/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/protocol/common_protocl/*.c) \
-	$(call rwildcard,$(PROJECT_ROOT)/overlay/protocol/services) \
-	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/common_server) \
-	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/factory_server_client) \
-	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/master_server_client) \
-	$(call rwildcard,$(PROJECT_ROOT)/overlay/servers/app_old_protocol_server) \
-	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/storage/system/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/storage/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c)
+
+# 音频模块源码
+AUDIO_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/audio/*.c)
+
+# 按键输入模块源码
+INPUT_KEY_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/input_key/*.c) \
-	$(call rwildcard,$(PROJECT_ROOT)/overlay/ui) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/input_key/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/key_input/*.c)
+
+# UI 模块源码
+UI_MODULE_SRCS := \
+	$(UI_SRCS) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c)
+
+# 窗口模块源码
+WINDOWS_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/airplane_mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
@@ -414,30 +729,95 @@ EXTRA_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/pop_windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/product_test_window/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/fds/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/airplane_mode/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/audio/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ble/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/breast_pump/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/key_input/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/misc/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/motor/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/motor/breast_pump_policy/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/network/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ota/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/pm/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/protocol/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/resource/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/servers/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/storage/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/utils/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/tests/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/windows/*.c) 
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/windows/*.c)
+
+# 飞行模式模块源码
+AIRPLANE_MODE_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/airplane_mode/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/airplane_mode/*.c)
+
+# 电源管理模块源码
+POWER_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/power/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/pm/*.c)
+
+# 协议模块源码
+PROTOCOL_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/protocol/app_old_commication_protocol/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/protocol/factory_protocol/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/protocol/common_protocl/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/protocol/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/protocol/*.c)
+
+# 服务模块源码
+SERVERS_MODULE_SRCS := \
+	$(COMMON_SERVERS_SRCS) \
+	$(FACTORY_SERVER_CLIENT_SRCS) \
+	$(MASTER_SERVER_CLIENT_SRCS) \
+	$(APP_OLD_PROTOCOL_SERVERS_SRCS) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/servers/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/servers/*.c)
+
+# 存储模块源码
+STORAGE_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/storage/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/storage/factory/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/storage/breast_pump/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/storage/resource/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/storage/system/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/storage/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/storage/*.c)
+
+# 资源模块源码
+RESOURCE_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/resource/*.c)
+
+# 网络模块源码
+NETWORK_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/network/*.c)
+
+# OTA 模块源码
+OTA_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ota/*.c)
+
+# 产品测试模块源码
+PRODUCT_TESTS_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/comm/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/factory_tests/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/hardware_self_tests/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/product_tests/stress_tests/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/product_tests/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/tests/*.c)
+
+# 框架钩子基础源码
+FRAMEWORK_HOOKS_BASE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c)
+
+# 汇总所有应用源码
+EXTRA_SRCS := \
+	$(OS_BASE_SRCS) \
+	$(DRIVERS_SRCS) \
+	$(BASE_MODULE_SRCS) \
+	$(EXTERNAL_SRCS) \
+	$(ALGORITHM_MODULE_SRCS) \
+	$(BLE_MODULE_SRCS) \
+	$(BREAST_PUMP_MODULE_SRCS) \
+	$(MOTOR_MODULE_SRCS) \
+	$(SENSOR_MODULE_SRCS) \
+	$(AUDIO_MODULE_SRCS) \
+	$(INPUT_KEY_MODULE_SRCS) \
+	$(UI_MODULE_SRCS) \
+	$(WINDOWS_MODULE_SRCS) \
+	$(AIRPLANE_MODE_MODULE_SRCS) \
+	$(POWER_MODULE_SRCS) \
+	$(PROTOCOL_MODULE_SRCS) \
+	$(SERVERS_MODULE_SRCS) \
+	$(STORAGE_MODULE_SRCS) \
+	$(RESOURCE_MODULE_SRCS) \
+	$(NETWORK_MODULE_SRCS) \
+	$(OTA_MODULE_SRCS) \
+	$(PRODUCT_TESTS_MODULE_SRCS) \
+	$(FRAMEWORK_HOOKS_BASE_SRCS) 
 
 CC := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)gcc,gcc)
 AR := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)ar,ar)
