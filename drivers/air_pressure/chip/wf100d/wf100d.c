@@ -22,15 +22,17 @@
 #define PRESSURE_RAW_DATA_CALC(x)      (x) > 8388608 ? (((x) - 16777216) / 8388608.0f) : ((x) / 8388608.0f)
 
 #if WF100D_MEASUREMENT_RANG ==  W100DP_100KPA
-#define PRESSURE_CALC_KPA(x)           (x) * 50 + 5
-#else
 #define PRESSURE_CALC_KPA(x)           (x) * 125 - 12.5
+#else
+#define PRESSURE_CALC_KPA(x)           (x) * 50 + 5
 #endif
 
 #define TEMP_CALC_CELSIUS(msb, lsb)    -1.2 + (msb) + (lsb) * 0.004
 
 #define W100DP_I2C_ID1                 I2C_MASTER_ID_1
 #define W100DP_I2C_ID2                 I2C_MASTER_ID_2
+
+#define WF100D_LOG_DEBUG               0
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -178,7 +180,9 @@ int bsp_air_pressure_deinit(void)
 int bsp_read_air_pressure_status(void *args)
 {
     air_pressue_status_t *out_status = (air_pressue_status_t *)args;
-    // uint32_t start_time = get_timestamp();
+#if WF100D_LOG_DEBUG
+    uint32_t start_time = get_timestamp();
+#endif
     memset(out_status, 0, sizeof(air_pressue_status_t) * AIR_PRESSURE_NUM);
     for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
         if (air_pressure_start_conversion(i) != BSP_OK) {
@@ -191,8 +195,10 @@ int bsp_read_air_pressure_status(void *args)
             continue;
         }
         air_pressure_result_get(i, &out_status[i]);
-    }
-    // PRINT_LOG("time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
-    //     get_timestamp_ms(start_time), out_status[0].pressure, out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
+    }   
+#if WF100D_LOG_DEBUG
+    PRINT_LOG("time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
+        get_timestamp_ms(start_time), out_status[0].pressure, out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
+#endif
     return BSP_OK;
 }
