@@ -61,21 +61,24 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
 
     log_timer++;
     if (result_info->work_total_time >= result_info->target_total_time || result_info->work_valid_time >= result_info->target_valid_time) {
-        LOG_PMP("finish, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d", 
-            result_info->work_total_time, result_info->target_total_time, result_info->work_valid_time, result_info->target_valid_time);   
+        LOG_PMP("finish, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d, mode_time=%d", 
+            result_info->work_total_time, result_info->target_total_time, result_info->work_valid_time, result_info->target_valid_time,
+            result_info->current_mode_work_time);   
         log_timer = 0;
         return RESULT_PUMP_FINISH;
     }
     /// 更新自然时间.
     result_info->work_total_time += PUMP_WORK_STEP_TIME_MS;
+    result_info->current_mode_work_time += PUMP_WORK_STEP_TIME_MS;
     /// 更新模式和力度.
     result_info->mode = ctx->priv.m_info.mode;
     ctx->get_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX);
     /// 有效时间累加，更新各区域有效时间.
     result_info->work_valid_time += PUMP_WORK_STEP_TIME_MS;
     if (log_timer > PUMP_INFO_LOG_INTERVAL) {
-        LOG_PMP("normal, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d", 
-            result_info->work_total_time, result_info->target_total_time, result_info->work_valid_time, result_info->target_valid_time);
+        LOG_PMP("normal, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d, mode_time=%d", 
+            result_info->work_total_time, result_info->target_total_time, result_info->work_valid_time, result_info->target_valid_time,
+            result_info->current_mode_work_time);
         log_timer = 0;
     }
     return ret;
@@ -111,7 +114,6 @@ static int breast_pump_result_info_update(breast_pump_manager_context_t *ctx, pu
 {
     if (result_info->target_valid_time == result_info->work_valid_time) { 
         result_info->target_valid_time += result_info->setting_time;
-        /// 最多允许泵奶10分钟
         if (result_info->target_valid_time >= SINGLE_PUMP_TIME_MAX) {
             result_info->target_valid_time = SINGLE_PUMP_TIME_MAX;
         }
@@ -149,9 +151,14 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
         work_time = SETTING_PUMP_TIME_MAX / 1000;
     }
     result_info->setting_time = work_time * 1000;
+    /// 模式或状态变化时，重置当前模式运行时间.
+    if (result_info->mode != ctx->priv.m_info.mode || status == BREAST_PUMP_START) {
+        result_info->current_mode_work_time = 0;
+    }
     result_info->mode = ctx->priv.m_info.mode;
     ctx->get_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX);
-    LOG_PMP("start pump work, mode: %d, work_time: %d, setting_time: %d", result_info->mode, work_time, result_info->setting_time);
+    LOG_PMP("start pump work, mode: %d, work_time: %d, setting_time: %d, mode_time: %d, status: %d", 
+        result_info->mode, work_time, result_info->setting_time, result_info->current_mode_work_time, status);
     /// 初始化泵奶数据.
     if (status == BREAST_PUMP_START) {
         breast_pump_result_info_reset(ctx, result_info);  
