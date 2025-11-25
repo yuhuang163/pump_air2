@@ -57,6 +57,7 @@ typedef struct pump_result_info {
     uint32_t target_total_time;         /// 目标最大工作时长 电子压感存在时使用
     uint32_t work_total_time;           /// 泵奶总时长
     uint32_t work_valid_time;           /// 有效泵奶时长, 预留后续扩展使用
+    uint32_t current_mode_work_time;    /// 当前模式运行时间
 } pump_result_info_t;
 
 typedef void (*on_breast_pump_result_cb_ptr)(void *user_data, breast_pump_result_t *result);
