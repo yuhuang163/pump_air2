@@ -16,7 +16,7 @@ extern "C" {
 /// 马达线程深度
 #define MOTOR_PLAY_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 2 + 0)
 /// 蓝牙线程深度
-#define BLE_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
+#define BLE_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 4 + 0)
 /// 吸奶线程深度
 #define BTH_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
 /// lvgl线程深度
