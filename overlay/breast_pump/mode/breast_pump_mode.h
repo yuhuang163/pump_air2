@@ -32,6 +32,7 @@ const motor_policy_manager_t *custom_mode_policy_get(void *user_data);
 motor_policy_cfg_t *custom_mode_policy_cfg_get(void);
 int custom_mode_parameter_init(void);
 int custom_mode_parameter_update(motor_policy_cfg_t *cfg, uint8_t cfg_num);
+void print_pump_custom_cfg(motor_policy_cfg_t *cfg, uint8_t cfg_num);
 
 const motor_policy_manager_t *pp_milk_track_mode_policy_get(void *user_data);
 int pp_milk_track_mode_parameter_init(void);

@@ -392,6 +392,10 @@ uint8_t app_old_comm_pump_custom_step_para_to_local_motor_policy(user_def_pump_s
     uint8_t cfg_num = 0;
     for (uint8_t i = 0; i < pump_steps_data->num; i++)
     {
+        if (cfg_num >= CUSTOM_MODE_MOTOR_POLICY_NUMBER) {
+            LOG_PROTOCOL("custom pump step will over max");
+            return false;
+        }
         LOG_PROTOCOL("custom pump step mode %d", pump_steps_data->data[i].mode);
         if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_SHORT) {
             motor_policy_cfg_t stimulation_default_temp[STIMULATION_MODE_LEN] = {0};
@@ -399,7 +403,7 @@ uint8_t app_old_comm_pump_custom_step_para_to_local_motor_policy(user_def_pump_s
             stimulation_default_temp[0].duration = pump_steps_data->data[i].time;
             stimulation_default_temp[0].core.un.mapping.level = pump_steps_data->data[i].level;
             stimulation_default_temp[0].core.un.mapping.speed = pump_steps_data->data[i].freq;
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &stimulation_default_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &stimulation_default_temp,
                    sizeof(stimulation_default_temp));
             cfg_num += 1;
         } else if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_LONG) {
@@ -408,7 +412,7 @@ uint8_t app_old_comm_pump_custom_step_para_to_local_motor_policy(user_def_pump_s
             pump_default_temp[0].duration = pump_steps_data->data[i].time;
             pump_default_temp[0].core.un.mapping.level = pump_steps_data->data[i].level;
             pump_default_temp[0].core.un.mapping.speed = pump_steps_data->data[i].freq;
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &pump_default_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &pump_default_temp,
                    sizeof(pump_default_temp));
             cfg_num += 1;
         } else if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_MIX1) {
@@ -419,7 +423,7 @@ uint8_t app_old_comm_pump_custom_step_para_to_local_motor_policy(user_def_pump_s
                 mix_default_temp[j].core.un.mapping.level = pump_steps_data->data[i].level;
                 mix_default_temp[j].core.un.mapping.speed = pump_steps_data->data[i].freq;
             }
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &mix_default_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &mix_default_temp,
                    sizeof(mix_default_temp));
             cfg_num += 2;
         } else if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_MIX2) {
@@ -430,17 +434,14 @@ uint8_t app_old_comm_pump_custom_step_para_to_local_motor_policy(user_def_pump_s
                 mix_default2_temp[j].core.un.mapping.level = pump_steps_data->data[i].level;
                 mix_default2_temp[j].core.un.mapping.speed = pump_steps_data->data[i].freq;
             }
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &mix_default2_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &mix_default2_temp,
                    sizeof(mix_default2_temp));
             cfg_num += 2;
         } else {
             LOG_PROTOCOL("unknow custom pump step mode");
         }
-        if (cfg_num >= 30) {
-            LOG_PROTOCOL("custom pump step over max");
-            return false;
-        }
     }
+    print_pump_custom_cfg(custom_mode_policy_cfg, cfg_num);
     //motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     //EXCEPTION_CHECK_UINT(motor_ctx);
     //EXCEPTION_CHECK_UINT(motor_ctx->hook);
@@ -569,12 +570,13 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 	pump_user_defined_step_data_temp.id.dat[1] = cab[1]; // data[2];
 	pump_user_defined_step_data_temp.id.dat[2] = cab[2]; // data[1];
 	pump_user_defined_step_data_temp.id.dat[3] = cab[3]; // data[0];
-	LOG_PROTOCOL("cmd ud-mode id = %d", pump_user_defined_step_data_temp.id.dat32);
+	LOG_PROTOCOL("cmd ud-mode id = 0X%x", pump_user_defined_step_data_temp.id.dat32);
 
 	if (cab[4] <= ROOT_BREAST_PUMP_STEP_MAX)
 	{
 		section_num = cab[4];
 		pump_user_defined_step_data_temp.num = section_num;
+        LOG_PROTOCOL("pump_user_defined_step_data_temp.num = %d", pump_user_defined_step_data_temp.num);
 	}
 
 	pump_user_defined_step_data_temp.custom_total_time = 0;
@@ -584,7 +586,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 		n = 5 + 10 * i;
 		if (cab[n] <= ROOT_BREAST_PUMP_STEP_MAX)
 		{
-			pump_user_defined_step_data_temp.data[i].mode = cab[n + 1] - 1;
+			pump_user_defined_step_data_temp.data[i].mode = cab[n + 1];
 			pump_user_defined_step_data_temp.data[i].level = cab[n + 2];
 			if (pump_user_defined_step_data_temp.data[i].mode > (BREAST_PUMP_MODE_MAX + 1))
 			{
@@ -608,9 +610,9 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 			pump_user_defined_step_data_temp.custom_total_time += pump_user_defined_step_data_temp.data[i].time;
 		}
 
-		LOG_PROTOCOL("ud-mode[%d]=%02x", i, pump_user_defined_step_data_temp.data[i].mode);
-		LOG_PROTOCOL("ud-level[%d]=%02x", i, pump_user_defined_step_data_temp.data[i].level);
-		LOG_PROTOCOL("ud-time[%d]=%04x", i, pump_user_defined_step_data_temp.data[i].time);
+		LOG_PROTOCOL("ud-mode[%d]=0x%02x", i, pump_user_defined_step_data_temp.data[i].mode);
+		LOG_PROTOCOL("ud-level[%d]=0x%02x", i, pump_user_defined_step_data_temp.data[i].level);
+		LOG_PROTOCOL("ud-time[%d]=0x%04x", i, pump_user_defined_step_data_temp.data[i].time);
 	}
     //pump_user_defined_step_data_temp.custom_total_time = 1000*pump_user_defined_step_data_temp.custom_total_time; //转换为ms
 	n = 5 + 10 * i;
@@ -626,7 +628,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     EXCEPTION_CHECK_VOID(storage_ctx);
     storage_ctx->put_store_ram_val(STORE_ID_BREAST_PUMP_TIME, BREAST_PUMP_CUSTOM_MODE,
                                    pump_user_defined_step_data_temp.custom_total_time, NULL);
-    LOG_PROTOCOL("pump_user_defined_step_data_temp.custom_total_time= %d", pump_user_defined_step_data_temp.custom_total_time);
+    LOG_PROTOCOL("pump_user_defined_step_data_temp.custom_total_time= 0x%x", pump_user_defined_step_data_temp.custom_total_time);
     //将storage的custom 的setting更新
     app_old_comm_update_storage_custom_setting(&pump_user_defined_step_data_temp);
     //将默认的custom 策略更新
@@ -655,7 +657,7 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     }
     storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     factory_dev_info_t factory_dev_info;
-    AppOldCommDeviceInfo* comm_dev_info = app_old_comm_dev_info_get();
+
     EXCEPTION_CHECK_VOID(ctx);
     EXCEPTION_CHECK_VOID(cab);
     uint8_t ack_data[64] = {0};
@@ -675,8 +677,8 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     memcpy(ack_data + data_len, factory_dev_info.sn, factory_dev_info.sn_len);
     data_len += factory_dev_info.sn_len;
 #if BLE_PAYLOAD_CRYPTION
-    ack_data[data_len++] = comm_dev_info->encrypt_status;
-    ack_data[data_len++] = comm_dev_info->encrypt_key;
+    ack_data[data_len++] = 0x00;//encrypt_status;
+    ack_data[data_len++] = 0xcc;//encrypt_key;
 #endif
     ack_data[data_len++] = ctx->priv.ver_info.sw_version % 10;
     LOG_PROTOCOL(" Sending device info ACK (data len: %d)\n", data_len);

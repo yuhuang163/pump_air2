@@ -45,6 +45,33 @@ motor_policy_cfg_t *custom_mode_policy_cfg_get(void)
     return s_custom_policy_cfg;
 }
 
+void print_pump_custom_cfg(motor_policy_cfg_t *cfg, uint8_t cfg_num)
+{
+    for (int i = 0; i < cfg_num; i++) {
+        LOG_MOTOR("=== custom_cfg[%d] ===", i);
+        LOG_MOTOR("  policy_type: %d", cfg[i].policy_type);
+        LOG_MOTOR("  duration: %d s", cfg[i].duration);
+        LOG_MOTOR("  core.type: %d", cfg[i].core.type);
+
+        if (cfg[i].core.type == MOTOR_PARAM_TABLE) {
+            // 查表模式 - mapping
+            LOG_MOTOR("  core.un.mapping.speed: %d", cfg[i].core.un.mapping.speed);
+            LOG_MOTOR("  core.un.mapping.level: %d", cfg[i].core.un.mapping.level);
+            LOG_MOTOR("  core.un.mapping.mode_type: %d", cfg[i].core.un.mapping.mode_type);
+        } else {
+            // 透传模式 - original
+            LOG_MOTOR("  core.un.original.pump_level: %d", cfg[i].core.un.original.pump_level);
+            LOG_MOTOR("  core.un.original.pumping_time: %d ms", cfg[i].core.un.original.pumping_time);
+            LOG_MOTOR("  core.un.original.valve_on_time: %d ms", cfg[i].core.un.original.valve_on_time);
+            LOG_MOTOR("  core.un.original.sleep_time: %d ms", cfg[i].core.un.original.sleep_time);
+            LOG_MOTOR("  core.un.original.hold_time: %d ms", cfg[i].core.un.original.hold_time);
+        }
+
+        LOG_MOTOR("  core.config.loop_num: %d", cfg[i].core.config.loop_num);
+        LOG_MOTOR("  core.config.period: %d ms", cfg[i].core.config.period);
+    }
+}
+
 uint8_t pump_custom_step_para_to_local_motor_policy(user_def_pump_steps_data_t *pump_steps_data,
                                                                  motor_policy_cfg_t *custom_mode_policy_cfg)
 {
@@ -62,7 +89,7 @@ uint8_t pump_custom_step_para_to_local_motor_policy(user_def_pump_steps_data_t *
             stimulation_default_temp[0].duration = pump_steps_data->data[i].time;
             stimulation_default_temp[0].core.un.mapping.level = pump_steps_data->data[i].level;
             stimulation_default_temp[0].core.un.mapping.speed = pump_steps_data->data[i].freq;
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &stimulation_default_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &stimulation_default_temp,
                    sizeof(stimulation_default_temp));
             cfg_num += 1;
         } else if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_LONG) {
@@ -71,7 +98,7 @@ uint8_t pump_custom_step_para_to_local_motor_policy(user_def_pump_steps_data_t *
             pump_default_temp[0].duration = pump_steps_data->data[i].time;
             pump_default_temp[0].core.un.mapping.level = pump_steps_data->data[i].level;
             pump_default_temp[0].core.un.mapping.speed = pump_steps_data->data[i].freq;
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &pump_default_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &pump_default_temp,
                    sizeof(pump_default_temp));
             cfg_num += 1;
         } else if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_MIX1) {
@@ -82,7 +109,7 @@ uint8_t pump_custom_step_para_to_local_motor_policy(user_def_pump_steps_data_t *
                 mix_default_temp[j].core.un.mapping.level = pump_steps_data->data[i].level;
                 mix_default_temp[j].core.un.mapping.speed = pump_steps_data->data[i].freq;
             }
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &mix_default_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &mix_default_temp,
                    sizeof(mix_default_temp));
             cfg_num += 2;
         } else if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_MIX2) {
@@ -93,7 +120,7 @@ uint8_t pump_custom_step_para_to_local_motor_policy(user_def_pump_steps_data_t *
                 mix_default2_temp[j].core.un.mapping.level = pump_steps_data->data[i].level;
                 mix_default2_temp[j].core.un.mapping.speed = pump_steps_data->data[i].freq;
             }
-            memcpy(custom_mode_policy_cfg + cfg_num * sizeof(motor_policy_cfg_t), &mix_default2_temp,
+            memcpy(custom_mode_policy_cfg + cfg_num, &mix_default2_temp,
                    sizeof(mix_default2_temp));
             cfg_num += 2;
         } else {

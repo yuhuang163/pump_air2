@@ -17,9 +17,7 @@ app_old_protocol_handler_context_t ctx_app_old_protocol_handler;
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-// Module internal global variables
-static AppOldCommDeviceInfo app_old_comm_dev_info;
-static AppOldCommDeviceStatus app_old_comm_dev_status;
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -29,140 +27,6 @@ static AppOldCommDeviceStatus app_old_comm_dev_status;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void app_old_comm_handle_heartbeat_req();
-static void app_old_comm_handle_set_rtc_req(uint8_t cal, uint8_t *cab);
-static void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab);
-static void app_old_comm_handle_get_encrypt_req();
-
-static void app_old_comm_handle_set_bind_req(uint8_t cal, uint8_t *cab);
-static void app_old_comm_handle_set_heat_req(uint8_t cal, uint8_t *cab);
-static void app_old_comm_handle_set_travel_lock_req(uint8_t cal, uint8_t *cab);
-static void app_old_comm_parse_notify_status(uint8_t cal, uint8_t *cab);
-static void app_old_comm_parse_notify_bind(uint8_t cal, uint8_t *cab);
-static void app_old_comm_parse_notify_discon();
-static void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_right);
-
-// -------------------------- Request command handling implementations --------------------------
-static void app_old_comm_handle_heartbeat_req()
-{
-    LOG_PROTOCOL(" Sending heartbeat ACK\n");
-   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_HEARTBEAT, 0, NULL);
-}
-
-static void app_old_comm_handle_set_rtc_req(uint8_t cal, uint8_t *cab)
-{
-    LOG_PROTOCOL(" Handling set RTC request\n");
-    if (cal != 0x04) {
-        LOG_PROTOCOL(" Invalid data length for SET_RTC (expected 4, got %d)\n", cal);
-        return;
-    }
-    uint32_t utc_time = (cab[3] << 24) | (cab[2] << 16) | (cab[1] << 8) | cab[0];
-    LOG_PROTOCOL(" Setting RTC time to 0x%08X\n", utc_time);
-    // TODO: Call RTC setting interface
-   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_RTC, 0, NULL);
-}
-
-static void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
-{
-    LOG_PROTOCOL(" Handling system control request\n");
-    if (cal != 0x01) {
-        LOG_PROTOCOL(" Invalid data length for SYS_CTRL (expected 1, got %d)\n", cal);
-        return;
-    }
-    uint8_t ctrl_cmd = cab[0];
-    LOG_PROTOCOL(" Executing system control command 0x%02X\n", ctrl_cmd);
-    // TODO: Execute system control logic
-   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SYS_CTRL, 1, &ctrl_cmd);
-}
-
-static void app_old_comm_handle_get_encrypt_req()
-{
-    LOG_PROTOCOL(" Handling get encryption info request\n");
-    uint8_t ack_data[2] = {0};
-    ack_data[0] = app_old_comm_dev_info.encrypt_status;
-    ack_data[1] = app_old_comm_dev_info.encrypt_key;
-    LOG_PROTOCOL(" Sending encryption info ACK (status: 0x%02X, key: 0x%02X)\n",
-           ack_data[0], ack_data[1]);
-   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_ENCRYPT, 2, ack_data);
-}
-
-static void app_old_comm_handle_set_bind_req(uint8_t cal, uint8_t *cab)
-{
-    LOG_PROTOCOL(" Handling set bind status request\n");
-    if (cal != 0x02) {
-        LOG_PROTOCOL(" Invalid data length for SET_BIND (expected 2, got %d)\n", cal);
-        return;
-    }
-    uint8_t bind_status = cab[0];
-    uint8_t left_right = cab[1];
-    LOG_PROTOCOL(" Setting bind status - Status: %d, Side: %d\n", bind_status, left_right);
-    // TODO: Update binding status
-    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_BIND, 2, cab);
-    app_old_comm_report_bind_status(bind_status, left_right);
-}
-
-static void app_old_comm_handle_set_heat_req(uint8_t cal, uint8_t *cab)
-{
-    LOG_PROTOCOL(" Handling set heat request\n");
-    if (cal != 0x05) {
-        LOG_PROTOCOL(" Invalid data length for SET_HEAT (expected 5, got %d)\n", cal);
-        return;
-    }
-    uint8_t auto_heat = cab[0];
-    uint8_t heat_switch = cab[1];
-    uint8_t heat_gear = cab[2];
-    LOG_PROTOCOL(" Setting heat parameters - Auto: %d, Switch: %d, Gear: %d\n",
-           auto_heat, heat_switch, heat_gear);
-    // TODO: Execute heating control logic
-    //ctx_app_old_protocol_handler.protocol_ctx->app_old_protocol_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_HEAT, 0, NULL);
-}
-
-static void app_old_comm_handle_set_travel_lock_req(uint8_t cal, uint8_t *cab)
-{
-    LOG_PROTOCOL(" Handling set travel lock request\n");
-    if (cal != 0x01) {
-        LOG_PROTOCOL(" Invalid data length for SET_TRAVEL_LOCK (expected 1, got %d)\n", cal);
-        return;
-    }
-    app_old_comm_dev_status.travel_lock = cab[0];
-    LOG_PROTOCOL(" Setting travel lock status to %d\n", app_old_comm_dev_status.travel_lock);
-    // TODO: Execute travel lock control logic
-   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_TRAVEL_LOCK, 0, NULL);
-}
-
-// -------------------------- Report command parsing implementations --------------------------
-static void app_old_comm_parse_notify_status(uint8_t cal, uint8_t *cab)
-{
-    LOG_PROTOCOL(" Parsing status notification (data len: %d)\n", cal);
-    if (cal < 0x2D) {
-        LOG_PROTOCOL(" Invalid data length for NOTIFY_STATUS (expected >=45, got %d)\n", cal);
-        return;
-    }
-}
-
-static void app_old_comm_parse_notify_bind(uint8_t cal, uint8_t *cab)
-{
-    LOG_PROTOCOL(" Parsing bind status notification (data len: %d)\n", cal);
-    if (cal != 0x01) {
-        LOG_PROTOCOL(" Invalid data length for NOTIFY_BIND (expected 1, got %d)\n", cal);
-        return;
-    }
-    // TODO: Handle binding status update
-}
-
-static void app_old_comm_parse_notify_discon()
-{
-    LOG_PROTOCOL(" Parsing disconnection notification\n");
-    // TODO: Handle BLE disconnection logic
-}
-
-static void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_right)
-{
-    LOG_PROTOCOL(" Reporting bind status - Status: %d, Side: %d\n", bind_status, left_right);
-    uint8_t report_data[2] = {bind_status, left_right};
-   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_BIND, 2, report_data);
-}
-
 static void app_old_comm_poll_timer_handler(void *handle)
 {
     LOG_PROTOCOL(" Poll timer triggered - reporting device status\n");
@@ -261,60 +125,20 @@ void app_old_comm_handle_response_cmd(app_old_commcmd_type_e ct, app_old_comm_cm
 
     switch (cid) {
         case APP_OLD_COMM_CID_NOTIFY_STATUS:
-            app_old_comm_parse_notify_status(cal, cab);
+            app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
+            app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
             break;
         case APP_OLD_COMM_CID_NOTIFY_BIND:
-            app_old_comm_parse_notify_bind(cal, cab);
+            app_old_comm_report_bind_status(1, 0);
             break;
         case APP_OLD_COMM_CID_NOTIFY_DISCON:
-            app_old_comm_parse_notify_discon();
+            app_old_comm_report_discon_status();
             break;
         default:
             LOG_PROTOCOL(" Unhandled response command %s (0x%02X)\n",
                    app_old_comm_get_cmd_id_str(cid), cid);
             break;
     }
-}
-
-AppOldCommDeviceInfo* app_old_comm_dev_info_get(void)
-{
-    return &app_old_comm_dev_info;
-}
-
-AppOldCommDeviceStatus* app_old_comm_dev_status_get(void)
-{
-    return &app_old_comm_dev_status;
-}
-
-// Initialize device information structure
-void app_old_comm_variable_init(void)
-{
-    memset(&app_old_comm_dev_info, 0, sizeof(AppOldCommDeviceInfo));
-    memset(&app_old_comm_dev_status, 0, sizeof(AppOldCommDeviceStatus));
-        // Initialize device information
-    AppOldCommDeviceInfo init_info = {
-        .product_type = 0x01,          // M9 product
-        .hardware_platform = 0x01,     // JL platform
-        .hardware_ver = 0x02,          // Hardware version V2
-        .software_ver = 0x03,          // Software version V3
-        .custom_mode_id = 0x12345678,  // Custom mode ID
-        .milk_full_ver = 0x01,         // Milk full detection version
-        .milk_full_switch = 0x01,      // Milk full detection enabled
-        .sn = "DEVICE1234567890ABCDEF",// SN code
-        .encrypt_status = 0x00,        // Encrypted
-        .encrypt_key = 0xAB            // Encryption key
-    };
-    memcpy(&app_old_comm_dev_info, &init_info, sizeof(AppOldCommDeviceInfo));
-    // Simulate device status
-    AppOldCommDeviceStatus dev_status = {
-        .battery = 80,                 // 80% battery
-        .status = APP_OLD_COMM_SYS_RUN, // Running
-        .left_right = 0x00,            // Left side
-        .milk_mode = APP_OLD_COMM_MODE_SUCTION, // Suction mode
-        .milk_gear = 0x05,             // Gear 5
-        .travel_lock = 0x00            // Not locked
-    };
-    memcpy(&app_old_comm_dev_status, &dev_status, sizeof(AppOldCommDeviceStatus));
 }
 
 void app_old_protocol_hander_frame_builder_send(app_old_commcmd_type_e cmdtype, app_old_comm_cmd_id_e cid,
