@@ -6,7 +6,6 @@
 #include "app_protocol_handler.h"
 #include "protocol_manager_api.h"
 #include "storage_manager_api.h"
-#include "app_protocol_pump_ctrl_server.h"
 
 /*
 * DEFINES
@@ -98,7 +97,7 @@ static void app_old_comm_handle_set_bind_req(uint8_t cal, uint8_t *cab)
     uint8_t left_right = cab[1];
     LOG_PROTOCOL(" Setting bind status - Status: %d, Side: %d\n", bind_status, left_right);
     // TODO: Update binding status
-   app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_BIND, 2, cab);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_BIND, 2, cab);
     app_old_comm_report_bind_status(bind_status, left_right);
 }
 
@@ -139,33 +138,6 @@ static void app_old_comm_parse_notify_status(uint8_t cal, uint8_t *cab)
         LOG_PROTOCOL(" Invalid data length for NOTIFY_STATUS (expected >=45, got %d)\n", cal);
         return;
     }
-
-    uint16_t offset = 0;
-    app_old_comm_dev_status.battery = cab[offset++];
-    app_old_comm_dev_status.status = (AppOldCommDevStatus)cab[offset++];
-    app_old_comm_dev_status.left_right = cab[offset++];
-    app_old_comm_dev_status.milk_mode = (AppOldCommMilkMode)cab[offset++];
-    app_old_comm_dev_status.milk_gear = cab[offset++];
-
-    LOG_PROTOCOL(" Updated status - Battery: %d%%, Status: %d, Mode: %d, Gear: %d\n",
-           app_old_comm_dev_status.battery,
-           app_old_comm_dev_status.status,
-           app_old_comm_dev_status.milk_mode,
-           app_old_comm_dev_status.milk_gear);
-
-    // Parse remaining fields
-    app_old_comm_dev_status.custom_mode = cab[offset++];
-    app_old_comm_dev_status.custom_gear = cab[offset++];
-    app_old_comm_dev_status.custom_freq = cab[offset++];
-    app_old_comm_dev_status.total_time = (cab[offset+1] << 8) | cab[offset];
-    offset += 2;
-    app_old_comm_dev_status.mode_time = (cab[offset+1] << 8) | cab[offset];
-    offset += 2;
-    app_old_comm_dev_status.milk_volume = cab[offset++];
-    app_old_comm_dev_status.error_flag = cab[offset++];
-    app_old_comm_dev_status.custom_total_time = (cab[offset+1] << 8) | cab[offset];
-    offset += 2;
-    app_old_comm_dev_status.travel_lock = cab[offset++];
 }
 
 static void app_old_comm_parse_notify_bind(uint8_t cal, uint8_t *cab)
@@ -213,7 +185,15 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
         LOG_PROTOCOL(" Command data: ");
         LOG_HEX("app_recv_data hex", cab, cal);
     }
-
+#if 0
+    // 对除了传输加密key和测试以外的所有指令数据进行加密
+    if (ctx_app_old_protocol_handler.encrypt_status == 1) {
+        if ((cid != APP_OLD_COMM_CID_GET_ENCRYPT) && (cid != APP_OLD_COMM_CID_GET_DEV_INFO)) {
+            app_old_protocol_data_cryption(ctx_app_old_protocol_handler.encrypt_key, cab, cal); //解密密ble数据
+        }
+    }
+    LOG_HEX("app_recv_data cryption hex", cab, cal);
+#endif
     switch (cid) {
         case APP_OLD_COMM_CID_HEARTBEAT:
             app_old_comm_handle_heartbeat_req();
@@ -248,6 +228,9 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
             break;
         case APP_OLD_COMM_CID_USER_DEFINE:
             app_old_comm_handle_set_user_define_req(cal, cab);
+            break;
+        case APP_OLD_COMM_CID_PARA_DOWNLOAD:
+            app_old_comm_handle_set_user_define_wr_flash_req(cal, cab);
             break;
         case APP_OLD_COMM_CID_SET_TRAVEL_LOCK:
             app_old_comm_handle_set_travel_lock_req(cal, cab);
@@ -325,7 +308,7 @@ void app_old_comm_variable_init(void)
     // Simulate device status
     AppOldCommDeviceStatus dev_status = {
         .battery = 80,                 // 80% battery
-        .status = APP_OLD_COMM_DEV_RUNNING, // Running
+        .status = APP_OLD_COMM_SYS_RUN, // Running
         .left_right = 0x00,            // Left side
         .milk_mode = APP_OLD_COMM_MODE_SUCTION, // Suction mode
         .milk_gear = 0x05,             // Gear 5
@@ -338,6 +321,15 @@ void app_old_protocol_hander_frame_builder_send(app_old_commcmd_type_e cmdtype, 
                                                 uint8_t data_len, uint8_t *data)
 {
     EXCEPTION_CHECK_VOID(ctx_app_old_protocol_handler.protocol_ctx);
+#if 0
+    // 对除了传输加密key和测试以外的所有指令数据进行加密
+    if (ctx_app_old_protocol_handler.encrypt_status == 1) {
+        if ((cid != APP_OLD_COMM_CID_GET_ENCRYPT) && (cid != APP_OLD_COMM_CID_GET_DEV_INFO)) {
+            app_old_protocol_data_cryption(ctx_app_old_protocol_handler.encrypt_key, data, data_len); //解密密ble数据
+        }
+    }
+    LOG_HEX("app_recv_data cryption hex", data, data_len);
+#endif
     ctx_app_old_protocol_handler.protocol_ctx->app_old_protocol_frame_builder_send(cmdtype, cid, data_len, data);
 }
 

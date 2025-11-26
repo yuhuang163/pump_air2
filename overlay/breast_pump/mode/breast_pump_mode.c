@@ -76,7 +76,7 @@ int breast_pump_mode_time_step_number_get(int mode)
     }
 }
 
-void breast_pump_setting_reset (sys_pump_info_t *pump_info, int mode)
+void breast_pump_setting_reset(sys_pump_info_t *pump_info, int mode)
 {
     EXCEPTION_CHECK_VOID(pump_info);
     pump_setting_t *setting = NULL;
@@ -147,6 +147,35 @@ void breast_pump_setting_reset (sys_pump_info_t *pump_info, int mode)
         default:
             LOGE("mode error, mode: %d", mode);
             break;
+    }
+}
+
+void breast_pump_custom_step_para_reset(sys_pump_info_t *pump_info)
+{
+    const motor_policy_cfg_t *cfg = custom_default;
+    EXCEPTION_CHECK_VOID(cfg);
+    //step很重要，需要计算，如果custom默认有混合模式组合，写法就不对
+    uint8_t step_count = CUSTOM_MODE_LEN;
+    user_def_pump_steps_data_t *custom_steps_parameter = NULL;
+    custom_steps_parameter = &pump_info->custom_steps_parameter;
+    custom_steps_parameter->id.dat32 = (uint32_t)0; //标识默认参数
+    custom_steps_parameter->num = step_count;
+
+    for (uint8_t i = 0; i < step_count; i++) {
+        custom_steps_parameter->data[i].freq = cfg[i].core.un.mapping.speed;
+        custom_steps_parameter->data[i].level = cfg[i].core.un.mapping.level;
+        custom_steps_parameter->data[i].time = cfg[i].duration ; //单位s
+        if (cfg[i].policy_type == MOTOR_TIME_POLICY && cfg[i].core.config.loop_num == 1) {
+            custom_steps_parameter->data[i].mode = cfg[i].core.un.mapping.mode_type;
+        } else if (cfg[i].policy_type == MOTOR_TIME_POLICY && cfg[i].core.config.loop_num == 5) {
+            custom_steps_parameter->data[i].mode = 0x03;
+        } else if (cfg[i].policy_type == MOTOR_TIME_POLICY && cfg[i].core.config.loop_num == 2) {
+            custom_steps_parameter->data[i].mode = 0x04;
+        }
+        custom_steps_parameter->custom_total_time += custom_steps_parameter->data[i].time;
+        LOG_MOTOR("ud-mode[%d]=%02x", i, custom_steps_parameter->data[i].mode);
+        LOG_MOTOR("ud-level[%d]=%02x", i, custom_steps_parameter->data[i].level);
+        LOG_MOTOR("ud-time[%d]=%04x", i, custom_steps_parameter->data[i].time);
     }
 }
 

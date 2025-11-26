@@ -10,23 +10,7 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
 #include "app_old_protocol_parser.h"
-// Device status definitions
-typedef enum {
-    APP_OLD_COMM_DEV_STOP        = 0x00,  // Stopped
-    APP_OLD_COMM_DEV_RUNNING     = 0x01,  // Running
-    APP_OLD_COMM_DEV_CHARGING    = 0x02,  // Charging
-    APP_OLD_COMM_DEV_POWER_OFF   = 0x03,  // Power off
-    APP_OLD_COMM_DEV_CUSTOM_END  = 0x05   // Custom task ended
-} AppOldCommDevStatus;
-
-// Breast pumping mode definitions
-typedef enum {
-    APP_OLD_COMM_MODE_MASSAGE    = 0x01,  // Massage
-    APP_OLD_COMM_MODE_SUCTION    = 0x02,  // Suction
-    APP_OLD_COMM_MODE_MIXED      = 0x03,  // Mixed
-    APP_OLD_COMM_MODE_CUSTOM     = 0x04,  // Custom
-    APP_OLD_COMM_MODE_SMART      = 0x05   // Smart suction
-} AppOldCommMilkMode;
+#include "app_protocol_pump_ctrl_server.h"
 
 // Device information structure
 typedef struct {
@@ -45,9 +29,9 @@ typedef struct {
 // Device status structure
 typedef struct {
     uint8_t battery;         // Battery level (0-100%)
-    AppOldCommDevStatus status; // Device status
+    app_old_commd_sys_status_e status; // Device status
     uint8_t left_right;      // Left/right indicator (0=left, 1=right)
-    AppOldCommMilkMode milk_mode; // Pumping mode
+    app_old_comm_pump_mode milk_mode; // Pumping mode
     uint8_t milk_gear;       // Pumping gear (1-15)
     uint8_t custom_mode;     // Custom mode type
     uint8_t custom_gear;     // Custom gear (1-15)
@@ -63,8 +47,8 @@ typedef struct {
 typedef struct app_old_protocol_handler_context {
     os_timer_id poll_timer;
     protocol_manager_context_t *protocol_ctx;
-
-
+    uint8_t encrypt_status;
+    uint8_t encrypt_key;
 } app_old_protocol_handler_context_t;
 
 void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab);
