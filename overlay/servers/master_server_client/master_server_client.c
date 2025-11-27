@@ -45,6 +45,10 @@ static void on_master_server_event_cb(void *user_data, uint8_t *data, uint16_t d
     protocol_ctx->app_old_protocol_assemble_packet(data, data_len, app_old_protocol_frame_callback);
 }
 
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
 int on_master_app_old_protocol_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data)
 {
     servers_manager_context_t *ctx = context;
@@ -57,18 +61,7 @@ int on_master_app_old_protocol_receiver_route(broadcast_mask_id_t id, void *cont
             break;
             case ID_BROADCAST_BLE_CONNECT_STATE_CHANGE:
             {
-                #if 0
-                AppOldCommDeviceInfo *comm_dev_info = app_old_comm_dev_info_get();
-                comm_dev_info->encrypt_status = 0; //断开或连接后重置加密状态
-                if (arg1) {
-                    do {
-                        comm_dev_info->encrypt_key = (uint8_t)rand();
-                    } while ((comm_dev_info->encrypt_key == 0) || (comm_dev_info->encrypt_key == 0xFF)); // 不能为0或者0xFF
-                } else {
-                    ;
-                }
-                LOG_PROTOCOL("comm_dev_info->encrypt_key %d", comm_dev_info->encrypt_key);
-                #endif
+
             }
             break;
         case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
@@ -87,10 +80,6 @@ int on_master_app_old_protocol_receiver_route(broadcast_mask_id_t id, void *cont
    return 0;
 }
 
-/*
-* GLOBAL FUNCTION DEFINITIONS
-*****************************************************************************************
-*/
 void master_server_client_init(void)
 {
     ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
@@ -99,4 +88,10 @@ void master_server_client_init(void)
     EXCEPTION_CHECK_VOID(protocol_ctx);
     ble_ctx->add_ble_evt_lisenser(ble_ctx, DEVICE_BLE_MASTER_MSG_CHANNEL, on_master_server_event_cb);
     app_old_protocol_ctx_init();
+}
+
+int app_old_protocol_server_data_publish(app_old_comm_cmd_id_e cid, servers_publish_data_args_t *args)
+{
+    app_old_comm_handle_response_cmd(cid, sizeof(servers_publish_data_args_t), args);
+    return true;
 }
