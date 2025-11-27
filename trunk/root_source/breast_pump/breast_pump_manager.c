@@ -143,6 +143,16 @@ static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
     } else {
         memcpy(&breast_pump_obj->priv.setting[step_index], setting, sizeof(pump_setting_t));
     }
+    //通知app
+    servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
+    servers_publish_data_args_t args = {
+        .arg1 = 0,
+        .arg2 = 0,
+        .val = NULL,
+    };
+    servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+
 }
 
 static void set_breast_pump_mode(uint32_t mode)
@@ -162,6 +172,16 @@ static void set_breast_pump_mode(uint32_t mode)
             breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
     }
     SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_MODE_CHANGE, m_info->mode, 1);
+    //通知app
+    servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
+    servers_publish_data_args_t args = {
+        .arg1 = 0,
+        .arg2 = 0,
+        .val = NULL,
+    };
+    servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+
 }
 
 static int get_breast_pump_mode(void)
@@ -253,6 +273,16 @@ static void set_breast_pump_status(int status)
                 breast_pump_obj->get_breast_pump_status_async());
         }
     }
+    //通知app
+    servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
+    servers_publish_data_args_t args = {
+        .arg1 = 0,
+        .arg2 = 0,
+        .val = NULL,
+    };
+    servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+
     MUTEX_UNLOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
     LOG_PMP("exit work: %d", m_info->do_work);
 }

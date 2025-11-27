@@ -158,6 +158,16 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
         memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
         pump_policy_info_reset(thiz, body, i);
     }
+
+    //策略重启通知app
+    servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
+    servers_publish_data_args_t args = {
+        .arg1 = 0,
+        .arg2 = 0,
+        .val = NULL,
+    };
+    servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
 }
 
 int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_task_para_t *play_para)

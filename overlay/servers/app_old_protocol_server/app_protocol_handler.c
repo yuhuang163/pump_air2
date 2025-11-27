@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-app_old_protocol_handler_context_t ctx_app_old_protocol_handler;
+static app_old_protocol_handler_context_t ctx_app_old_protocol_handler = {0};
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -118,8 +118,8 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
     }
 }
 
-// Handle response/report commands (device->APP)
-void app_old_comm_handle_response_cmd(app_old_commcmd_type_e ct, app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab)
+// Handle report commands (device->APP)
+void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, void *cab)
 {
     LOG_PROTOCOL(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
 
@@ -131,9 +131,29 @@ void app_old_comm_handle_response_cmd(app_old_commcmd_type_e ct, app_old_comm_cm
         case APP_OLD_COMM_CID_NOTIFY_BIND:
             app_old_comm_report_bind_status(1, 0);
             break;
-        case APP_OLD_COMM_CID_NOTIFY_DISCON:
-            app_old_comm_report_discon_status();
-            break;
+        case APP_OLD_COMM_CID_NOTIFY_DISCON: {
+            servers_publish_data_args_t *args_temp = (servers_publish_data_args_t *)cab;
+            if (args_temp->arg1 == true) //连接
+            {
+                LOG_PROTOCOL(" ble connect");
+                /* code */
+            } else if (args_temp->arg1 == false) //断连接
+            {
+                LOG_PROTOCOL(" ble disconnect");
+                app_old_comm_report_discon_status();
+            }
+#if 0
+                ctx_app_old_protocol_handler->encrypt_status = 0; //断开或连接后重置加密状态
+                if (args_temp->arg1) {
+                    do {
+                        ctx_app_old_protocol_handler->encrypt_key = (uint8_t)rand();
+                    } while ((ctx_app_old_protocol_handler->encrypt_key == 0) || (ctx_app_old_protocol_handler->encrypt_key == 0xFF)); // 不能为0或者0xFF
+                } else {
+                    ;
+                }
+                LOG_PROTOCOL("ctx_app_old_protocol_handler->encrypt_key %d", ctx_app_old_protocol_handler->encrypt_key);
+#endif
+        } break;
         default:
             LOG_PROTOCOL(" Unhandled response command %s (0x%02X)\n",
                    app_old_comm_get_cmd_id_str(cid), cid);
@@ -164,4 +184,9 @@ void app_old_protocol_ctx_init(void)
                  OS_TIMER_PERIODIC, app_old_comm_poll_timer_handler);
     START_TIMER(ctx_app_old_protocol_handler.poll_timer, APP_OLD_COMM_HEARTBEAT_INTERVAL);
     ctx_app_old_protocol_handler.protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
+}
+
+app_old_protocol_handler_context_t *app_old_protocol_handler_ctx_get(void)
+{
+    return &ctx_app_old_protocol_handler;
 }

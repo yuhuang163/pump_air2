@@ -44,21 +44,25 @@ uint8_t app_old_comm_get_sys_status(void)
 
     if (BREAST_PUMP_START == pump_ctx->get_breast_pump_status()
         || BREAST_PUMP_CONTINUE == pump_ctx->get_breast_pump_status()) {
+        LOG_PROTOCOL("APP_OLD_COMM_SYS_RUN");
         return APP_OLD_COMM_SYS_RUN;
     }
 
     if (BREAST_PUMP_START == pump_ctx->get_breast_pump_status()
         || BREAST_PUMP_FINISH == pump_ctx->get_breast_pump_status()
         || BREAST_PUMP_START == pump_ctx->get_breast_pump_status()) {
+        LOG_PROTOCOL("APP_OLD_COMM_SYS_STOP");
         return APP_OLD_COMM_SYS_STOP;
     }
 
     if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
+        LOG_PROTOCOL("APP_OLD_COMM_SYS_CHANRGE");
         return APP_OLD_COMM_SYS_CHANRGE;
     }
     if ((BREAST_PUMP_START == pump_ctx->get_breast_pump_status()
          || BREAST_PUMP_CONTINUE == pump_ctx->get_breast_pump_status())
         && BREAST_PUMP_CUSTOM_MODE == pump_ctx->get_breast_pump_mode()) {
+        LOG_PROTOCOL("APP_OLD_COMM_PUMP_USE_DEFINE_RUN");
         return APP_OLD_COMM_PUMP_USE_DEFINE_RUN;
     }
 }
@@ -67,6 +71,7 @@ uint8_t app_old_comm_get_pump_running_status(void)
 {
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(pump_ctx);
+    LOG_PROTOCOL("pump_ctx->is_on_working =%d", pump_ctx->is_on_working());
     return pump_ctx->is_on_working();
 }
 
@@ -622,6 +627,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     //先暂停pump
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_VOID(pump_ctx);
+    if(app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
     pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
     //将storage的custom 目标pump time更新
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
@@ -635,6 +641,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     //int custom_mode_parameter_update(motor_policy_cfg_t *cfg, uint8_t cfg_num)
     app_old_comm_pump_custom_step_para_to_local_motor_policy(&pump_user_defined_step_data_temp);
     //重新启动pump
+    if(app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
     pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
 
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
@@ -662,6 +669,7 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     EXCEPTION_CHECK_VOID(cab);
     uint8_t ack_data[64] = {0};
     uint16_t data_len = 0;
+    app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
 
     ack_data[data_len++] = ctx->priv.ver_info.sys_local_protocol_id;
     ack_data[data_len++] = ctx->priv.ver_info.soc_version;
@@ -677,8 +685,8 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     memcpy(ack_data + data_len, factory_dev_info.sn, factory_dev_info.sn_len);
     data_len += factory_dev_info.sn_len;
 #if BLE_PAYLOAD_CRYPTION
-    ack_data[data_len++] = 0x00;//encrypt_status;
-    ack_data[data_len++] = 0xcc;//encrypt_key;
+    ack_data[data_len++] = handler_ctx->encrypt_status;//encrypt_status;
+    ack_data[data_len++] = handler_ctx->encrypt_key;//encrypt_key;
 #endif
     ack_data[data_len++] = ctx->priv.ver_info.sw_version % 10;
     LOG_PROTOCOL(" Sending device info ACK (data len: %d)\n", data_len);

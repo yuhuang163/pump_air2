@@ -12,6 +12,7 @@ extern "C" {
 #include "root_common_base.h" // IWYU pragma: keep
 #include "broadcast_manager_api.h" // IWYU pragma: keep
 #include "root_message.h" // IWYU pragma: keep
+#include "app_old_protocol_parser.h"
 
 typedef enum {
     SERVERS_PUBLISH_DATA_ALGO_SAMPLING = 100,        /// 算法采样数据
@@ -40,6 +41,7 @@ typedef struct servers_manager_context {
         int (*on_post_init_route)(struct servers_manager_context *ctx);
         int (*factory_server_data_publish)(servers_publish_data_id_e id, servers_publish_data_args_t *args);
         int (*app_server_data_publish)(servers_publish_data_id_e id, servers_publish_data_args_t *args);
+        int (*app_old_protocol_server_data_publish)(app_old_comm_cmd_id_e cid, servers_publish_data_args_t *args);
          /// 广播路由
         int (*on_servers_manager_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
     } *hook;

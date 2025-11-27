@@ -94,8 +94,9 @@ void app_old_comm_handle_get_encrypt_req()
 {
     LOG_PROTOCOL(" Handling get encryption info request\n");
     uint8_t ack_data[2] = {0};
-    ack_data[0] = 0;
-    ack_data[1] = 0Xcc;
+    app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
+    ack_data[0] = handler_ctx->encrypt_status;
+    ack_data[1] = handler_ctx->encrypt_key;
     LOG_PROTOCOL(" Sending encryption info ACK (status: 0x%02X, key: 0x%02X)\n",
            ack_data[0], ack_data[1]);
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_ENCRYPT, 2, ack_data);
@@ -128,6 +129,7 @@ void app_old_comm_report_discon_status(void)
 {
     LOG_PROTOCOL(" Parsing disconnection notification\n");
     // TODO: Handle BLE disconnection logic
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_DISCON, 0, NULL);
 }
 
 void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_right)
