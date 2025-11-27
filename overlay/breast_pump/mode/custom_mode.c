@@ -127,6 +127,7 @@ uint8_t pump_custom_step_para_to_local_motor_policy(user_def_pump_steps_data_t *
             LOG_MOTOR("unknow custom pump step mode");
         }
     }
+    print_pump_custom_cfg(custom_mode_policy_cfg, cfg_num);
     return cfg_num;
 }
 

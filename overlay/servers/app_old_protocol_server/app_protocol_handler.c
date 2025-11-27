@@ -87,6 +87,9 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
         case APP_OLD_COMM_CID_CTRL_DEV:
             app_old_comm_handle_ctrl_dev_req(cal, cab);
             break;
+        case APP_OLD_COMM_CID_CTRL_DEV_STATUS:
+            app_old_comm_handle_ctrl_dev_sys_status_req(cal, cab);
+            break;
         case APP_OLD_COMM_CID_SET_BIND:
             app_old_comm_handle_set_bind_req(cal, cab);
             break;

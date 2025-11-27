@@ -5,7 +5,7 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "pump_mode_default_config.h"
 #include "breast_pump_policy.h"
-
+#include "app_protocol_pump_ctrl_server.h"
 /*
 * DEFINES
 *****************************************************************************************
@@ -154,29 +154,48 @@ void breast_pump_custom_step_para_reset(sys_pump_info_t *pump_info)
 {
     const motor_policy_cfg_t *cfg = custom_default;
     EXCEPTION_CHECK_VOID(cfg);
-    //step很重要，需要计算，如果custom默认有混合模式组合，写法就不对
-    uint8_t step_count = CUSTOM_MODE_LEN;
-    user_def_pump_steps_data_t *custom_steps_parameter = NULL;
-    custom_steps_parameter = &pump_info->custom_steps_parameter;
-    custom_steps_parameter->id.dat32 = (uint32_t)0; //标识默认参数
-    custom_steps_parameter->num = step_count;
 
-    for (uint8_t i = 0; i < step_count; i++) {
-        custom_steps_parameter->data[i].freq = cfg[i].core.un.mapping.speed;
-        custom_steps_parameter->data[i].level = cfg[i].core.un.mapping.level;
-        custom_steps_parameter->data[i].time = cfg[i].duration ; //单位s
-        if (cfg[i].policy_type == MOTOR_TIME_POLICY && cfg[i].core.config.loop_num == 1) {
-            custom_steps_parameter->data[i].mode = cfg[i].core.un.mapping.mode_type;
-        } else if (cfg[i].policy_type == MOTOR_TIME_POLICY && cfg[i].core.config.loop_num == 5) {
-            custom_steps_parameter->data[i].mode = 0x03;
-        } else if (cfg[i].policy_type == MOTOR_TIME_POLICY && cfg[i].core.config.loop_num == 2) {
-            custom_steps_parameter->data[i].mode = 0x04;
+    user_def_pump_steps_data_t *custom_steps_parameter = &pump_info->custom_steps_parameter;
+
+    // 初始化参数
+    custom_steps_parameter->id.dat32 = (uint32_t)0; // 标识默认参数
+    custom_steps_parameter->custom_total_time = 0;  // 重置总时长
+
+    // 遍历配置，跳过子策略(MOTOR_TIME_SUB_POLICY)，只统计主策略
+    uint8_t step_idx = 0;
+    for (uint8_t i = 0; i < CUSTOM_MODE_LEN && step_idx < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+        // 跳过子策略，子策略不单独计为一个step
+        if (cfg[i].policy_type == MOTOR_TIME_SUB_POLICY) {
+            continue;
         }
-        custom_steps_parameter->custom_total_time += custom_steps_parameter->data[i].time;
-        LOG_MOTOR("ud-mode[%d]=%02x", i, custom_steps_parameter->data[i].mode);
-        LOG_MOTOR("ud-level[%d]=%02x", i, custom_steps_parameter->data[i].level);
-        LOG_MOTOR("ud-time[%d]=%04x", i, custom_steps_parameter->data[i].time);
+
+        custom_steps_parameter->data[step_idx].freq = cfg[i].core.un.mapping.speed;
+        custom_steps_parameter->data[step_idx].level = cfg[i].core.un.mapping.level;
+        custom_steps_parameter->data[step_idx].time = cfg[i].duration; // 单位s
+
+        // 根据 loop_num 确定模式类型
+        uint8_t loop_num = cfg[i].core.config.loop_num;
+        if (loop_num == 5) {
+            // 混合模式1: 5次短吸 + 1次长吸
+            custom_steps_parameter->data[step_idx].mode = APP_OLD_COMM_MODE_MIX1;
+        } else if (loop_num == 2) {
+            // 混合模式2: 2次短吸 + 1次长吸
+            custom_steps_parameter->data[step_idx].mode = APP_OLD_COMM_MODE_MIX2;
+        } else {
+            // 普通模式: SUCTION_MODE_SHORT(1)->0x01, SUCTION_MODE_LONG(2)->0x02
+            custom_steps_parameter->data[step_idx].mode = cfg[i].core.un.mapping.mode_type;
+        }
+
+        custom_steps_parameter->custom_total_time += custom_steps_parameter->data[step_idx].time;
+
+        LOG_MOTOR("ud-mode[%d]=%02x", step_idx, custom_steps_parameter->data[step_idx].mode);
+        LOG_MOTOR("ud-level[%d]=%02x", step_idx, custom_steps_parameter->data[step_idx].level);
+        LOG_MOTOR("ud-time[%d]=%04x", step_idx, custom_steps_parameter->data[step_idx].time);
+
+        step_idx++;
     }
+
+    custom_steps_parameter->num = step_idx;
 }
 
 int breast_pump_mode_work_time_get(int mode)
