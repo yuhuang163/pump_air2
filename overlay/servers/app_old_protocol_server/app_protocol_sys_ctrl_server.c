@@ -26,6 +26,34 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
+{
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    EXCEPTION_CHECK_VOID(st);
+    EXCEPTION_CHECK_VOID(pbus);
+
+    struct rt_device_node *led_dev = pbus->find_device(ID_DEVICE_LED);
+    EXCEPTION_CHECK_VOID(led_dev);
+
+    night_light_info_t night_light_info = {0};
+    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+
+    // Update night light info
+    night_light_info.onoff = onoff;
+    night_light_info.level = level;
+
+    st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+
+    led_status_t led_status = {
+        .mode = LED_MODE_LEVEL,
+        .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
+    };
+    int args[] = {NIGHT_LIGHT_LED_ID_0, (int)&led_status};
+    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)args);
+
+    LOG_PROTOCOL(" Night light set: onoff=%d, level=%d\n", night_light_info.onoff, night_light_info.level);
+}
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -138,3 +166,52 @@ void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_right)
     uint8_t report_data[2] = {bind_status, left_right};
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_BIND, 2, report_data);
 }
+
+void app_old_comm_handle_ctrl_dev_sys_status_req(uint8_t cal, uint8_t *cab)
+{
+    LOG_PROTOCOL(" Handling ctrl_dev_sys_status request\n");
+    EXCEPTION_CHECK_VOID(cab);
+
+    if (cal != 0x07) {
+        LOG_PROTOCOL(" Invalid data length for CTRL_DEV_STATUS (expected 7, got %d)\n", cal);
+        return;
+    }
+
+    app_old_comm_sys_status_ctrl sys_status;
+
+    // Byte 0: Language type (0x00-English, 0x01-Chinese, 0x02-French, 0x03-German, 
+    //                        0x04-Spanish, 0x05-Italian, 0x06-Japanese)
+    sys_status.sys_language_e = cab[0];
+
+    // Byte 1: Screen lock time (5-30s, 0xFF = no lock)
+    sys_status.screem_lock_time = cab[1];
+
+    // Byte 2: Screen brightness level (0:25%, 1:50%, 2:75%, 3:100%)
+    sys_status.screem_lock_light_level = cab[2];
+
+    // Byte 3-4: Massage duration in seconds (Little Endian, range: 30s - 600s)
+    sys_status.motor_Duration = (uint16_t)(cab[3] | (cab[4] << 8));
+
+    // Byte 5: Night light switch (0-off, 1-on)
+    sys_status.night_light_switch = cab[5];
+
+    // Byte 6: Night light brightness level (1-10)
+    sys_status.night_light_level = cab[6];
+
+    LOG_PROTOCOL(" Sys status: lang=%d, lock_time=%d, brightness=%d, massage_time=%d, night_sw=%d, night_lvl=%d\n",
+                 sys_status.sys_language_e,
+                 sys_status.screem_lock_time,
+                 sys_status.screem_lock_light_level,
+                 sys_status.motor_Duration,
+                 sys_status.night_light_switch,
+                 sys_status.night_light_level);
+
+    // Apply night light settings
+    app_old_comm_set_night_light(sys_status.night_light_switch, sys_status.night_light_level);
+
+    // TODO: Apply other sys_status settings (language, screen lock, brightness, massage time)
+
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_CTRL_DEV_STATUS, cal, cab);
+}
+
+

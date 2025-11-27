@@ -147,6 +147,23 @@ uint8_t app_old_comm_get_current_mode_pump_level(app_old_commd_l_r_ctrl_e lr_ct)
     return (uint8_t)setting.level[lr_ct];
 }
 
+//左右需要一致，不区分
+uint8_t app_old_comm_get_current_mode_pump_speed(void)
+{
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump_ctx);
+    motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
+    EXCEPTION_CHECK_UINT(motor_ctx);
+    int time_index = motor_ctx->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
+    pump_setting_t setting;
+    pump_ctx->get_breast_pump_setting(&setting, time_index);
+    LOG_PROTOCOL("setting.speed =%d", setting.speed);
+    return (uint8_t)setting.speed;
+}
+
 uint8_t app_old_comm_get_current_custom_pump_speed(void)
 {
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
@@ -500,7 +517,7 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct)
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     report_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    report_data[data_len++] = 0x00; //预留
+    report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(); //normal speed
     report_data[data_len++] = 0x00; //预留
     report_data[data_len++] = 0x00; //预留
 
@@ -530,7 +547,7 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     ack_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    ack_data[data_len++] = 0x00; //预留
+    ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(); //normal speed
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = 0x00; //预留
     LOG_PROTOCOL(" Sending device status ACK (data len: %d)\n", data_len);
