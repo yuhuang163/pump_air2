@@ -517,7 +517,7 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct)
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     report_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(); //normal speed
+    report_data[data_len++] = app_old_comm_get_current_mode_pump_speed() + 1; //normal speed //频次（1-低 2-中 3-高）（1字节）
     report_data[data_len++] = 0x00; //预留
     report_data[data_len++] = 0x00; //预留
 
@@ -547,7 +547,7 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     ack_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(); //normal speed
+    ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed() + 1; //normal speed
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = 0x00; //预留
     LOG_PROTOCOL(" Sending device status ACK (data len: %d)\n", data_len);

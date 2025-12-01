@@ -91,12 +91,16 @@ int comm_protocol_subscribe_handler(comm_protocol_subscribe_context_t *ctx)
         err_code = COMM_PROTOCOL_ERROR_INVALID_SERVICE_COUNT;
         goto ERROR_LABEL;
     }
-    /// 构建应答帧
+    /// 收到请求帧类型，需要组装响应帧
+    uint8_t need_response = (frame->frame_type == COMM_PROTOCOL_FRAME_TYPE_REQUEST);
     comm_protocol_builder_t builder = {0};
-    ret = protocol_ctx->comm_protocol_builder_init(&builder, COMM_PROTOCOL_MAX_SERVICE_NUM, frame->seq);
-    if (ret != 0){
-        err_code = COMM_PROTOCOL_ERROR_INVALID_BUILDER;
-        goto ERROR_LABEL;
+    if (need_response) {
+        /// 构建请求帧
+        ret = protocol_ctx->comm_protocol_builder_init(&builder, COMM_PROTOCOL_MAX_SERVICE_NUM, frame->seq, COMM_PROTOCOL_FRAME_TYPE_RESPONSE);
+        if (ret != 0){
+            err_code = COMM_PROTOCOL_ERROR_INVALID_BUILDER;
+            goto ERROR_LABEL;
+        }
     }
     LOGI("==> comm protocol subscribe service count: %d", frame->payload.service_count);
     /// 查找服务处理接口
@@ -109,20 +113,22 @@ int comm_protocol_subscribe_handler(comm_protocol_subscribe_context_t *ctx)
             continue;
         }
         LOGI("==> comm protocol subscribe func: %p", func);
-        ret = func(&builder, service);
+        ret = func(need_response ? &builder : NULL, service);
         if (ret != 0){
             LOGE("==> comm protocol subscribe func error: %d, service_id: %d", ret, service->svr_id);
             continue;
         }
     }
     /// 结束服务
-    LOGI("==> comm protocol subscribe finalize");
-    rsp_buffer = protocol_ctx->comm_protocol_builder_finalize(&builder, &rsp_buffer_size);
-    if (ctx->cb && rsp_buffer) {
-        ctx->cb(err_code, rsp_buffer, rsp_buffer_size); /// 回调函数执行应答操作
+    if (need_response) {
+        LOGI("==> comm protocol subscribe finalize");
+        rsp_buffer = protocol_ctx->comm_protocol_builder_finalize(&builder, &rsp_buffer_size);
+        if (ctx->cb && rsp_buffer) {
+            ctx->cb(err_code, rsp_buffer, rsp_buffer_size); /// 回调函数执行应答操作
+        }
+        LOGI("==> comm protocol subscribe builder free");
+        protocol_ctx->comm_protocol_builder_free(&builder);
     }
-    LOGI("==> comm protocol subscribe builder free");
-    protocol_ctx->comm_protocol_builder_free(&builder);
     u_free(frame);
     return 0;
 

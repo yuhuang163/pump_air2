@@ -141,7 +141,7 @@ int custom_mode_parameter_init(void)
     if(custom_pump_steps_data.id.dat32 != 0x00) //标识是默认custom策略定义
     {
        uint8_t cfg_number = pump_custom_step_para_to_local_motor_policy(&custom_pump_steps_data, s_custom_policy_cfg);
-       s_custom_obj = breast_pump_mode_parameter_init(s_custom_policy_cfg, CUSTOM_MODE_LEN, "custom");
+       s_custom_obj = breast_pump_mode_parameter_init(s_custom_policy_cfg, cfg_number, "custom");
     }
     else
     {

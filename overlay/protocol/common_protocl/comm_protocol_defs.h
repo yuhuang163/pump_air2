@@ -12,7 +12,7 @@ extern "C" {
 
 /// 协议常量定义
 #define COMM_PROTOCOL_SOF                 0x5CC5             ///< Start Of Frame 标识
-#define COMM_PROTOCOL_HEADER_SIZE         6                  ///< Header大小: SOF(2) + Seq(2) + Length(2)
+#define COMM_PROTOCOL_HEADER_SIZE         6                  ///< Header大小: SOF(2) + Seq(1) + FrameType(1) + Length(2)
 #define COMM_PROTOCOL_FOOTER_SIZE         2                  ///< Footer大小: Checksum(2)
 #define COMM_PROTOCOL_SERVICE_HEADER_SIZE 4                  ///< Service Header: SvrID(2) + Length(2)
 #define COMM_PROTOCOL_TLV_HEADER_SIZE     4                  ///< TLV Header: Type(2) + Length(2)
@@ -70,7 +70,8 @@ typedef struct {
 /// 完整的通讯帧结构（用于数据流解析）
 typedef struct {
     uint16_t sof;             ///< Start Of Frame: 0x5CC5
-    uint16_t seq;             ///< 帧序列号
+    uint8_t seq;             ///< 帧序列号
+    uint8_t frame_type;      ///< 帧类型 ack/nack/request/response
     uint16_t payload_length; ///< Payload字段的长度（不包含Header和Footer）
     uint8_t  payload[];      ///< 柔性数组成员，Payload数据
     // uint16_t checksum;      ///< CRC16校验和，覆盖Header和Payload域
@@ -79,7 +80,8 @@ typedef struct {
 /// 完整的通讯帧节点（用于构建和解析）
 typedef struct {
     uint16_t sof;           ///< Start Of Frame: 0x5CC5
-    uint16_t seq;    ///< 帧序列号
+    uint8_t seq;             ///< 帧序列号
+    uint8_t frame_type;      ///< 帧类型 ack/nack/request/response/notify
     uint16_t payload_length;        ///< Payload字段的长度（不包含Header和Footer）
     comm_protocol_payload_node_t  payload;    ///< Payload节点
     uint16_t checksum;      ///< CRC16校验和，覆盖Header和Payload域
@@ -96,6 +98,14 @@ typedef struct {
     comm_protocol_builder_t *builder;      /// 协议帧构建器
     comm_protocol_service_t *service;        /// 服务帧
 } comm_protocol_service_node_wrapper_t;
+
+/// 帧类型
+typedef enum {
+    COMM_PROTOCOL_FRAME_TYPE_REQUEST = 0,       ///< 请求帧
+    COMM_PROTOCOL_FRAME_TYPE_RESPONSE,      ///< 响应帧
+    COMM_PROTOCOL_FRAME_TYPE_NOTIFY,        ///< 通知帧
+    COMM_PROTOCOL_FRAME_TYPE_MAX,
+} comm_protocol_frame_type_e;
 
 /// 服务ID
 typedef enum {

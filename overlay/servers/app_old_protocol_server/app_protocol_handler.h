@@ -15,7 +15,6 @@ extern "C" {
 #include "app_protocol_auth_server.h"
 
 typedef struct app_old_protocol_handler_context {
-    os_timer_id poll_timer;
     protocol_manager_context_t *protocol_ctx;
     uint8_t encrypt_status;
     uint8_t encrypt_key;

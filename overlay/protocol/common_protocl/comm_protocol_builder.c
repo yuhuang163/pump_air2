@@ -30,7 +30,7 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_size, uint16_t seq)
+int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_size, uint16_t seq, uint8_t frame_type)
 {
     EXCEPTION_CHECK_INT(builder);
     if (max_size < COMM_PROTOCOL_FRAME_SIZE_MIN || max_size > COMM_PROTOCOL_FRAME_SIZE_MAX) {
@@ -42,6 +42,7 @@ int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_si
     builder->payload_size = max_size - COMM_PROTOCOL_PAYLOAD_SIZE_MIN;
     builder->frame->sof = COMM_PROTOCOL_SOF;
     builder->frame->seq = seq;
+    builder->frame->frame_type = frame_type;
     builder->frame->payload_length = 0;
     return 0;
 }
