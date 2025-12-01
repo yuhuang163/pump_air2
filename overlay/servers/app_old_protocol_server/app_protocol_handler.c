@@ -27,11 +27,12 @@ static app_old_protocol_handler_context_t ctx_app_old_protocol_handler = {0};
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void app_old_comm_poll_timer_handler(void *handle)
+static void app_old_comm_poll_post_task_handler(hdr_post_args_t *args)
 {
     LOG_PROTOCOL(" Poll timer triggered - reporting device status\n");
     app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
     app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
+    POST_TASK_HANDLER_DELAYED_ARG0(app_old_comm_poll_post_task_handler, 30000, "app_old_comm_poll_post_task");
 }
 
 /*
@@ -183,10 +184,8 @@ void app_old_protocol_hander_frame_builder_send(app_old_commcmd_type_e cmdtype, 
 void app_old_protocol_ctx_init(void)
 {
     memset(&ctx_app_old_protocol_handler, 0, sizeof(app_old_protocol_handler_context_t));
-    CREATE_TIMER(&ctx_app_old_protocol_handler.poll_timer, "protocol_poll_timer", &ctx_app_old_protocol_handler,
-                 OS_TIMER_PERIODIC, app_old_comm_poll_timer_handler);
-    START_TIMER(ctx_app_old_protocol_handler.poll_timer, APP_OLD_COMM_HEARTBEAT_INTERVAL);
     ctx_app_old_protocol_handler.protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
+    POST_TASK_HANDLER_DELAYED_ARG0(app_old_comm_poll_post_task_handler, 50000, "app_old_comm_poll_post_task");
 }
 
 app_old_protocol_handler_context_t *app_old_protocol_handler_ctx_get(void)

@@ -38,7 +38,7 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
 int algo_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protocol_service_node_t *srv_node)
 {
     int ret = 0;
-    EXCEPTION_CHECK_INT(builder && srv_node && srv_node->tlvs);
+    EXCEPTION_CHECK_INT(srv_node && srv_node->tlvs);
     if (srv_node->srv_length < COMM_PROTOCOL_TLV_HEADER_SIZE || srv_node->srv_length > COMM_PROTOCOL_MAX_PAYLOAD_SIZE) {
         LOGE("==> algo server protocol service length error: %d", srv_node->srv_length);
         return -1;
@@ -57,11 +57,17 @@ int algo_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protoco
     EXCEPTION_CHECK_INT(protocol_ctx);
     LOGI("==> algo service tlv_offset: %d", srv_node->srv_length);
     LOG_HEX("==> algo service tlvs", srv_node->tlvs, srv_node->srv_length);
+    comm_protocol_service_t *rsp_srv = NULL;
+    if (builder != NULL) {
     /// 添加应答服务节点
-    comm_protocol_service_t *rsp_srv = protocol_ctx->comm_protocol_builder_init_service(builder, COMM_PROTOCOL_ALGO_SERVICE);
-    if (rsp_srv == NULL) {
-        LOGE("==> algo service begin error");
-        return -1;
+        rsp_srv = protocol_ctx->comm_protocol_builder_init_service(builder, COMM_PROTOCOL_ALGO_SERVICE);
+        if (rsp_srv == NULL) {
+            LOGE("==> algo service begin error");
+         return -1;
+        }
+    } else {
+        /// 如果builder为空，说明是notify类型，则不需要组装响应帧
+        rsp_srv = NULL;
     }
     /// 处理TLV
     for (;;) {
@@ -89,14 +95,16 @@ int algo_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protoco
         /// 更新TLV偏移
         tlv_offset += COMM_PROTOCOL_TLV_HEADER_SIZE + tlv->length;
     }
-    /// 添加应答TLV
-    uint16_t err_code = (ret == 0) ? 0 : 1;
-    comm_protocol_tlv_node_t rsp_tlv_node = {
-        .type = PROTOCOL_SERVICE_ERROR_CODE_TLV_ID,
-        .length = sizeof(err_code),
-        .value = (uint8_t *)&err_code,
-    };
-    protocol_ctx->comm_protocol_builder_add_tlv(builder, rsp_srv, &rsp_tlv_node);
-
+    /// 如果builder为空，说明是notify类型，则不需要组装响应帧
+    if (builder != NULL) {
+        /// 添加应答TLV
+        uint16_t err_code = (ret == 0) ? 0 : 1;
+        comm_protocol_tlv_node_t rsp_tlv_node = {
+            .type = PROTOCOL_SERVICE_ERROR_CODE_TLV_ID,
+            .length = sizeof(err_code),
+            .value = (uint8_t *)&err_code,
+        };
+        protocol_ctx->comm_protocol_builder_add_tlv(builder, rsp_srv, &rsp_tlv_node);
+    }
     return ret;
 }

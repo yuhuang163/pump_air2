@@ -15,7 +15,7 @@ extern "C" {
 * INTERNAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_size, uint16_t seq);
+int comm_protocol_builder_init(comm_protocol_builder_t *builder, uint16_t max_size, uint16_t seq, uint8_t frame_type);
 
 comm_protocol_service_t *comm_protocol_builder_init_service(comm_protocol_builder_t *builder, uint16_t service_id);
 
