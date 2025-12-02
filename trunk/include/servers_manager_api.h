@@ -16,6 +16,8 @@ extern "C" {
 
 typedef enum {
     SERVERS_PUBLISH_DATA_ALGO_SAMPLING = 100,        /// 算法采样数据
+    SERVERS_PUBLISH_DATA_TESTS_KEY_STATUS = 101,     /// 产测按键状态上报
+    SERVERS_PUBLISH_DATA_TESTS_ENCODER_STATUS = 102, /// 产测编码器状态上报
     SERVERS_PUBLISH_DATA_ID_MAX
 } servers_publish_data_id_e;
 

@@ -31,7 +31,7 @@
 */
 int sys_state_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protocol_service_node_t *srv_node)
 {
-    LOGI("==> sys state service tlv_offset: %d", srv_node->srv_length);
+    LOGI("==> sys state service srv_length: %d", srv_node->srv_length);
     LOG_HEX("==> sys state service tlvs", srv_node->tlvs, srv_node->srv_length);
 
     return 0;

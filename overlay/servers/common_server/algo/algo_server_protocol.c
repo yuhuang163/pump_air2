@@ -55,7 +55,7 @@ int algo_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protoco
 
     protocol_manager_context_t *protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
     EXCEPTION_CHECK_INT(protocol_ctx);
-    LOGI("==> algo service tlv_offset: %d", srv_node->srv_length);
+    LOGI("==> algo service srv_length: %d", srv_node->srv_length);
     LOG_HEX("==> algo service tlvs", srv_node->tlvs, srv_node->srv_length);
     comm_protocol_service_t *rsp_srv = NULL;
     if (builder != NULL) {
@@ -71,6 +71,11 @@ int algo_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protoco
     }
     /// 处理TLV
     for (;;) {
+        /// 检查是否已处理完所有TLV
+        if (tlv_offset >= srv_node->srv_length) {
+            LOGI("==> algo service tlv complete, tlv_offset: %d", tlv_offset);
+            break;
+        }
         /// 获取TLV
         tlv = (comm_protocol_tlv_t *)(srv_node->tlvs + tlv_offset);
         if (tlv_offset + COMM_PROTOCOL_TLV_HEADER_SIZE + tlv->length > srv_node->srv_length) {

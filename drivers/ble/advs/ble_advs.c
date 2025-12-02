@@ -26,11 +26,6 @@
 #define RSP_MAC_OFFSET 5
 #endif
 
-#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
-#define DEFAULT_PID_CODE    0x09
-#else
-#define DEFAULT_PID_CODE    0x08
-#endif
 
 /*
 * LOCAL VARIABLE DEFINITIONS

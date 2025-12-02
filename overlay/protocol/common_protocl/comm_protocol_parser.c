@@ -213,7 +213,8 @@ int comm_protocol_frame_deserialize(const uint8_t *buffer, uint16_t buffer_size,
     }    
     /// 解析Header（小端序）
     frame->sof = buffer[0] | ((uint16_t)buffer[1] << 8);
-    frame->seq = buffer[2] | ((uint16_t)buffer[3] << 8);
+    frame->seq = buffer[2];
+    frame->frame_type = buffer[3];
     frame->payload_length = buffer[4] | ((uint16_t)buffer[5] << 8);
     frame->checksum = buffer[buffer_size - 2] | ((uint16_t)buffer[buffer_size - 1] << 8);
     /// 验证SOF是否正确
