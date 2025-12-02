@@ -34,7 +34,7 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
 */
 int pump_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protocol_service_node_t *srv_node)
 {
-    LOGI("==> pump service tlv_offset: %d", srv_node->srv_length);
+    LOGI("==> pump service srv_length: %d", srv_node->srv_length);
     LOG_HEX("==> pump service tlvs", srv_node->tlvs, srv_node->srv_length);
 
     return 0;

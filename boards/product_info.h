@@ -21,7 +21,13 @@ typedef enum {
  * 产品信息
 */
 #ifndef ROOT_PRODUCT_ID
-#define ROOT_PRODUCT_ID                               0X08
+#define ROOT_PRODUCT_ID                               PRODUCT_INFO_V3_VALUE
+#endif
+
+#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
+#define DEFAULT_PID_CODE    0x09
+#else
+#define DEFAULT_PID_CODE    0x08
 #endif
 
 #if (ROOT_PRODUCT_ID == 0x09)

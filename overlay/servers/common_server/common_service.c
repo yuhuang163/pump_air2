@@ -23,11 +23,14 @@ const static comm_protocol_subscribe_handle_t comm_protocol_subscribe_list[] = {
     {COMM_PROTOCOL_BREAST_PUMP_SERVICE, pump_subscribe_service_handle},
     {COMM_PROTOCOL_SYSTEM_CONFIG_SERVICE, sys_config_subscribe_service_handle},
     {COMM_PROTOCOL_SYSTEM_STATE_SERVICE, sys_state_subscribe_service_handle},
+    {COMM_PROTOCOL_TESTS_SERVICE, tests_subscribe_service_handle},
 };
 
 /// 按照servers_publish_data_id_e升序添加，否则查找不到（使用二分法查找）
 const static comm_protocol_publish_handle_t comm_protocol_publish_list[] = {
     {SERVERS_PUBLISH_DATA_ALGO_SAMPLING, algo_sampling_data_publish},
+    {SERVERS_PUBLISH_DATA_TESTS_KEY_STATUS, tests_key_status_publish},
+    {SERVERS_PUBLISH_DATA_TESTS_ENCODER_STATUS, tests_encoder_status_publish},
 };
 
 /*
@@ -95,8 +98,8 @@ int comm_protocol_subscribe_handler(comm_protocol_subscribe_context_t *ctx)
     uint8_t need_response = (frame->frame_type == COMM_PROTOCOL_FRAME_TYPE_REQUEST);
     comm_protocol_builder_t builder = {0};
     if (need_response) {
-        /// 构建请求帧
-        ret = protocol_ctx->comm_protocol_builder_init(&builder, COMM_PROTOCOL_MAX_SERVICE_NUM, frame->seq, COMM_PROTOCOL_FRAME_TYPE_RESPONSE);
+        /// 构建响应帧
+        ret = protocol_ctx->comm_protocol_builder_init(&builder, COMM_PROTOCOL_MAX_PAYLOAD_SIZE, frame->seq, COMM_PROTOCOL_FRAME_TYPE_RESPONSE);
         if (ret != 0){
             err_code = COMM_PROTOCOL_ERROR_INVALID_BUILDER;
             goto ERROR_LABEL;

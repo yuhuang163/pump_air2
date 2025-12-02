@@ -20,7 +20,7 @@ extern "C" {
                         COMM_PROTOCOL_TLV_HEADER_SIZE)       ///< 单个Service最小长度
 #define COMM_PROTOCOL_PAYLOAD_SIZE_MIN    (COMM_PROTOCOL_HEADER_SIZE + \
                         COMM_PROTOCOL_FOOTER_SIZE)           ///< Payload最小长度
-#define COMM_PROTOCOL_MAX_PAYLOAD_SIZE    2048               ///< 最大Payload长度
+#define COMM_PROTOCOL_MAX_PAYLOAD_SIZE    1024               ///< 最大Payload长度
 #define COMM_PROTOCOL_FRAME_SIZE_MAX      (COMM_PROTOCOL_MAX_PAYLOAD_SIZE + \
                         COMM_PROTOCOL_HEADER_SIZE +\
                         COMM_PROTOCOL_FOOTER_SIZE)           ///< 帧最大长度
@@ -81,7 +81,7 @@ typedef struct {
 typedef struct {
     uint16_t sof;           ///< Start Of Frame: 0x5CC5
     uint8_t seq;             ///< 帧序列号
-    uint8_t frame_type;      ///< 帧类型 ack/nack/request/response/notify
+    uint8_t frame_type;      ///< 帧类型 request/response/notify
     uint16_t payload_length;        ///< Payload字段的长度（不包含Header和Footer）
     comm_protocol_payload_node_t  payload;    ///< Payload节点
     uint16_t checksum;      ///< CRC16校验和，覆盖Header和Payload域
@@ -110,14 +110,14 @@ typedef enum {
 /// 服务ID
 typedef enum {
     COMM_PROTOCOL_SERVICE_ID_NONE = 0,
-    COMM_PROTOCOL_ALGO_SERVICE = 0,
-    COMM_PROTOCOL_SENSORS_SERVICE = 1,
-    COMM_PROTOCOL_BREAST_PUMP_SERVICE = 2,
-    COMM_PROTOCOL_IOT_SERVICE = 3,
-    COMM_PROTOCOL_SYSTEM_CONFIG_SERVICE = 4,
-    COMM_PROTOCOL_SYSTEM_STATE_SERVICE = 5,
-    COMM_PROTOCOL_TESTS_SERVICE = 6,
-    COMM_PROTOCOL_TRACKING_DATA_SERVICE = 7,
+    COMM_PROTOCOL_ALGO_SERVICE = 1,
+    COMM_PROTOCOL_SENSORS_SERVICE = 2,
+    COMM_PROTOCOL_BREAST_PUMP_SERVICE = 3,
+    COMM_PROTOCOL_IOT_SERVICE = 4,
+    COMM_PROTOCOL_SYSTEM_CONFIG_SERVICE = 5,
+    COMM_PROTOCOL_SYSTEM_STATE_SERVICE = 6,
+    COMM_PROTOCOL_TESTS_SERVICE = 7,
+    COMM_PROTOCOL_TRACKING_DATA_SERVICE = 8,
 } comm_protocol_service_id_e;
 
 /// 错误码
