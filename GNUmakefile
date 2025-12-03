@@ -349,6 +349,7 @@ WINDOWS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/windows/pop_windows \
 	-I$(PROJECT_ROOT)/overlay/windows/setting \
 	-I$(PROJECT_ROOT)/overlay/windows/product_test_window \
+	-I$(PROJECT_ROOT)/overlay/windows/factory_reset \
 	-I$(PROJECT_ROOT)/trunk/root_source/windows
 
 # 飞行模式模块头文件
@@ -729,6 +730,7 @@ WINDOWS_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/pop_windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/product_test_window/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/factory_reset/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/windows/*.c)
 
 # 飞行模式模块源码
