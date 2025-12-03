@@ -28,6 +28,7 @@ typedef enum {
     TESTS_TLV_DEVICE_ERROR_STATUS = 0x000C,    /// 设备异常状态查询
     TESTS_TLV_SUCTION_COMPENSATION = 0x000D,   /// 吸力补偿开关 (0x01:开, 0x00:关)
     TESTS_TLV_READ_SN = 0x000E,                /// 读取整机SN数据
+    TESTS_TLV_WRITE_FACTORY_COMPLETE_FLAG = 0x000F, /// 产测完成标识写入 (0x00:未完成, 0x01:完成)
     TESTS_TLV_ID_MAX,
 } tests_tlvs_id_e;
 
@@ -93,6 +94,10 @@ int tests_tlvs_read_sn(comm_protocol_builder_t *builder, comm_protocol_service_t
 int tests_tlvs_device_error_status(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 int tests_tlvs_suction_compensation(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+
+/// 产测完成标识
+int tests_tlvs_write_factory_complete_flag(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 
 /// NOTIFY上报 (设备主动上报)
