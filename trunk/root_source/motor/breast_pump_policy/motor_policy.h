@@ -203,6 +203,13 @@ typedef struct {
     motor_policy_core_t core;  /// 策略实体
 } motor_policy_cfg_t;
 
+/// 马达总策略配置
+typedef struct {  
+    uint8_t time_policy_num; /// 时间策略数量
+    uint8_t sub_policy_num; /// 子策略数量
+    motor_policy_core_t time_policy[]; 
+} motor_policy_total_cfg_t;
+
 /// 吸乳马达策略（常规模式）
 typedef struct motor_policy_node {
     motor_policy_core_t core;         /// 当前参数配置
