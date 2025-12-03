@@ -179,7 +179,7 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
     LOG_MOTOR("===enter===");
     EXCEPTION_CHECK_INT(runtime->manager);
     // negative_pressure_release(thiz);
-    MSG_QUEUE_RESETRESET(policy_work_msg_id);
+    MSG_QUEUE_RESET(policy_work_msg_id);
     START_TIMER(policy_work_timer, PUMP_POLICY_RUN_TIME_INTERVAL);
     while (1) {
         MSG_QUEUE_RECV(policy_work_msg_id, &msg, OS_WAIT_FOREVER);

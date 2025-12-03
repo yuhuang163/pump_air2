@@ -49,7 +49,7 @@ extern "C" {
     os_message_put_wrapper(msg_id_ptr, msg_data, timeout)
 #define MSG_QUEUE_RECV(msg_id_ptr, msg_data, timeout) \
     os_message_get_wrapper(msg_id_ptr, msg_data, timeout)
-#define MSG_QUEUE_RESETRESET(msg_id_ptr) \
+#define MSG_QUEUE_RESET(msg_id_ptr) \
     os_message_reset_wrapper(msg_id_ptr)
 #define DELETE_MSG_QUEUE(msg_id_ptr) \
     os_message_delete_wrapper(msg_id_ptr)    
@@ -58,7 +58,7 @@ extern "C" {
 #define CREATE_MSG_TYPE_QUEUE(msg_id_ptr, queue_num, _size) do { ; } while (0)
 #define MSG_QUEUE_SEND(msg_id_ptr, msg_data, timeout) do { ; } while (0)
 #define MSG_QUEUE_RECV(msg_id_ptr, msg_data, timeout) do { ; } while (0)
-#define MSG_QUEUE_RESETRESET(msg_id_ptr)              do { ; } while (0)
+#define MSG_QUEUE_RESET(msg_id_ptr)              do { ; } while (0)
 #define DELETE_MSG_QUEUE(msg_id_ptr)                  do { ; } while (0)
 #endif
 
