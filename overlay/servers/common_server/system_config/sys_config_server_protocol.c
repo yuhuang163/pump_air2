@@ -64,7 +64,7 @@ int sys_config_subscribe_service_handle(comm_protocol_builder_t *builder, comm_p
 
     protocol_manager_context_t *protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
     EXCEPTION_CHECK_INT(protocol_ctx);
-    LOGI("==> sys_config service srv_length: %d", srv_node->srv_length);
+    LOG_SRV("==> sys_config service srv_length: %d", srv_node->srv_length);
     LOG_HEX("==> sys_config service tlvs", srv_node->tlvs, srv_node->srv_length);
     comm_protocol_service_t *rsp_srv = NULL;
     if (builder != NULL) {
@@ -82,7 +82,7 @@ int sys_config_subscribe_service_handle(comm_protocol_builder_t *builder, comm_p
     for (;;) {
         /// 检查是否已处理完所有TLV
         if (tlv_offset >= srv_node->srv_length) {
-            LOGI("==> sys_config service tlv complete, tlv_offset: %d", tlv_offset);
+            LOG_SRV("==> sys_config service tlv complete, tlv_offset: %d", tlv_offset);
             break;
         }
         /// 获取TLV

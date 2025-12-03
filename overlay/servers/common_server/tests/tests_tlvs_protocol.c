@@ -63,7 +63,7 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
     
     uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
     
-    LOGI("tests_tlvs_factory_test_mode: %s", mode ? "ENTER" : "EXIT");
+    LOG_SRV("tests_tlvs_factory_test_mode: %s", mode ? "ENTER" : "EXIT");
     
     // TODO: 实现产测模式进入/退出逻辑
     // if (mode == 1) { /* 进入产测模式 */ }
@@ -89,7 +89,7 @@ int tests_tlvs_aging_test_mode(comm_protocol_builder_t *builder, comm_protocol_s
     
     uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
     
-    LOGI("tests_tlvs_aging_test_mode: %s", mode ? "ENTER" : "EXIT");
+    LOG_SRV("tests_tlvs_aging_test_mode: %s", mode ? "ENTER" : "EXIT");
     
     // TODO: 实现老化模式进入/退出逻辑
     // if (mode == 1) { /* 进入老化模式 */ }
@@ -115,7 +115,7 @@ int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol
     
     uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
     
-    LOGI("tests_tlvs_suction_test_mode: %s", mode ? "ENTER" : "EXIT");
+    LOG_SRV("tests_tlvs_suction_test_mode: %s", mode ? "ENTER" : "EXIT");
     
     // TODO: 实现吸力测试模式进入/退出逻辑
     // if (mode == 1) { /* 进入吸力测试模式 */ }
@@ -141,7 +141,7 @@ int tests_tlvs_aging_status_query(comm_protocol_builder_t *builder, comm_protoco
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_aging_status_query");
+    LOG_SRV("tests_tlvs_aging_status_query");
     
     // 应答格式: byte0=老化结果(0x00失败/0x01成功), byte1-4=老化时长(小端)
     uint8_t response[5] = {0};
@@ -172,7 +172,7 @@ int tests_tlvs_write_sn(comm_protocol_builder_t *builder, comm_protocol_service_
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_write_sn, data_len: %d", data_len);
+    LOG_SRV("tests_tlvs_write_sn, data_len: %d", data_len);
     LOG_HEX("write_sn", data, data_len);
     
     uint8_t result = 0x00; // 默认失败
@@ -205,7 +205,7 @@ int tests_tlvs_write_product_id(comm_protocol_builder_t *builder, comm_protocol_
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_write_product_id, data_len: %d", data_len);
+    LOG_SRV("tests_tlvs_write_product_id, data_len: %d", data_len);
     LOG_HEX("write_product_id", data, data_len);
     
     uint8_t result = 0x00; // 默认失败
@@ -238,7 +238,7 @@ int tests_tlvs_write_device_id(comm_protocol_builder_t *builder, comm_protocol_s
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_write_device_id, data_len: %d", data_len);
+    LOG_SRV("tests_tlvs_write_device_id, data_len: %d", data_len);
     LOG_HEX("write_device_id", data, data_len);
     
     uint8_t result = 0x00; // 默认失败
@@ -271,7 +271,7 @@ int tests_tlvs_write_secret_key(comm_protocol_builder_t *builder, comm_protocol_
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_write_secret_key, data_len: %d", data_len);
+    LOG_SRV("tests_tlvs_write_secret_key, data_len: %d", data_len);
     LOG_HEX("write_secret_key", data, data_len);
     
     uint8_t result = 0x00; // 默认失败
@@ -306,7 +306,7 @@ int tests_tlvs_read_triple_data(comm_protocol_builder_t *builder, comm_protocol_
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_read_triple_data");
+    LOG_SRV("tests_tlvs_read_triple_data");
     
     // 应答格式: byte0-5=产品ID(6字节), byte6-21=设备ID(16字节), byte22-37=密钥(16字节)
     uint8_t response[TESTS_TRIPLE_DATA_LENGTH] = {0};
@@ -336,7 +336,7 @@ int tests_tlvs_read_sn(comm_protocol_builder_t *builder, comm_protocol_service_t
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_read_sn");
+    LOG_SRV("tests_tlvs_read_sn");
     
     uint8_t response[TESTS_SN_LENGTH] = {0};
     
@@ -364,7 +364,7 @@ int tests_tlvs_device_error_status(comm_protocol_builder_t *builder, comm_protoc
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
     
-    LOGI("tests_tlvs_device_error_status");
+    LOG_SRV("tests_tlvs_device_error_status");
     
     // TODO: 获取设备异常状态
     uint8_t error_status = TESTS_DEVICE_ERROR_NONE;
@@ -386,7 +386,7 @@ int tests_tlvs_suction_compensation(comm_protocol_builder_t *builder, comm_proto
     
     uint8_t onoff = (data && data_len >= 1) ? data[0] : 0;
     
-    LOGI("tests_tlvs_suction_compensation: %s", onoff ? "ON" : "OFF");
+    LOG_SRV("tests_tlvs_suction_compensation: %s", onoff ? "ON" : "OFF");
     
     // TODO: 实现吸力补偿开关逻辑
     
@@ -395,6 +395,44 @@ int tests_tlvs_suction_compensation(comm_protocol_builder_t *builder, comm_proto
     
     comm_protocol_tlv_node_t tlv_node = {
         .type = TESTS_TLV_SUCTION_COMPENSATION,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+/// ======================== 产测完成标识写入 ========================
+
+int tests_tlvs_write_factory_complete_flag(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+    
+    LOG_SRV("tests_tlvs_write_factory_complete_flag, data_len: %d", data_len);
+    
+    uint8_t result = 0x00; // 默认失败
+    
+    if (data && data_len >= 1) {
+        uint8_t complete_flag = data[0]; // 0x00=产测未完成, 0x01=产测完成
+        
+        storage_manager_context_t *st = get_storage_ctx();
+        if (st) {
+            factory_flag_info_t flag_info = {0};
+            st->get_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
+            // 使用 deploy_flag 字段存储产测完成标识
+            flag_info.deploy_flag = complete_flag;
+            if (st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info) == 0) {
+                result = 0x01; // 成功
+                LOG_SRV("tests_tlvs_write_factory_complete_flag: %s", 
+                     complete_flag ? "COMPLETE" : "NOT_COMPLETE");
+            }
+        }
+    }
+    
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_WRITE_FACTORY_COMPLETE_FLAG,
         .length = 1,
         .value = &result,
     };
@@ -413,7 +451,7 @@ int tests_key_status_publish(servers_publish_data_args_t *args)
     EXCEPTION_CHECK_INT(ble_ctx);
     
     uint8_t key_status = (uint8_t)args->arg1; // 0x01=短按, 0x02=长按
-    LOGI("tests_key_status_publish: %s", 
+    LOG_SRV("tests_key_status_publish: %s", 
          key_status == TESTS_KEY_STATUS_SHORT_PRESS ? "SHORT" : "LONG");
     
     comm_protocol_builder_t builder = {0};
@@ -471,7 +509,7 @@ int tests_encoder_status_publish(servers_publish_data_args_t *args)
     EXCEPTION_CHECK_INT(ble_ctx);
     
     uint8_t encoder_status = (uint8_t)args->arg1; // 0x01=左旋, 0x02=右旋
-    LOGI("tests_encoder_status_publish: %s", 
+    LOG_SRV("tests_encoder_status_publish: %s", 
          encoder_status == TESTS_ENCODER_STATUS_LEFT ? "LEFT" : "RIGHT");
     
     comm_protocol_builder_t builder = {0};

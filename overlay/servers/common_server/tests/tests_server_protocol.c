@@ -32,6 +32,8 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
     /// 设备状态
     {TESTS_TLV_DEVICE_ERROR_STATUS, tests_tlvs_device_error_status},
     {TESTS_TLV_SUCTION_COMPENSATION, tests_tlvs_suction_compensation},
+    /// 产测完成标识
+    {TESTS_TLV_WRITE_FACTORY_COMPLETE_FLAG, tests_tlvs_write_factory_complete_flag},
 };
 
 /*
@@ -68,7 +70,7 @@ int tests_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protoc
 
     protocol_manager_context_t *protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
     EXCEPTION_CHECK_INT(protocol_ctx);
-    LOGI("==> tests service srv_length: %d", srv_node->srv_length);
+    LOG_SRV("==> tests service srv_length: %d", srv_node->srv_length);
     LOG_HEX("==> tests service tlvs", srv_node->tlvs, srv_node->srv_length);
     comm_protocol_service_t *rsp_srv = NULL;
     if (builder != NULL) {
@@ -86,7 +88,7 @@ int tests_subscribe_service_handle(comm_protocol_builder_t *builder, comm_protoc
     for (;;) {
         /// 检查是否已处理完所有TLV
         if (tlv_offset >= srv_node->srv_length) {
-            LOGI("==> tests service tlv complete, tlv_offset: %d", tlv_offset);
+            LOG_SRV("==> tests service tlv complete, tlv_offset: %d", tlv_offset);
             break;
         }
         /// 获取TLV

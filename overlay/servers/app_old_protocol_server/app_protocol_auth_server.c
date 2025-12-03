@@ -29,7 +29,7 @@
 */
 void app_old_comm_handle_get_triple_req(void)
 {
-    LOG_PROTOCOL(" Handling GET_TRIPLE request");
+    LOG_SRV(" Handling GET_TRIPLE request");
 
     // TODO: Handle GET_TRIPLE request
     factory_dev_info_t factory_dev_info;
@@ -89,7 +89,7 @@ void app_old_comm_handle_get_triple_req(void)
 
 void app_old_comm_handle_set_productid_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_PROTOCOL(" Handling SET_PRODUCTID request (data len: %d)", cal);
+    LOG_SRV(" Handling SET_PRODUCTID request (data len: %d)", cal);
 
     // TODO: Handle setting product ID
     factory_dev_info_t factory_dev_info;
@@ -115,7 +115,7 @@ void app_old_comm_handle_set_productid_req(uint8_t cal, uint8_t *cab)
 
 void app_old_comm_handle_set_deviceid_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_PROTOCOL(" Handling SET_DEVICEID request (data len: %d)", cal);
+    LOG_SRV(" Handling SET_DEVICEID request (data len: %d)", cal);
 
     // TODO: Handle setting device ID
     factory_dev_info_t factory_dev_info;
@@ -141,7 +141,7 @@ void app_old_comm_handle_set_deviceid_req(uint8_t cal, uint8_t *cab)
 
 void app_old_comm_handle_set_encryption_key_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_PROTOCOL(" Handling SET_ENCRYPTIONKEY request (data len: %d)", cal);
+    LOG_SRV(" Handling SET_ENCRYPTIONKEY request (data len: %d)", cal);
 
     // TODO: Handle setting encryption key
     factory_dev_info_t factory_dev_info;
@@ -167,7 +167,7 @@ void app_old_comm_handle_set_encryption_key_req(uint8_t cal, uint8_t *cab)
 
 void app_old_comm_handle_get_sn_req(void)
 {
-    LOG_PROTOCOL(" Handling get SN request");
+    LOG_SRV(" Handling get SN request");
 
     factory_dev_info_t factory_dev_info;
     storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
@@ -181,7 +181,7 @@ void app_old_comm_handle_get_sn_req(void)
 
 void app_old_comm_handle_set_sn_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_PROTOCOL(" Handling set SN request");
+    LOG_SRV(" Handling set SN request");
 
     factory_dev_info_t factory_dev_info;
     storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
