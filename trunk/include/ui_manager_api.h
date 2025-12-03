@@ -123,6 +123,27 @@ typedef struct ui_animation_play {
     void (*reset_play_count_cb)(struct ui_animation_play *thiz);
 } ui_animation_play_t;
 
+/// 描述LED闪烁信息.
+typedef struct {
+    uint8_t led_index;
+    uint16_t period;
+    uint16_t continue_time;
+    uint8_t first_status;
+    uint8_t finish_status;
+} led_blink_info_t;
+
+/// 描述LED亮度信息.
+typedef struct {
+    uint8_t led_index;
+    uint8_t level;
+} led_level_info_t;
+
+/// 描述LED开关信息.
+typedef struct {
+    uint8_t led_index;
+    uint8_t onoff;
+} led_onoff_info_t;
+
 struct rt_device_node;
 typedef struct ui_manager_context {
     /// private:
@@ -152,6 +173,9 @@ typedef struct ui_manager_context {
         void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
         void (*set_ui_backlight)(struct ui_manager_context *thiz, uint16_t val);
         bool (*is_ui_backlight_on)(struct ui_manager_context *thiz);
+        void (*set_led_blink)(struct ui_manager_context *thiz, led_blink_info_t blink_info);
+        void (*set_led_level)(struct ui_manager_context *thiz, led_level_info_t level_info);
+        void (*set_led_onoff)(struct ui_manager_context *thiz, led_onoff_info_t onoff_info);
     } *hook;
 } ui_manager_context_t;
 
