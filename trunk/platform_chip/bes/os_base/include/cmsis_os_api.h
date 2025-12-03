@@ -151,12 +151,24 @@ void *u_malloz(uint32_t size);
 void *u_realloc(void *p1, uint32_t size);
 /// 释放内存.
 int u_free(void *p);
-/// 分配内存并按指定对齐.
-void *u_malloc_align(uint32_t size, uint32_t align);
 /// 分配内存并按指定对齐并初始化.
 void *u_malloz_align(uint32_t size, uint32_t align);
 /// 释放对齐的内存.
 int u_free_align(void *p);
+/// 获取u_heap_psram的空闲空间大小.
+uint32_t u_heap_free_size_psram_get(int is_psram_nc);
+/// 分配内存.
+void *u_malloc_psram(uint32_t size, int is_psram_nc);
+/// 分配内存并初始化.
+void *u_malloz_psram(uint32_t size, int is_psram_nc);
+/// 重新分配内存.
+void *u_realloc_psram(void *p1, uint32_t size, int is_psram_nc);
+/// 分配内存并按指定对齐并初始化.
+void *u_malloz_align_psram(uint32_t size, uint32_t align, int is_psram_nc);
+/// 释放内存.
+int u_free_psram(void *p, int is_psram_nc);
+/// 释放对齐的内存.
+int u_free_align_psram(void *p, int is_psram_nc);
 /// 输出堆信息.
 void u_heap_info_output(void);
 /// 休眠毫秒.
