@@ -302,7 +302,9 @@ static void charging_work_policy_handler(void *arg)
                     LOG_PBUS("charge plug out");
                 }
             } else {
-                return; /// 插头未插入，直接返回
+                if (s_charge_is_ready) {
+                    return;
+                }
             }
         } else {
             plug_out_count = 0;
@@ -316,6 +318,7 @@ static void charging_work_policy_handler(void *arg)
         }
         s_charge_status.temp = charge_ntc_temperature_get(s_charge_status.ntc_resistance);
         if (get_timestamp_ms(log_timer) > 2000) {
+            s_charge_is_ready = true;
             log_timer = get_timestamp();
             BSP_LOG("charge status", "vbus:%d mV, ibus:%d mA, vbat:%d mV, ibat:%d mA, ntc:%f KΩ, temp:%d℃, status:%x", 
                      s_charge_status.vbus, s_charge_status.ibus, s_charge_status.vbat, s_charge_status.ibat, 
