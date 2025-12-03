@@ -135,6 +135,42 @@ static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
     }
 }
 
+static void set_led_blink(ui_manager_context_t *thiz, led_blink_info_t blink_info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    led_status_t led_status = {
+        .mode = LED_MODE_BLINK,
+        .un.blink.period = blink_info.period,
+        .un.blink.continue_time = blink_info.continue_time,
+        .un.blink.first_status = blink_info.first_status,
+        .un.blink.finish_status = blink_info.finish_status,
+    };
+    int args[] = {blink_info.led_index, (int)&led_status};
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+}
+
+static void set_led_level(ui_manager_context_t *thiz, led_level_info_t level_info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    led_status_t led_status = {
+        .mode = LED_MODE_LEVEL,
+        .un.luminous.level = level_info.level,
+    };
+    int args[] = {level_info.led_index, (int)&led_status};
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+}
+
+static void set_led_onoff(ui_manager_context_t *thiz, led_onoff_info_t onoff_info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    led_status_t led_status = {
+        .mode = LED_MODE_ONOFF,
+        .un.onoff.status = onoff_info.onoff,
+    };
+    int args[] = {onoff_info.led_index, (int)&led_status};
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+}
+
 static int on_post_ui_init_route(struct ui_manager_context *ctx)
 {
     return 0;
@@ -162,4 +198,7 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
     ctx->hook->set_ui_backlight = set_ui_backlight;
     ctx->hook->is_ui_backlight_on = is_ui_backlight_on;
+    ctx->hook->set_led_blink = set_led_blink;
+    ctx->hook->set_led_level = set_led_level;
+    ctx->hook->set_led_onoff = set_led_onoff;
 }

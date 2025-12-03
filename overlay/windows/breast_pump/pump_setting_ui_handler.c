@@ -196,50 +196,12 @@ int switch_pump_control_type_ui(ui_proc_pump_t *proc, breast_pump_manager_contex
         st->put_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
     }
 
-    peripheral_bus_context_t *pbus = pump->priv.pbus;
-    EXCEPTION_CHECK_INT(pbus);
-    rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
-    EXCEPTION_CHECK_INT(led_dev);
-    led_status_t led_status = {0};
-    int args[2] = {0, (int)&led_status};
-
-    if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
-        args[0] = PUMP_RIGHT_CONTROL_BL;
-        led_status.mode = LED_MODE_LEVEL;
-        led_status.un.luminous.level = LED_LEVEL_MAX / 2;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-        args[0] = PUMP_LEFT_CONTROL_BL;
-        led_status.mode = LED_MODE_BLINK;
-        led_status.un.blink.period = 500;
-        led_status.un.blink.continue_time = 3000;
-        led_status.un.blink.first_status = LED_STATUS_ON;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-    } else if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
-        args[0] = PUMP_LEFT_CONTROL_BL;
-        led_status.mode = LED_MODE_LEVEL;
-        led_status.un.luminous.level = LED_LEVEL_MAX / 2;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-        args[0] = PUMP_RIGHT_CONTROL_BL;
-        led_status.mode = LED_MODE_BLINK;
-        led_status.un.blink.period = 500;
-        led_status.un.blink.continue_time = 3000;
-        led_status.un.blink.first_status = LED_STATUS_ON;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-    } else {
-        led_status.mode = LED_MODE_LEVEL;
-        led_status.un.luminous.level = LED_LEVEL_MAX;
-        args[0] = PUMP_RIGHT_CONTROL_BL;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-        args[0] = PUMP_LEFT_CONTROL_BL;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-    }
-    
     if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
         show_pump_level_ui(proc, PUMP_UI_TYPE_LEFT_LEVEL);
     } else if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
         show_pump_level_ui(proc, PUMP_UI_TYPE_RIGHT_LEVEL);
     }
-    LOG_UI("switch pump control type: %d, led status: %d", control_type, led_status.un.luminous.level);
+    LOG_UI("switch pump control type: %d", control_type);
     return 0;
 }
 
@@ -249,6 +211,7 @@ int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t
     struct storage_manager_context *st = pump->priv.st;
     EXCEPTION_CHECK_INT(st);
     EXCEPTION_CHECK_INT(pump->priv.motor);
+    EXCEPTION_CHECK_INT(proc);
     int time_index = pump->priv.motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
     if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
         time_index = 0;
@@ -257,7 +220,7 @@ int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t
     if (!BREAST_PUMP_IS_COMMON_MODE(pump_info->mode)) {
         LOG_UI("pump is not common mode, ignore.");
         return 0;
-    }
+    } 
     pump->get_breast_pump_setting(&proc->setting, time_index);
     if (proc->setting.speed < BREAST_PUMP_SPEED_HIGH) {
         proc->setting.speed++;

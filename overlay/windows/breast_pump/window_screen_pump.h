@@ -106,7 +106,7 @@ typedef struct ui_proc_pump {
 */
 void show_pump_home_ui(ui_proc_pump_t *proc);
 int switch_pump_common_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
-int switch_pump_power_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump);
+int switch_pump_night_light_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump);
 int switch_pump_status_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, int status);
 int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
 int switch_pump_breastfeeding_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
