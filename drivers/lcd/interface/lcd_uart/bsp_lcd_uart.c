@@ -235,7 +235,7 @@ int bsp_lcd_uart_init(void)
         return ret;
     }
     hal_uart_irq_set_dma_handler((enum HAL_UART_ID_T)LCD_UART_ID, lcd_uart_rx, lcd_uart_tx);
-    RUN_NEW_THREAD(&s_lcd_uart_thd, "lcd_uart", lcd_uart_event_thread, RT_PRIO_LCD_UART_THREAD, (LCD_UART_THREAD_STACKSIZE));
+    RUN_NEW_THREAD(&s_lcd_uart_thd, "lcd_uart", lcd_uart_event_thread, RT_PRIO_LCD_THREAD, (LCD_THREAD_STACKSIZE));
     LOG_PBUS("lcd uart init success");
 
     return 0;
