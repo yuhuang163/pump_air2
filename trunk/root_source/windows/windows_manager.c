@@ -417,9 +417,15 @@ static void window_boot_completed_cb(hdr_post_args_t *args)
     window_manager_context_t *wm = (window_manager_context_t *)args->user_data;
     EXCEPTION_CHECK_VOID(wm);
     wm->window_boot_completed(wm);
+    power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     multi_func_msg_data_t __msg = {0};
-    __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
-    LOG_WM("goto logo screen");
+    if (pm->is_system_power_on()) {
+        __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
+        LOG_WM("goto logo screen");
+    } else {
+        __msg.union_body.extra.window_id = ID_WINDOW_DUMMY;
+        LOG_WM("goto dummy screen");
+    }
     dispatch_new_window_args(wm, &__msg);
 }
 

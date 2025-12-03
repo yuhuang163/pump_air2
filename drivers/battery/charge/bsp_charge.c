@@ -8,6 +8,7 @@
 #include "bsp_charge.h"
 #include "bsp_battery_internal.h"
 #include "bsp_ntc_map.h"
+#include "root_log_define.h"
 
 /*
 * DEFINES
@@ -290,6 +291,7 @@ static int charge_ntc_temperature_get(float resistance)
 static void charging_work_policy_handler(void *arg)
 {
     uint32_t log_timer = 0;
+    uint16_t exit_delay_time = 30; /// 3000ms
     uint16_t plug_out_count = 0;  
     while (1) {
         charge_status_poll(&s_charge_status);
@@ -302,7 +304,9 @@ static void charging_work_policy_handler(void *arg)
                     LOG_PBUS("charge plug out");
                 }
             } else {
-                if (s_charge_is_ready) {
+                exit_delay_time--;
+                if (exit_delay_time == 0) {
+                    LOGW("no charging, exit charging work policy handler");
                     return;
                 }
             }
@@ -318,7 +322,6 @@ static void charging_work_policy_handler(void *arg)
         }
         s_charge_status.temp = charge_ntc_temperature_get(s_charge_status.ntc_resistance);
         if (get_timestamp_ms(log_timer) > 2000) {
-            s_charge_is_ready = true;
             log_timer = get_timestamp();
             BSP_LOG("charge status", "vbus:%d mV, ibus:%d mA, vbat:%d mV, ibat:%d mA, ntc:%f KΩ, temp:%d℃, status:%x", 
                      s_charge_status.vbus, s_charge_status.ibus, s_charge_status.vbat, s_charge_status.ibat, 
@@ -331,6 +334,7 @@ static void charging_work_policy_handler(void *arg)
 static void charge_device_thread(void *arg)
 {
     uint8_t msg = 0;
+    LOG_PBUS("charge device thread start");
     while (1) {
         charging_work_policy_handler(&s_charge_status);
         MSG_QUEUE_RECV(s_charge_device_thd.msg_id, &msg, OS_WAIT_FOREVER);
@@ -387,6 +391,7 @@ int bsp_charge_init(void)
     msleep(10);
     ret = charge_device_is_ready();
     if (ret != BSP_OK) {
+        LOGE("charge device is not ready, ret: %d", ret);
         return ret;
     }
     ret = charge_scale_config();
