@@ -172,96 +172,271 @@ int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protoc
 {
     LOG_PROTOCOL(" Starting frame extraction (queue len: %d)\n", app_old_comm_rx_queue.len);
     app_old_comm_ring_queue_push(data, len);
-    // 1. Check frame timeout
-    if (app_old_comm_is_frame_timeout()) {
-        app_old_comm_ring_queue_clear();
-        return APP_OLD_COMM_PARSE_ERR_TIMEOUT;
-    }
-
-    // 2. Find frame header (0xAA55)
-    uint16_t header_pos = 0;
-    bool header_found = false;
-    uint16_t max_search = (app_old_comm_rx_queue.len >= 2) ? (app_old_comm_rx_queue.len - 1) : 0;
-
-    while (header_pos < max_search) {
-        uint8_t byte1 = app_old_comm_ring_queue_peek(header_pos);
-        uint8_t byte2 = app_old_comm_ring_queue_peek(header_pos + 1);
-
-        if ((byte1 << 8 | byte2) == APP_OLD_COMM_SOP_FCF) {
-            header_found = true;
-            break;
-        }
-        header_pos++;
-    }
-
-    if (!header_found) {
-        LOG_PROTOCOL(" Frame header (0xAA55) not found\n");
-        // Clear if exceeding half max frame length
-        if (app_old_comm_rx_queue.len > APP_OLD_COMM_MAX_PACKET_LEN / 2) {
+    
+    int parse_result = APP_OLD_COMM_PARSE_ERR_HEADER; // Default result if no frame found
+    uint16_t frames_parsed = 0; // Count of successfully parsed frames
+    
+    // Loop protection: prevent infinite loop
+    // Maximum iterations: assume queue can contain at most RX_QUEUE_SIZE/2 frames (512/2 = 256)
+    // But in practice, limit to a reasonable number to prevent infinite loops
+    const uint16_t MAX_LOOP_ITERATIONS = 100; // Maximum iterations to prevent infinite loop
+    uint16_t loop_count = 0;
+    uint16_t invalid_header_count = 0; // Count consecutive invalid headers
+    uint32_t loop_start_time = get_timestamp(); // Record loop start time for timeout detection
+    uint16_t previous_queue_len = app_old_comm_rx_queue.len; // Track queue length changes
+    
+    // Loop to try multiple headers if needed - continue until no more valid frames
+    while (true) {
+        // Loop counter protection: prevent infinite loops
+        loop_count++;
+        if (loop_count > MAX_LOOP_ITERATIONS) {
+            LOG_PROTOCOL(" Loop iteration limit (%d) reached, clearing queue to prevent infinite loop\n", MAX_LOOP_ITERATIONS);
             app_old_comm_ring_queue_clear();
+            return APP_OLD_COMM_PARSE_ERR_HEADER;
         }
-        return APP_OLD_COMM_PARSE_ERR_HEADER;
+        
+        // 1. Check frame timeout
+        if (app_old_comm_is_frame_timeout()) {
+            LOG_PROTOCOL(" Frame timeout, clearing queue\n");
+            app_old_comm_ring_queue_clear();
+            return APP_OLD_COMM_PARSE_ERR_TIMEOUT;
+        }
+        
+        // Additional timeout check: if loop has been running too long, exit
+        // This protects against cases where timeout check doesn't trigger due to continuous data input
+        uint32_t loop_duration_ms = get_timestamp_ms(loop_start_time);
+        if (loop_duration_ms > APP_OLD_COMM_FRAME_TIMEOUT_MS) {
+            LOG_PROTOCOL(" Loop execution timeout (%ums), clearing queue to prevent infinite loop\n", loop_duration_ms);
+            app_old_comm_ring_queue_clear();
+            return APP_OLD_COMM_PARSE_ERR_TIMEOUT;
+        }
+
+        // 2. Find frame header (0xAA55)
+        uint16_t header_pos = 0;
+        bool header_found = false;
+        uint16_t max_search = (app_old_comm_rx_queue.len >= 2) ? (app_old_comm_rx_queue.len - 1) : 0;
+
+        while (header_pos < max_search) {
+            uint8_t byte1 = app_old_comm_ring_queue_peek(header_pos);
+            uint8_t byte2 = app_old_comm_ring_queue_peek(header_pos + 1);
+
+            if ((byte1 << 8 | byte2) == APP_OLD_COMM_SOP_FCF) {
+                header_found = true;
+                break;
+            }
+            header_pos++;
+        }
+
+        if (!header_found) {
+            LOG_PROTOCOL(" Frame header (0xAA55) not found (queue len: %d)\n", app_old_comm_rx_queue.len);
+            
+            // Clear invalid/garbage packets if queue is too large
+            // Criteria: 
+            // 1. Queue length >= MAX_PACKET_LEN (256 bytes) - definitely garbage
+            // 2. Queue length >= MAX_PACKET_LEN/2 (128 bytes) - likely garbage if no header found
+            // This prevents invalid data from occupying queue space indefinitely
+            if (app_old_comm_rx_queue.len >= APP_OLD_COMM_MAX_PACKET_LEN / 2) {
+                LOG_PROTOCOL(" Queue too large (%d >= %d bytes) with no header, clearing garbage data\n", 
+                       app_old_comm_rx_queue.len, APP_OLD_COMM_MAX_PACKET_LEN / 2);
+                app_old_comm_ring_queue_clear();
+            }
+            
+            // If we already parsed some frames, return success; otherwise return header error
+            if (frames_parsed > 0) {
+                LOG_PROTOCOL(" No more headers found, returning success (parsed %d frames)\n", frames_parsed);
+                return APP_OLD_COMM_PARSE_SUCCESS;
+            }
+            return APP_OLD_COMM_PARSE_ERR_HEADER;
+        }
+
+        LOG_PROTOCOL(" Found frame header at position %d\n", header_pos);
+
+        // 3. Clear invalid data before header
+        if (header_pos > 0) {
+            uint8_t dummy[APP_OLD_COMM_RX_QUEUE_SIZE];
+            app_old_comm_ring_queue_pop(dummy, header_pos);
+            LOG_PROTOCOL(" Removed %d invalid bytes before header\n", header_pos);
+        }
+
+        // 4. Check minimum length for parsing
+        if (app_old_comm_rx_queue.len < 6) {  // Header(2) + CT(1) + CID(1) + CAL(1) + crc = 6 bytes
+            LOG_PROTOCOL(" Incomplete frame - need at least 6 bytes, have %d\n", app_old_comm_rx_queue.len);
+            // If we already parsed some frames, return success; otherwise return incomplete
+            if (frames_parsed > 0) {
+                LOG_PROTOCOL(" Returning success (parsed %d frames), waiting for more data\n", frames_parsed);
+                return APP_OLD_COMM_PARSE_SUCCESS;
+            }
+            return APP_OLD_COMM_PARSE_ERR_INCOMPLETE;
+        }
+
+        // 5. Parse parameter length field (CAL)
+        uint8_t cal = app_old_comm_ring_queue_peek(4);
+        uint16_t total_frame_len = 2 + 1 + 1 + 1 + cal + 1;  // header+CT+CID+CAL+data+checksum
+
+        LOG_PROTOCOL(" Parsed frame length: %d bytes (CAL: %d)\n", total_frame_len, cal);
+
+        // Verify frame length - if invalid, remove this header and try next
+        if (total_frame_len < 6 || total_frame_len > APP_OLD_COMM_MAX_PACKET_LEN) {
+            LOG_PROTOCOL(" Invalid frame length %d (min:6, max:%d), removing invalid header\n",
+                   total_frame_len, APP_OLD_COMM_MAX_PACKET_LEN);
+            
+            // Count consecutive invalid headers to prevent infinite loop
+            invalid_header_count++;
+            
+            // Check if queue length is reducing - if not, we might be in a loop
+            // If queue length hasn't decreased after removing headers, clear queue
+            if (app_old_comm_rx_queue.len >= previous_queue_len && invalid_header_count > 10) {
+                LOG_PROTOCOL(" Queue length not reducing (%d -> %d) after %d invalid headers, clearing queue\n",
+                       previous_queue_len, app_old_comm_rx_queue.len, invalid_header_count);
+                app_old_comm_ring_queue_clear();
+                return APP_OLD_COMM_PARSE_ERR_HEADER;
+            }
+            
+            // If too many consecutive invalid headers, clear queue to prevent infinite loop
+            const uint16_t MAX_INVALID_HEADERS = 50; // Maximum consecutive invalid headers
+            if (invalid_header_count > MAX_INVALID_HEADERS) {
+                LOG_PROTOCOL(" Too many consecutive invalid headers (%d), clearing queue to prevent infinite loop\n",
+                       invalid_header_count);
+                app_old_comm_ring_queue_clear();
+                return APP_OLD_COMM_PARSE_ERR_HEADER;
+            }
+            
+            // Remove invalid header and continue to search for next header
+            previous_queue_len = app_old_comm_rx_queue.len; // Update before pop
+            uint8_t dummy[2];
+            app_old_comm_ring_queue_pop(dummy, 2);
+            continue; // Try to find next header
+        }
+        
+        // Reset invalid header counter on valid frame length
+        invalid_header_count = 0;
+        previous_queue_len = app_old_comm_rx_queue.len;
+
+        // 6. Check if complete frame exists
+        if (app_old_comm_rx_queue.len < total_frame_len) {
+            LOG_PROTOCOL(" Incomplete frame - need %d bytes, have %d\n",
+                   total_frame_len, app_old_comm_rx_queue.len);
+            
+            // Check if there's a new header in the queue after current position
+            // This indicates that current incomplete frame might be corrupted
+            // Only check after a reasonable offset (at least 6 bytes = minimum frame size)
+            bool found_new_header = false;
+            uint16_t new_header_pos = 0;
+            for (uint16_t check_pos = 6; check_pos < app_old_comm_rx_queue.len - 1; check_pos++) {
+                uint8_t byte1 = app_old_comm_ring_queue_peek(check_pos);
+                uint8_t byte2 = app_old_comm_ring_queue_peek(check_pos + 1);
+                if ((byte1 << 8 | byte2) == APP_OLD_COMM_SOP_FCF) {
+                    found_new_header = true;
+                    new_header_pos = check_pos;
+                    LOG_PROTOCOL(" Found new header at position %d (queue len: %d, expected frame len: %d)\n", 
+                           check_pos, app_old_comm_rx_queue.len, total_frame_len);
+                    break;
+                }
+            }
+            
+            // If found new header, analyze if current frame is likely corrupted
+            if (found_new_header) {
+                // Since we're in an incomplete frame scenario (queue_len < total_frame_len),
+                // new_header_pos can only be in range [6, queue_len-2]
+                // A new header appearing before the expected frame end suggests:
+                // 1. Current frame's CAL value might be wrong
+                // 2. Or frames are concatenated (stuck together)
+                
+                // Check if new header has enough data after it to form at least a minimal frame
+                uint16_t remaining_after_new_header = app_old_comm_rx_queue.len - new_header_pos;
+                
+                // Only skip current frame if:
+                // 1. New header is at reasonable position (>=6, avoiding false positives in header field)
+                // 2. There's enough data after new header to potentially form a valid frame (>=6 bytes minimum)
+                // 3. The new header position suggests current frame's CAL might be wrong
+                //    (if new_header_pos is much less than total_frame_len, it's likely CAL is wrong)
+                
+                if (new_header_pos >= 6 && remaining_after_new_header >= 6) {
+                    // Additional validation: if new header is very close to expected frame end,
+                    // it might be part of current frame's data (false positive)
+                    // Only skip if new header is significantly before expected frame end
+                    // This suggests current frame's CAL is likely wrong
+                    if (new_header_pos + 10 < total_frame_len) {
+                        LOG_PROTOCOL(" New header at %d (expected frame len: %d, remaining: %d), CAL likely wrong, skipping\n", 
+                               new_header_pos, total_frame_len, remaining_after_new_header);
+                        previous_queue_len = app_old_comm_rx_queue.len; // Update before pop
+                        uint8_t dummy[2];
+                        app_old_comm_ring_queue_pop(dummy, 2);
+                        continue;
+                    }
+                }
+            }
+            
+            // Check if this incomplete frame has been waiting too long
+            // If queue has grown significantly since we started waiting, likely a new frame
+            if (app_old_comm_rx_queue.len > APP_OLD_COMM_MAX_PACKET_LEN) {
+                LOG_PROTOCOL(" Queue overflow, removing header and trying next\n");
+                previous_queue_len = app_old_comm_rx_queue.len; // Update before pop
+                uint8_t dummy[2];
+                app_old_comm_ring_queue_pop(dummy, 2);
+                continue;
+            }
+            
+            // Check if the remaining data needed is unreasonably large
+            // If we need more than MAX_PACKET_LEN bytes total, the CAL value is likely wrong
+            uint16_t remaining_needed = total_frame_len - app_old_comm_rx_queue.len;
+            if (remaining_needed > APP_OLD_COMM_MAX_PACKET_LEN) {
+                LOG_PROTOCOL(" Need %d more bytes (total %d), likely wrong CAL value, removing header\n",
+                       remaining_needed, total_frame_len);
+                previous_queue_len = app_old_comm_rx_queue.len; // Update before pop
+                uint8_t dummy[2];
+                app_old_comm_ring_queue_pop(dummy, 2);
+                continue;
+            }
+            
+            // If we already parsed some frames, return success; otherwise return incomplete
+            if (frames_parsed > 0) {
+                LOG_PROTOCOL(" Returning success (parsed %d frames), waiting for more data for incomplete frame\n", frames_parsed);
+                return APP_OLD_COMM_PARSE_SUCCESS;
+            }
+            return APP_OLD_COMM_PARSE_ERR_INCOMPLETE;
+        }
+
+        // 7. Extract complete frame data
+        uint16_t read_len = app_old_comm_ring_queue_pop(app_old_comm_frame_buf, total_frame_len);
+        if (read_len != total_frame_len) {
+            LOG_PROTOCOL(" Failed to extract frame - read %d of %d bytes\n",
+                   read_len, total_frame_len);
+            return APP_OLD_COMM_PARSE_ERR_LENGTH;
+        }
+
+        // 8. Verify checksum
+        uint8_t recv_checksum = app_old_comm_frame_buf[total_frame_len - 1];
+        uint8_t calc_check = app_old_comm_calc_checksum(app_old_comm_frame_buf, total_frame_len - 1);
+        if (recv_checksum != calc_check) {
+            LOG_PROTOCOL(" Checksum mismatch - received 0x%02X, calculated 0x%02X, clearing queue\n",
+                   recv_checksum, calc_check);
+            // Checksum error indicates data corruption, clear entire queue to avoid parsing garbage data
+            app_old_comm_ring_queue_clear();
+            return APP_OLD_COMM_PARSE_ERR_CHECKSUM;
+        }
+
+        // Successfully parsed a complete and valid frame
+        callback(app_old_comm_frame_buf, total_frame_len);
+        frames_parsed++;
+        parse_result = APP_OLD_COMM_PARSE_SUCCESS;
+        LOG_PROTOCOL(" Successfully extracted frame #%d (len: %d, remaining queue: %d)\n", 
+               frames_parsed, total_frame_len, app_old_comm_rx_queue.len);
+        
+        // Reset invalid header counter on successful parse
+        invalid_header_count = 0;
+        previous_queue_len = app_old_comm_rx_queue.len;
+        
+        // Continue to parse next frame if queue still has data
+        // Don't return immediately, keep looping to parse multiple concatenated frames
+        if (app_old_comm_rx_queue.len == 0) {
+            LOG_PROTOCOL(" Queue empty after parsing %d frame(s), returning success\n", frames_parsed);
+            return APP_OLD_COMM_PARSE_SUCCESS;
+        }
+        
+        // Continue loop to try parsing next frame
+        continue;
     }
-
-    LOG_PROTOCOL(" Found frame header at position %d\n", header_pos);
-
-    // 3. Clear invalid data before header
-    if (header_pos > 0) {
-        uint8_t dummy[APP_OLD_COMM_RX_QUEUE_SIZE];
-        app_old_comm_ring_queue_pop(dummy, header_pos);
-        LOG_PROTOCOL(" Removed %d invalid bytes before header\n", header_pos);
-    }
-
-    // 4. Check minimum length for parsing
-    if (app_old_comm_rx_queue.len < 6) {  // Header(2) + CT(1) + CID(1) + CAL(1) + crc = 6 bytes
-        LOG_PROTOCOL(" Incomplete frame - need at least 5 bytes, have %d\n", app_old_comm_rx_queue.len);
-        return APP_OLD_COMM_PARSE_ERR_INCOMPLETE;
-    }
-
-    // 5. Parse parameter length field (CAL)
-    uint8_t cal = app_old_comm_ring_queue_peek(4);
-    uint16_t total_frame_len = 2 + 1 + 1 + 1 + cal + 1;  // header+CT+CID+CAL+data+checksum
-
-    LOG_PROTOCOL(" Parsed frame length: %d bytes (CAL: %d)\n", total_frame_len, cal);
-
-    // Verify frame length
-    if (total_frame_len < 6 || total_frame_len > APP_OLD_COMM_MAX_PACKET_LEN) {
-        LOG_PROTOCOL(" Invalid frame length %d (min:6, max:%d)\n",
-               total_frame_len, APP_OLD_COMM_MAX_PACKET_LEN);
-        // Remove invalid header
-        uint8_t dummy[2];
-        app_old_comm_ring_queue_pop(dummy, 2);
-        return APP_OLD_COMM_PARSE_ERR_LENGTH;
-    }
-
-    // 6. Check if complete frame exists
-    if (app_old_comm_rx_queue.len < total_frame_len) {
-        LOG_PROTOCOL(" Incomplete frame - need %d bytes, have %d\n",
-               total_frame_len, app_old_comm_rx_queue.len);
-        return APP_OLD_COMM_PARSE_ERR_INCOMPLETE;
-    }
-
-    // 7. Extract complete frame data
-    uint16_t read_len = app_old_comm_ring_queue_pop(app_old_comm_frame_buf, total_frame_len);
-    if (read_len != total_frame_len) {
-        LOG_PROTOCOL(" Failed to extract frame - read %d of %d bytes\n",
-               read_len, total_frame_len);
-        return APP_OLD_COMM_PARSE_ERR_LENGTH;
-    }
-
-    // 8. Verify checksum
-    uint8_t recv_checksum = app_old_comm_frame_buf[total_frame_len - 1];
-    uint8_t calc_check = app_old_comm_calc_checksum(app_old_comm_frame_buf, total_frame_len - 1);
-    if (recv_checksum != calc_check) {
-        LOG_PROTOCOL(" Checksum mismatch - received 0x%02X, calculated 0x%02X\n",
-               recv_checksum, calc_check);
-        return APP_OLD_COMM_PARSE_ERR_CHECKSUM;
-    }
-
-    /// 调用回调函数传递完整帧
-    callback(app_old_comm_frame_buf, total_frame_len);
-    LOG_PROTOCOL(" Successfully extracted frame (len: %d)\n", total_frame_len);
-    return APP_OLD_COMM_PARSE_SUCCESS;
 }
 
 // Protocol parsing core interface

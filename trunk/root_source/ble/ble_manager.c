@@ -82,7 +82,18 @@ static void on_ble_broadcast_receive(broadcast_mask_id_t id, void *context, int 
 
 static int ble_mac_addr_get(uint8_t *mac)
 {
-    memcpy(mac, ble_obj->priv.mac_addr, BLE_MAC_ADDR_LEN);
+    if (ble_obj->priv.ble_dev && ble_obj->priv.ble_dev->ioctl) {
+        uint32_t args[] = {(uint32_t)mac};
+        int ret = DEVICE_IOCTL_ARGS(ble_obj->priv.ble_dev, OP_CODE_BLE_MAC_ADDR_GET, args);
+        if (ret == 0 && mac) {
+            memcpy(ble_obj->priv.mac_addr, mac, BLE_MAC_ADDR_LEN);
+            return 0;
+        }
+    }
+    // 如果底层获取失败，尝试从缓存读取
+    if (mac) {
+        memcpy(mac, ble_obj->priv.mac_addr, BLE_MAC_ADDR_LEN);
+    }
     return 0;
 }
 
@@ -402,7 +413,11 @@ static int on_post_init(void *ptr)
     if (ctx->priv.ble_dev && ctx->priv.ble_dev->ioctl) {
         DEVICE_IOCTL_ARGS(ctx->priv.ble_dev, OP_CODE_BLE_ADD_EVENT_CALLBACK, ble_event_callback);
     }
-
+    /// 获取BLE MAC地址
+    if (ctx->priv.ble_dev && ctx->priv.ble_dev->ioctl) {
+        uint32_t args[] = {(uint32_t)ctx->priv.mac_addr};
+        DEVICE_IOCTL_ARGS(ctx->priv.ble_dev, OP_CODE_BLE_MAC_ADDR_GET, args);
+    }
     /// 注册BLE数据回调
     if (ctx->priv.ble_dev && ctx->priv.ble_dev->ioctl) {
         DEVICE_IOCTL_ARGS(ctx->priv.ble_dev, OP_CODE_BLE_ADD_DATA_CALLBACK, ble_data_callback);

@@ -32,6 +32,7 @@ typedef enum {
     OP_CODE_BLE_MAC_ADDR_SET = 5,
     OP_CODE_BLE_ADD_EVENT_CALLBACK = 6,
     OP_CODE_BLE_ADD_DATA_CALLBACK = 7,
+    OP_CODE_BLE_MAC_ADDR_GET = 8,
     OP_CODE_BLE_END
 } ble_dev_op_code_e;
 
