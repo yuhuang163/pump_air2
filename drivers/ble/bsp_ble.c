@@ -82,8 +82,18 @@ static int ble_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
         }
 
         case OP_CODE_BLE_MAC_ADDR_SET: {
-            uint8_t *mac_addr = (uint8_t *)tmp[0];
-            ble_custom_gap_mac_addr_set(mac_addr);
+            uint8_t *mac_addr = (uint8_t *)tmp[1];
+            if (mac_addr) {
+                ble_custom_gap_mac_addr_set(mac_addr);
+            }
+            break;
+        }
+
+        case OP_CODE_BLE_MAC_ADDR_GET: {
+            uint8_t *get_mac_addr = (uint8_t *)tmp[0];
+            if (get_mac_addr) {
+                return ble_custom_gap_mac_addr_get(get_mac_addr);
+            }
             break;
         }
 

@@ -196,3 +196,13 @@ int ble_custom_gap_mac_addr_set(uint8_t *mac_addr)
     memcpy(s_mac_addr, mac_addr, 6);
     return factory_section_set_ble_address(mac_addr);
 }
+
+int ble_custom_gap_mac_addr_get(uint8_t *mac_addr)
+{
+    uint8_t *ble_addr = factory_section_get_ble_address();
+    if (ble_addr && mac_addr) {
+        memcpy(mac_addr, ble_addr, 6);
+        return 0;
+    }
+    return -1;
+}

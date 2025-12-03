@@ -12,10 +12,10 @@ extern "C" {
 
 // Protocol core definitions
 #define APP_OLD_COMM_SOP_FCF          0xAA55  // Frame header
-#define APP_OLD_COMM_MAX_PACKET_LEN   128     // Maximum packet length (MTU=128)
+#define APP_OLD_COMM_MAX_PACKET_LEN   256     // Maximum packet length (MTU=128)
 #define APP_OLD_COMM_HEARTBEAT_INTERVAL 30000 // Heartbeat interval (30 seconds)
 #define APP_OLD_COMM_RX_QUEUE_SIZE    512     // Receive queue size
-#define APP_OLD_COMM_FRAME_TIMEOUT_MS 2000     // Frame timeout (200ms)
+#define APP_OLD_COMM_FRAME_TIMEOUT_MS 400     // Frame timeout (400ms)
 #define BLE_PAYLOAD_CRYPTION          1       // Enable BLE payload encryption
 
 // Command type definitions
