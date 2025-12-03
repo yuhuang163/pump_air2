@@ -131,8 +131,8 @@ static void led_blink_handle(uint8_t index)
     /// 闪烁完成
     if (get_timestamp_ms(led->start_time) >= led->continue_time && led->continue_time != 0) {
         led_status[index].mode = LED_MODE_ONOFF;
-        if (led->cb) {
-            led->cb(led->user_data, index);
+        if (led->finish_status != led->status) {
+            GPIO_PIN_CTRL(led_cfg[index].pin, led->finish_status != LED_STATUS_ON ? 0 : 1);
         }
         return;
     }

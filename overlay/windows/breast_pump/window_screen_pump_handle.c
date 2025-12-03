@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "breast_pump_manager_api.h"
+#include "breast_pump_manager.h"
 #include "window_screen_pump.h"// IWYU pragma: keep
 
 /*
@@ -148,26 +149,79 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         return 0;
     }
 
+    EXCEPTION_CHECK_INT(proc->ui->hook && proc->ui->hook->set_led_blink);
+    led_blink_info_t blink_info = {
+        .led_index = PUMP_START_BL,
+        .period = 500,
+        .continue_time = 550,
+        .first_status = LED_STATUS_OFF,
+        .finish_status = LED_STATUS_ON,
+    };
+
     switch (keycode) {
         case KEY_CODE_POWER:
-            switch_pump_power_ui(proc, pump);
+            switch_pump_night_light_ui(proc, pump);
             break;
         case KEY_CODE_START:
+            blink_info.led_index = PUMP_START_BL;
+            proc->ui->hook->set_led_blink(proc->ui, blink_info);
             switch_pump_status_ui(proc, pump, pump_info.status);
             break;
         case KEY_CODE_MODE:
+            blink_info.led_index = PUMP_MODE_BL;
+            proc->ui->hook->set_led_blink(proc->ui, blink_info);
+            if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode) == 0) {
+                led_onoff_info_t onoff_info = {
+                    .led_index = PUMP_FREQ_SET_BL,
+                    .onoff = LED_STATUS_ON,
+                };
+                proc->ui->hook->set_led_onoff(proc->ui, onoff_info);
+            }
             switch_pump_common_mode_ui(proc, pump, &pump_info);
             break;
         case KEY_CODE_FREQUENCY:
+            blink_info.led_index = PUMP_FREQ_SET_BL;
+            if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode) == 0) {
+                blink_info.first_status = LED_STATUS_ON;
+                blink_info.finish_status = LED_STATUS_OFF;
+            }
+            proc->ui->hook->set_led_blink(proc->ui, blink_info);
             switch_pump_frequency_ui(proc, pump, &pump_info);
             break;
         case KEY_CODE_BREASTFEEDING:
+            if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode)) {
+                led_onoff_info_t onoff_info = {
+                    .led_index = PUMP_FREQ_SET_BL,
+                    .onoff = LED_STATUS_OFF,
+                };
+                proc->ui->hook->set_led_onoff(proc->ui, onoff_info);
+            }
+            blink_info.led_index = PUMP_BREASTFEEDING_BL;
+            proc->ui->hook->set_led_blink(proc->ui, blink_info);
             switch_pump_breastfeeding_mode_ui(proc, pump, &pump_info);
             break;
         case KEY_CODE_LEFT_CONTROL:
+            blink_info.led_index = PUMP_LEFT_CONTROL_BL;
+            blink_info.first_status = LED_STATUS_ON;
+            blink_info.continue_time = 3000;
+            proc->ui->hook->set_led_blink(proc->ui, blink_info);
+            led_level_info_t left_level_info = {
+                .led_index = PUMP_RIGHT_CONTROL_BL,
+                .level = LED_LEVEL_MAX / 2,
+            };
+            proc->ui->hook->set_led_level(proc->ui, left_level_info);
             switch_pump_control_type_ui(proc, pump, 0);
             break;
         case KEY_CODE_RIGHT_CONTROL:
+            blink_info.led_index = PUMP_RIGHT_CONTROL_BL;
+            blink_info.first_status = LED_STATUS_ON;
+            blink_info.continue_time = 3000;
+            proc->ui->hook->set_led_blink(proc->ui, blink_info);
+            led_level_info_t right_level_info = {
+                .led_index = PUMP_LEFT_CONTROL_BL,
+                .level = LED_LEVEL_MAX / 2,
+            };
+            proc->ui->hook->set_led_level(proc->ui, right_level_info);
             switch_pump_control_type_ui(proc, pump, 1);
             break;
         case KEY_CODE_KNOB_LEFT:

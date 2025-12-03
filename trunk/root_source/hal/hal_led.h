@@ -81,10 +81,9 @@ typedef enum {
 typedef void (*led_blink_finish_cb)(void *user_data, uint32_t args);
 typedef struct {
     uint8_t  first_status;  /// 闪烁初始状态
+    uint8_t  finish_status; /// 闪烁完成状态
     uint16_t period;        /// 周期，单位ms
     uint32_t continue_time; /// 闪烁连续时间，0：一直闪烁，单位ms
-    led_blink_finish_cb cb; /// 闪烁回调
-    void *user_data;        /// 上下文
     /// 模块内部使用
     uint8_t  status;        /// 灯状态 1亮，0灭
     uint16_t count;         /// 周期

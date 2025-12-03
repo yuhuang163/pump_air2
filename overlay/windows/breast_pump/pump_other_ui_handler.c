@@ -34,7 +34,7 @@ static const uint16_t s_pump_home_res_array[1] = {
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int switch_pump_power_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump)
+int switch_pump_night_light_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump)
 {
     struct storage_manager_context *st = pump->priv.st;
     EXCEPTION_CHECK_INT(st);
