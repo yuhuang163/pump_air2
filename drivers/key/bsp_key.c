@@ -26,7 +26,7 @@ static const uint32_t key_code_value[SCAN_KEY_CODE_MAX] = {
     SCAN_KEY_CODE_5_VALUE,
     SCAN_KEY_CODE_6_VALUE,
     SCAN_KEY_CODE_7_VALUE,
-    SCAN_KEY_CODE_56_VALUE,
+    SCAN_KEY_CODE_67_VALUE,
     SCAN_KEY_CODE_23_VALUE,
 };
 

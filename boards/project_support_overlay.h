@@ -68,6 +68,8 @@ extern "C" {
 #define IS_SUPPORT_CLIMB_POLICY                          (1)
 /// 支持算法采集
 #define IS_SUPPORT_ALGO_SAMPLING                         (1)
+/// 长按软复位
+#define IS_SUPPORT_KEY_SOFT_RESET                        (1)
 #ifdef __cplusplus
 }
 #endif

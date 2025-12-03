@@ -215,6 +215,9 @@ static void led_blink_set(uint8_t index, led_blink_t blink)
             led_status[i].mode = LED_MODE_BLINK; 
             memcpy(&led_status[i].un.blink, &blink, sizeof(led_blink_t));
             GPIO_PIN_CTRL(led_cfg[i].pin, blink.first_status);
+            led_status[i].un.blink.start_time = get_timestamp();
+            led_status[i].un.blink.status = led_status[i].un.blink.first_status;
+            led_status[i].un.blink.count = 0;
         }
         return;
     }

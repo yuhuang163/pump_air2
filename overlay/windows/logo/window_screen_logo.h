@@ -1,11 +1,9 @@
 #ifndef __WINDOW_SCREEN_LOGO_H__
 #define __WINDOW_SCREEN_LOGO_H__
 
-#include "peripheral_bus_api.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /*******************************************************************************
 * Include files
