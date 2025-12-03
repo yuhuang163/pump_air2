@@ -45,8 +45,6 @@ extern "C" {
 #define INTERRUPT_THREAD_STACKSIZE                     (TASK_SIZE_DEFAULT * 1 + 0)
 /// 马达驱动线程深度
 #define MOTOR_DRIVER_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 2 + 0)
-/// 屏幕串口线程深度
-#define LCD_UART_THREAD_STACKSIZE                      (TASK_SIZE_DEFAULT * 2 + 0)
 /// 工厂串口线程深度
 #define FACTORY_UART_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 2 + 0)
 /// 按键设备线程深度
@@ -55,6 +53,8 @@ extern "C" {
 #define CHARGE_DEVICE_THREAD_STACKSIZE                 (TASK_SIZE_DEFAULT * 1.5 + 0)
 /// led设备线程深度
 #define LED_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
+/// lcd线程深度
+#define LCD_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
 
 /// 中断消息队列数量定义
 #define INTERRUPT_MESQ_NUM                             (10)
