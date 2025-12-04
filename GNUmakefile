@@ -54,11 +54,18 @@ REL_TRACE_ENABLE ?= 1
 RTC_CALENDAR ?= 1
 
 # PMU clock use external crystal switch
-PMU_CLK_USE_EXT_CRYSTAL ?= 1
+# 影响tick精度，未贴外部晶振时，需要设置为0
+PMU_CLK_USE_EXT_CRYSTAL ?= 0
 
 # VHPPA voltage switch
 VHPPA_VOLT ?= 1.95V
 VCODEC_VOLT ?= 1.95V
+
+# USB voltage switch
+VUSB_ON ?= 1
+
+# PSRAM enable switch
+PSRAM_ENABLE ?= 1
 
 # littlefs section size
 LITTLEFS_SECTION_SIZE ?= 0x4000
@@ -230,6 +237,7 @@ DRIVERS_KEY_INC_FLAGS := \
 DRIVERS_LCD_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/lcd \
 	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_spi \
+	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_qspi \
 	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart \
 	-I$(PROJECT_ROOT)/drivers/lcd/chip/uart_extension
 
@@ -472,6 +480,11 @@ export CALIB_SLOW_TIMER := 1
 CPPFLAGS += -DCALIB_SLOW_TIMER
 endif
 
+# PSRAM enable switch
+ifeq ($(PSRAM_ENABLE),1)
+CPPFLAGS += -DPSRAM_ENABLE
+endif
+
 # PWM IOMUX 相关宏定义
 CPPFLAGS += -DPWM0_IOMUX_INDEX=$(PWM0_IOMUX_INDEX)
 CPPFLAGS += -DPWM1_IOMUX_INDEX=$(PWM1_IOMUX_INDEX)
@@ -619,8 +632,11 @@ DRIVERS_KEY_SRCS := \
 # LCD 驱动源码
 DRIVERS_LCD_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_spi/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_qspi/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c)
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/gc9a01/*.c)
 
 # LED 驱动源码
 DRIVERS_LED_SRCS := \
@@ -863,7 +879,9 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		CFG_OTA_EVENT_CALLBACK=$(CFG_OTA_EVENT_CALLBACK) \
 		CFG_CUSTOM_APP=$(CFG_CUSTOM_APP) \
 		VHPPA_VOLT=$(VHPPA_VOLT) \
-		VCODEC_VOLT=$(VCODEC_VOLT)
+		VCODEC_VOLT=$(VCODEC_VOLT) \
+		VUSB_ON=$(VUSB_ON) \
+		PSRAM_ENABLE=$(PSRAM_ENABLE)
 
 	@set -e; \
 		out_dir="$(O)/$(T)"; \
