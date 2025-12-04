@@ -43,7 +43,7 @@ int algo_tlvs_sample_onoff_set(comm_protocol_builder_t *builder, comm_protocol_s
         algo_ctx->hook->algo_sampling_stop(algo_ctx);
     }
 #endif
-    LOGI("algo_tlvs_sample_onoff_set, data: %d", data[0]);
+    LOG_SRV("algo_tlvs_sample_onoff_set, data: %d", data[0]);
     return 0;
 }
 
@@ -69,7 +69,7 @@ int algo_tlvs_sample_interval_set(comm_protocol_builder_t *builder, comm_protoco
                     uint8_t *data, uint16_t data_len)
 {
     EXCEPTION_CHECK_INT(builder && service && data);
-    LOGI("algo_tlvs_sample_interval_set, data: %d", data[0]);
+    LOG_SRV("algo_tlvs_sample_interval_set, data: %d", data[0]);
     return 0;
 }
 

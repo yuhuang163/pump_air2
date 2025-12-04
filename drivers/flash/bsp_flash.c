@@ -80,7 +80,7 @@ static int flash_dev_read(struct rt_device_node *dev, void *buf, uint32_t n_byte
     
     EXCEPTION_CHECK_INT(tmp);
     lock = platform_int_lock_global();
-    ret = platform_flash_read(PARTITION_FACTORY_DATA_NAME, tmp[0], (void *)tmp[1], tmp[2]) < 0 ? BSP_ERROR : BSP_OK;
+    ret = platform_flash_read(PARTITION_FACTORY_DATA_NAME, tmp[0], (uint8_t *)tmp[1], tmp[2]) != 0 ? BSP_ERROR : BSP_OK;
     platform_int_unlock_global(lock);
     if (ret != BSP_OK) {
         LOGE("flash dev read failure! result = %d.",ret);
@@ -97,7 +97,7 @@ static int flash_dev_write(struct rt_device_node *dev, const void *buf, uint32_t
 
     EXCEPTION_CHECK_INT(tmp);
     lock = platform_int_lock_global();
-    ret = platform_flash_write(PARTITION_FACTORY_DATA_NAME, tmp[0], (void *)tmp[1], tmp[2]) < 0 ? BSP_ERROR : BSP_OK;
+    ret = platform_flash_write(PARTITION_FACTORY_DATA_NAME, tmp[0], (uint8_t *)tmp[1], tmp[2]) != 0 ? BSP_ERROR : BSP_OK;
     platform_int_unlock_global(lock);
     if (ret != BSP_OK) {
         LOGE("flash dev write failure! result = %d.",ret);
@@ -114,7 +114,7 @@ static int flash_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
     switch (op_code) {
         case OP_CODE_FLASH_ERASE:
             lock = platform_int_lock_global();
-            ret = platform_flash_erase(PARTITION_FACTORY_DATA_NAME, temp[0], temp[1]) < 0 ? BSP_ERROR : BSP_OK;
+            ret = platform_flash_erase(PARTITION_FACTORY_DATA_NAME, temp[0], temp[1]) != 0 ? BSP_ERROR : BSP_OK;
             platform_int_unlock_global(lock);
             if (ret != BSP_OK) {
                 LOGE("flash dev erase failure! result = %d.",ret);

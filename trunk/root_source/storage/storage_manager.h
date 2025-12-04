@@ -118,7 +118,7 @@ typedef struct {
     uint32_t magic;
     factory_dev_info_t dev_info;
     uint16_t crc;
-} factory_dev_info_storage_t;
+} __attribute__((packed)) factory_dev_info_storage_t;
 
 /// 描述泵奶数据头
 typedef struct {

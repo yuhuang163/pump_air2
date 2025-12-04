@@ -29,7 +29,7 @@ static app_old_protocol_handler_context_t ctx_app_old_protocol_handler = {0};
 */
 static void app_old_comm_poll_post_task_handler(hdr_post_args_t *args)
 {
-    LOG_PROTOCOL(" Poll timer triggered - reporting device status\n");
+    LOG_SRV(" Poll timer triggered - reporting device status\n");
     app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
     app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
     POST_TASK_HANDLER_DELAYED_ARG0(app_old_comm_poll_post_task_handler, 30000, "app_old_comm_poll_post_task");
@@ -42,12 +42,12 @@ static void app_old_comm_poll_post_task_handler(hdr_post_args_t *args)
 // Handle request commands (APP->device)
 void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab)
 {
-    LOG_PROTOCOL(" Handling %s request (data len: %d)\n",
+    LOG_SRV(" Handling %s request (data len: %d)\n",
            app_old_comm_get_cmd_id_str(cid), cal);
 
     // Print command data if available
     if (cal > 0 && cab != NULL) {
-        LOG_PROTOCOL(" Command data: ");
+        LOG_SRV(" Command data: ");
         LOG_HEX("app_recv_data hex", cab, cal);
     }
 #if 0
@@ -117,7 +117,7 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
             break;
             break;
         default:
-            LOG_PROTOCOL(" Unknown request command 0x%02X\n", cid);
+            LOG_SRV(" Unknown request command 0x%02X\n", cid);
             break;
     }
 }
@@ -125,7 +125,7 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
 // Handle report commands (device->APP)
 void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, void *cab)
 {
-    LOG_PROTOCOL(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
+    LOG_SRV(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
 
     switch (cid) {
         case APP_OLD_COMM_CID_NOTIFY_STATUS:
@@ -139,11 +139,11 @@ void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, vo
             servers_publish_data_args_t *args_temp = (servers_publish_data_args_t *)cab;
             if (args_temp->arg1 == true) //连接
             {
-                LOG_PROTOCOL(" ble connect");
+                LOG_SRV(" ble connect");
                 /* code */
             } else if (args_temp->arg1 == false) //断连接
             {
-                LOG_PROTOCOL(" ble disconnect");
+                LOG_SRV(" ble disconnect");
                 app_old_comm_report_discon_status();
             }
 #if 0
@@ -155,11 +155,11 @@ void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, vo
                 } else {
                     ;
                 }
-                LOG_PROTOCOL("ctx_app_old_protocol_handler->encrypt_key %d", ctx_app_old_protocol_handler->encrypt_key);
+                LOG_SRV("ctx_app_old_protocol_handler->encrypt_key %d", ctx_app_old_protocol_handler->encrypt_key);
 #endif
         } break;
         default:
-            LOG_PROTOCOL(" Unhandled response command %s (0x%02X)\n",
+            LOG_SRV(" Unhandled response command %s (0x%02X)\n",
                    app_old_comm_get_cmd_id_str(cid), cid);
             break;
     }
