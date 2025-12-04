@@ -69,6 +69,9 @@ FACTORY_DATA_SECTION_SIZE ?= 0x2000
 # BLE 自定义服务开关
 CFG_CUSTOM_BLE_SERVICE ?= 1
 
+# OTA 事件回调开关
+CFG_OTA_EVENT_CALLBACK ?= 1
+
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
 # BLE 头文件
@@ -150,7 +153,8 @@ SDK_SERVICES_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/include \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/log_section \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/norflash_api \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/factory_section
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/nv_section/factory_section \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/services/ota/bes_ota/inc
 
 # SDK 工具头文件
 SDK_UTILS_INC_FLAGS := \
@@ -452,6 +456,11 @@ endif
 # RTC 日历相关宏定义
 ifeq ($(RTC_CALENDAR),1)
 CPPFLAGS += -DRTC_CALENDAR
+endif
+
+# OTA 事件回调相关宏定义
+ifeq ($(CFG_OTA_EVENT_CALLBACK),1)
+CPPFLAGS += -DCFG_OTA_EVENT_CALLBACK
 endif
 
 # PMU clock use external crystal switch
@@ -851,6 +860,7 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		PMU_CLK_USE_EXT_CRYSTAL=$(PMU_CLK_USE_EXT_CRYSTAL) \
 		CALIB_SLOW_TIMER=$(CALIB_SLOW_TIMER) \
 		CFG_CUSTOM_BLE_SERVICE=$(CFG_CUSTOM_BLE_SERVICE) \
+		CFG_OTA_EVENT_CALLBACK=$(CFG_OTA_EVENT_CALLBACK) \
 		CFG_CUSTOM_APP=$(CFG_CUSTOM_APP) \
 		VHPPA_VOLT=$(VHPPA_VOLT) \
 		VCODEC_VOLT=$(VCODEC_VOLT)

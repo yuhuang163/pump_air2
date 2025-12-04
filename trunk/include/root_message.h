@@ -184,14 +184,6 @@ typedef struct {
     int enter_from_source;  /// 进入源来自哪里:开机自动0,按键进入1
 } factory_test_entry_extra_t;
 
-/// OTA 事件类型
-typedef enum {
-    OTA_EVENT_TIMEOUT = 0,
-    OTA_EVENT_START,
-    OTA_EVENT_PROGRESS,
-    OTA_EVENT_OTA_END
-} ota_event_type_e;
-
 typedef struct {
     ota_event_type_e event;
     bool result;         ///事件结果

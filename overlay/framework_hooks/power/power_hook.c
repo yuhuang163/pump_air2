@@ -64,7 +64,8 @@ static void system_power_event_cb(hdr_post_args_t *args)
             key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
             misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
             if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
-                if ((misc && misc->is_charge_plug_in() > 0) || 
+                if ((misc && (misc->is_charge_plug_in() > 0 || 
+                    misc->get_charge_status() == CHARGE_STATE_ERROR)) ||  /// 充电芯片异常允许插电开机
                     platform_is_startup_caused_by_reboot()) {
                     pm->priv.is_power_on_timeout_detect = 0;   
                     pm->system_power_control(true);
