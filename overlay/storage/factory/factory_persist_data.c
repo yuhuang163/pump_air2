@@ -266,6 +266,17 @@ int read_factory_age_flag_from_ram(store_func_args_t args)
     return 0;
 }
 
+int read_factory_age_time_from_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
+    EXCEPTION_CHECK_INT(flag_info);
+    uint32_t *tmp = (uint32_t *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = flag_info->age_time;
+    return 0;
+}
+
 int read_factory_age_display_flag_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);

@@ -60,9 +60,10 @@ typedef enum {
 /// 工厂部署标志位
 typedef struct {
     uint8_t deploy_flag;       /// 工厂模式部署标志
-    uint8_t age_flag;
-    uint8_t age_display;       /// 老化展示标志
-    uint8_t fsensor_cali_flag; /// fsensor校准标志
+    uint8_t age_flag;          /// 老化标志//0-未老化 1-老化成功 2-老化失败
+    uint32_t age_time;         /// 老化时长，单位：秒
+    uint8_t age_display;       /// 老化展示标志//0-不展示 1-展示
+    uint8_t fsensor_cali_flag; /// fsensor校准标志//0-未校准 1-校准
 } factory_flag_info_t;
 
 typedef struct {

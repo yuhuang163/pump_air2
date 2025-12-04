@@ -3,7 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include "common_tlvs.h" // IWYU pragma: keep
+#include "common_tlvs.h"     // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -57,8 +57,8 @@ int sys_config_subscribe_service_handle(comm_protocol_builder_t *builder, comm_p
         .list_len = ARRAY_SIZE(protocol_service_tlvs_list),
         .name = "sys_config",
     };
-    
-    protocol_service_tlv_func tlv_func =  NULL;
+
+    protocol_service_tlv_func tlv_func = NULL;
     comm_protocol_tlv_t *tlv = NULL;
     uint32_t tlv_offset = 0;
 
@@ -68,7 +68,7 @@ int sys_config_subscribe_service_handle(comm_protocol_builder_t *builder, comm_p
     LOG_HEX("==> sys_config service tlvs", srv_node->tlvs, srv_node->srv_length);
     comm_protocol_service_t *rsp_srv = NULL;
     if (builder != NULL) {
-    /// 添加应答服务节点
+        /// 添加应答服务节点
         rsp_srv = protocol_ctx->comm_protocol_builder_init_service(builder, COMM_PROTOCOL_SYSTEM_CONFIG_SERVICE);
         if (rsp_srv == NULL) {
             LOGE("==> sys_config service begin error");
