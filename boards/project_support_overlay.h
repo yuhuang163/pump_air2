@@ -37,7 +37,7 @@ extern "C" {
 #define IS_SUPPORT_MODULE_KEY_INPUT                      (1)
 #define IS_SUPPORT_MODULE_SENSOR                         (1)
 #define IS_SUPPORT_MODULE_BLE                            (1)
-#define IS_SUPPORT_MODULE_OTA                            (0)
+#define IS_SUPPORT_MODULE_OTA                            (1)
 #define IS_SUPPORT_MODULE_MISC                           (1)
 #define IS_SUPPORT_MODULE_MOTOR                          (1)
 #define IS_SUPPORT_MODULE_BREAST_PUMP                    (1)
