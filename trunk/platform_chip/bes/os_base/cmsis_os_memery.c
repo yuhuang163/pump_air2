@@ -12,7 +12,7 @@
 *****************************************************************************************
 */
 #define U_HEAP_SIZE (80 * 1024)
-#ifdef PSRAM_ENABLE
+#if PSRAM_ENABLE
 #define U_HEAP_SIZE_PSRAM_NC (320 * 1024)
 #define U_HEAP_SIZE_PSRAM    (640 * 1024)
 #endif
@@ -24,7 +24,7 @@
 static multi_heap_handle_t u_heap = NULL;
 static uint8_t u_heap_sram_buff[U_HEAP_SIZE];
 
-#ifdef PSRAM_ENABLE
+#if PSRAM_ENABLE
 static multi_heap_handle_t u_heap_psram_nc = NULL;
 static multi_heap_handle_t u_heap_psram = NULL;
 static uint8_t u_heap_psram_nc_buff[U_HEAP_SIZE_PSRAM_NC] PSRAM_NC_BSS_LOC;
@@ -213,7 +213,7 @@ void u_heap_info_output(void)
     PRINT_LOG("total:bytes=%ld, blocks=%ld; alloc:bytes=%ld, blocks=%ld; free:bytes=%ld, blocks=%ld, largest=%ld, mini=%ld\r\n", 
         info.total_allocated_bytes, info.allocated_blocks, info.total_bytes, info.total_blocks,
         info.total_free_bytes, info.free_blocks, info.largest_free_block, info.minimum_free_bytes);
-#ifdef PSRAM_ENABLE
+#if PSRAM_ENABLE
     multi_heap_info_t info_psram_nc;
     heap_get_info(u_heap_psram_nc, &info_psram_nc);
     PRINT_LOG("total:bytes=%ld, blocks=%ld; alloc:bytes=%ld, blocks=%ld; free:bytes=%ld, blocks=%ld, largest=%ld, mini=%ld\r\n", 
@@ -230,7 +230,7 @@ void u_heap_info_output(void)
 void u_heap_init(void)
 {
     u_heap = heap_register(u_heap_sram_buff, U_HEAP_SIZE);
-#ifdef PSRAM_ENABLE
+#if PSRAM_ENABLE
     memset(u_heap_psram_nc_buff, 0, U_HEAP_SIZE_PSRAM_NC);
     memset(u_heap_psram_buff, 0, U_HEAP_SIZE_PSRAM);
     u_heap_psram_nc = heap_register(u_heap_psram_nc_buff, U_HEAP_SIZE_PSRAM_NC);

@@ -632,8 +632,6 @@ DRIVERS_KEY_SRCS := \
 # LCD 驱动源码
 DRIVERS_LCD_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_spi/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_qspi/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/gc9a01/*.c)
@@ -996,6 +994,8 @@ firmware:
 		OTA_BIN_COMPRESSED=1 \
 		OTA_CODE_OFFSET=0x66000 \
 		OTA_BOOT_INFO_OFFSET=0x62000 \
+		PSRAM_XCCELA_MODE=1 \
+		GRAPH_MODULE=1 \
 		DEBUG_PORT=1 \
 		all
 

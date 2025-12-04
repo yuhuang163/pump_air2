@@ -38,7 +38,7 @@ export FAULT_DUMP := 1
 
 export NO_OVERLAY := 1
 
-export TRACE_BAUD_RATE := 8*115200
+export TRACE_BAUD_RATE := 2000000
 export TRACE_BUF_SIZE ?= 4*1024
 
 init-y      :=
@@ -80,7 +80,7 @@ export ENABLE_PRINT_FLOAT ?= 1
 export CORE_DUMP ?= 0
 export ALLOW_WARNING ?= 1
 
-export OS_TASKCNT ?= 16
+export OS_TASKCNT ?= 28
 export OS_SCHEDULERSTKSIZE ?= 512
 export OS_IDLESTKSIZE ?= 1024
 export OS_FIFOSZ ?= 24
@@ -88,4 +88,14 @@ export OS_FIFOSZ ?= 24
 export BLE_ONLY_LT := 1
 ifeq ($(BLE_ONLY_LT),1)
 KBUILD_CPPFLAGS += -DBLE_ONLY_LT
+endif
+
+export PSRAM_ENABLE ?= 0
+ifeq ($(PSRAM_ENABLE), 1)
+export PSRAM_SIZE ?= 0x400000
+export PSRAM_SPEED ?= 200
+export PSRAM_XCCELA_MODE ?= 1
+export PSRAM_POLLING ?= 1
+
+KBUILD_CPPFLAGS += -DSYS_PSRAM_BASE=PSRAM_BASE -DSYS_PSRAM_NC_BASE=PSRAM_NC_BASE
 endif
