@@ -54,8 +54,9 @@ typedef enum {
 
 /// 老化状态结果
 typedef enum {
-    TESTS_AGING_STATUS_FAIL = 0x00,            /// 老化失败
-    TESTS_AGING_STATUS_SUCCESS = 0x01,         /// 老化成功
+    TESTS_AGING_STATUS_NOT_AGE = 0x00,        /// 没有老化
+    TESTS_AGING_STATUS_SUCCESS = 0x01, /// 老化成功
+    TESTS_AGING_STATUS_FAILED = 0x02,  /// 老化失败
 } tests_aging_status_e;
 
 /*
