@@ -30,6 +30,7 @@
 *****************************************************************************************
 */
 static bool s_charge_is_ready = false;
+static bool s_charge_abnormal = false;
 static charge_chip_status_t s_charge_status = {0};
 static uint8_t s_charge_full_debounce = 0;
 static void (*s_charge_irq_callback)(void *param);
@@ -357,6 +358,9 @@ void add_charge_irq_callback(void (*cb)(void *param))
 
 int get_charge_state(void) 
 {
+    if (s_charge_abnormal) {
+        return CHARGE_STATE_ERROR;
+    }
     if (s_charge_status.charge_full && s_charge_status.plug_in) {
         return CHARGE_STATE_FULL;
     } else if (s_charge_status.plug_in) {
@@ -391,6 +395,7 @@ int bsp_charge_init(void)
     msleep(10);
     ret = charge_device_is_ready();
     if (ret != BSP_OK) {
+        s_charge_abnormal = true;
         LOGE("charge device is not ready, ret: %d", ret);
         return ret;
     }
