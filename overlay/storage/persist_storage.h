@@ -77,7 +77,7 @@ typedef struct {
     uint8_t sn_len;            // sn length
     uint8_t body_color;
     uint8_t region_id;   /// 区域ID, 中版，俄版，欧版，美版...
-} factory_dev_info_t;
+} __attribute__((packed)) factory_dev_info_t;
 
 /// 工厂老化标志
 typedef struct {

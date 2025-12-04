@@ -326,8 +326,6 @@ int tests_tlvs_read_triple_data(comm_protocol_builder_t *builder, comm_protocol_
         memcpy(response + TESTS_PRODUCT_ID_LENGTH + TESTS_DEVICE_ID_LENGTH, dev_info.enctyption_key,
                TESTS_SECRET_KEY_LENGTH);
         //打印dev_info.product_id, dev_info.device_id, dev_info.enctyption_key
-        LOG_SRV("dev_info.product_id: %s, dev_info.device_id: %s, dev_info.enctyption_key: %s", dev_info.product_id,
-                dev_info.device_id, dev_info.enctyption_key);
         LOG_HEX("dev_info.product_id", dev_info.product_id, TESTS_PRODUCT_ID_LENGTH);
         LOG_HEX("dev_info.device_id", dev_info.device_id, TESTS_DEVICE_ID_LENGTH);
         LOG_HEX("dev_info.enctyption_key", dev_info.enctyption_key, TESTS_SECRET_KEY_LENGTH);
