@@ -4297,7 +4297,6 @@ void BOOT_TEXT_FLASH_LOC hal_cmu_ispi_access_init(void)
     aoncmu->AON_CLK |= AON_CMU_EN_CLK_SPI_ARB;
 }
 
-
 void BOOT_TEXT_FLASH_LOC hal_cpudump_clock_enable(void)
 {
     hal_cmu_clock_enable(HAL_CMU_MOD_X_CPUDUMP);

@@ -1055,17 +1055,6 @@ void hal_iomux_set_dig_mic(uint32_t map)
     hal_cmu_mcu_pdm_clock_out(clk_map);
 }
 
-enum HAL_IOMUX_PIN_T hal_iomux_get_spi_clk()
-{
-#if (SPI_IOMUX_INDEX == 24)
-    return HAL_IOMUX_PIN_P2_4;
-#elif (SPI_IOMUX_INDEX == 40)
-    return HAL_IOMUX_PIN_P4_0;
-#else
-    return HAL_IOMUX_PIN_P1_4;
-#endif
-}
-
 void hal_iomux_set_spi(void)
 {
     static const struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux_spi_3wire[] = {
@@ -1098,19 +1087,6 @@ void hal_iomux_set_spi(void)
     hal_iomux_init(pinmux_spi_3wire, ARRAY_SIZE(pinmux_spi_3wire));
 #ifdef SPI_IOMUX_4WIRE
     hal_iomux_init(pinmux_spi_4wire, ARRAY_SIZE(pinmux_spi_4wire));
-#endif
-}
-
-enum HAL_IOMUX_PIN_T hal_iomux_get_spilcd_clk()
-{
-#if (SPILCD_IOMUX_INDEX == 14)
-    return HAL_IOMUX_PIN_P1_4;
-#elif (SPILCD_IOMUX_INDEX == 24)
-    return HAL_IOMUX_PIN_P2_4;
-#elif (SPILCD_IOMUX_INDEX == 44)
-    return HAL_IOMUX_PIN_P4_4;
-#else
-    return HAL_IOMUX_PIN_P3_0;
 #endif
 }
 
@@ -1220,8 +1196,8 @@ void hal_iomux_set_i2c2(void)
         {HAL_IOMUX_PIN_P3_4, HAL_IOMUX_FUNC_MCU_I2C_M2_SCL, I2C2_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
         {HAL_IOMUX_PIN_P3_5, HAL_IOMUX_FUNC_MCU_I2C_M2_SDA, I2C2_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
 #else
-        {HAL_IOMUX_PIN_P0_4, HAL_IOMUX_FUNC_MCU_I2C_M2_SCL, I2C2_VOLTAGE_SEL, HAL_IOMUX_PIN_NOPULL},
-        {HAL_IOMUX_PIN_P0_5, HAL_IOMUX_FUNC_MCU_I2C_M2_SDA, I2C2_VOLTAGE_SEL, HAL_IOMUX_PIN_NOPULL},
+        {HAL_IOMUX_PIN_P0_4, HAL_IOMUX_FUNC_MCU_I2C_M2_SCL, I2C2_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
+        {HAL_IOMUX_PIN_P0_5, HAL_IOMUX_FUNC_MCU_I2C_M2_SDA, I2C2_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
 #endif
     };
 
@@ -1245,8 +1221,8 @@ void hal_iomux_set_i2c3(void)
         {HAL_IOMUX_PIN_P3_6, HAL_IOMUX_FUNC_MCU_I2C_M3_SCL, I2C3_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
         {HAL_IOMUX_PIN_P3_7, HAL_IOMUX_FUNC_MCU_I2C_M3_SDA, I2C3_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
 #else
-        {HAL_IOMUX_PIN_P0_6, HAL_IOMUX_FUNC_MCU_I2C_M3_SCL, I2C3_VOLTAGE_SEL, HAL_IOMUX_PIN_NOPULL},
-        {HAL_IOMUX_PIN_P0_7, HAL_IOMUX_FUNC_MCU_I2C_M3_SDA, I2C3_VOLTAGE_SEL, HAL_IOMUX_PIN_NOPULL},
+        {HAL_IOMUX_PIN_P0_6, HAL_IOMUX_FUNC_MCU_I2C_M3_SCL, I2C3_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
+        {HAL_IOMUX_PIN_P0_7, HAL_IOMUX_FUNC_MCU_I2C_M3_SDA, I2C3_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
 #endif
     };
 
@@ -1270,8 +1246,8 @@ void hal_iomux_set_i2c4(void)
         {HAL_IOMUX_PIN_P3_5, HAL_IOMUX_FUNC_MCU_I2C_M4_SCL, I2C4_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
         {HAL_IOMUX_PIN_P3_4, HAL_IOMUX_FUNC_MCU_I2C_M4_SDA, I2C4_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
 #else
-        {HAL_IOMUX_PIN_P1_0, HAL_IOMUX_FUNC_MCU_I2C_M4_SCL, I2C4_VOLTAGE_SEL, HAL_IOMUX_PIN_NOPULL},
-        {HAL_IOMUX_PIN_P1_1, HAL_IOMUX_FUNC_MCU_I2C_M4_SDA, I2C4_VOLTAGE_SEL, HAL_IOMUX_PIN_NOPULL},
+        {HAL_IOMUX_PIN_P1_0, HAL_IOMUX_FUNC_MCU_I2C_M4_SCL, I2C4_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
+        {HAL_IOMUX_PIN_P1_1, HAL_IOMUX_FUNC_MCU_I2C_M4_SDA, I2C4_VOLTAGE_SEL, HAL_IOMUX_PIN_PULLUP_ENABLE},
 #endif
     };
 
@@ -1291,11 +1267,7 @@ void hal_iomux_set_i2c4(void)
 void hal_iomux_set_pwm0(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux_pwm[] = {
-#if (PWM0_IOMUX_INDEX == 40)
-        {HAL_IOMUX_PIN_P4_0, HAL_IOMUX_FUNC_PWM0, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#else
         {HAL_IOMUX_PIN_P3_0, HAL_IOMUX_FUNC_PWM0, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#endif
     };
     hal_iomux_init(pinmux_pwm, ARRAY_SIZE(pinmux_pwm));
 }
@@ -1303,11 +1275,7 @@ void hal_iomux_set_pwm0(void)
 void hal_iomux_set_pwm1(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux_pwm[] = {
-#if (PWM1_IOMUX_INDEX == 41)
-        {HAL_IOMUX_PIN_P4_1, HAL_IOMUX_FUNC_PWM1, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#else
         {HAL_IOMUX_PIN_P3_1, HAL_IOMUX_FUNC_PWM1, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#endif
     };
     hal_iomux_init(pinmux_pwm, ARRAY_SIZE(pinmux_pwm));
 }
@@ -1315,11 +1283,7 @@ void hal_iomux_set_pwm1(void)
 void hal_iomux_set_pwm2(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux_pwm[] = {
-#if (PWM2_IOMUX_INDEX == 42)
-        {HAL_IOMUX_PIN_P4_2, HAL_IOMUX_FUNC_PWM2, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#else
         {HAL_IOMUX_PIN_P3_2, HAL_IOMUX_FUNC_PWM2, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#endif
     };
     hal_iomux_init(pinmux_pwm, ARRAY_SIZE(pinmux_pwm));
 }
@@ -1327,11 +1291,7 @@ void hal_iomux_set_pwm2(void)
 void hal_iomux_set_pwm3(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux_pwm[] = {
-#if (PWM3_IOMUX_INDEX == 43)
-        {HAL_IOMUX_PIN_P4_3, HAL_IOMUX_FUNC_PWM3, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#else
         {HAL_IOMUX_PIN_P3_3, HAL_IOMUX_FUNC_PWM3, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL},
-#endif
     };
     hal_iomux_init(pinmux_pwm, ARRAY_SIZE(pinmux_pwm));
 }

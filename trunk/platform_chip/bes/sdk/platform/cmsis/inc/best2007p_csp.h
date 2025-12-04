@@ -97,8 +97,8 @@ typedef enum IRQn
     CROSSTUNER_IREQ2            =  41,
     CROSSTUNER_IREQ3            =  42,
     CROSSTUNER_IREQ4            =  43,
-    DWCOEX2CSP_5G_IRQn          =  44,
-    DWCOEX2CSP_2G_IRQn          =  45,
+    DWCOEX2CSP_2G_IRQn          =  44,
+    DWCOEX2CSP_5G_IRQn          =  45,
     UART_RX_WAKEUP_IRQn         =  46,
     CSP_GPIO_IRQn               =  47,
 

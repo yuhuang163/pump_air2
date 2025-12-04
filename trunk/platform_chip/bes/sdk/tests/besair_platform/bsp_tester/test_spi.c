@@ -13,7 +13,7 @@
  * trademark and other intellectual property rights.
  *
  ****************************************************************************/
-#if (defined TEST_SPI || defined TEST_SPI_SLAVE || defined TEST_SYSVIEW)
+#if (defined TEST_SPI || defined TEST_SPI_SLAVE|| defined TEST_SYSVIEW)
 #include "string.h"
 #include "cmsis_os.h"
 #include "hal_trace.h"
@@ -87,7 +87,7 @@ static uint8_t tx_buf[ADDR_SIZE + BUF_SIZE];
 static uint8_t rx_buf[DUMY_SIZE + BUF_SIZE];
 #else
 #define CRC_SIZE    4
-#define BUF_SIZE  (1024+CRC_SIZE)
+#define BUF_SIZE  (4096+CRC_SIZE)
 static uint8_t tx_buf[BUF_SIZE+4];
 static uint8_t rx_buf[BUF_SIZE+8];
 #endif
@@ -435,7 +435,7 @@ void spi_master_rx_ok(char set)
  * #define BUF_SIZE  (LEN_SIZE + 1024 + CRC_SIZE)
  * static uint8_t tx_buf[ADDR_SIZE + BUF_SIZE];
  * static uint8_t rx_buf[DUMY_SIZE + BUF_SIZE];
- * 
+ *
  * len: sizeof(buf)
  * write:
  * addr + len + buf + crc
@@ -525,7 +525,7 @@ static void spi_slave_irq_handle(uint8_t status)
 #else
     spi_master_read();
 #endif
-        
+
     } else if(status == SPI_SLAVE_ACTION_RX_INDICATE) {
         //enable loop write
         // spi_master_write();
@@ -631,7 +631,7 @@ void test_spi(void)
     ret = hal_spilcd_open(&spi_cfg);
     TRACE(2,"%s hal_spilcd_open ret[%d]", __FUNCTION__, ret);
 #elif (TEST_SPI_ID == 2)
-    /* LCDDPD */
+    /* SPIDPD */
     hal_iomux_set_spi2();
     ret = hal_spidpd_open(&spi_cfg);
     TRACE(2,"%s hal_spidpd_open ret[%d]", __FUNCTION__, ret);
@@ -694,7 +694,7 @@ void test_spi(void)
         spi_device_enable_slave();
 #else
         spi_device_detect();
-#endif 
+#endif
         hal_gpio_pin_clr(WAKEUP_PIN);
 #endif
 
@@ -708,10 +708,9 @@ void test_spi(void)
 #else
         spi_master_write();
 #endif
-        osDelay(5000);
+        osDelay(200);
 
     } while(1);
 #endif
 }
 #endif
-

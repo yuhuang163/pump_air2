@@ -39,12 +39,8 @@
 #endif
 #endif
 
-#include "watchdog/watchdog.h"
-
 #define STACK_READY_BT  0x01
 #define STACK_READY_BLE 0x02
-
-static osThreadId main_thread_tid = NULL;
 
 #if defined(BLE_ONLY_LT)
 #ifdef FIRMWARE_REV
@@ -74,6 +70,8 @@ void system_get_info(uint8_t *fw_rev_0, uint8_t *fw_rev_1, uint8_t *fw_rev_2, ui
   SYS_STORE_FW_VER(3);
 }
 #endif
+
+static osThreadId main_thread_tid = NULL;
 
 int system_reset(void)
 {
@@ -156,6 +154,8 @@ void SelectEnterApp(void)
     }
 }
 void boot_loader_pre_init_hook(void) __attribute__((alias("SelectEnterApp")));
+
+static osThreadId main_thread_tid = NULL;
 #endif
 
 int signal_send_to_main_thread(uint32_t signals)
@@ -579,7 +579,7 @@ void app_enter_non_signalingtest_mode(void)
     pmu_reboot();
 }
 /***************************************************************/
-#if 0
+
 static int key_event_process(uint32_t key_code, uint8_t key_event)
 {
     TRACE(2,"%s: key_code:%04x key_event:%d", __func__, key_code, key_event);
@@ -600,7 +600,6 @@ static int key_event_process(uint32_t key_code, uint8_t key_event)
 
     return 0;
 }
-#endif
 
 static void app_ble_stub_user_data_fill_handler(void *param)
 {
@@ -651,21 +650,15 @@ void ble_start_adv(void)
     app_ble_start_connectable_adv(500);
 }
 
-#if CFG_CUSTOM_APP
-extern void platform_log_init(void);
-extern void root_main(int argc, const char *argv[]);
-#endif
 int main(void)
 {
-    app_wdt_open(15);
-    app_wdt_hung_task_check_enable(true);
-
     hwtimer_init();
     hal_sys_timer_open();
+
     hal_audma_open();
     hal_gpdma_open();
 
-    // hal_key_open(0, key_event_process);
+    hal_key_open(0, key_event_process);
 
 #if (DEBUG_PORT == 1)
     hal_iomux_set_uart0();
@@ -680,14 +673,6 @@ int main(void)
 #ifdef TRACE_LVL_DEBUG
     hal_trace_set_log_level(LOG_LEVEL_DEBUG);
 #endif
-
-#if CFG_CUSTOM_APP
-    platform_log_init();
-#else
-    hal_trace_set_log_level(TR_LEVEL_DEBUG);
-    TRACE(0, "-->-->no custom app log level: debug");
-#endif
-
     hal_norflash_show_id_state(HAL_FLASH_ID_0, true);
 
     hal_iomux_ispi_access_init();
@@ -717,8 +702,7 @@ int main(void)
     test_hal_pattern();
 #endif
 
-    // hal_sysfreq_req(HAL_SYSFREQ_USER_INIT, HAL_CMU_FREQ_32K);
-    hal_sysfreq_req(HAL_SYSFREQ_USER_INIT, HAL_CMU_FREQ_208M);
+    hal_sysfreq_req(HAL_SYSFREQ_USER_INIT, HAL_CMU_FREQ_32K);
     TR_INFO(TR_MOD(MAIN), "CPU freq: %u", hal_sys_timer_calc_cpu_freq(5, 0));
     hal_sleep_start_stats(10000, 10000);
 
@@ -726,7 +710,6 @@ int main(void)
     TRACE(1,"main_thread_tid=%x", (uint32_t)main_thread_tid);
 
     if (hal_sw_bootmode_get() & HAL_SW_BOOTMODE_TEST_MODE) {
-        TRACE(0, "-->-->bootmode test mode!!!");
         hal_sw_bootmode_clear(HAL_SW_BOOTMODE_TEST_MODE);
         btdrv_start_bt();
 
@@ -745,25 +728,17 @@ int main(void)
     } else {
         ble_app_init();
         ble_start_adv();
-#if CFG_CUSTOM_APP
-        root_main(0, NULL);
-#else
-        TRACE(0, "no custom app enter");
-#endif
     }
- 
+
     uint32_t flags = 0;
     while (1) {
+        TRACE(0, "bleonly alive");
         flags = osThreadFlagsWait(CMSIS_V1_SIGNAL_ANY, osFlagsWaitAny, 5000);
         if ((flags > 0U) && (flags < 0x80000000U)) {
             if (flags & 0x08) {
                 break;
             }
         }
-        #if CFG_CUSTOM_APP
-        #else
-        TRACE(0, "-->-->no custom app loop");
-        #endif
     }
 
     ble_app_deinit();

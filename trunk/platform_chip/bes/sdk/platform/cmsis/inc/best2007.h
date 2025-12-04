@@ -64,9 +64,7 @@ typedef enum IRQn
     FPU_IRQn                    =   0,      /*!< FPU Interrupt                      */
     WAKEUP_IRQn                 =   1,      /*!< Wakeup Interrupt                   */
     EXT_SENSOR_IRQn             =   2,      /*!< EXT Sensor Interrupt               */
-#ifndef CHIP_BEST2007H
     SPI_WAKEUP_IRQn             =   4,      /*!< SPI Wakeup Interrupt               */
-#endif
     AUDMA_IRQn                  =   5,      /*!< Audio DMA Interrupt                */
     USB_IRQn                    =   7,      /*!< USB Interrupt                      */
     QSPI_IRQn                   =   8,      /*!< QSPI Interrupt                     */
@@ -80,9 +78,7 @@ typedef enum IRQn
     MCU_TIMER01_IRQn            =  16,      /*!< Timer01 Interrupt                  */
     MCU_TIMER10_IRQn            =  17,      /*!< Timer10 Interrupt                  */
     MCU_TIMER11_IRQn            =  18,      /*!< Timer11 Interrupt                  */
-#ifndef CHIP_BEST2007H
     SDIO1_DEVICE_IRQn           =  19,      /*!< SDIO1 Interrupt                    */
-#endif
     I2C0_IRQn                   =  21,      /*!< I2C0 Interrupt                     */
     I2C1_IRQn                   =  22,      /*!< I2C1 Interrupt                     */
     SPI0_IRQn                   =  23,      /*!< SPI0 Interrupt                     */

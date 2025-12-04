@@ -54,8 +54,6 @@
 #define LHDC_LICENSE_SECTION_LOC			1
 #define USERDATA_SECTION_LOC				1
 #define RESERVED_SECTION_LOC				1
-#define LITTLEFS_SECTION_LOC				1
-#define FACTORY_DATA_SECTION_LOC		    1
 #else
 #define COMBO_SECTION_LOC					0
 #define HOTWORD_SECTION_LOC					0
@@ -71,8 +69,6 @@
 #define LHDC_LICENSE_SECTION_LOC			0
 #define USERDATA_SECTION_LOC				0
 #define RESERVED_SECTION_LOC				0
-#define LITTLEFS_SECTION_LOC				0
-#define FACTORY_DATA_SECTION_LOC		    0
 #endif
 
 #ifdef USE_MULTI_FLASH
@@ -92,8 +88,6 @@
 							SECTION_SIZE_LOC(0, RESERVED) -
 							SECTION_SIZE_LOC(0, AUD) -
 							SECTION_SIZE_LOC(0, USERDATA) * 2 -
-							SECTION_SIZE_LOC(0, LITTLEFS) * 2 -
-							SECTION_SIZE_LOC(0, FACTORY_DATA) * 2 -
 							SECTION_SIZE_LOC(0, CUSTOM_PARAMETER) -
 							SECTION_SIZE_LOC(0, LHDC_LICENSE) -
 							SECTION_SIZE_LOC(0, CRASH_DUMP) -
@@ -123,8 +117,6 @@
 							SECTION_SIZE_LOC(1, RESERVED) -
 							SECTION_SIZE_LOC(1, AUD) -
 							SECTION_SIZE_LOC(1, USERDATA) * 2 -
-							SECTION_SIZE_LOC(1, LITTLEFS) * 2 -
-							SECTION_SIZE_LOC(1, FACTORY_DATA) * 2 -
 							SECTION_SIZE_LOC(1, CUSTOM_PARAMETER) -
 							SECTION_SIZE_LOC(1, LHDC_LICENSE) -
 							SECTION_SIZE_LOC(1, CRASH_DUMP) -
@@ -278,18 +270,3 @@
 		. = SECTION_SIZE(FACTORY);
 		__factory_end = .;
 	} > FLASH_LOC(FACTORY)
-
-	.littlefs (NOLOAD) :
-	{
-		__littlefs_start = .;
-		. = SECTION_SIZE(LITTLEFS);
-		__littlefs_end = .;
-	} > FLASH_LOC(LITTLEFS)
-
-	.factory_data (NOLOAD) :
-	{
-		__factory_data_start = .;
-		. = SECTION_SIZE(FACTORY_DATA);
-		__factory_data_end = .;
-	} > FLASH_LOC(FACTORY_DATA)
-

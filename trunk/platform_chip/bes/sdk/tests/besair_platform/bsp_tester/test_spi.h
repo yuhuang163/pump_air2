@@ -49,5 +49,3 @@ unsigned long pal_crc32(unsigned long crc, const unsigned char *buf, unsigned in
 
 
 #endif
-
-

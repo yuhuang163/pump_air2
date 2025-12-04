@@ -173,7 +173,6 @@ endif
 KBUILD_CFLAGS +=
 
 ifeq ($(CONFIG_HAVE_CXX),1)
-8
 LIB_LDFLAGS += -lstdc++ -lsupc++
 else
 LIB_LDFLAGS +=
