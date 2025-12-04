@@ -166,6 +166,7 @@ typedef struct storage_manager_context {
         struct broadcast_obj *mbdc;
         /// 数据库.
         struct rt_device_node *db_dev;
+        struct rt_device_node *factory_flash_dev;
         /// 外挂flash
         // struct extflash_interface *extflash_if;
         os_mutex_id storage_rw_lock;
