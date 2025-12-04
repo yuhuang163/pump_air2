@@ -760,10 +760,10 @@ int main(void)
                 break;
             }
         }
-        #if CFG_CUSTOM_APP
-        #else
+    #if CFG_CUSTOM_APP
+    #else
         TRACE(0, "-->-->no custom app loop");
-        #endif
+    #endif
     }
 
     ble_app_deinit();

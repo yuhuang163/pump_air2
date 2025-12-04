@@ -96,9 +96,9 @@ void audio_dump_clear_up(void)
 
 void audio_dump_init(int frame_len, int sample_bytes, int channel_num)
 {
-    #ifndef SYSTEM_USE_FILE
+#ifndef SYSTEM_USE_FILE
     TRACE(2, "%s frame_len:%d, sample_bytes:%d, channel_num:%d", __func__, frame_len, sample_bytes, channel_num);
-    #endif
+#endif
 
      ASSERT(frame_len*channel_num*sample_bytes <= AUDIO_DUMP_MAX_DATA_SIZE,
            "[%s] dump data size is too large! Enlarge free RAM", __func__);

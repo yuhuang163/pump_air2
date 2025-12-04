@@ -299,4 +299,20 @@ export ENABLE_PRINT_FLOAT ?= 1
 endif
 endif
 
+# =======================
+# General spi master/slave config
+# =======================
+export GENERAL_SPI_DEMO ?= 0
+ifeq ($(GENERAL_SPI_DEMO),1)
+export GENERAL_SPI_MASTER ?= 1
+ifeq ($(GENERAL_SPI_MASTER),1)
+KBUILD_CPPFLAGS += -DGENERAL_SPI_MASTER
+else
+KBUILD_CPPFLAGS += -DGENERAL_SPI_SLAVE
+endif
+# dma link：trans len > 4095
+KBUILD_CPPFLAGS += -DSPI_DMA_USE_LINK
+core-y += apps/general_spi_demo/
+endif
+
 #LDFLAGS_IMAGE += --wrap main

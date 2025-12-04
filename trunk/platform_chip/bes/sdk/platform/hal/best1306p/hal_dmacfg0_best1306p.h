@@ -39,8 +39,8 @@ static const uint32_t audma_fifo_addr[AUDMA_PERIPH_NUM] = {
 #endif
     I2S0_BASE + 0x200,      // I2S0 RX
     I2S0_BASE + 0x240,      // I2S0 TX
-    SPILCD_BASE + 0x008,    // SPILCD RX
-    SPILCD_BASE + 0x008,    // SPILCD TX
+    0,                      //
+    0,                      //
     SPDIF0_BASE + 0x1C0,    // SPDIF0 RX
     SPDIF0_BASE + 0x1C8,    // SPDIF0 TX
     CODEC_BASE + 0x03C,     // IIR RX
@@ -68,8 +68,8 @@ static const enum HAL_DMA_PERIPH_T audma_fifo_periph[AUDMA_PERIPH_NUM] = {
 #endif
     HAL_AUDMA_I2S0_RX,
     HAL_AUDMA_I2S0_TX,
-    HAL_AUDMA_SPILCD_RX,
-    HAL_AUDMA_SPILCD_TX,
+    HAL_AUDMA_FIR_RX,
+    HAL_AUDMA_FIR_TX,
     HAL_AUDMA_SPDIF0_RX,
     HAL_AUDMA_SPDIF0_TX,
     HAL_AUDMA_IIR_RX,

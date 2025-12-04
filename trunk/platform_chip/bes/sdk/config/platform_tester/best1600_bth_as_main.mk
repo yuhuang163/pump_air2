@@ -50,7 +50,7 @@ KBUILD_CPPFLAGS += -Iplatform/cmsis/inc -Iplatform/hal -Iservices/audioflinger -
 
 LIB_LDFLAGS += -lstdc++ -lsupc++
 
-#export ENABLE_PRINT_FLOAT ?= 1 #浮点数
+#CFLAGS_IMAGE += -u _printf_float -u _scanf_float #浮点数
 
 # RTOS CFG
 OS_SCHEDULERSTKSIZE := 256

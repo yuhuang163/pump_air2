@@ -60,7 +60,7 @@ KBUILD_CPPFLAGS += -Iplatform/cmsis/inc -Iplatform/hal -Iservices/audioflinger -
 
 LIB_LDFLAGS += -lstdc++ -lsupc++
 
-#export ENABLE_PRINT_FLOAT ?= 1
+#CFLAGS_IMAGE += -u _printf_float -u _scanf_float
 
 OS_SCHEDULERSTKSIZE := 256
 OS_TASKCNT := 14

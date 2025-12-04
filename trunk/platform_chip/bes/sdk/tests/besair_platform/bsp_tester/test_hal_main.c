@@ -232,9 +232,5 @@ void test_hal_pattern(void)
     beco_test();
 #endif
 
-#ifdef CMSIS_TEST
-    cmsis_test();
-#endif
-
 #endif
 }

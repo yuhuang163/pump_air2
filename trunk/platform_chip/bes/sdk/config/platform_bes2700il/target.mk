@@ -84,9 +84,9 @@ core-y      += utils/crc32/ utils/heap/ utils/cqueue/
 
 core-y += tests/besair_platform/bsp_tester/
 
-# ifeq ($(ESHELL_UNITTEST),1)
-# core-y      += services/audioflinger/
-# endif
+ifeq ($(ESHELL_UNITTEST),1)
+core-y      += services/audioflinger/
+endif
 
 NEW_NV_RECORD_ENABLED ?= 0
 ifeq ($(NEW_NV_RECORD_ENABLED),1)
@@ -245,6 +245,20 @@ KBUILD_CPPFLAGS += -Iinclude/cmsis_dsp -Iinclude/beco -Iinclude/cmsis_dsp
 core-y += platform/beco/
 endif
 
+ifeq ($(UTILS_ESHELL_EN),1)
+export SDMMC0_PULLUP_ENABLE ?= 1
+export SPI_IOMUX_4WIRE ?= 1
+export SPILCD_IOMUX_4WIRE ?= 1
+endif
+
+ifneq ($(NOAPP),0)
+# core-y += apps/common/
+endif
+
+ifeq ($(BECO),1)
+core-y += platform/beco/
+endif
+
 export FLASH_DEEP_SLEEP ?= 1
 export CORE_SLEEP_POWER_DOWN ?= 1
 export SPLIT_CORE_M_CORE_L ?= 0
@@ -390,9 +404,4 @@ endif # TEST_SYSVIEW
 export STORE_ISPI_LIST ?= 1
 ifeq ($(STORE_ISPI_LIST),1)
 KBUILD_CPPFLAGS += -DSTORE_ISPI_LIST
-endif
-
-ifeq ($(TEST_HAL_PATTERN), CMSIS_TEST)
-LDS_CPPFLAGS += -DCMSIS_TEST
-core-y += platform/cmsis/DSP_Lib/
 endif

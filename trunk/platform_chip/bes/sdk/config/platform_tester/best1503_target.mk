@@ -105,7 +105,7 @@ export OS_FIFOSZ ?= 24
 
 LIB_LDFLAGS += -lstdc++ -lsupc++
 
-export ENABLE_PRINT_FLOAT ?= 1
+CFLAGS_IMAGE += -u _printf_float -u _scanf_float
 
 ifeq ($(OPENAMP_ENABLE),1)
 export RPMSG_ROLE_MASTER 	?= 1
@@ -216,4 +216,4 @@ KBUILD_CPPFLAGS += -DUSE_BBK_SPI_IF
 endif
 endif
 
-export ENABLE_PRINT_FLOAT ?= 1
+CFLAGS_IMAGE += -u _printf_float -u _scanf_float

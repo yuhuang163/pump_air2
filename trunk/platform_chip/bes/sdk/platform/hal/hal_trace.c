@@ -3377,7 +3377,7 @@ void hal_trace_fault_dump(const uint32_t *regs, const uint32_t *extra, uint32_t 
     int_lock_global();
 
     hal_wdt_disable_irq(HAL_WDT_ID_0);
-#ifndef CHIP_ROLE_CP
+#ifdef CHIP_ROLE_CP
     pmu_wdt_stop();
 #endif
 

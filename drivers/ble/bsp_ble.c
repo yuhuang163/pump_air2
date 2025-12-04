@@ -51,7 +51,7 @@ static void add_ble_custom_ota_event_callback(ota_event_cb_func cb)
 }
 
 
-#ifdef CFG_OTA_EVENT_CALLBACK
+#if CFG_OTA_EVENT_CALLBACK
 static void ota_event_router(ota_state_type_e state, uint8_t *otaBuf, bool isViaBle,uint16_t dataLenth)
 {
     if (s_ota_event_callback == NULL) {
@@ -113,7 +113,7 @@ static void ota_event_router(ota_state_type_e state, uint8_t *otaBuf, bool isVia
 
 static int ble_dev_open(struct rt_device_node *dev)
 {
-#ifdef CFG_OTA_EVENT_CALLBACK
+#if CFG_OTA_EVENT_CALLBACK
     ota_event_router_register(ota_event_router);
 #endif
     return 0;

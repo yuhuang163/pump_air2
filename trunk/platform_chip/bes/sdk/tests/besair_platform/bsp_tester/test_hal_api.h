@@ -117,8 +117,6 @@ void test_sysview(void);
 
 void beco_test(void);
 
-void cmsis_test(void);
-
 #ifdef __cplusplus
 }
 #endif

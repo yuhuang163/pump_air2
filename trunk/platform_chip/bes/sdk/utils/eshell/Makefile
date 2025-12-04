@@ -7,7 +7,7 @@ obj_c := $(patsubst $(cur_dir)%,%,$(wildcard $(cur_dir)*.c))
 obj_cpp := $(patsubst $(cur_dir)%,%,$(wildcard $(cur_dir)*.cpp))
 
 $(ESHELL_LIB)-y := $(obj_c:.c=.o) $(obj_s:.S=.o) $(obj_cpp:.cpp=.o)
-
+# $(ESHELL_LIB)-y += ../../tests/anc_usb/safe_queue.o
 obj-y += $(ESHELL_LIB).a
 
 ccflags-y := \

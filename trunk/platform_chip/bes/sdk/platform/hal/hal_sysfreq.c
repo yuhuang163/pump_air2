@@ -48,6 +48,12 @@ static enum HAL_SYSFREQ_USER_T BOOT_DATA_LOC top_user = HAL_SYSFREQ_USER_QTY;
 // NOTE: min_sysfreq must be initialized to 32K to avoid first hal_sysfreq_req() error
 static enum HAL_CMU_FREQ_T BOOT_DATA_LOC min_sysfreq = HAL_CMU_FREQ_32K;
 
+#ifdef SYSFREQ_STATS
+static uint32_t BOOT_BSS_LOC last_check_time;
+static uint32_t BOOT_BSS_LOC sysfreq_intvl[HAL_SYSFREQ_USER_QTY][2];
+static struct SYSTEM_SYSFREQ_STAT_T system_sysfreq_stat_info;
+#endif
+
 static uint64_t start_time, end_time;
 static uint64_t freq_time[HAL_CMU_FREQ_QTY] = {0};
 static struct CPU_SYSFREQ_T cpu_freq = {0};
@@ -85,19 +91,13 @@ void hal_sysfreq_print(void)
 {
     hal_sysfreq_time_get_cur();
 
-    TRACE(0, "[CPU] total_ms:    %llu ms\n", cpu_freq.total_ms);
+    TRACE(0, "[CPU] total_ms:    %llu ms", cpu_freq.total_ms);
     TRACE(0, "[CPU] sleep_ms:    %llu ms", cpu_freq.sleep_ms);
     TRACE(0, "[CPU] resume_ms:   %llu ms", cpu_freq.resume_ms);
     TRACE(0, "[CPU] CPU_52M_ms:  %llu ms", cpu_freq.CPU_52M_ms);
     TRACE(0, "[CPU] CPU_104M_ms: %llu ms", cpu_freq.CPU_104M_ms);
-    TRACE(0, "[CPU] CPU_208M_ms: %llu ms", cpu_freq.CPU_208M_ms);
+    TRACE(0, "[CPU] CPU_208M_ms: %llu ms\n", cpu_freq.CPU_208M_ms);
 }
-
-#ifdef SYSFREQ_STATS
-static uint32_t BOOT_BSS_LOC last_check_time;
-static uint32_t BOOT_BSS_LOC sysfreq_intvl[HAL_SYSFREQ_USER_QTY][2];
-static struct SYSTEM_SYSFREQ_STAT_T system_sysfreq_stat_info;
-#endif
 
 #ifdef SUBSYS_RMT_SYSFREQ_REQ
 static HAL_SYSFREQ_SUBSYS_SET_FREQ_CB_T subsys_sys_set_freq_cb = NULL;

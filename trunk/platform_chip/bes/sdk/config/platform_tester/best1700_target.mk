@@ -176,6 +176,6 @@ export OS_FIFOSZ ?= 24
 
 LIB_LDFLAGS += -lstdc++ -lsupc++
 
-export ENABLE_PRINT_FLOAT ?= 1
+CFLAGS_IMAGE += -u _printf_float -u _scanf_float
 
 KBUILD_CPPFLAGS += -DSTACK_SECTION_SIZE=0x8000 -DHEAP_SECTION_SIZE=0x8000
