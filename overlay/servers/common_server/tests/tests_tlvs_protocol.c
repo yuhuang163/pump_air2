@@ -47,6 +47,33 @@ static ble_manager_context_t *get_ble_ctx(void)
     return (ble_manager_context_t *)find_module(ID_MODULE_BLE);
 }
 
+static void tests_tlvs_suction_test_mode_handler(uint8_t on_off)
+{
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump_ctx);
+    motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
+    EXCEPTION_CHECK_VOID(motor_ctx);
+    if (on_off) {
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+        pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+        msleep(100);
+        uint8_t time_index = motor_ctx->get_runtime_policy_index(MOTOR_TIME_POLICY);
+        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+            time_index = 0;
+        }
+        pump_setting_t setting = {0};
+        pump_ctx->get_breast_pump_setting(&setting, time_index);
+        setting.level[0] = BREAST_PUMP_LEVEL_15;
+        setting.level[1] = BREAST_PUMP_LEVEL_15;
+        pump_ctx->set_breast_pump_setting(&setting, time_index);
+
+        LOG_SRV("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
+                setting.level[1]);
+    } else {
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+    }
+}
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -64,11 +91,32 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
     uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
 
     LOG_SRV("tests_tlvs_factory_test_mode: %s", mode ? "ENTER" : "EXIT");
-
+    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    EXCEPTION_CHECK_INT(tests_ctx);
     // TODO: 实现产测模式进入/退出逻辑
-    // if (mode == 1) { /* 进入产测模式 */ }
-    // else { /* 退出产测模式 */ }
-
+    if (mode == 1) {
+        /* 进入产测模式 */
+        tests_ctx->tests_manager_set_current_mode(TST_FACTORY_TYPE);
+        /* 打开测试窗口 */
+        window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+        EXCEPTION_CHECK_INT(wm);
+        if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE) == 0) {
+                multi_func_msg_data_t msg = {0};
+                msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
+                wm->dispatch_new_window_args(wm, &msg);
+            }
+        } else {
+            /* 退出产测模式 */
+            tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
+            /* 关闭测试窗口 */
+            /*ndow_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+            EXCEPTION_CHECK_INT(wm);
+            if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {   // 如果当前窗口是测试窗口，则关闭测试窗口
+                multi_func_msg_data_t msg = {0};
+                msg.union_body.extra.window_id = ID_WINDOW_LOGO;
+                wm->dispatch_new_window_args(wm, &msg);
+            }*/
+        }
     // 应答格式: Length=1, Value=0x00失败/0x01成功
     uint8_t result = 0x01; // 默认成功
 
@@ -90,10 +138,35 @@ int tests_tlvs_aging_test_mode(comm_protocol_builder_t *builder, comm_protocol_s
     uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
 
     LOG_SRV("tests_tlvs_aging_test_mode: %s", mode ? "ENTER" : "EXIT");
+    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    EXCEPTION_CHECK_INT(tests_ctx);
 
     // TODO: 实现老化模式进入/退出逻辑
-    // if (mode == 1) { /* 进入老化模式 */ }
-    // else { /* 退出老化模式 */ }
+    if (mode == 1) {
+        /* 进入老化模式 */
+        tests_ctx->tests_manager_set_current_mode(TST_AGING_TEST_TYPE);
+        //启动产测模块 老化测试
+
+        /* 打开测试窗口 */
+        window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+        EXCEPTION_CHECK_INT(wm);
+        if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE) == 0) {
+            multi_func_msg_data_t msg = {0};
+            msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
+            wm->dispatch_new_window_args(wm, &msg);
+        }
+    } else {
+        /* 退出老化模式 */
+        tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
+        /* 关闭测试窗口 */
+        /*ndow_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+        EXCEPTION_CHECK_INT(wm);
+        if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {   // 如果当前窗口是测试窗口，则关闭测试窗口
+            multi_func_msg_data_t msg = {0};
+            msg.union_body.extra.window_id = ID_WINDOW_LOGO;
+            wm->dispatch_new_window_args(wm, &msg);
+        }*/
+    }
 
     // 应答格式: Length=1, Value=0x00失败/0x01成功
     uint8_t result = 0x01; // 默认成功
@@ -117,9 +190,36 @@ int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol
 
     LOG_SRV("tests_tlvs_suction_test_mode: %s", mode ? "ENTER" : "EXIT");
 
+    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    EXCEPTION_CHECK_INT(tests_ctx);
     // TODO: 实现吸力测试模式进入/退出逻辑
-    // if (mode == 1) { /* 进入吸力测试模式 */ }
-    // else { /* 退出吸力测试模式 */ }
+    if (mode == 1) {
+        /* 进入吸力测试模式 */
+        tests_ctx->tests_manager_set_current_mode(TST_SUCTION_TEST_TYPE);
+        //启动产测模块 吸力测试 吸乳模式→L15档→双边工作
+        
+        /* 打开测试窗口 */
+        window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+        EXCEPTION_CHECK_INT(wm);
+        if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE) == 0) {
+            multi_func_msg_data_t msg = {0};
+            msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
+            wm->dispatch_new_window_args(wm, &msg);
+        }
+        tests_tlvs_suction_test_mode_handler(1);
+    } else {
+        /* 退出吸力测试模式 */
+        tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
+        /* 关闭测试窗口 */
+        /*ndow_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+        EXCEPTION_CHECK_INT(wm);
+        if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {   // 如果当前窗口是测试窗口，则关闭测试窗口
+            multi_func_msg_data_t msg = {0};
+            msg.union_body.extra.window_id = ID_WINDOW_LOGO;
+            wm->dispatch_new_window_args(wm, &msg);
+        }*/
+        tests_tlvs_suction_test_mode_handler(0);
+    }
 
     // 应答格式: Length=1, Value=0x00失败/0x01成功
     uint8_t result = 0x01; // 默认成功

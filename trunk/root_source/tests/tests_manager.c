@@ -39,8 +39,9 @@ static uint8_t tests_manager_set_enable(uint8_t enable)
 
 static uint8_t tests_manager_set_current_mode(uint8_t mode)
 {
-    thiz->priv.enabled = mode;
-    LOGI("tests: tests_manager_set_current_mode ");
+    thiz->priv.current_mode = mode;
+    LOGI("tests: tests_manager_set_current_mode %d", mode);
+    return 0;
 }
 
 static uint8_t tests_manager_get_current_mode(void)

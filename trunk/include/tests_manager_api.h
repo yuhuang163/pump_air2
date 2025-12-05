@@ -42,10 +42,14 @@ typedef struct factory_tests_context {
 
 /// 测试类型
 typedef enum {
-    TST_FACTORY_TYPE = 0,
-    TST_SELF_HARDWARE_TYPE,
-    TST_STRESS_TYPE,
-    TST_COMMON_TYPE,
+    TST_NONE_TYPE = 0x0000,           /// 无模式
+    TST_FACTORY_TYPE = 0x0001,        /// 产测模式
+    TST_AGING_TEST_TYPE = 0x0002,     /// 老化测试模式1
+    TST_AGING2_TEST_TYPE = 0x0003,     /// 老化测试模式2
+    TST_SUCTION_TEST_TYPE = 0x0004,   /// 吸力测试模式  
+    TST_SELF_HARDWARE_TYPE = 0x0005, /// 自检模式
+    TST_STRESS_TYPE = 0x0006,        /// 压力测试模式
+    TST_COMMON_TYPE = 0x0007,        /// 通用测试模式
 } product_tst_report_type_e;
 
 /// 测试类型

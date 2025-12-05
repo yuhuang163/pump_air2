@@ -35,8 +35,6 @@ static void app_old_protocol_frame_callback(uint8_t *frame_data, uint16_t frame_
     old_protocol_frame_node_t frame_full = {0};
     protocol_ctx->app_old_protocol_frame_deserialize(frame_data, frame_len, &frame_full);
     app_old_comm_handle_request_cmd(frame_full.cid, frame_full.cal, frame_full.cab);
-    if(frame_full.cal)
-    LOG_HEX("payload data", frame_full.cab, frame_full.cal);
 }
 
 static void on_master_server_event_cb(void *user_data, uint8_t *data, uint16_t data_len)

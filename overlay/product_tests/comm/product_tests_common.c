@@ -51,6 +51,10 @@ void common_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
     comm_tst_event_type_e event = (comm_tst_event_type_e)m->union_body.product_test_extra.event_type;
     //LOGI("product_tests loop recv msg. %d", event);
     common_event_printf(event);
+    /* 如果当前模式不是通用测试模式，则不处理 */
+    if (ctx->priv.current_mode == TST_COMMON_TYPE) {
+        return;
+    }
     switch (event) {
         case COMM_TST_READ_SW_VER_EVENT:
             {

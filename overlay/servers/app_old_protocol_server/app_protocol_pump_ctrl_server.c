@@ -359,7 +359,10 @@ uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old_comm_p
             case BREAST_PUMP_STIMULATION_MODE: // 传统模式
             case BREAST_PUMP_PUMP_MODE:
             case BREAST_PUMP_MIX_MODE:
-                 //app_old_comm_set_nommal_pump_speed(app_old_comm_pump_ctrl_date);//常规的允许调频率
+                /// 常规的允许调频率
+                LOG_SRV("app set normal pump speed");
+                app_old_comm_set_nommal_pump_speed(app_old_comm_pump_ctrl_date);
+                break;
             case BREAST_PUMP_PP_MILK_TRACK_MODE:
             case BREAST_PUMP_MILK_BOOST_MODE:
             case BREAST_PUMP_LACTATION_START_MODE: {
@@ -644,8 +647,8 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     //先暂停pump
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_VOID(pump_ctx);
-    if(app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
-    pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
     //将storage的custom 目标pump time更新
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_VOID(storage_ctx);
@@ -658,8 +661,8 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     //int custom_mode_parameter_update(motor_policy_cfg_t *cfg, uint8_t cfg_num)
     app_old_comm_pump_custom_step_para_to_local_motor_policy(&pump_user_defined_step_data_temp);
     //重新启动pump
-    if(app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
-    pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
 
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
 }

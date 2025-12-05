@@ -128,10 +128,14 @@ void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, vo
     LOG_SRV(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
 
     switch (cid) {
-        case APP_OLD_COMM_CID_NOTIFY_STATUS:
-            app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
-            app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
-            break;
+        case APP_OLD_COMM_CID_NOTIFY_STATUS: {
+            ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+            EXCEPTION_CHECK_VOID(ble_ctx);
+            if (ble_ctx->ble_is_connected() == true) {
+                app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
+                app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
+            }
+        } break;
         case APP_OLD_COMM_CID_NOTIFY_BIND:
             app_old_comm_report_bind_status(1, 0);
             break;
@@ -140,11 +144,13 @@ void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, vo
             if (args_temp->arg1 == true) //连接
             {
                 LOG_SRV(" ble connect");
+                POST_TASK_HANDLER_DELAYED_ARG0(app_old_comm_poll_post_task_handler, 30000, "app_old_comm_poll_post_task");
                 /* code */
             } else if (args_temp->arg1 == false) //断连接
             {
                 LOG_SRV(" ble disconnect");
                 app_old_comm_report_discon_status();
+                REMOVE_TASK_HANDLER_DIRECTLY("app_old_comm_poll_post_task");
             }
 #if 0
                 ctx_app_old_protocol_handler->encrypt_status = 0; //断开或连接后重置加密状态
@@ -185,7 +191,6 @@ void app_old_protocol_ctx_init(void)
 {
     memset(&ctx_app_old_protocol_handler, 0, sizeof(app_old_protocol_handler_context_t));
     ctx_app_old_protocol_handler.protocol_ctx = (protocol_manager_context_t *)find_module(ID_MODULE_PROTOCOL);
-    POST_TASK_HANDLER_DELAYED_ARG0(app_old_comm_poll_post_task_handler, 50000, "app_old_comm_poll_post_task");
 }
 
 app_old_protocol_handler_context_t *app_old_protocol_handler_ctx_get(void)
