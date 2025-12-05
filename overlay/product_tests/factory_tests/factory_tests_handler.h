@@ -14,6 +14,8 @@ typedef enum {
     FAC_TST_READ_SW_VER_EVENT    = TST_FACTORY_EVENT_BEGIN,
     FAC_TST_READ_DEV_MAC_EVENT,
     FAC_TST_MOTOR_CTR_EVENT,
+    FAC_TST_AGING_TEST_EVENT,
+    FAC_TST_SUCTION_TEST_EVENT,
 } factory_tst_event_type_e;
 
 void factory_tests_thread_handler(struct tests_manager_context *ctx, void *msg);

@@ -41,6 +41,7 @@ static int factory_event_printf(factory_tst_event_type_e event)
     LOGI("product tst event-- %s = %d", str, event);
     return 0;
 }
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -63,6 +64,27 @@ int get_factory_tests_sw_ver(tests_func_args_t args)
     return ret;
 }
 
+
+int factory_tests_aging_test(tests_func_args_t args)
+{
+    /* 自动循环工作N小时（按摩→吸乳→混合，1-15档循环） */
+    int ret = 0;
+    int hours = (int)args.val;
+    EXCEPTION_CHECK_INT(hours);
+    LOGI("factory test aging test: %d hours", hours);
+    return ret;
+}
+
+int factory_tests_suction_test(tests_func_args_t args)
+{
+    /* 吸乳模式→L15档→双边工作 */
+    int ret = 0;
+    int hours = (int)args.val;
+    EXCEPTION_CHECK_INT(hours);
+    LOGI("factory test suction test: %d hours", hours);
+    return ret;
+}
+
 void factory_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
 {
     multi_func_msg_data_t *m = (multi_func_msg_data_t *)msg;
@@ -70,6 +92,10 @@ void factory_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
     uint16_t length = m->union_body.product_test_extra.data_length;
     //LOGI("product_tests loop recv msg. %d", event);
     factory_event_printf(event);
+    /* 如果当前模式不是产测模式，则不处理 */
+    if (ctx->priv.current_mode == TST_FACTORY_TYPE) {
+        return;
+    }
     switch (event) {
         case FAC_TST_READ_SW_VER_EVENT:
             {
