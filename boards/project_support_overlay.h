@@ -11,6 +11,7 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_FLASH                          (1)
 #define IS_SUPPORT_DEVICE_DATABASE                       (1)
 #define IS_SUPPORT_DEVICE_INPUT_KEY                      (1)
+#define IS_SUPPORT_DEVICE_TOUCH_KEY                      (1)
 #define IS_SUPPORT_DEVICE_POWER                          (1)
 #define IS_SUPPORT_DEVICE_PMU                            (1)
 #define IS_SUPPORT_DEVICE_BATTERY                        (1)

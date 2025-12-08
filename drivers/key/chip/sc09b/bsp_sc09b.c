@@ -7,6 +7,7 @@
 #include "bsp_internal.h" // IWYU pragma: keep
 #include "bsp_i2c.h" // IWYU pragma: keep
 #include "bsp_key_internal.h" // IWYU pragma: keep
+#include "plat_types.h"
 #include "bsp_sc09b.h" // IWYU pragma: keep
 
 /*
@@ -44,7 +45,7 @@ static uint16_t s_key_mask[TOUCH_KEY_NUM] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static int sc09b_write_nbyte(i2c_master_data_t *data)
+POSSIBLY_UNUSED static int sc09b_write_nbyte(i2c_master_data_t *data)
 {
     int ret = 0;
 
@@ -60,7 +61,7 @@ static int sc09b_write_nbyte(i2c_master_data_t *data)
     return ret;
 }
 
-static int sc09b_read_nbyte(i2c_master_data_t *data)
+POSSIBLY_UNUSED static int sc09b_read_nbyte(i2c_master_data_t *data)
 {
     int ret = 0;
 
@@ -76,7 +77,7 @@ static int sc09b_read_nbyte(i2c_master_data_t *data)
     return ret;
 }
 
-static void sc09b_irq_callback(enum HAL_GPIO_PIN_T pin)
+POSSIBLY_UNUSED static void sc09b_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
     uint8_t msg = 0;
     // LOG_PBUS("sc09b pin[%d] irq triggered", pin);
@@ -86,7 +87,7 @@ static void sc09b_irq_callback(enum HAL_GPIO_PIN_T pin)
     }
 }
 
-static void sc09b_irq_control(bool enable)
+POSSIBLY_UNUSED static void sc09b_irq_control(bool enable)
 {
     struct HAL_GPIO_IRQ_CFG_T gpio_irq_cfg = {
         enable, 
@@ -98,7 +99,7 @@ static void sc09b_irq_control(bool enable)
     hal_gpio_setup_irq(TOUCH_INT_PIN, &gpio_irq_cfg);
 }
 
-static void sc09b_irq_init(void)
+POSSIBLY_UNUSED static void sc09b_irq_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
         (enum HAL_IOMUX_PIN_T)TOUCH_INT_PIN,  
@@ -110,7 +111,7 @@ static void sc09b_irq_init(void)
     hal_gpio_pin_set_dir(TOUCH_INT_PIN,  HAL_GPIO_DIR_IN,  1);
 }
 
-static void sc09b_touch_key_scan(void)
+POSSIBLY_UNUSED static void sc09b_touch_key_scan(void)
 {
     uint16_t key_value = 0, key_idle_count = 0, error_count = 0;
     i2c_master_data_t key_data = {
@@ -146,7 +147,7 @@ static void sc09b_touch_key_scan(void)
     }
 }
 
-static void key_device_thread(void *arg)
+POSSIBLY_UNUSED static void key_device_thread(void *arg)
 {
     int ret = 0;
     uint8_t msg = 0;
@@ -159,7 +160,7 @@ static void key_device_thread(void *arg)
     }
 }
 
-static void sc09b_reference_cap_config(void)
+POSSIBLY_UNUSED static void sc09b_reference_cap_config(void)
 {
     uint8_t reg_val = SC09B_CAP_DEFALUT;
     i2c_master_data_t key_data = {
@@ -170,7 +171,7 @@ static void sc09b_reference_cap_config(void)
     sc09b_write_nbyte(&key_data);
 }
 
-static int sc09b_is_ready(void)
+POSSIBLY_UNUSED static int sc09b_is_ready(void)
 {
     int ret = BSP_NOT_READY;
     uint16_t reg_val = 0;
@@ -196,7 +197,7 @@ static int sc09b_is_ready(void)
     return BSP_OK;
 }
 
-static int sc09b_chip_init(void)
+POSSIBLY_UNUSED static int sc09b_chip_init(void)
 {
     if (sc09b_is_ready() != BSP_OK) {
         return BSP_NOT_READY;
@@ -248,6 +249,7 @@ int bsp_key_init(void)
     /// 初始化电源键
     power_key_irq_init();
     power_key_irq_control(true);
+#if IS_SUPPORT_DEVICE_TOUCH_KEY
     /// 初始化触摸键
     sc09b_irq_init();
     bsp_i2c_init(TOUCH_KEY_I2C_ID);
@@ -255,11 +257,16 @@ int bsp_key_init(void)
     RUN_NEW_THREAD(&s_key_device_thd, "key", key_device_thread, RT_PRIO_KEY_DEVICE_THREAD, (KEY_DEVICE_THREAD_STACKSIZE));
     sc09b_irq_control(true);
     return sc09b_chip_init();
+#else
+    return BSP_OK;
+#endif
 }
 
 int bsp_key_deinit(void)
 {
+#if IS_SUPPORT_DEVICE_TOUCH_KEY
     sc09b_irq_control(false);
+#endif
     bsp_i2c_deinit(TOUCH_KEY_I2C_ID);
     
     return BSP_OK;
@@ -290,6 +297,7 @@ int bsp_read_all_key_value(void)
 
 int bsp_key_sensitivity_set(uint8_t key_index, uint8_t sensitivity)
 {
+#if IS_SUPPORT_DEVICE_TOUCH_KEY
     uint8_t reg_val = sensitivity;
     i2c_master_data_t key_data = {
         .data = &reg_val,
@@ -298,4 +306,7 @@ int bsp_key_sensitivity_set(uint8_t key_index, uint8_t sensitivity)
     };
 
     return sc09b_write_nbyte(&key_data);
+#else
+    return BSP_OK;
+#endif
 }
