@@ -82,7 +82,13 @@ extern "C" {
 #define LCD_RST_PIN                     HAL_GPIO_PIN_P3_6
 #define LCD_TE_PIN                      HAL_GPIO_PIN_P3_7
 #define LCD_CS_PIN                      HAL_GPIO_PIN_P3_1
-
+/// I2C
+#define I2C2_SCL_PIN                    HAL_GPIO_PIN_P0_4
+#define I2C2_SDA_PIN                    HAL_GPIO_PIN_P0_5
+#define I2C3_SCL_PIN                    HAL_GPIO_PIN_P0_6
+#define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
+#define I2C4_SCL_PIN                    HAL_GPIO_PIN_P1_0
+#define I2C4_SDA_PIN                    HAL_GPIO_PIN_P1_1
 /// 充电中断引脚
 #define CHARGE_INT_PIN                  HAL_GPIO_PIN_P0_1
 /// 充电电源控制引脚
