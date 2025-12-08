@@ -30,11 +30,14 @@ extern "C" {
 /// 创建新线程
 #define RUN_NEW_THREAD(thd, name_s, cb, prio, stack_s) \
     run_new_thread_wrapper((thd), (name_s), (cb), (prio), (stack_s))
-
 /// 退出线程
 #define EXIT_THREAD(thd) exit_thread_wrapper(thd)
 /// 获取线程名称
-#define THREAD_NAME_GET(thd) os_thread_get_name_wrapper(thd)
+#define THREAD_NAME_GET(thd)  os_thread_get_name_wrapper(thd)
+/// 挂起线程
+#define THREAD_SUSPEND(thd)   os_thread_suspend_wrapper(thd)
+/// 恢复线程
+#define THREAD_RESUME(thd)    os_thread_resume_wrapper(thd)
 #else
 #define RUN_NEW_THREAD(thd, name_s, cb, prio, stack_s) do { ; } while (0)
 #define EXIT_THREAD(thd) do { ; } while (0)
@@ -194,6 +197,8 @@ void platform_get_build_time(char *build_time);
 uint32_t get_timestamp(void); 
 /// 平台提供的获取ms时间戳接口，可以辅助计算tick插值
 uint32_t get_timestamp_ms(uint32_t time_tick);
+/// 平台提供的获取系统时间毫秒接口.
+uint32_t get_sys_time_ms(void);
 /// 系统重启.
 void platform_system_reboot(void);
 /// 平台提供的获取线程ID接口.

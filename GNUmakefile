@@ -79,6 +79,9 @@ CFG_CUSTOM_BLE_SERVICE ?= 1
 # OTA 事件回调开关
 CFG_OTA_EVENT_CALLBACK ?= 1
 
+# LVGL开关
+CFG_LVGL_ENABLE := 0
+
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
 # BLE 头文件
@@ -168,6 +171,21 @@ SDK_UTILS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/heap \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/libc/inc \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/hwtimer_list
+
+# SDK LVGL 头文件
+SDK_LVGL_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes/ports \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes/disp \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/lv_drivers \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/lv_widgets
+
+# SDK LCD 头文件
+SDK_LCD_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd/chip \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd/interface
 
 # Boards 头文件
 BOARDS_INC_FLAGS := \
@@ -427,6 +445,8 @@ SDK_INCLUDE_PATHS := \
 	$(SDK_HAL_INC_FLAGS) \
 	$(SDK_SERVICES_INC_FLAGS) \
 	$(SDK_UTILS_INC_FLAGS) \
+	$(SDK_LVGL_INC_FLAGS) \
+	$(SDK_LCD_INC_FLAGS) \
 	$(DRIVERS_INC_FLAGS) \
 	$(BASE_INC_FLAGS) \
 	$(EXTERNAL_INC_FLAGS) \
@@ -455,6 +475,11 @@ CPPFLAGS ?= -I$(PROJECT_ROOT) -I$(PROJECT_ROOT)/trunk $(SDK_INCLUDE_PATHS)
 # custom app switch
 ifeq ($(CFG_CUSTOM_APP),1)
 CPPFLAGS += -DCFG_CUSTOM_APP
+endif
+
+# LVGL开关
+ifeq ($(CFG_LVGL_ENABLE),1)
+CPPFLAGS += -DCFG_LVGL_ENABLE
 endif
 
 # 调试日志相关宏定义
@@ -996,7 +1021,9 @@ firmware:
 		OTA_CODE_OFFSET=0x66000 \
 		OTA_BOOT_INFO_OFFSET=0x62000 \
 		PSRAM_XCCELA_MODE=1 \
-		GRAPH_MODULE=1 \
+		LVGL_TEST=$(CFG_LVGL_ENABLE) \
+		LVGL_NO_TOUCHSCREEN=1 \
+		DISPLAY_LCD=st77916 \
 		DEBUG_PORT=1 \
 		all
 

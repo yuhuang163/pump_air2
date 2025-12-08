@@ -213,7 +213,7 @@ static void lcd_power_on(void)
 #endif
     hal_sys_timer_delay(MS_TO_TICKS(2));
     hal_gpio_pin_set(LCD_RST_PIN);
-#ifdef LCD_RST_PIN2
+#ifdef LCD_RST_PIN2 
     hal_gpio_pin_set(LCD_RST_PIN2);
 #endif
     hal_sys_timer_delay(MS_TO_TICKS(10));
@@ -332,6 +332,8 @@ void disp_lcdc_send_frame(const void *buf)
     uint32_t lock;
 
 #ifdef RTOS
+    hal_sys_timer_delay(MS_TO_TICKS(1));
+    lcdc_vsync_cb();
     if (framedone_sem)
         osSemaphoreAcquire(framedone_sem, -1);
 #else

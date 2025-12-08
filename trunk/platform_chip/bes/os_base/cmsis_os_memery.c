@@ -13,8 +13,8 @@
 */
 #define U_HEAP_SIZE (80 * 1024)
 #if PSRAM_ENABLE
-#define U_HEAP_SIZE_PSRAM_NC (320 * 1024)
-#define U_HEAP_SIZE_PSRAM    (640 * 1024)
+#define U_HEAP_SIZE_PSRAM_NC (120 * 1024)
+#define U_HEAP_SIZE_PSRAM    (120 * 1024)
 #endif
 
 /*

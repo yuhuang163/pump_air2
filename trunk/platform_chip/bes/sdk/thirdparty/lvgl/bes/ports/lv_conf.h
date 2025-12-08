@@ -66,14 +66,14 @@
 #endif
 
 /* memory configs */
-#define LV_MEM_SIZE                         (2 * 1024U * 1024U)
+#define LV_MEM_SIZE                         (1 * 1024U * 1024U)
 #define LV_ATTRIBUTE_MEM_ALIGN_SIZE         64
 #define LV_ATTRIBUTE_MEM_ALIGN              __attribute__((aligned(64)))
 
 #define LV_ATTRIBUTE_LARGE_CONST            PSRAM_DATA_LOC
 #define LV_ATTRIBUTE_LARGE_RAM_ARRAY        PSRAM_BSS_LOC
 
-#define LV_DRAW_THREAD_STACK_SIZE           (64 * 1024U)
+#define LV_DRAW_THREAD_STACK_SIZE           (16 * 1024U)
 
 /* enable logging */
 #define LV_USE_LOG                          1

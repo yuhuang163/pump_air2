@@ -155,7 +155,9 @@ static void lv_app_main(void *notused)
     extern void lv_example_image(void);
     lv_example_image();
 #else
-    lv_demo_benchmark();
+    // lv_demo_benchmark();
+    extern void lv_example_image(void);
+    lv_example_image();
 #endif
 
     while (1) {

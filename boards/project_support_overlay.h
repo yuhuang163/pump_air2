@@ -70,6 +70,13 @@ extern "C" {
 #define IS_SUPPORT_ALGO_SAMPLING                         (1)
 /// 长按软复位
 #define IS_SUPPORT_KEY_SOFT_RESET                        (1)
+/// 支持LVGL
+#if CFG_LVGL_ENABLE
+#define IS_SUPPORT_LVGL                                  (1)
+#else
+#define IS_SUPPORT_LVGL                                  (0)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -936,7 +936,10 @@ export GRAPH_MODULE := 1
 export DRIVER_GRAPHIC_ENABLE := 1
 export DRIVER_JPEG_ENABLE := 1
 export LVGL_GPU_VGLITE ?= 1
+export LVGL_NO_TOUCHSCREEN ?= 1
+ifeq ($(LVGL_NO_TOUCHSCREEN), 0)
 export LVGL_TP_TMA525C ?= 1
+endif
 THIRDPARTY_ENABLE := 1
 export THIRDPARTY_LVGL_ENABLE := 1
 obj-y += ../../thirdparty/lvgl/
