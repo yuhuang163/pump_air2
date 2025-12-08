@@ -79,6 +79,9 @@ CFG_CUSTOM_BLE_SERVICE ?= 1
 # OTA 事件回调开关
 CFG_OTA_EVENT_CALLBACK ?= 1
 
+# LVGL开关
+CFG_LVGL_ENABLE := 0
+
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
 # BLE 头文件
@@ -472,6 +475,11 @@ CPPFLAGS ?= -I$(PROJECT_ROOT) -I$(PROJECT_ROOT)/trunk $(SDK_INCLUDE_PATHS)
 # custom app switch
 ifeq ($(CFG_CUSTOM_APP),1)
 CPPFLAGS += -DCFG_CUSTOM_APP
+endif
+
+# LVGL开关
+ifeq ($(CFG_LVGL_ENABLE),1)
+CPPFLAGS += -DCFG_LVGL_ENABLE
 endif
 
 # 调试日志相关宏定义
@@ -1013,8 +1021,7 @@ firmware:
 		OTA_CODE_OFFSET=0x66000 \
 		OTA_BOOT_INFO_OFFSET=0x62000 \
 		PSRAM_XCCELA_MODE=1 \
-		LVGL_TEST=1 \
-		GRAPH_MODULE=1 \
+		LVGL_TEST=$(CFG_LVGL_ENABLE) \
 		LVGL_NO_TOUCHSCREEN=1 \
 		DISPLAY_LCD=st77916 \
 		DEBUG_PORT=1 \

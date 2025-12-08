@@ -73,7 +73,7 @@
 #define LV_ATTRIBUTE_LARGE_CONST            PSRAM_DATA_LOC
 #define LV_ATTRIBUTE_LARGE_RAM_ARRAY        PSRAM_BSS_LOC
 
-#define LV_DRAW_THREAD_STACK_SIZE           (64 * 1024U)
+#define LV_DRAW_THREAD_STACK_SIZE           (16 * 1024U)
 
 /* enable logging */
 #define LV_USE_LOG                          1

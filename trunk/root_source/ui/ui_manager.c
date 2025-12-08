@@ -77,14 +77,11 @@ static void ui_handler_thread(const void *args)
     lv_hal_disp_init();
     while (1) {
         msleep(lv_timer_handler());
-        if (thiz->hook && thiz->hook->lvgl_display_handler) {
-            thiz->hook->lvgl_display_handler(thiz);
-        }
     }
 #else
     CREATE_MSG_TYPE_QUEUE(&thd->msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
-    CREATE_TIMER(&ui->priv.lv_tick_timer, "lv_tick_timer", ui, OS_TIMER_PERIODIC, lv_tick_timer_handler);
-    START_TIMER(ui->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
+    CREATE_TIMER(&thiz->priv.lv_tick_timer, "lv_tick_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);
+    START_TIMER(thiz->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
     while (1) {
         MSG_QUEUE_RECV(thd->msg_id, &msg, OS_WAIT_FOREVER);
         if (thiz->hook && thiz->hook->lvgl_display_handler) {
@@ -104,13 +101,17 @@ static void on_ui_broadcast_receiver(broadcast_mask_id_t id, void *context, int 
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == ID_SYS_PM_SUSPEND) {
                 ui->priv.is_playing_ui_animation = false;
-            #if (IS_SUPPORT_LVGL == 0)
+            #if IS_SUPPORT_LVGL
+                THREAD_SUSPEND(thiz->priv.ui_hdr_thd.tid);
+            #else
                 STOP_TIMER(ui->priv.lv_tick_timer);
             #endif
                 ui->priv.lv_tick_timer_running = false;
             }
             else {
-            #if (IS_SUPPORT_LVGL == 0)
+            #if IS_SUPPORT_LVGL
+                THREAD_RESUME(thiz->priv.ui_hdr_thd.tid);
+            #else
                 STOP_TIMER(ui->priv.lv_tick_timer);
                 START_TIMER(ui->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
             #endif
