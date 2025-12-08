@@ -48,7 +48,11 @@ static misc_manager_context_t *thiz = NULL;
 static bool check_if_low_battery(misc_manager_context_t *ctx)
 {
     int percent = 0;
-    DEVICE_READ_ARGS(ctx->priv.battery, &percent, sizeof(percent));
+    if (ctx->priv.battery) {
+        DEVICE_READ_ARGS(ctx->priv.battery, &percent, sizeof(percent));
+    } else {
+        percent = 100;
+    }
 
     if (percent <= LOW_BAT_PERCENTAGE) {
         return 1;
@@ -171,13 +175,13 @@ static void misc_work_polling_thread(const void *args)
     CREATE_MSG_TYPE_QUEUE(&thd->msg_id, MISC_WORK_DISPATCH_MESQ_NUM, 1);
     CREATE_TIMER(&ctx->priv.misc_timer, "misc-timer", ctx, OS_TIMER_PERIODIC, on_misc_timer_cb);
     START_TIMER(ctx->priv.misc_timer, MISC_POLLING_PERIOD);
-    if (ctx->priv.battery && ctx->priv.battery->ioctl) {
+    if (ctx->priv.battery) {
         DEVICE_IOCTL_ARGS(ctx->priv.battery, OP_CODE_BAT_CHARGE_ADD_IRQ_CALLBACK, (void *)charge_irq_callback);
     }
 
     for (;;) {
         MSG_QUEUE_RECV(thd->msg_id, &misc_msg, OS_WAIT_FOREVER);
-        if (ctx->priv.battery && ctx->priv.battery->ioctl) {
+        if (ctx->priv.battery) {
             DEVICE_IOCTL_NO_RET(ctx->priv.battery, OP_CODE_BAT_POLL_VOLTAGE);
         }
 
@@ -186,19 +190,19 @@ static void misc_work_polling_thread(const void *args)
             continue;
         }
 
-        /// 轮询充电状态
-        if (ctx->priv.battery && ctx->priv.battery->ioctl) {
+        /// 轮询充电状态.
+        if (ctx->priv.battery) {
             polling_charge_status(ctx, wm, pm, &is_plug_state_changed);
         }
 
+        /// 轮询电池状态.
         EXECUTE_EVERY_X_DELAY(MISC_THD_POLLING_PERIOD, {
-            /// 轮询电池状态.
-            if (ctx->priv.battery && ctx->priv.battery->ioctl) {
+            if (ctx->priv.battery) {
                 polling_battery_status(ctx, wm, pm, is_plug_state_changed);
             }
         });
 
-        /// 系统资源情况打印
+        /// 系统资源情况打印.
         EXECUTE_EVERY_X_DELAY(SYSINFO_PRINT_PERIOD, {
             platform_sysinfo_print(ctx); 
         });
@@ -207,11 +211,13 @@ static void misc_work_polling_thread(const void *args)
 
 static uint8_t local_get_battery_percent(void)
 {
-    EXCEPTION_CHECK_UINT(thiz->priv.battery);
-    uint16_t val = DEVICE_READ(thiz->priv.battery);
-    val = (val) ? val : 1;
-    // LOG_MISC("get_percent: %d", val);
-    return val;
+    uint8_t val = 0;
+    if (thiz->priv.battery) {   
+        val = DEVICE_READ(thiz->priv.battery);
+    } else {
+        val = 100;
+    }
+    return (val > 100) ? 100 : val;
 }
 
 static void local_set_charge_ui_show_flag(int flag)
@@ -241,7 +247,9 @@ static int on_post_misc_init(void *ptr)
     ctx->priv.misc_bcd->receiver_cb = misc_work_broadcast_receive;
     register_broadcast_receiver(ctx->priv.misc_bcd);
     /// 电量状态初始化
-    DEVICE_IOCTL_NO_RET(thiz->priv.battery, OP_CODE_BAT_POLL_VOLTAGE);
+    if (ctx->priv.battery) {
+        DEVICE_IOCTL_NO_RET(thiz->priv.battery, OP_CODE_BAT_POLL_VOLTAGE);
+    }
     ctx->priv.low_battery = check_if_low_battery(ctx);
     RUN_NEW_THREAD(&ctx->priv.misc_work_thd, "misc_thd",
         misc_work_polling_thread, RT_PRIO_MISC_DISPATCH_THREAD, MISC_THREAD_STACKSIZE);
@@ -277,9 +285,14 @@ static uint8_t local_is_low_battery(void)
 
 static uint8_t is_empty_battery(void)
 {
+
     int percent = 0;
-    rt_device_node_t *dev = thiz->priv.battery;
-    DEVICE_READ_ARGS(dev, &percent, sizeof(percent));
+    if (thiz->priv.battery) {
+        DEVICE_READ_ARGS(thiz->priv.battery, &percent, sizeof(percent));
+    } else {
+        percent = 100;
+    }
+    
     if (percent <= EMPTY_BAT_PERCENTAGE) {
         return 1;
     }
@@ -288,20 +301,20 @@ static uint8_t is_empty_battery(void)
 
 static uint8_t local_is_charge_plug_in(void)
 {
-    EXCEPTION_CHECK_UINT(thiz->priv.battery);
-    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_CHARGE_IS_PLUG_IN, ret);
-    if (ret != -1) {
-        return ret;
+    if (thiz->priv.battery) {
+        DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_CHARGE_IS_PLUG_IN, ret);
+        return ret > 0 ? 1 : 0;
     }
-    LOGE("charge_if not ready!");
-    return CHARGE_STATE_ERROR;
+    return 0;
 }
 
 static uint8_t local_get_charge_status(void)
 {
-    EXCEPTION_CHECK_UINT(thiz->priv.battery);
-    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_CHARGE_STATUS, ret);
-    return ret;
+    if (thiz->priv.battery) {
+        DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_CHARGE_STATUS, ret);
+        return ret;
+    }
+    return CHARGE_STATE_ERROR;
 }
 
 static uint8_t local_charge_show_ui_if_need(void *wm, int is_fg)
