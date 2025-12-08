@@ -431,6 +431,7 @@ PRODUCT_TESTS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/product_tests/factory_tests \
 	-I$(PROJECT_ROOT)/overlay/product_tests/hardware_self_tests \
 	-I$(PROJECT_ROOT)/overlay/product_tests/stress_tests \
+	-I$(PROJECT_ROOT)/overlay/product_tests \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/product_tests \
 	-I$(PROJECT_ROOT)/trunk/root_source/tests
 
