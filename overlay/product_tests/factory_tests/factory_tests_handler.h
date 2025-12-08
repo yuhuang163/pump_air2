@@ -22,6 +22,8 @@ int get_factory_tests_sw_ver(tests_func_args_t args);
 int factory_tests_suction_test(tests_func_args_t args);
 int factory_tests_aging_test_enter(tests_func_args_t args);
 int factory_tests_aging_test_exit(tests_func_args_t args);
+int factory_tests_enter(tests_func_args_t args);
+int factory_tests_exit(tests_func_args_t args);
 int dispatch_listen_factory_event_report(tests_manager_context_t *ctx, uint16_t event_id, void *data, uint16_t data_len);
 
 #ifdef __cplusplus
