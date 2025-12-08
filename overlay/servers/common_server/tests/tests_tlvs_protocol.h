@@ -15,9 +15,10 @@ extern "C" {
 /// TLV ID定义 (产测服务 Service ID = 0x0007)
 typedef enum {
     TESTS_TLV_FACTORY_TEST_MODE = 0x0001,      /// 产测模式进入/退出 (0x01:进入, 0x00:退出)
-    TESTS_TLV_AGING_TEST_MODE = 0x0002,        /// 老化模式进入/退出 (0x01:进入, 0x00:退出)
+    TESTS_TLV_AGING_TEST_MODE = 0x0002,        /// 老化模式进入 (Length=5: byte0=模式类型, byte1-4=目标时长)
     TESTS_TLV_SUCTION_TEST_MODE = 0x0003,      /// 吸力测试模式进入/退出 (0x01:进入, 0x00:退出)
     TESTS_TLV_AGING_STATUS_QUERY = 0x0004,     /// 老化状态查询
+    TESTS_TLV_AGING_TEST_MODE_EXIT = 0x0010,   /// 老化模式退出 (Length=0)
     TESTS_TLV_KEY_STATUS_REPORT = 0x0005,      /// 按键状态上报 (0x01:短按, 0x02:长按) NOTIFY
     TESTS_TLV_ENCODER_STATUS_REPORT = 0x0006, /// 编码器状态上报 (0x01:左旋, 0x02:右旋) NOTIFY
     TESTS_TLV_WRITE_SN = 0x0007,               /// 写入整机序列号SN (35字节)
@@ -67,6 +68,8 @@ typedef enum {
 int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 int tests_tlvs_aging_test_mode(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+int tests_tlvs_aging_test_mode_exit(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);

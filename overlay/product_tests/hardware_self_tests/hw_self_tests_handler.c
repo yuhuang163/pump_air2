@@ -51,7 +51,7 @@ void hw_self_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
     self_hardware_tst_event_type_e event = (self_hardware_tst_event_type_e)m->union_body.product_test_extra.event_type;
     hw_self_event_printf(event);
     /* 如果当前模式不是自检模式，则不处理 */
-    if (ctx->priv.current_mode == TST_SELF_HARDWARE_TYPE) {
+    if (ctx->priv.current_mode != TST_SELF_HARDWARE_TYPE) {
         return;
     }
     switch (event) {

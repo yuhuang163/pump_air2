@@ -28,6 +28,7 @@ const static put_store_process_handle_t put_store_process_list[] = {
     #if IS_SUPPORT_DEVICE_FSENSOR
     {STORE_ID_FACTORY_FSENSOR_CALI_FLAG, write_factory_fsensor_cali_flag_to_flash},
     #endif
+    {STORE_ID_FACTORY_FLAG_INFO, write_factory_flag_info_to_flash},
     {STORE_ID_SYS_CONFIG_INFO, write_sys_config_info_to_flash},
     {STORE_ID_SYS_UTC_TIMESTAMP, write_utc_timestamp_to_flash},
     {STORE_ID_SYS_STATE_INFO, write_sys_state_info_to_flash},    
@@ -40,6 +41,7 @@ const static get_store_process_handle_t get_store_process_list[] = {
     #if IS_SUPPORT_DEVICE_IMU
     {STORE_ID_FACTORY_IMU_CALI_DATA, read_imu_cali_data_from_flash},
     #endif
+    {STORE_ID_FACTORY_FLAG_INFO, read_factory_flag_info_from_flash},
     {STORE_ID_SYS_CONFIG_INFO, read_sys_config_info_from_flash},
     {STORE_ID_SYS_UTC_TIMESTAMP, read_utc_timestamp_from_flash},
     {STORE_ID_SYS_STATE_INFO, read_sys_state_info_from_flash},    

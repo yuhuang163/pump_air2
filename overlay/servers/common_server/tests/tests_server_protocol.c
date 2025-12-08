@@ -18,6 +18,7 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
     /// 模式控制
     {TESTS_TLV_FACTORY_TEST_MODE, tests_tlvs_factory_test_mode},
     {TESTS_TLV_AGING_TEST_MODE, tests_tlvs_aging_test_mode},
+    {TESTS_TLV_AGING_TEST_MODE_EXIT, tests_tlvs_aging_test_mode_exit},
     {TESTS_TLV_SUCTION_TEST_MODE, tests_tlvs_suction_test_mode},
     /// 老化状态查询
     {TESTS_TLV_AGING_STATUS_QUERY, tests_tlvs_aging_status_query},

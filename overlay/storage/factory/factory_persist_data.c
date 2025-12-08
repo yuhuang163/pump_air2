@@ -104,7 +104,10 @@ int write_factory_age_flag_to_flash(store_func_args_t args)
     int ret = 0;
     EXCEPTION_CHECK_INT(args.ctx);
     factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
-    flag_info->age_flag = (uint8_t)args.arg1;
+    factory_age_info_t *age_info = &flag_info->age_info[args.arg1];
+    EXCEPTION_CHECK_INT(age_info);
+    memcpy(age_info, (factory_age_info_t*)args.val, sizeof(factory_age_info_t));
+
     factory_flag_storage_t *store_flag = u_malloz(sizeof(factory_flag_storage_t));
     EXCEPTION_CHECK_INT(store_flag);
     store_flag->magic = STORAGE_FAC_FLAG_MAGIC_NUM;
@@ -173,12 +176,20 @@ int write_factory_flag_info_to_flash(store_func_args_t args)
     factory_flag_storage_t *store_flag = u_malloz(sizeof(factory_flag_storage_t));
     EXCEPTION_CHECK_INT(store_flag);
     store_flag->magic = STORAGE_FAC_FLAG_MAGIC_NUM;
+
     memcpy(&store_flag->flag_info, flag_info, sizeof(factory_flag_info_t));
     store_flag->crc = CRC16(&store_flag->flag_info, sizeof(factory_flag_info_t));
     ret = user_database_put(args.ctx, STORE_ID_FACTORY_FLAG_INFO, (uint8_t *)store_flag,
         sizeof(factory_flag_storage_t));
     if (ret != 0) {
         LOGE("write factory flag info failure! ret: %d", ret);
+    }
+    else {
+        /// 将flag_info写入ram
+        factory_flag_info_t *flag_info_ram = &args.ctx->priv.factory_data.flag_info;
+        EXCEPTION_CHECK_INT(flag_info_ram);
+        memcpy(flag_info_ram, flag_info, sizeof(factory_flag_info_t));
+        LOGI("write factory flag info to ram success");
     }
     u_free(store_flag);
     return ret;
@@ -269,7 +280,7 @@ int read_factory_age_flag_from_ram(store_func_args_t args)
     factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
     int *tmp = (int *)args.val;
     EXCEPTION_CHECK_INT(tmp);
-    *tmp = flag_info->age_flag;
+    *tmp = flag_info->age_info[args.arg1].age_flag;
     return 0;
 }
 
@@ -280,7 +291,18 @@ int read_factory_age_time_from_ram(store_func_args_t args)
     EXCEPTION_CHECK_INT(flag_info);
     uint32_t *tmp = (uint32_t *)args.val;
     EXCEPTION_CHECK_INT(tmp);
-    *tmp = flag_info->age_time;
+    *tmp = flag_info->age_info[args.arg1].age_time;
+    return 0;
+}
+
+int read_factory_age_cycle_from_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    factory_flag_info_t *flag_info = &args.ctx->priv.factory_data.flag_info;
+    EXCEPTION_CHECK_INT(flag_info);
+    uint32_t *tmp = (uint32_t *)args.val;
+    EXCEPTION_CHECK_INT(tmp);
+    *tmp = flag_info->age_info[args.arg1].age_cycle;
     return 0;
 }
 
