@@ -169,6 +169,21 @@ SDK_UTILS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/libc/inc \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/hwtimer_list
 
+# SDK LVGL 头文件
+SDK_LVGL_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes/ports \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes/disp \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/lv_drivers \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/lv_widgets
+
+# SDK LCD 头文件
+SDK_LCD_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd/chip \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd/interface
+
 # Boards 头文件
 BOARDS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/boards
@@ -426,6 +441,8 @@ SDK_INCLUDE_PATHS := \
 	$(SDK_HAL_INC_FLAGS) \
 	$(SDK_SERVICES_INC_FLAGS) \
 	$(SDK_UTILS_INC_FLAGS) \
+	$(SDK_LVGL_INC_FLAGS) \
+	$(SDK_LCD_INC_FLAGS) \
 	$(DRIVERS_INC_FLAGS) \
 	$(BASE_INC_FLAGS) \
 	$(EXTERNAL_INC_FLAGS) \
@@ -995,7 +1012,10 @@ firmware:
 		OTA_CODE_OFFSET=0x66000 \
 		OTA_BOOT_INFO_OFFSET=0x62000 \
 		PSRAM_XCCELA_MODE=1 \
+		LVGL_TEST=1 \
 		GRAPH_MODULE=1 \
+		LVGL_NO_TOUCHSCREEN=1 \
+		DISPLAY_LCD=st77916 \
 		DEBUG_PORT=1 \
 		all
 

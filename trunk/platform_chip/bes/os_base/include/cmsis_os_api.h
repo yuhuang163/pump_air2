@@ -194,6 +194,8 @@ void platform_get_build_time(char *build_time);
 uint32_t get_timestamp(void); 
 /// 平台提供的获取ms时间戳接口，可以辅助计算tick插值
 uint32_t get_timestamp_ms(uint32_t time_tick);
+/// 平台提供的获取系统时间毫秒接口.
+uint32_t get_sys_time_ms(void);
 /// 系统重启.
 void platform_system_reboot(void);
 /// 平台提供的获取线程ID接口.

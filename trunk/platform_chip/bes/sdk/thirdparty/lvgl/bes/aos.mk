@@ -14,6 +14,8 @@ subdir-ccflags-y += \
 # LCD panel select
 ifeq ($(DISPLAY_LCD),gc9503np)
 subdir-ccflags-y += -DDISPLAY_GC9503NP
+else ifeq ($(DISPLAY_LCD),st77916)
+subdir-ccflags-y += -DDISPLAY_ST77916
 else ifeq ($(DISPLAY_LCD),a064)
 subdir-ccflags-y += -DDISPLAY_A064
 else ifeq ($(DISPLAY_LCD),hx8394f)
