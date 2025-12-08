@@ -4,8 +4,9 @@
  */
 #include "hal_iomux.h"
 #include "hal_i2c.h"
+#include "hal_timer.h"
 #include "bsp_common.h"
-#include "root_log_define.h"
+#include "bsp_config.h"
 #include "bsp_i2c.h"
 
 /*
@@ -27,6 +28,8 @@ do { \
 typedef struct {
     enum HAL_I2C_ID_T id;
     void (*iomux_set)(void);
+    enum HAL_GPIO_PIN_T scl_pin;
+    enum HAL_GPIO_PIN_T sda_pin;
 } i2c_master_config_t;
 
 /*
@@ -40,31 +43,78 @@ static const i2c_master_config_t s_i2c_config[I2C_MASTER_COUNT] = {
     {
         .id = HAL_I2C_ID_2, 
         .iomux_set = hal_iomux_set_i2c2,
+        .scl_pin = I2C2_SCL_PIN,
+        .sda_pin = I2C2_SDA_PIN,
     },
     {
         .id = HAL_I2C_ID_3, 
         .iomux_set = hal_iomux_set_i2c3,
+        .scl_pin = I2C3_SCL_PIN,
+        .sda_pin = I2C3_SDA_PIN,
     },
     {
         .id = HAL_I2C_ID_4, 
         .iomux_set = hal_iomux_set_i2c4,
+        .scl_pin = I2C4_SCL_PIN,
+        .sda_pin = I2C4_SDA_PIN,
     }
 };
 
-/*
- * GLOBAL VARIABLE DEFINITIONS
- *****************************************************************************************
- */
+
+
 
 /*
- * LOCAL FUNCTION DEFINITIONS
- *****************************************************************************************
- */
+* GLOBAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
 
 /*
- * GLOBAL FUNCTION DEFINITIONS
- *****************************************************************************************
- */
+* LOCAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+
+static void bsp_i2c_abnormal_recovery(const i2c_master_config_t *config)
+{
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        (enum HAL_IOMUX_PIN_T)config->scl_pin,  
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(config->scl_pin, HAL_GPIO_DIR_OUT, 1);
+    gpio_map.pin = (enum HAL_IOMUX_PIN_T)config->sda_pin;
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(config->sda_pin, HAL_GPIO_DIR_IN, 0);
+    if (hal_gpio_pin_get_val(config->sda_pin)) {
+        return;
+    }
+    LOGW("i2c %d is abnormal", config->id);
+    /// 发送9个时钟信号
+    for (int i = 0; i < 9; i++) {
+        GPIO_PIN_CTRL(config->scl_pin, 1);
+        hal_sys_timer_delay_us(5);
+        GPIO_PIN_CTRL(config->scl_pin, 0);
+        hal_sys_timer_delay_us(5);
+    }
+    /// 检查SDA是否为低电平
+    if (hal_gpio_pin_get_val(config->sda_pin) == 0) {
+        LOGE("i2c %d abnormal recovery failed, sda_pin: %d, scl_pin: %d",
+             config->id, config->sda_pin, config->scl_pin);
+        return;
+    }
+    /// 发送停止信号
+    GPIO_PIN_CTRL(config->scl_pin, 1);
+    hal_sys_timer_delay_us(5);
+    hal_gpio_pin_set_dir(config->sda_pin, HAL_GPIO_DIR_OUT, 1);
+    LOGW("i2c %d abnormal recovery success, sda_pin: %d, scl_pin: %d",
+         config->id, config->sda_pin, config->scl_pin);
+}
+
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
 int bsp_i2c_write_byte(i2c_master_id_e device_id, i2c_master_data_t *data)
 {
     int ret = 0;
@@ -143,7 +193,7 @@ int bsp_i2c_init(i2c_master_id_e device_id)
         LOG_PBUS("i2c reinit:%d", s_i2c_init_count[device_id]);
         return BSP_OK;
     }
-
+    bsp_i2c_abnormal_recovery(&s_i2c_config[device_id]);    /// 检测I2C是否异常
     if (s_i2c_mux[device_id] == NULL) {
         MUTEX_INIT(&s_i2c_mux[device_id], dev_i2c_mutex);
     }
