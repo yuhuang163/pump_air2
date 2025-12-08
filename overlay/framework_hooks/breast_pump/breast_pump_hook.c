@@ -100,8 +100,10 @@ static int make_progress_route(breast_pump_manager_context_t *ctx, pump_result_i
 
 static int breast_pump_result_info_reset(breast_pump_manager_context_t *ctx, pump_result_info_t *result_info)
 {
+    result_info->work_valid_time  = 0;
     result_info->target_valid_time = result_info->setting_time;
-    result_info->target_total_time = result_info->setting_time + PUMP_WORK_TIME_INC;
+    result_info->target_total_time = result_info->setting_time + result_info->work_total_time;
+    result_info->work_total_time = 0;
     result_info->timestamp = platform_get_utc_time();
     dump_timestamp(result_info->timestamp);
     LOG_PMP("target_total_time: %lu, target_valid_time: %lu, setting_time: %lu",

@@ -5,12 +5,17 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "factory_tests_handler.h"
 #include "tests_manager.h"  // IWYU pragma: keep
+#include "product_tests.h" // IWYU pragma: keep
 
 /*
 * DEFINES
 *****************************************************************************************
 */
 
+#define AGING1_TEST_DEFAULT_CYCLE_TIME               1800// 老化测试默认循环时间，单位秒
+#define AGING1_TEST_IDLE_TIME                        10*60*1000// 老化测试空闲时间，单位毫秒
+#define AGING2_TEST_DEFAULT_CYCLE_TIME               1800// 老化测试默认循环时间，单位秒
+#define AGING2_TEST_IDLE_TIME                        10*60*1000// 老化测试空闲时间，单位毫秒
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -64,25 +69,157 @@ int get_factory_tests_sw_ver(tests_func_args_t args)
     return ret;
 }
 
+int factory_tests_aging_test_enter_mode1(void)
+{
+    int ret = 0;
+    LOGI("factory test aging test enter mode1");
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_INT(pump_ctx);
+    motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
+    EXCEPTION_CHECK_INT(motor_ctx);
+    pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
+    pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+    msleep(100);
+    uint8_t time_index = motor_ctx->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
 
-int factory_tests_aging_test(tests_func_args_t args)
+    pump_setting_t setting = {0};
+    pump_ctx->get_breast_pump_setting(&setting, time_index);
+    setting.level[0] = BREAST_PUMP_LEVEL_15;
+    setting.level[1] = BREAST_PUMP_LEVEL_15;
+    pump_ctx->set_breast_pump_setting(&setting, time_index);
+
+    LOGI("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
+            setting.level[1]);
+    return 0;
+}
+
+int factory_tests_aging_test_enter_mode2(void)
+{
+    LOGI("factory test aging test enter mode2");
+    return 0;
+}
+
+void factory_tests_aging_test_check_result(void)
+{
+    LOGI("factory test aging test check result");
+    factory_flag_info_t flag_info = {0};
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(st);
+    EXCEPTION_CHECK_VOID(thiz);
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump_ctx);
+    pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+
+    st->get_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
+    if (thiz->priv.current_mode == TST_AGING_TEST_TYPE
+        && thiz->priv.factory_ctx.aging_target_info.aging_type == AGING_MODE_TYPE_1) {
+        flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_time += AGING1_TEST_DEFAULT_CYCLE_TIME;
+        flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_cycle++;
+        if (flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_time
+            >= thiz->priv.factory_ctx.aging_target_info.total_target_time) {
+            flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_flag = AGING_TEST_STATUS_SUCCESS;
+            POST_TASK_HANDLER_DELAYED_ARG0(factory_tests_aging_test_exit, 1000, "factory_tests_aging_test_exit_task");
+        } else {
+
+            flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_flag = AGING_TEST_STATUS_FAILED;
+            POST_TASK_HANDLER_DELAYED_ARG0(factory_tests_aging_test_enter_mode1, AGING1_TEST_IDLE_TIME,
+                                           "factory_tests_aging_test_enter_mode1_task");
+        }
+        st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
+        LOGI("factory test aging test check result (MODE_1): age_flag = %d, age_time = %d, age_cycle = %d",
+             flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_flag, flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_time,
+             flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_cycle);
+    } else if (thiz->priv.current_mode == TST_AGING_TEST_TYPE
+               && thiz->priv.factory_ctx.aging_target_info.aging_type == AGING_MODE_TYPE_2) {
+        flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_time += AGING2_TEST_DEFAULT_CYCLE_TIME;
+        flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_cycle++;
+        if (flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_time
+            >= thiz->priv.factory_ctx.aging_target_info.total_target_time) {
+            flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_flag = AGING_TEST_STATUS_SUCCESS;
+            POST_TASK_HANDLER_DELAYED_ARG0(factory_tests_aging_test_exit, 1000, "factory_tests_aging_test_exit_task");
+        } else {
+            flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_flag = AGING_TEST_STATUS_FAILED;
+            POST_TASK_HANDLER_DELAYED_ARG0(factory_tests_aging_test_enter_mode2, AGING2_TEST_IDLE_TIME,
+                                           "factory_tests_aging_test_enter_mode2_task");
+        }
+        st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
+        LOGI("factory test aging test check result (MODE_2): age_flag = %d, age_time = %d, age_cycle = %d",
+             flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_flag, flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_time,
+             flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_cycle);
+    } else {
+        LOGI("factory test aging test check result: current_mode = %d, aging_type = %d, not in aging test",
+             thiz ? thiz->priv.current_mode : -1, thiz ? thiz->priv.factory_ctx.aging_target_info.aging_type : -1);
+    }
+}
+
+int factory_tests_aging_test_enter(tests_func_args_t args)
 {
     /* 自动循环工作N小时（按摩→吸乳→混合，1-15档循环） */
     int ret = 0;
-    int hours = (int)args.val;
-    EXCEPTION_CHECK_INT(hours);
-    LOGI("factory test aging test: %d hours", hours);
+    memset(&thiz->priv.factory_ctx.aging_target_info, 0, sizeof(aging_target_info_t));
+    thiz->priv.factory_ctx.aging_target_info.total_target_time = (uint32_t)args.arg2; /// 老化目标时长
+    thiz->priv.factory_ctx.aging_target_info.aging_type = (uint16_t)args.arg1;        /// 老化模式类型
+    LOGI("factory test aging test: total_target_time = %d, aging_type = %d",
+         thiz->priv.factory_ctx.aging_target_info.total_target_time,
+         thiz->priv.factory_ctx.aging_target_info.aging_type);
+    // 开始老化测试
+    switch (thiz->priv.factory_ctx.aging_target_info.aging_type) {
+        case AGING_MODE_TYPE_1:
+            ret = factory_tests_aging_test_enter_mode1();
+            break;
+        case AGING_MODE_TYPE_2: 
+            ret = factory_tests_aging_test_enter_mode2();
+            break;
+        default:
+            ret = -1;
+            LOGI("factory test aging test: aging_type = %d, invalid",
+                 thiz->priv.factory_ctx.aging_target_info.aging_type);
+            break;
+    }
     return ret;
+}
+
+int factory_tests_aging_test_exit(tests_func_args_t args)
+{
+    LOGI("factory test aging test exit");
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_INT(pump_ctx);
+    pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+    return 0;
 }
 
 int factory_tests_suction_test(tests_func_args_t args)
 {
     /* 吸乳模式→L15档→双边工作 */
-    int ret = 0;
-    int hours = (int)args.val;
-    EXCEPTION_CHECK_INT(hours);
-    LOGI("factory test suction test: %d hours", hours);
-    return ret;
+    LOGI("factory test suction test: %d", args.arg1);
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_INT(pump_ctx);
+    motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
+    EXCEPTION_CHECK_INT(motor_ctx);
+    if (args.arg1 == 1) {
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+        pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+        msleep(100);
+        uint8_t time_index = motor_ctx->get_runtime_policy_index(MOTOR_TIME_POLICY);
+        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+            time_index = 0;
+        }
+        pump_setting_t setting = {0};
+        pump_ctx->get_breast_pump_setting(&setting, time_index);
+        setting.level[0] = BREAST_PUMP_LEVEL_15;
+        setting.level[1] = BREAST_PUMP_LEVEL_15;
+        pump_ctx->set_breast_pump_setting(&setting, time_index);
+
+        LOGI("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
+                setting.level[1]);
+    } else {
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+    }
+    return 0;
 }
 
 void factory_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
@@ -93,7 +230,7 @@ void factory_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
     //LOGI("product_tests loop recv msg. %d", event);
     factory_event_printf(event);
     /* 如果当前模式不是产测模式，则不处理 */
-    if (ctx->priv.current_mode == TST_FACTORY_TYPE) {
+    if (ctx->priv.current_mode != TST_FACTORY_TYPE) {
         return;
     }
     switch (event) {
@@ -136,9 +273,17 @@ int on_factory_tests_br_receiver_route(broadcast_mask_id_t id, void *context, in
 
             }
             break;
+        case ID_BROADCAST_BREAST_PUMP_FINISH:
+            {
+                if(ctx->priv.current_mode == TST_AGING_TEST_TYPE) {
+                    factory_tests_aging_test_check_result();
+                }
+            }
+            break;
         default:
             break;
     }
+    return 0;
 }
 
 /// 监听事件上报事

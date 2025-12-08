@@ -72,10 +72,8 @@ static void product_test_ui_common_cb(hdr_post_args_t *args)
             window_manager_context_t *wm = proc->wm;
             EXCEPTION_CHECK_VOID(wm && wm->priv.product_tst);
             LOG_WM("%s", args->name);
-            char buffer[64] = {0};
             wm->priv.product_tst->add_product_tests_evt_lisenser(proc, TST_FACTORY_TYPE, factory_tests_event_report_cb);
             wm->priv.product_tst->tests_manager_set_enable(true);
-            wm->priv.product_tst->get_factory_tests_event_process(FAC_TST_READ_SW_VER_EVENT, 0, 0, &buffer[0]);
         }
         break;
         case PRODUCT_TEST_E10: {

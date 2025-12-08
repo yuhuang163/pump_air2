@@ -7,7 +7,7 @@
 #include "storage_manager_api.h"  // IWYU pragma: keep
 #include "protocol_manager_api.h" // IWYU pragma: keep
 #include "ble_manager_api.h"      // IWYU pragma: keep
-
+#include "persist_storage.h"      // IWYU pragma: keep
 /*
 * DEFINES
 *****************************************************************************************
@@ -47,33 +47,22 @@ static ble_manager_context_t *get_ble_ctx(void)
     return (ble_manager_context_t *)find_module(ID_MODULE_BLE);
 }
 
-static void tests_tlvs_suction_test_mode_handler(uint8_t on_off)
+static void test_factory_suction_test_post_task_handler(hdr_post_args_t *args)
 {
-    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    EXCEPTION_CHECK_VOID(pump_ctx);
-    motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
-    EXCEPTION_CHECK_VOID(motor_ctx);
-    if (on_off) {
-        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
-        pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
-        pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
-        msleep(100);
-        uint8_t time_index = motor_ctx->get_runtime_policy_index(MOTOR_TIME_POLICY);
-        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-            time_index = 0;
-        }
-        pump_setting_t setting = {0};
-        pump_ctx->get_breast_pump_setting(&setting, time_index);
-        setting.level[0] = BREAST_PUMP_LEVEL_15;
-        setting.level[1] = BREAST_PUMP_LEVEL_15;
-        pump_ctx->set_breast_pump_setting(&setting, time_index);
-
-        LOG_SRV("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
-                setting.level[1]);
-    } else {
-        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
-    }
+    LOG_SRV("enter");
+    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    EXCEPTION_CHECK_VOID(tests_ctx);
+    tests_ctx->get_factory_tests_event_process(FAC_TST_SUCTION_TEST_EVENT, 1, 0, NULL);
 }
+
+static void test_factory_aging_test_enter_post_task_handler(hdr_post_args_t *args)
+{
+    LOG_SRV("enter");
+    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    EXCEPTION_CHECK_VOID(tests_ctx);
+    tests_ctx->get_factory_tests_event_process(FAC_TST_AGING_TEST_ENTER_EVENT, args->arg1, args->arg2, NULL);
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -135,17 +124,22 @@ int tests_tlvs_aging_test_mode(comm_protocol_builder_t *builder, comm_protocol_s
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
 
-    uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
+    uint8_t result = 0x00; // 默认失败
 
-    LOG_SRV("tests_tlvs_aging_test_mode: %s", mode ? "ENTER" : "EXIT");
-    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
-    EXCEPTION_CHECK_INT(tests_ctx);
+    // 协议格式: Length=5, byte0=老化模式类型, byte1-4=老化目标时长(小端序，单位s)
+    if (data && data_len == 5) {
+        uint8_t aging_mode_type = data[0]; // 0x01:吸乳模式等级15，IDLE十分钟循环; 0x02:吸乳模式等级15，循环
+        uint32_t target_duration = (uint32_t)data[1] | ((uint32_t)data[2] << 8) | 
+                                   ((uint32_t)data[3] << 16) | ((uint32_t)data[4] << 24); // 小端序
 
-    // TODO: 实现老化模式进入/退出逻辑
-    if (mode == 1) {
-        /* 进入老化模式 */
+        LOG_SRV("tests_tlvs_aging_test_mode: ENTER, mode_type=0x%02X, duration=%d s", aging_mode_type, target_duration);
+
+        tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+        EXCEPTION_CHECK_INT(tests_ctx);
+
+        // TODO: 实现老化模式进入逻辑，设置模式类型和目标时长
         tests_ctx->tests_manager_set_current_mode(TST_AGING_TEST_TYPE);
-        //启动产测模块 老化测试
+        //启动产测模块 老化测试，传入模式类型和目标时长
 
         /* 打开测试窗口 */
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
@@ -155,24 +149,51 @@ int tests_tlvs_aging_test_mode(comm_protocol_builder_t *builder, comm_protocol_s
             msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
             wm->dispatch_new_window_args(wm, &msg);
         }
+        //启动产测模块 老化测试 吸乳模式→L15档→双边工作
+        POST_TASK_HANDLER_DELAYED_ARG4(test_factory_aging_test_enter_post_task_handler, 1000, aging_mode_type, target_duration, "aging_test_cb");
+        result = 0x01; // 成功
     } else {
-        /* 退出老化模式 */
-        tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
-        /* 关闭测试窗口 */
-        /*ndow_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-        EXCEPTION_CHECK_INT(wm);
-        if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {   // 如果当前窗口是测试窗口，则关闭测试窗口
-            multi_func_msg_data_t msg = {0};
-            msg.union_body.extra.window_id = ID_WINDOW_LOGO;
-            wm->dispatch_new_window_args(wm, &msg);
-        }*/
+        LOG_SRV("tests_tlvs_aging_test_mode: invalid data_len=%d, expected 5", data_len);
     }
 
     // 应答格式: Length=1, Value=0x00失败/0x01成功
-    uint8_t result = 0x01; // 默认成功
-
     comm_protocol_tlv_node_t tlv_node = {
         .type = TESTS_TLV_AGING_TEST_MODE,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_aging_test_mode_exit(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                                     uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    LOG_SRV("tests_tlvs_aging_test_mode_exit: EXIT");
+
+    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    EXCEPTION_CHECK_INT(tests_ctx);
+
+    /* 退出老化模式 */
+    tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
+    /* 关闭测试窗口 */
+    /*window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    EXCEPTION_CHECK_INT(wm);
+    if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {   // 如果当前窗口是测试窗口，则关闭测试窗口
+        multi_func_msg_data_t msg = {0};
+        msg.union_body.extra.window_id = ID_WINDOW_LOGO;
+        wm->dispatch_new_window_args(wm, &msg);
+    }*/
+
+    // 应答格式: Length=1, Value=0x00失败/0x01成功
+    uint8_t result = 0x01; // 默认成功
+    tests_ctx->get_factory_tests_event_process(FAC_TST_AGING_TEST_EXIT_EVENT, 0, 0, NULL);
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_AGING_TEST_MODE_EXIT,
         .length = 1,
         .value = &result,
     };
@@ -196,7 +217,6 @@ int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol
     if (mode == 1) {
         /* 进入吸力测试模式 */
         tests_ctx->tests_manager_set_current_mode(TST_SUCTION_TEST_TYPE);
-        //启动产测模块 吸力测试 吸乳模式→L15档→双边工作
         
         /* 打开测试窗口 */
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
@@ -206,7 +226,8 @@ int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol
             msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
             wm->dispatch_new_window_args(wm, &msg);
         }
-        tests_tlvs_suction_test_mode_handler(1);
+        //启动产测模块 吸力测试 吸乳模式→L15档→双边工作
+        POST_TASK_HANDLER_DELAYED_ARG0(test_factory_suction_test_post_task_handler, 1000, "suction_test_cb");
     } else {
         /* 退出吸力测试模式 */
         tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
@@ -218,7 +239,8 @@ int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol
             msg.union_body.extra.window_id = ID_WINDOW_LOGO;
             wm->dispatch_new_window_args(wm, &msg);
         }*/
-        tests_tlvs_suction_test_mode_handler(0);
+         //关闭模块产测 吸力测试 吸乳模式→L15档→双边工作
+        tests_ctx->get_factory_tests_event_process(FAC_TST_SUCTION_TEST_EVENT, 0, 0, NULL);
     }
 
     // 应答格式: Length=1, Value=0x00失败/0x01成功
@@ -241,24 +263,59 @@ int tests_tlvs_aging_status_query(comm_protocol_builder_t *builder, comm_protoco
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
 
-    LOG_SRV("tests_tlvs_aging_status_query");
+    // 协议格式: REQUEST Length=1, byte0=老化模式类型(0x01或0x02)
+    uint8_t aging_mode_type = 0;
+    if (data && data_len >= 1) {
+        aging_mode_type = data[0];
+        LOG_SRV("tests_tlvs_aging_status_query, mode_type=0x%02X", aging_mode_type);
+    } else {
+        LOG_SRV("tests_tlvs_aging_status_query, invalid data_len=%d, expected 1", data_len);
+    }
 
-    //: byte0=老化结果(0x00-没有老化, 0x01-老化成功, 0x02-老化失败), byte1-4=老化时长(小端)
-    uint8_t response[5] = {0};
+    // 协议格式: RESPONSE Length=7
+    // byte0: 没有老化0x00，老化成功0x01，老化失败0x02
+    // byte1-2: 老化循环次数(小端序)
+    // byte3-6: 老化时长(小端序，单位s)
+    uint8_t response[7] = {0};
 
-    // TODO: 从存储中读取老化状态
+    // 根据aging_mode_type从存储中读取对应模式的老化状态
+    // 模式类型0x01对应age_info[0], 0x02对应age_info[1]
     storage_manager_context_t *st = get_storage_ctx();
     if (st) {
         factory_flag_info_t flag_info = {0};
         st->get_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
-        response[0] = flag_info.age_flag;
-        //单位s
-        response[1] = (uint8_t)(flag_info.age_time >> 24);//小端序
-        response[2] = (uint8_t)(flag_info.age_time >> 16);//小端序
-        response[3] = (uint8_t)(flag_info.age_time >> 8);//小端序
-        response[4] = (uint8_t)(flag_info.age_time);//小端序
-        //打印flag_info.age_flag和flag_info.age_time
-        LOG_SRV("flag_info.age_flag: %d, flag_info.age_time: %d", flag_info.age_flag, flag_info.age_time);
+        
+        // 根据模式类型选择对应的老化信息索引
+        uint8_t age_info_index = 0;
+        if (aging_mode_type == 0x01) {
+            age_info_index = 0; // 模式0x01: 吸乳模式等级15，IDLE十分钟循环
+        } else if (aging_mode_type == 0x02) {
+            age_info_index = 1; // 模式0x02: 吸乳模式等级15，循环
+        } else {
+            age_info_index = 0; // 默认使用索引0
+        }
+        
+        // 确保索引有效
+        if (age_info_index < FACTORY_AGE_INFO_MAX) {
+            factory_age_info_t *age_info = &flag_info.age_info[age_info_index];
+            response[0] = age_info->age_flag;
+            
+            uint16_t cycle_count = (uint16_t)age_info->age_cycle;
+            response[1] = (uint8_t)(cycle_count & 0xFF);        // 小端序低字节
+            response[2] = (uint8_t)((cycle_count >> 8) & 0xFF);  // 小端序高字节
+            
+            // 单位s，小端序
+            uint32_t age_time = age_info->age_time;
+            response[3] = (uint8_t)(age_time & 0xFF);
+            response[4] = (uint8_t)((age_time >> 8) & 0xFF);
+            response[5] = (uint8_t)((age_time >> 16) & 0xFF);
+            response[6] = (uint8_t)((age_time >> 24) & 0xFF);
+            
+            LOG_SRV("age_info[%d]: age_flag=%d, age_cycle=%d, age_time=%d, mode_type=0x%02X", 
+                    age_info_index, age_info->age_flag, age_info->age_cycle, age_info->age_time, aging_mode_type);
+        } else {
+            LOG_SRV("Invalid age_info_index=%d, max=%d", age_info_index, FACTORY_AGE_INFO_MAX);
+        }
     }
 
     comm_protocol_tlv_node_t tlv_node = {

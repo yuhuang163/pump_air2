@@ -573,7 +573,7 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     app_old_comm_pump_ctrl_date.user_define_pump_level= cab[4];
     app_old_comm_pump_ctrl_date.user_define_pump_speed= cab[5] - 1; //频次（1-低 2-中 3-高）（1字节）
     app_old_comm_pump_ctrl_date.pump_mode_lr_or_all= cab[6];
-    app_old_comm_pump_ctrl_date.normal_pump_speed= cab[7];
+    app_old_comm_pump_ctrl_date.normal_pump_speed= cab[7]-1 ;//频次（1-低 2-中 3-高）（1字节）
     app_old_comm_pump_control_handler(&app_old_comm_pump_ctrl_date);
     LOG_HEX("device control hex", cab, cal);
     // TODO: Send parameters to pump valve component

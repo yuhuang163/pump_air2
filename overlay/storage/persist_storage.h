@@ -28,6 +28,7 @@ extern "C" {
 #define DEVICE_FW_VERSION_LEN                       18
 
 #define ROOT_BREAST_PUMP_STEP_MAX                   8
+#define FACTORY_AGE_INFO_MAX                        3   /// 老化信息最大保存3条
 
 typedef enum  { 
     SYS_DAY_MONDAY = 0,
@@ -59,9 +60,15 @@ typedef enum {
 
 /// 工厂部署标志位
 typedef struct {
-    uint8_t deploy_flag;       /// 工厂模式部署标志
     uint8_t age_flag;          /// 老化标志//0-未老化 1-老化成功 2-老化失败
+    uint32_t age_cycle;        /// 老化循环次数
     uint32_t age_time;         /// 老化时长，单位：秒
+} factory_age_info_t;
+
+/// 工厂部署标志位
+typedef struct {
+    uint8_t deploy_flag;       /// 工厂模式部署标志
+    factory_age_info_t age_info[FACTORY_AGE_INFO_MAX];/// 老化信息
     uint8_t age_display;       /// 老化展示标志//0-不展示 1-展示
     uint8_t fsensor_cali_flag; /// fsensor校准标志//0-未校准 1-校准
 } factory_flag_info_t;

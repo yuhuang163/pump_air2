@@ -52,7 +52,7 @@ void common_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
     //LOGI("product_tests loop recv msg. %d", event);
     common_event_printf(event);
     /* 如果当前模式不是通用测试模式，则不处理 */
-    if (ctx->priv.current_mode == TST_COMMON_TYPE) {
+    if (ctx->priv.current_mode != TST_COMMON_TYPE) {
         return;
     }
     switch (event) {

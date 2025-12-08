@@ -344,6 +344,7 @@ static int on_post_tests_init(void *self)
     ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     ctx->priv.bcd->id.code |= ID_BROADCAST_UPDATE_BATTERY_INFO;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_BREAST_PUMP_FINISH;
     ctx->priv.bcd->receiver_cb = on_product_tests_receiver;
     register_broadcast_receiver(ctx->priv.bcd);
 
