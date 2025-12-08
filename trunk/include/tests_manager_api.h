@@ -38,6 +38,8 @@ typedef enum {
     FAC_TST_AGING_TEST_ENTER_EVENT,
     FAC_TST_AGING_TEST_EXIT_EVENT,
     FAC_TST_SUCTION_TEST_EVENT,
+    FAC_TST_ENTER_EVENT,
+    FAC_TST_EXIT_EVENT,
 } factory_tst_event_type_e;
 
 typedef enum {

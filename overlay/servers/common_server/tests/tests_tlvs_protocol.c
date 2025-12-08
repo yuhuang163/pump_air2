@@ -52,7 +52,7 @@ static void test_factory_suction_test_post_task_handler(hdr_post_args_t *args)
     LOG_SRV("enter");
     tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     EXCEPTION_CHECK_VOID(tests_ctx);
-    tests_ctx->get_factory_tests_event_process(FAC_TST_SUCTION_TEST_EVENT, 1, 0, NULL);
+    tests_ctx->set_factory_tests_event_process(FAC_TST_SUCTION_TEST_EVENT, 1, 0, NULL);
 }
 
 static void test_factory_aging_test_enter_post_task_handler(hdr_post_args_t *args)
@@ -60,7 +60,7 @@ static void test_factory_aging_test_enter_post_task_handler(hdr_post_args_t *arg
     LOG_SRV("enter");
     tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     EXCEPTION_CHECK_VOID(tests_ctx);
-    tests_ctx->get_factory_tests_event_process(FAC_TST_AGING_TEST_ENTER_EVENT, args->arg1, args->arg2, NULL);
+    tests_ctx->set_factory_tests_event_process(FAC_TST_AGING_TEST_ENTER_EVENT, args->arg1, args->arg2, NULL);
 }
 
 /*
@@ -86,6 +86,7 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
     if (mode == 1) {
         /* 进入产测模式 */
         tests_ctx->tests_manager_set_current_mode(TST_FACTORY_TYPE);
+        tests_ctx->set_factory_tests_event_process(FAC_TST_ENTER_EVENT, 0, 0, NULL);
         /* 打开测试窗口 */
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
         EXCEPTION_CHECK_INT(wm);
@@ -97,6 +98,7 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
         } else {
             /* 退出产测模式 */
             tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
+            tests_ctx->set_factory_tests_event_process(FAC_TST_EXIT_EVENT, 0, 0, NULL);
             /* 关闭测试窗口 */
             /*ndow_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
             EXCEPTION_CHECK_INT(wm);
@@ -190,7 +192,7 @@ int tests_tlvs_aging_test_mode_exit(comm_protocol_builder_t *builder, comm_proto
 
     // 应答格式: Length=1, Value=0x00失败/0x01成功
     uint8_t result = 0x01; // 默认成功
-    tests_ctx->get_factory_tests_event_process(FAC_TST_AGING_TEST_EXIT_EVENT, 0, 0, NULL);
+    tests_ctx->set_factory_tests_event_process(FAC_TST_AGING_TEST_EXIT_EVENT, 0, 0, NULL);
 
     comm_protocol_tlv_node_t tlv_node = {
         .type = TESTS_TLV_AGING_TEST_MODE_EXIT,
@@ -240,7 +242,7 @@ int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol
             wm->dispatch_new_window_args(wm, &msg);
         }*/
          //关闭模块产测 吸力测试 吸乳模式→L15档→双边工作
-        tests_ctx->get_factory_tests_event_process(FAC_TST_SUCTION_TEST_EVENT, 0, 0, NULL);
+        tests_ctx->set_factory_tests_event_process(FAC_TST_SUCTION_TEST_EVENT, 0, 0, NULL);
     }
 
     // 应答格式: Length=1, Value=0x00失败/0x01成功

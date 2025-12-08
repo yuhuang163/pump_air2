@@ -6,6 +6,7 @@
 #include "factory_tests_handler.h"
 #include "tests_manager.h"  // IWYU pragma: keep
 #include "product_tests.h" // IWYU pragma: keep
+#include "input_key_code.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -16,6 +17,14 @@
 #define AGING1_TEST_IDLE_TIME                        10*60*1000// 老化测试空闲时间，单位毫秒
 #define AGING2_TEST_DEFAULT_CYCLE_TIME               1800// 老化测试默认循环时间，单位秒
 #define AGING2_TEST_IDLE_TIME                        10*60*1000// 老化测试空闲时间，单位毫秒
+
+#define TESTS_KEY_CODE                                                                                                 \
+    (KEY_CODE_POWER | KEY_CODE_START | KEY_CODE_MODE | KEY_CODE_FREQUENCY | KEY_CODE_BREASTFEEDING                     \
+     | KEY_CODE_LEFT_CONTROL | KEY_CODE_RIGHT_CONTROL)
+#define TESTS_KEY_KNOB_CODE (KEY_CODE_KNOB_LEFT | KEY_CODE_KNOB_RIGHT)
+#define TESTS_KEY_CLICK_EVENT (KEY_EVENT_CLICK)
+#define TESTS_KEY_LONG_PRESS_EVENT (KEY_EVENT_LONG_2S)
+
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -47,6 +56,57 @@ static int factory_event_printf(factory_tst_event_type_e event)
     return 0;
 }
 
+static int on_tests_click_event_handler(void *context, uint16_t keycode, uint16_t keytype)
+{
+    LOGI("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
+    servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_INT(servers_ctx);
+    servers_publish_data_args_t args = {
+        .arg1 = 0x01, /// 短按
+        .arg2 = 0x00, 
+        .val = NULL,
+    };
+    servers_ctx->hook->factory_server_data_publish(SERVERS_PUBLISH_DATA_TESTS_KEY_STATUS, &args);
+
+    return 0;
+}
+
+static int on_tests_long_press_event_handler(void *context, uint16_t keycode, uint16_t keytype)
+{
+    LOGI("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
+    servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_INT(servers_ctx);
+    servers_publish_data_args_t args = {
+        .arg1 = 0x02, /// 长按
+        .arg2 = 0x00, 
+        .val = NULL,
+    };
+    servers_ctx->hook->factory_server_data_publish(SERVERS_PUBLISH_DATA_TESTS_KEY_STATUS, &args);
+
+    return 0;
+}
+
+ static int on_tests_knob_event_handler(void *context, uint16_t keycode, uint16_t keytype)
+{
+    LOGI("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
+    servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_INT(servers_ctx);
+    servers_publish_data_args_t args = {
+        .arg1 = 0x00, /// 编码器状态
+        .arg2 = 0x00,
+        .val = NULL,
+    };
+    if (keycode == KEY_CODE_KNOB_LEFT) {
+        args.arg1 = 0x01;
+    } else if (keycode == KEY_CODE_KNOB_RIGHT) {
+        args.arg1 = 0x02;
+    }
+    servers_ctx->hook->factory_server_data_publish(SERVERS_PUBLISH_DATA_TESTS_ENCODER_STATUS, &args);
+
+    return 0;
+}
+
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -66,6 +126,33 @@ int get_factory_tests_sw_ver(tests_func_args_t args)
     EXCEPTION_CHECK_INT(thiz);
     MSG_QUEUE_SEND(thiz->priv.tests_thd.msg_id, &msg, 0);
     LOGI("factory test ver event sent.");
+    return ret;
+}
+
+int factory_tests_enter(tests_func_args_t args)
+{
+    int ret = 0;
+    LOGI("factory test common enter test");
+    key_input_context_t *key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    EXCEPTION_CHECK_INT(key_ctx);
+    key_ctx->add_keyevent_handler("factory_click_tests", thiz, TESTS_KEY_CODE, TESTS_KEY_CLICK_EVENT,
+                                  on_tests_click_event_handler);
+    key_ctx->add_keyevent_handler("factory_long_press_tests", thiz, TESTS_KEY_CODE, TESTS_KEY_LONG_PRESS_EVENT,
+                                  on_tests_long_press_event_handler);
+    key_ctx->add_keyevent_handler("factory_knob_tests", thiz, TESTS_KEY_KNOB_CODE, TESTS_KEY_CLICK_EVENT,
+                                  on_tests_knob_event_handler);
+    return ret;
+}
+
+int factory_tests_exit(tests_func_args_t args)
+{
+    int ret = 0;
+    LOGI("factory test aging test exit");
+    key_input_context_t *key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    EXCEPTION_CHECK_INT(key_ctx);
+    key_ctx->remove_keyevent_handler(on_tests_click_event_handler);
+    key_ctx->remove_keyevent_handler(on_tests_long_press_event_handler);
+    key_ctx->remove_keyevent_handler(on_tests_knob_event_handler);
     return ret;
 }
 
@@ -93,13 +180,15 @@ int factory_tests_aging_test_enter_mode1(void)
 
     LOGI("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
             setting.level[1]);
-    return 0;
+    return ret;
 }
 
 int factory_tests_aging_test_enter_mode2(void)
 {
+    int ret = 0;
     LOGI("factory test aging test enter mode2");
-    return 0;
+
+    return ret;
 }
 
 void factory_tests_aging_test_check_result(void)
