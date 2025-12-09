@@ -189,13 +189,8 @@ void show_pump_progress_time_policy(ui_proc_pump_t *proc, breast_pump_manager_co
     int pump_status = pump->get_breast_pump_status_async();
     LOG_UI("pump status: %s", pump->get_breast_pump_status_name(pump_status));
     if (PUMP_IS_GOING(pump_status)) {
-        if (proc->pump_result.real_valid_time_sec < (SINGLE_PUMP_TIME_MAX / 1000)) {
-            LOG_UI("=>set_breast_pump_status:PAUSE");
-            pump->set_breast_pump_status(BREAST_PUMP_PAUSE);
-        } else {
-            LOG_UI("=>set_breast_pump_status:FINISH");
-            pump->set_breast_pump_status(BREAST_PUMP_FINISH);
-        }
+        LOG_UI("=>set_breast_pump_status:FINISH");
+        pump->set_breast_pump_status(BREAST_PUMP_FINISH);
     }
 
     if (IS_PUMPTIME_LESS_THEN_30S(&proc->pump_result)) {
