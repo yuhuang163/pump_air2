@@ -193,6 +193,7 @@ int ui_display_chasing_milk_mode(ui_manager_context_t *thiz, ui_animation_play_t
     ui_fill_pump_mode(&msg.tlvs[1], mode);
     thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
     u_free(msg.tlvs);
+    return 0;
 }
 
 int ui_display_pump_speed(ui_manager_context_t *thiz, ui_animation_play_t *ani)

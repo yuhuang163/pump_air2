@@ -12,6 +12,9 @@ extern "C" {
 #include "root_common_base.h" // IWYU pragma: keep
 #include "broadcast_manager_api.h" // IWYU pragma: keep
 #include "root_message.h" // IWYU pragma: keep
+#if IS_SUPPORT_LVGL
+#include "lvgl.h" // IWYU pragma: keep
+#endif
 
 #ifndef LVGL_TIME_TICK_PERIOD
 #define LVGL_TIME_TICK_PERIOD (10)
@@ -149,7 +152,11 @@ typedef struct ui_manager_context {
     /// private:
     struct __ui_manager_private {
         thread_context_t ui_hdr_thd; /// UI显示调度线程
-        os_timer_id lv_tick_timer; /// LVGL定时器
+        #if IS_SUPPORT_LVGL
+            lv_timer_t *lv_timer; /// LVGL定时器
+        #else
+            os_timer_id lv_timer; /// LVGL定时器
+        #endif
         os_mutex_id ui_draw_lock; /// 显示刷新锁
         broadcast_obj_t m_bcd; /// 广播监听对象
         struct rt_device_node *panel_dev; /// 显示设备
@@ -171,6 +178,7 @@ typedef struct ui_manager_context {
         void (*ui_thread_init_route)(struct ui_manager_context *thiz);
         void (*lvgl_display_handler)(struct ui_manager_context *thiz);
         void (*ui_animation_play_init)(struct ui_manager_context *thiz, ui_play_info_t play_info);
+        void (*ui_animation_play_deinit)(struct ui_manager_context *thiz);
         void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
         void (*set_ui_backlight)(struct ui_manager_context *thiz, uint16_t val);
         bool (*is_ui_backlight_on)(struct ui_manager_context *thiz);

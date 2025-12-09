@@ -20,7 +20,11 @@ extern "C" {
 /// 吸奶线程深度
 #define BTH_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
 /// lvgl线程深度
+#if CFG_LVGL_ENABLE
+#define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 4 + 0)
+#else
 #define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 2 + 0)
+#endif
 /// 窗口线程深度
 #define WM_THREAD_STACKSIZE                            (TASK_SIZE_DEFAULT * 2 + 0)
 /// ota线程深度

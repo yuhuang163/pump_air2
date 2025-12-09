@@ -116,21 +116,12 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
 void stop_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
-    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    ui_play_info_t play_info = {
-        .tag = NULL,
-        .fps = AIRPLANE_MODE_ANIMATION_FREQ,
-        .res_array = NULL,
-        .res_count = 0,
-        .progress_cb = NULL,
-        .user_data = proc,
-    };
-
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
     if (proc->wm && proc->wm->priv.misc) {
         proc->charging_status = proc->wm->priv.misc->is_charge_plug_in();
         proc->battery_percent = proc->wm->priv.misc->get_battery_percent();
     }
-    ui->hook->ui_animation_play_init(ui, play_info);
+    ui->hook->ui_animation_play_deinit(ui);
     ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();
 }

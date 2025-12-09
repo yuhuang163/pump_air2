@@ -4095,12 +4095,12 @@ void app_ble_init(void)
     app_ble_gatt_standard_service_init();
 
 #if CFG_CUSTOM_BLE_SERVICE
+    ble_custom_gap_connect_init(&params);
+#else
     params.conn_interval_min_1_25ms = 200; // 250ms, connection interal = interval * 1.25ms
     params.conn_interval_max_1_25ms = 960; // 1200ms, connection interal = interval * 1.25ms
     params.max_peripheral_latency = 0x00; // 0x00 to 0x01F3, max peripheral latency in units of subrated conn intervals
     params.superv_timeout_ms = 30*1000; // 0x0A to 0x0C80 * 10ms, 100ms to 32s
-#else
-    ble_custom_gap_connect_init(&params);
 #endif
     gap_set_peripheral_prefer_conn_parameters(&params);
 

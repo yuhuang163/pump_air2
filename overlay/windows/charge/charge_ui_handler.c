@@ -116,16 +116,8 @@ void show_charging_ui(ui_proc_charge_t *proc)
 void stop_charging_ui(ui_proc_charge_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
-    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    ui_play_info_t play_info = {
-        .tag = NULL,
-        .fps = CHARGE_ANIMATION_FREQ,
-        .res_array = NULL,
-        .res_count = 0,
-        .progress_cb = NULL,
-        .user_data = proc,
-    };
-    ui->hook->ui_animation_play_init(ui, play_info);
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
+    ui->hook->ui_animation_play_deinit(ui);
     ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();
 }
