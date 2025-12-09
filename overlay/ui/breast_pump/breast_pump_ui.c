@@ -61,11 +61,14 @@ static void ui_fill_pump_mode(lcd_tlvs_t *tlv, uint8_t mode)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int ui_display_pump_home_screen(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_pump_home_screen(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    uint16_t tlvs_num = 8;
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
-    EXCEPTION_CHECK_UINT(p);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 8),
+        .tlvs_num = 8,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(pump);
     motor_manager_context_t *motor = pump->priv.motor;
@@ -78,24 +81,27 @@ int ui_display_pump_home_screen(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     uint16_t hold_time = result->work_valid_time / 1000;
     pump_setting_t setting;
     pump->get_breast_pump_setting(&setting, time_index);
-    ui_fill_img_id(&p[0], UI_IMG_ID_HOME_SCREEN);
-    ui_fill_running_time(&p[1], hold_time);
-    ui_fill_pump_level(&p[2], setting.level[0], setting.level[1]);
-    ui_fill_pump_speed(&p[3], setting.speed);
-    ui_fill_ble_status(&p[4]);
-    ui_fill_charge_status(&p[5]);
-    ui_fill_battery_status(&p[6]);
-    ui_fill_pump_mode(&p[7], pump->get_breast_pump_mode());
-    *tlvs = p;
-    // LOG_UI("pump_home_screen:%p, tlvs_num: %d", p, tlvs_num);
-    return tlvs_num;
+    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_HOME_SCREEN);
+    ui_fill_running_time(&msg.tlvs[1], hold_time);
+    ui_fill_pump_level(&msg.tlvs[2], setting.level[0], setting.level[1]);
+    ui_fill_pump_speed(&msg.tlvs[3], setting.speed);
+    ui_fill_ble_status(&msg.tlvs[4]);
+    ui_fill_charge_status(&msg.tlvs[5]);
+    ui_fill_battery_status(&msg.tlvs[6]);
+    ui_fill_pump_mode(&msg.tlvs[7], pump->get_breast_pump_mode());
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
+    return 0;
 }
 
-int ui_display_pump_left_level(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_pump_left_level(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    uint16_t tlvs_num = 3;
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
-    EXCEPTION_CHECK_UINT(p);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 3),
+        .tlvs_num = 3,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(pump); 
     motor_manager_context_t *motor = pump->priv.motor;
@@ -107,19 +113,22 @@ int ui_display_pump_left_level(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     pump_setting_t setting;
     pump->get_breast_pump_setting(&setting, time_index);
-    ui_fill_img_id(&p[0], UI_IMG_ID_LEFT_LEVEL_ADJUST_DISPLAY);
-    ui_fill_pump_level(&p[1], setting.level[0], setting.level[1]);
-    ui_fill_pump_speed(&p[2], setting.speed);
-    *tlvs = p;
-    // LOG_UI("pump_left_level_screen:%p, tlvs_num: %d", p, tlvs_num);
-    return tlvs_num;
+    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_LEFT_LEVEL_ADJUST_DISPLAY);
+    ui_fill_pump_level(&msg.tlvs[1], setting.level[0], setting.level[1]);
+    ui_fill_pump_speed(&msg.tlvs[2], setting.speed);
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
+    return 0;
 }
 
-int ui_display_pump_right_level(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_pump_right_level(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    uint16_t tlvs_num = 3;
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
-    EXCEPTION_CHECK_UINT(p);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 3),
+        .tlvs_num = 3,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(pump);
     motor_manager_context_t *motor = pump->priv.motor;
@@ -131,56 +140,69 @@ int ui_display_pump_right_level(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     pump_setting_t setting;
     pump->get_breast_pump_setting(&setting, time_index);
-    ui_fill_img_id(&p[0], UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY);
-    ui_fill_pump_level(&p[1], setting.level[0], setting.level[1]);
-    ui_fill_pump_speed(&p[2], setting.speed);
-    *tlvs = p;
-    // LOG_UI("pump_right_level_screen:%p, tlvs_num: %d", p, tlvs_num);
-    return tlvs_num;
+    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY);
+    ui_fill_pump_level(&msg.tlvs[1], setting.level[0], setting.level[1]);
+    ui_fill_pump_speed(&msg.tlvs[2], setting.speed);
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
+    return 0;
 }
 
-int ui_display_pump_complete_tip(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_pump_complete_tip(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t));
-    EXCEPTION_CHECK_UINT(p);
-    ui_fill_img_id(p, UI_IMG_ID_PUMP_COMPLETE_TIP);
-    *tlvs = p;
-    return 1;
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t)),
+        .tlvs_num = 1,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
+    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_PUMP_COMPLETE_TIP);
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
+    return 0;
 }
 
-int ui_display_pump_mode(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_pump_mode(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    uint16_t tlvs_num = 2;
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
-    EXCEPTION_CHECK_UINT(p);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 2),
+        .tlvs_num = 2,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     uint8_t mode = pump->get_breast_pump_mode();
-    ui_fill_img_id(&p[0],  UI_ID_PUMP_MODE_TIP);
-    ui_fill_pump_mode(&p[1], mode);
-    *tlvs = p;
-    // LOG_UI("pump_mode_screen:%p, tlvs_num: %d", p, tlvs_num);
-    return tlvs_num;
+    ui_fill_img_id(&msg.tlvs[0],  UI_ID_PUMP_MODE_TIP);
+    ui_fill_pump_mode(&msg.tlvs[1], mode);
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
+    return 0;
 }
 
-int ui_display_chasing_milk_mode(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_chasing_milk_mode(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    uint16_t tlvs_num = 2;
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
-    EXCEPTION_CHECK_UINT(p);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 2),
+        .tlvs_num = 2,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     uint8_t mode = pump->get_breast_pump_mode();
-    ui_fill_img_id(&p[0], UI_IMG_ID_SETTINGS_SUBMENU);
-    ui_fill_pump_mode(&p[1], mode);
-    *tlvs = p;
-    // LOG_UI("chasing_milk_mode_screen:%p, tlvs_num: %d", p, tlvs_num);
-    return tlvs_num;
+    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_SETTINGS_SUBMENU);
+    ui_fill_pump_mode(&msg.tlvs[1], mode);
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
 }
 
-int ui_display_pump_speed(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_pump_speed(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    uint16_t tlvs_num = 2;
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
-    EXCEPTION_CHECK_UINT(p);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 2),
+        .tlvs_num = 2,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
     breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(pump);
     motor_manager_context_t *motor = pump->priv.motor;
@@ -191,8 +213,9 @@ int ui_display_pump_speed(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
     }
     pump_setting_t setting;
     pump->get_breast_pump_setting(&setting, time_index);
-    ui_fill_img_id(&p[0], UI_IMG_ID_PUMP_SPEED);
-    ui_fill_pump_speed(&p[1], setting.speed);
-    *tlvs = p;
-    return tlvs_num;
+    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_PUMP_SPEED);
+    ui_fill_pump_speed(&msg.tlvs[1], setting.speed);
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
+    return 0;
 }

@@ -168,6 +168,7 @@ typedef struct ui_manager_context {
     struct __ui_manager_hook {
         int (*on_post_init_route)(struct ui_manager_context *thiz);
         int (*on_perpare_init_route)(struct ui_manager_context *thiz);
+        void (*ui_thread_init_route)(struct ui_manager_context *thiz);
         void (*lvgl_display_handler)(struct ui_manager_context *thiz);
         void (*ui_animation_play_init)(struct ui_manager_context *thiz, ui_play_info_t play_info);
         void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);

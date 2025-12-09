@@ -4,11 +4,6 @@
 */
 #include "root_common_api.h" 
 #include "ui_manager.h" // IWYU pragma: keep
-#if IS_SUPPORT_LVGL
-#include "lvgl.h"
-#include "lv_hal_disp.h"
-#include "lv_hal_indev.h"
-#endif
 
 /*
 * DEFINES
@@ -58,37 +53,19 @@ static void animation_play_status_update(ui_manager_context_t *thiz, bool flag)
     thiz->priv.is_playing_ui_animation = flag;
 }
 
-#if (IS_SUPPORT_LVGL == 0)
-static void lv_tick_timer_handler(void *args)
-{
-   uint8_t msg = 0;
-   MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
-}
-#endif
-
 static void ui_handler_thread(const void *args)
 {
-    uint8_t msg = 0;
-    thread_context_t *thd = (thread_context_t *)args;
-#if IS_SUPPORT_LVGL
-    lv_init();
-    lv_tick_set_cb(get_sys_time_ms);
-    lv_delay_set_cb(msleep);
-    lv_hal_disp_init();
-    while (1) {
-        msleep(lv_timer_handler());
+    if (thiz->hook && thiz->hook->ui_thread_init_route) {
+        thiz->hook->ui_thread_init_route(thiz);
     }
-#else
-    CREATE_MSG_TYPE_QUEUE(&thd->msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
-    CREATE_TIMER(&thiz->priv.lv_tick_timer, "lv_tick_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);
-    START_TIMER(thiz->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
     while (1) {
-        MSG_QUEUE_RECV(thd->msg_id, &msg, OS_WAIT_FOREVER);
         if (thiz->hook && thiz->hook->lvgl_display_handler) {
             thiz->hook->lvgl_display_handler(thiz);
+        } else {
+            msleep(100); // 1s
+            LOG_UI("lvgl_display_handler is not set, sleep 1s");
         }
     }
-#endif
 }
 
 static void on_ui_broadcast_receiver(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
@@ -96,31 +73,6 @@ static void on_ui_broadcast_receiver(broadcast_mask_id_t id, void *context, int 
     ui_manager_context_t *ui = (ui_manager_context_t *)context;
     if (ui->hook && ui->hook->on_ui_broadcast_receiver_route) {
         ui->hook->on_ui_broadcast_receiver_route(id, context, arg1, arg2, pdata);
-    }
-    switch (id.code) {
-        case ID_BROADCAST_PM_STATE_CHANGE: 
-            if (arg1 == ID_SYS_PM_SUSPEND) {
-                ui->priv.is_playing_ui_animation = false;
-            #if IS_SUPPORT_LVGL
-                THREAD_SUSPEND(thiz->priv.ui_hdr_thd.tid);
-            #else
-                STOP_TIMER(ui->priv.lv_tick_timer);
-            #endif
-                ui->priv.lv_tick_timer_running = false;
-            }
-            else {
-            #if IS_SUPPORT_LVGL
-                THREAD_RESUME(thiz->priv.ui_hdr_thd.tid);
-            #else
-                STOP_TIMER(ui->priv.lv_tick_timer);
-                START_TIMER(ui->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
-            #endif
-                ui->priv.lv_tick_timer_running = true;
-            }
-            break;
-
-        default:
-            break;
     }
 }
 
