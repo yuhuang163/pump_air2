@@ -123,6 +123,11 @@ typedef struct {
     } un;
 } led_status_t;
 
+typedef struct {
+    uint8_t led_index;
+    led_status_t led_status;
+} led_status_msg_t;
+
 #ifdef __cplusplus
 }
 #endif

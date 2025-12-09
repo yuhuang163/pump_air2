@@ -95,44 +95,22 @@ void bsp_night_light_suspend(void)
 
 int bsp_night_light_status_set(void *args)
 {
-    uint32_t *tmp = (uint32_t *)args;
-    if (tmp == NULL) {
-        LOGE("tmp is NULL");
+    led_status_msg_t *msg = (led_status_msg_t *)args;
+    if (msg == NULL) {
+        LOGE("msg is NULL");
         return BSP_ERROR;
     }
     
-    uint8_t index = tmp[0];
-    if (index >= NIGHT_LIGHT_SIZE) {
-        LOGE("index is out of range: %d", index);
+    if (msg->led_index >= NIGHT_LIGHT_SIZE) {
+        LOGE("index is out of range: %d", msg->led_index);
         return BSP_ERROR;
     }
 
-    led_status_t *led = (led_status_t *)tmp[1];
-    if (led == NULL) {
-        LOGE("led is NULL");
-        return BSP_ERROR;
-    }
-
-    LOG_PBUS("index: %d, mode: %d, level: %d", index, led->mode, led->un.luminous.level);
-    if (led->mode == LED_MODE_LEVEL) {
-        night_light_level_set(index, led->un.luminous);
+    LOG_PBUS("index: %d, mode: %d, level: %d", msg->led_index, msg->led_status.mode, msg->led_status.un.luminous.level);
+    if (msg->led_status.mode == LED_MODE_LEVEL) {
+        night_light_level_set(msg->led_index, msg->led_status.un.luminous);
     }
 
     return 0;
-}
-
-void *bsp_night_light_status_get(void *args)
-{
-    uint32_t *tmp = (uint32_t *)args;
-    
-    if (!tmp) {
-        return NULL;
-    }
-
-    if (tmp[0] >= NIGHT_LIGHT_SIZE) {
-        return NULL;
-    }
-    
-    return (void *)&led_status[tmp[0]];
 }
 

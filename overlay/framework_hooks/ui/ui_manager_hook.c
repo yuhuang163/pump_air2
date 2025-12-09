@@ -65,23 +65,8 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
         }
         goto HANDLER_EXIT;
     }
-
-    // lcd_tlvs_t *tlvs = NULL;
-    // int tlvs_num = img_display_handler(thiz, ani);
     img_display_handler(thiz, ani);
     ani->played_count++;
-    // EXCEPTION_CHECK_VOID(tlvs);
-    // if (tlvs_num <= 0 || tlvs_num > LCD_TLVS_DATA_TYPE_MAX_SIZE) {
-    //     if (tlvs) {
-    //         u_free(tlvs);
-    //     }   
-    //     LOGE("free tlvs failed: %d", tlvs_num);
-    //     goto HANDLER_EXIT;
-    // }
-    // int args[] = {LCD_DISPLAY_EVENT_SRV, (uint32_t)tlvs, tlvs_num};
-    // thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)args);
-    // u_free(tlvs);
-    
 HANDLER_EXIT:
     thiz->play_animation_unlock(NULL);
 #endif
@@ -206,49 +191,57 @@ static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
     }
     /// 设置LED背光
     if (thiz->priv.led_dev) {
-        led_status_t led_status = {
-            .mode = LED_MODE_LEVEL,
-            .un.luminous.level = val > LED_LEVEL_MAX ? LED_LEVEL_MAX : val,
+        led_status_msg_t msg = {
+            .led_index = PUMP_LED_ALL_ID,
+            .led_status = {
+                .mode = LED_MODE_LEVEL,
+                .un.luminous.level = val > LED_LEVEL_MAX ? LED_LEVEL_MAX : val,
+            },
         };
-        int args[] = {PUMP_LED_ALL_ID, (int)&led_status};
-        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
     }
 }
 
 static void set_led_blink(ui_manager_context_t *thiz, led_blink_info_t blink_info)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    led_status_t led_status = {
-        .mode = LED_MODE_BLINK,
-        .un.blink.period = blink_info.period,
-        .un.blink.continue_time = blink_info.continue_time,
-        .un.blink.first_status = blink_info.first_status,
-        .un.blink.finish_status = blink_info.finish_status,
+    led_status_msg_t msg = {
+        .led_index = blink_info.led_index,
+        .led_status = {
+            .mode = LED_MODE_BLINK,
+            .un.blink.period = blink_info.period,
+            .un.blink.continue_time = blink_info.continue_time,
+            .un.blink.first_status = blink_info.first_status,
+            .un.blink.finish_status = blink_info.finish_status,
+        },
     };
-    int args[] = {blink_info.led_index, (int)&led_status};
-    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
 static void set_led_level(ui_manager_context_t *thiz, led_level_info_t level_info)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    led_status_t led_status = {
-        .mode = LED_MODE_LEVEL,
-        .un.luminous.level = level_info.level,
+    led_status_msg_t msg = {
+        .led_index = level_info.led_index,
+        .led_status = {
+            .mode = LED_MODE_LEVEL,
+            .un.luminous.level = level_info.level,
+        },
     };
-    int args[] = {level_info.led_index, (int)&led_status};
-    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
 static void set_led_onoff(ui_manager_context_t *thiz, led_onoff_info_t onoff_info)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    led_status_t led_status = {
-        .mode = LED_MODE_ONOFF,
-        .un.onoff.status = onoff_info.onoff,
+    led_status_msg_t msg = {
+        .led_index = onoff_info.led_index,
+        .led_status = {
+            .mode = LED_MODE_ONOFF,
+            .un.onoff.status = onoff_info.onoff,
+        },
     };
-    int args[] = {onoff_info.led_index, (int)&led_status};
-    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
 static int on_post_ui_init_route(struct ui_manager_context *ctx)

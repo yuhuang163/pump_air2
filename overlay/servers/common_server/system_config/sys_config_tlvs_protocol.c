@@ -47,21 +47,23 @@ static ble_manager_context_t *get_ble_ctx(void)
 
 static void test_led_post_task_handler(hdr_post_args_t *args)
 {
-    LOG_SRV("test_led_post_task_handler");
-    led_status_t led_status = {
-        .mode = LED_MODE_ONOFF,
-        .un.onoff.status = LED_STATUS_ON,
-    };
-    int args_data[] = {PUMP_LED_ALL_ID, (int)&led_status};
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_VOID(pbus);
     rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
     EXCEPTION_CHECK_VOID(led_dev);
-    led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args_data);
-
-    led_status_t night_light_led_status = {.mode = LED_MODE_LEVEL, .un.luminous.level = LED_LEVEL_MAX};
-    int night_light_args_data[] = {NIGHT_LIGHT_LED_ID_0, (int)&night_light_led_status};
-    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)night_light_args_data);
+    LOG_SRV("test_led_post_task_handler");
+    led_status_msg_t msg = {
+        .led_index = PUMP_LED_ALL_ID,
+        .led_status = {
+            .mode = LED_MODE_ONOFF,
+            .un.onoff.status = LED_STATUS_ON,
+        },
+    };
+    led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    msg.led_index = NIGHT_LIGHT_LED_ID_0;
+    msg.led_status.mode = LED_MODE_LEVEL;
+    msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
 }
 
 static void test_factory_reset_post_task_handler(hdr_post_args_t *args)
@@ -206,22 +208,19 @@ int sys_config_tlvs_display_test(comm_protocol_builder_t *builder, comm_protocol
     rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
     EXCEPTION_CHECK_INT(led_dev);
 
-    led_status_t led_status = {
-        .mode = LED_MODE_ONOFF,
-        .un.onoff.status = LED_STATUS_OFF,
+    led_status_msg_t msg = {
+        .led_index = PUMP_LED_ALL_ID,
+        .led_status = {
+            .mode = LED_MODE_ONOFF,
+            .un.onoff.status = LED_STATUS_OFF,
+        },
     };
-    int args[] = {PUMP_LED_ALL_ID, (int)&led_status};
-    led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-
-    led_status_t night_light_led_status = {
-        .mode = LED_MODE_LEVEL,
-        .un.luminous.level = 0,
-    };
-    int args_data[] = {NIGHT_LIGHT_LED_ID_0, (int)&night_light_led_status};
-    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)args_data);
-
+    led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    msg.led_index = NIGHT_LIGHT_LED_ID_0;
+    msg.led_status.mode = LED_MODE_LEVEL;
+    msg.led_status.un.luminous.level = 0;
+    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
     POST_TASK_HANDLER_DELAYED_ARG0(test_led_post_task_handler, 8000, "display_test_cb");
-
     comm_protocol_tlv_node_t tlv_node = {
         .type = SYS_CONFIG_TLV_DISPLAY_TEST,
         .length = 1,
@@ -259,13 +258,14 @@ int sys_config_tlvs_set_night_light(comm_protocol_builder_t *builder, comm_proto
             EXCEPTION_CHECK_INT(pbus);
             rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
             EXCEPTION_CHECK_INT(led_dev);
-
-            led_status_t led_status = {
-                .mode = LED_MODE_LEVEL,
-                .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
+            led_status_msg_t msg = {
+                .led_index = NIGHT_LIGHT_LED_ID_0,
+                .led_status = {
+                    .mode = LED_MODE_LEVEL,
+                    .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
+                },
             };
-            int args[] = {NIGHT_LIGHT_LED_ID_0, (int)&led_status};
-            led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)args);
+            led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
             result = 0x01; // 成功
         }
     }

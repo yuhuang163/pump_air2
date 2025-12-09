@@ -133,29 +133,33 @@ static void ble_shell_img_test(const uint8_t *param, uint16_t len)
     rt_device_node_t *lcd = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
     int img_id = 0, hold_time = 0, pump_level = 0x01070109, ble_status = 1, battery_status = 1, pump_mode = 1;
     sscanf((const char *)param, "%d %d %d %d %d", &img_id, &hold_time, &ble_status, &battery_status, &pump_mode);
-    lcd_tlvs_t *tlvs = u_malloz(sizeof(lcd_tlvs_t) * 6);
-    tlvs[0].type = LCD_IMG_ID;
-    tlvs[0].data_size = 1;
-    tlvs[0].data[0] = img_id;
-    tlvs[1].type = LCD_DEVICE_RUNNING_TIME;
-    tlvs[1].data_size = 2;
-    tlvs[1].data[0] = hold_time >> 8;
-    tlvs[1].data[1] = hold_time & 0xFF;
-    tlvs[2].type = LCD_PUMP_LEVEL;
-    tlvs[2].data_size = 4;
-    memcpy(tlvs[2].data, &pump_level, 4);
-    tlvs[3].type = LCD_BLE_STATUS;
-    tlvs[3].data_size = 1;
-    tlvs[3].data[0] = ble_status > 2 ? 1 : ble_status;
-    tlvs[4].type = LCD_BATTERY_STATUS;
-    tlvs[4].data_size = 1;
-    tlvs[4].data[0] = battery_status > 100 ? 100 : battery_status;
-    tlvs[5].type = LCD_PUMP_MODE;
-    tlvs[5].data_size = 1;
-    tlvs[5].data[0] = pump_mode > 7 ? 3 : pump_mode;
-    int args[] = {LCD_DISPLAY_EVENT_SRV, (uint32_t)tlvs, 6};
-    lcd->ioctl(lcd, OP_CODE_PANEL_DATA_SEND, (void *)args);
-    u_free(tlvs);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 6),
+        .tlvs_num = 6,
+    };
+    EXCEPTION_CHECK_VOID(msg.tlvs);
+    msg.tlvs[0].type = LCD_IMG_ID;
+    msg.tlvs[0].data_size = 1;
+    msg.tlvs[0].data[0] = img_id;
+    msg.tlvs[1].type = LCD_DEVICE_RUNNING_TIME;
+    msg.tlvs[1].data_size = 2;
+    msg.tlvs[1].data[0] = hold_time >> 8;
+    msg.tlvs[1].data[1] = hold_time & 0xFF;
+    msg.tlvs[2].type = LCD_PUMP_LEVEL;
+    msg.tlvs[2].data_size = 4;
+    memcpy(msg.tlvs[2].data, &pump_level, 4);
+    msg.tlvs[3].type = LCD_BLE_STATUS;
+    msg.tlvs[3].data_size = 1;
+    msg.tlvs[3].data[0] = ble_status > 2 ? 1 : ble_status;
+    msg.tlvs[4].type = LCD_BATTERY_STATUS;
+    msg.tlvs[4].data_size = 1;
+    msg.tlvs[4].data[0] = battery_status > 100 ? 100 : battery_status;
+    msg.tlvs[5].type = LCD_PUMP_MODE;
+    msg.tlvs[5].data_size = 1;
+    msg.tlvs[5].data[0] = pump_mode > 7 ? 3 : pump_mode;
+    lcd->ioctl(lcd, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
 }
 
 static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len)
