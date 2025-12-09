@@ -254,10 +254,7 @@ DRIVERS_KEY_INC_FLAGS := \
 # LCD 驱动头文件
 DRIVERS_LCD_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/lcd \
-	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_spi \
-	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_qspi \
-	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart \
-	-I$(PROJECT_ROOT)/drivers/lcd/chip/uart_extension
+	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart
 
 # LED 驱动头文件
 DRIVERS_LED_INC_FLAGS := \
@@ -658,9 +655,7 @@ DRIVERS_KEY_SRCS := \
 # LCD 驱动源码
 DRIVERS_LCD_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/uart_extension/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/chip/gc9a01/*.c)
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c)
 
 # LED 驱动源码
 DRIVERS_LED_SRCS := \
