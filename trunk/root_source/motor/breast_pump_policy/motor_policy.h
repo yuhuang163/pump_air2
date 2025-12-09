@@ -240,6 +240,7 @@ typedef struct {
     motor_timed_policy_node_t *timed_policy; /// 时间策略
     motor_policy_node_t policy[BREAST_PUMP_NUM]; /// 策略
     motor_policy_info_t info[BREAST_PUMP_NUM];    /// 当前吸力信息，由多个策略综合生成
+    uint32_t current_time_policy_running_time; /// 当前时间策略已运行时间，单位ms
     uint32_t timed_policy_start_time;  /// 时间策略开始时间，单位ms
     uint32_t manager_start_time; /// 总策略开始时间，单位ms
 } motor_policy_runtime_t;

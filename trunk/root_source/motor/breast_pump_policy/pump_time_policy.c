@@ -76,15 +76,22 @@ int pump_time_policy_empty(motor_policy_manager_t *total_policy)
 int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_runtime_t *runtime) 
 { 
     /// 检测当前时间策略是否执行完毕
-    uint32_t hold_time = get_timestamp_ms(runtime->timed_policy_start_time)  / 1000; 
+    uint32_t hold_time = (get_timestamp_ms(runtime->timed_policy_start_time) + \
+     runtime->current_time_policy_running_time) / 1000; 
     if (hold_time >= runtime->timed_policy->duration_seconds) {
         /// 执行下一个时间策略
         if (runtime->timed_policy->next) {
             runtime->current_timed_policy_index++;
             runtime->timed_policy = runtime->timed_policy->next;
+            runtime->current_time_policy_running_time = 0;
         } else {
             runtime->current_timed_policy_index = 0;
             runtime->timed_policy = &runtime->manager->head;
+            runtime->current_time_policy_running_time = 0;
+        }
+        /// 更新步数索引.
+        if (thiz->priv.pump_ctx) {
+            thiz->priv.pump_ctx->priv.m_info.step_index = runtime->current_timed_policy_index;
         }
         /// 释放负压
         negative_pressure_release(thiz);
