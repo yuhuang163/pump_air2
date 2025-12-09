@@ -84,12 +84,14 @@ int switch_charge_night_light_onoff_ui(ui_proc_charge_t *proc)
         night_light_info.level = 5;
     } 
     st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-    led_status_t led_status = {
-        .mode = LED_MODE_LEVEL,
-        .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
+    led_status_msg_t msg = {
+        .led_index = NIGHT_LIGHT_LED_ID_0,
+        .led_status = {
+            .mode = LED_MODE_LEVEL,
+            .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
+        },
     };
-    int args[] = {NIGHT_LIGHT_LED_ID_0, (int)&led_status};
-    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)args);
+    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
     LOG_UI("switch charge night light power: %d, level: %d", night_light_info.onoff, night_light_info.level);
 
     return 0;

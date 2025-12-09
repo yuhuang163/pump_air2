@@ -44,14 +44,14 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
     night_light_info.level = level;
 
     st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-
-    led_status_t led_status = {
-        .mode = LED_MODE_LEVEL,
-        .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
+    led_status_msg_t msg = {
+        .led_index = NIGHT_LIGHT_LED_ID_0,
+        .led_status = {
+            .mode = LED_MODE_LEVEL,
+            .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
+        },
     };
-    int args[] = {NIGHT_LIGHT_LED_ID_0, (int)&led_status};
-    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)args);
-
+    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
     LOG_SRV(" Night light set: onoff=%d, level=%d\n", night_light_info.onoff, night_light_info.level);
 }
 

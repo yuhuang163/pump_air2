@@ -143,33 +143,35 @@ void airplane_mode_led_policy(ui_proc_airplane_mode_t *proc, uint8_t status)
     struct storage_manager_context *st = proc->wm->priv.st;
     rt_device_node_t *led_dev = proc->wm->priv.pbus->find_device(ID_DEVICE_LED);
     EXCEPTION_CHECK_VOID(led_dev);
-    led_status_t led_status = {
-        .mode = LED_MODE_LEVEL,
-        .un.luminous.level = 0,
+    led_status_msg_t msg = {
+        .led_index = PUMP_LED_ALL_ID,
+        .led_status = {
+            .mode = LED_MODE_LEVEL,
+            .un.luminous.level = 0,
+        },
     };
     st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
-    int args[2] = {PUMP_LED_ALL_ID, (int)&led_status};
     if (status) {
         for (uint8_t i = 0; i < LENGTH_OF_ARRAY(enter_airplane_mode_led_status); i++) {
-            args[0] = enter_airplane_mode_led_status[i].id;
-            led_status.un.luminous.level = enter_airplane_mode_led_status[i].level;
-            led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+            msg.led_index = enter_airplane_mode_led_status[i].id;
+            msg.led_status.un.luminous.level = enter_airplane_mode_led_status[i].level;
+            led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         }
     } else {
         for (uint8_t i = 0; i < LENGTH_OF_ARRAY(exit_airplane_mode_led_status); i++) {
-            args[0] = exit_airplane_mode_led_status[i].id;
-            led_status.un.luminous.level = exit_airplane_mode_led_status[i].level;
-            led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+            msg.led_index = exit_airplane_mode_led_status[i].id;
+            msg.led_status.un.luminous.level = exit_airplane_mode_led_status[i].level;
+            led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         }
         /// 设置左右控制背光灯
-        args[0] = PUMP_LEFT_CONTROL_BL;
-        led_status.un.luminous.level = control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? \
+        msg.led_index = PUMP_LEFT_CONTROL_BL;
+        msg.led_status.un.luminous.level = control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? \
                     LED_LEVEL_MAX / 2 : LED_LEVEL_MAX;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
-        led_status.un.luminous.level = control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT ? \
+        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+        msg.led_status.un.luminous.level = control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT ? \
                     LED_LEVEL_MAX / 2 : LED_LEVEL_MAX;
-        args[0] = PUMP_RIGHT_CONTROL_BL;
-        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)args);
+        msg.led_index = PUMP_RIGHT_CONTROL_BL;
+        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
     }
 }
 
