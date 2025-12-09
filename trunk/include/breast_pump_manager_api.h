@@ -66,6 +66,7 @@ typedef struct {
     uint8_t status;
     uint8_t do_work;
     uint8_t mode;
+    uint8_t step_index;
 } breast_pump_info_t;
 
 /// 吸奶结果ID
@@ -110,6 +111,7 @@ typedef struct breast_pump_manager_context {
     void (*set_breast_pump_status)(int status);
     int (*get_breast_pump_status)(void);
     int (*get_breast_pump_status_async)(void);
+    uint8_t (*get_breast_pump_step_index)(void);
     int (*get_last_breast_pump_result)(breast_pump_result_t *result, uint8_t breast_pump_data_id);
     const breast_pump_result_t *(*get_curr_breast_pump_result)(void);
     pump_result_info_t *(*get_breast_pump_result)(breast_pump_result_id_e result_id);
