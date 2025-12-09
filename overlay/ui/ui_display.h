@@ -12,7 +12,7 @@ extern "C" {
 #include "ui_img_define.h" // IWYU pragma: keep
 
 /// 描述图片数据处理接口.
-typedef int (*ui_display_process_func)(ui_animation_play_t *ani, lcd_tlvs_t **tlvs);
+typedef int (*ui_display_process_func)(ui_manager_context_t *thiz, ui_animation_play_t *ani);
 /// 描述图片数据处理结构.
 typedef struct {
     uint16_t img_id;                             /// 图片id   
@@ -23,7 +23,7 @@ typedef struct {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-int lvgl_display_img_data_perpare(ui_animation_play_t *ani, lcd_tlvs_t **tlvs);
+int img_display_handler(ui_manager_context_t *thiz, ui_animation_play_t *ani);
 #ifdef __cplusplus
 }
 #endif

@@ -6,6 +6,7 @@
 #include "hal_uart.h" // IWYU pragma: keep
 #include "hal_timer.h" // IWYU pragma: keep
 #include "hal_iomux.h" // IWYU pragma: keep
+#include "root_common.h"
 #include "bsp_lcd_uart.h" // IWYU pragma: keep
 
 /*
@@ -148,25 +149,26 @@ static void lcd_uart_event_thread(const void *args)
     }
 }
 
-static int bsp_lcd_data_send(uint8_t srv_id, lcd_tlvs_t *tlvs, uint8_t tlvs_num) 
+static int bsp_lcd_data_send(lcd_tlvs_msg_t *msg) 
 {
-    EXCEPTION_CHECK_INT(tlvs);
+    EXCEPTION_CHECK_INT(msg);
+    EXCEPTION_CHECK_INT(msg->tlvs);
     uint8_t *tlvs_data = NULL;
     uint16_t tlvs_size = 0, payload_size = 0, error_code = 0, checksum = 0;
     lcd_protocol_data_t *lcd = u_malloz(sizeof(lcd_protocol_data_t));
-    for (uint8_t i = 0; i < tlvs_num; i++) {
-        tlvs_size = tlvs[i].data_size + LCD_TLVS_HEADER_SIZE;
+    for (uint8_t i = 0; i < msg->tlvs_num; i++) {
+        tlvs_size = msg->tlvs[i].data_size + LCD_TLVS_HEADER_SIZE;
         if (payload_size + tlvs_size > LCD_PROTOCOL_DATA_SIZE) {
             LOGE("lcd data size is too large");
             break;
         }
-        tlvs_data = (uint8_t *)&tlvs[i];
+        tlvs_data = (uint8_t *)&msg->tlvs[i];
         // BSP_LOG_HEX("tlvs", tlvs_data, tlvs_size);
         memcpy(lcd->payload + payload_size, tlvs_data, tlvs_size);
         payload_size += tlvs_size;
     }
     lcd->header.sof = LCD_UART_SOF;
-    lcd->header.srv_id = srv_id;
+    lcd->header.srv_id = msg->srv_id;
     uint16_t data_length = payload_size + 1;
     lcd->header.length[1] = data_length & 0xFF;
     lcd->header.length[0] = data_length >> 8;
@@ -199,13 +201,17 @@ ERROR_EXIT:
 
 static void lcd_backlight_control(uint8_t level)
 {
-    lcd_tlvs_t *tlvs = u_malloz(sizeof(lcd_tlvs_t) * 1);
-    tlvs[0].type = LCD_BACKLIGHT_LEVEL;
-    tlvs[0].data_size = 1;
-    tlvs[0].data[0] = level > 100 ? 100 : level;
-    bsp_lcd_data_send(LCD_UART_DISPLAY_EVENT, tlvs, 1);
-    // LOG_PBUS("lcd backlight control: %d", level);
-    u_free(tlvs);
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_UART_DISPLAY_EVENT,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 1),
+        .tlvs_num = 1,
+    };
+    EXCEPTION_CHECK_VOID(msg.tlvs);
+    msg.tlvs[0].type = LCD_BACKLIGHT_LEVEL;
+    msg.tlvs[0].data_size = 1;
+    msg.tlvs[0].data[0] = level > 100 ? 100 : level;
+    bsp_lcd_data_send(&msg);
+    u_free(msg.tlvs);
 }
 
 static void bsp_lcd_uart_register_event_cb(lcd_uart_event_type_e event_type, panel_recv_event_cb_func cb)
@@ -279,9 +285,7 @@ int bsp_lcd_uart_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
             lcd_backlight_control(tmp[0]);
             return 0;
         case OP_CODE_PANEL_DATA_SEND:
-            tmp = (uint32_t *)args;
-            EXCEPTION_CHECK_INT(tmp);
-            return bsp_lcd_data_send((uint8_t)tmp[0], (lcd_tlvs_t *)tmp[1], tmp[2]);
+            return bsp_lcd_data_send((lcd_tlvs_msg_t *)args);
         default:
             // LOGE("lcd err op_code: %lx", op_code);
             return -1;

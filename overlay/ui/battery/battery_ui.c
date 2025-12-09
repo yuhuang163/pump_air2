@@ -49,15 +49,18 @@ void ui_fill_charge_status(lcd_tlvs_t *tlv)
     }
 }
 
-int ui_display_charge_screen(ui_animation_play_t *ani, lcd_tlvs_t **tlvs)
+int ui_display_charge_screen(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
-    uint16_t tlvs_num = 3;
-    lcd_tlvs_t *p = u_malloz(sizeof(lcd_tlvs_t) * tlvs_num);
-    EXCEPTION_CHECK_UINT(p);
-    ui_fill_img_id(&p[0], UI_IMG_ID_CHARGE);
-    ui_fill_battery_status(&p[1]);
-    ui_fill_charge_status(&p[2]);
-    *tlvs = p;
-
-    return tlvs_num;
+    lcd_tlvs_msg_t msg = {
+        .srv_id = LCD_DISPLAY_EVENT_SRV,
+        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 3),
+        .tlvs_num = 3,
+    };
+    EXCEPTION_CHECK_UINT(msg.tlvs);
+    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_CHARGE);
+    ui_fill_battery_status(&msg.tlvs[1]);
+    ui_fill_charge_status(&msg.tlvs[2]);
+    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
+    u_free(msg.tlvs);
+    return 0;
 }

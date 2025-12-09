@@ -4,6 +4,11 @@
 */
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_display.h" // IWYU pragma: keep
+#if IS_SUPPORT_LVGL
+#include "lvgl.h"
+#include "lv_hal_disp.h"
+#include "lv_hal_indev.h"
+#endif
 
 /*
 * DEFINES
@@ -46,6 +51,11 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
 
 static void lvgl_display_handler(struct ui_manager_context *thiz)
 {
+#if IS_SUPPORT_LVGL
+    msleep(lv_timer_handler());
+#else
+    uint8_t msg = 0;
+    MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id, &msg, OS_WAIT_FOREVER);
     thiz->play_animation_lock(NULL);
     ui_animation_play_t *ani = &thiz->priv.play_info;
     if (ani->played_count >= ani->res_count) {
@@ -56,24 +66,72 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
         goto HANDLER_EXIT;
     }
 
-    lcd_tlvs_t *tlvs = NULL;
-    int tlvs_num = lvgl_display_img_data_perpare(ani, &tlvs);
+    // lcd_tlvs_t *tlvs = NULL;
+    // int tlvs_num = img_display_handler(thiz, ani);
+    img_display_handler(thiz, ani);
     ani->played_count++;
-    EXCEPTION_CHECK_VOID(tlvs);
-    if (tlvs_num <= 0 || tlvs_num > LCD_TLVS_DATA_TYPE_MAX_SIZE) {
-        if (tlvs) {
-            u_free(tlvs);
-        }   
-        LOGE("free tlvs failed: %d", tlvs_num);
-        goto HANDLER_EXIT;
-    }
-    int args[] = {LCD_DISPLAY_EVENT_SRV, (uint32_t)tlvs, tlvs_num};
-    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)args);
-    u_free(tlvs);
+    // EXCEPTION_CHECK_VOID(tlvs);
+    // if (tlvs_num <= 0 || tlvs_num > LCD_TLVS_DATA_TYPE_MAX_SIZE) {
+    //     if (tlvs) {
+    //         u_free(tlvs);
+    //     }   
+    //     LOGE("free tlvs failed: %d", tlvs_num);
+    //     goto HANDLER_EXIT;
+    // }
+    // int args[] = {LCD_DISPLAY_EVENT_SRV, (uint32_t)tlvs, tlvs_num};
+    // thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)args);
+    // u_free(tlvs);
     
 HANDLER_EXIT:
     thiz->play_animation_unlock(NULL);
+#endif
 }
+
+#if IS_SUPPORT_LVGL
+static void change_images_cb(lv_timer_t *t)
+{
+    ui_manager_context_t *ui_ctx = (ui_manager_context_t *)t->user_data;
+    EXCEPTION_CHECK_VOID(ui_ctx);
+    ui_ctx->play_animation_lock(NULL);
+    ui_animation_play_t *ani = &ui_ctx->priv.play_info;
+    if (ani->played_count >= ani->res_count) {
+        ui_ctx->priv.is_playing_ui_animation = false;
+        if (ani->progress_cb) {
+            ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_FINISH);
+        }
+        ui_ctx->play_animation_unlock(NULL);
+        return;
+    }
+    img_display_handler(ui_ctx, ani);
+    ani->played_count++;
+HANDLER_EXIT:
+    ui_ctx->play_animation_unlock(NULL);
+}
+#else
+static void lv_tick_timer_handler(void *args)
+{
+   uint8_t msg = 0;
+   ui_manager_context_t *ui_ctx = (ui_manager_context_t *)args;
+   MSG_QUEUE_SEND(ui_ctx->priv.ui_hdr_thd.msg_id, &msg, 0);
+}
+#endif
+
+static void ui_thread_init_route(struct ui_manager_context *thiz)
+{
+#if IS_SUPPORT_LVGL
+    lv_init();
+    lv_tick_set_cb(get_sys_time_ms);
+    lv_delay_set_cb(msleep);
+    lv_hal_disp_init();
+    lv_timer_t * t = lv_timer_create(change_images_cb, 200, thiz);
+    lv_timer_ready(t);
+#else
+    CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
+    CREATE_TIMER(&thiz->priv.lv_tick_timer, "lv_tick_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);
+    START_TIMER(thiz->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
+#endif
+}
+
 
 static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
@@ -98,6 +156,28 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
                 ui->hook->set_ui_backlight(ui, 100);
             }
             break;
+
+        case ID_BROADCAST_PM_STATE_CHANGE: 
+            if (arg1 == ID_SYS_PM_SUSPEND) {
+                ui->priv.is_playing_ui_animation = false;
+            #if IS_SUPPORT_LVGL
+                THREAD_SUSPEND(ui->priv.ui_hdr_thd.tid);
+            #else
+                STOP_TIMER(ui->priv.lv_tick_timer);
+            #endif
+                ui->priv.lv_tick_timer_running = false;
+            }
+            else {
+            #if IS_SUPPORT_LVGL
+                THREAD_RESUME(ui->priv.ui_hdr_thd.tid);
+            #else
+                STOP_TIMER(ui->priv.lv_tick_timer);
+                START_TIMER(ui->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
+            #endif
+                ui->priv.lv_tick_timer_running = true;
+            }
+            break;
+
         default:
             break;
     }
@@ -194,6 +274,7 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->on_post_init_route = on_post_ui_init_route;
     ctx->hook->on_perpare_init_route = on_perpare_ui_init_route;
     ctx->hook->ui_animation_play_init = ui_animation_play_init;
+    ctx->hook->ui_thread_init_route = ui_thread_init_route;
     ctx->hook->lvgl_display_handler = lvgl_display_handler;
     ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
     ctx->hook->set_ui_backlight = set_ui_backlight;
