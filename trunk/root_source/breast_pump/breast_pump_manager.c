@@ -148,7 +148,7 @@ static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
     servers_publish_data_args_t args = {
-        .arg1 = 0,
+        .arg1 = OLD_PUBLISH_DATA_PUMP_LEVEL_CHANGE,
         .arg2 = 0,
         .val = NULL,
     };
@@ -178,7 +178,7 @@ static void set_breast_pump_mode(uint32_t mode)
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
     servers_publish_data_args_t args = {
-        .arg1 = 0,
+        .arg1 = OLD_PUBLISH_DATA_PUMP_MODE_CHANGE,
         .arg2 = 0,
         .val = NULL,
     };
@@ -291,7 +291,7 @@ static void set_breast_pump_status(int status)
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
     servers_publish_data_args_t args = {
-        .arg1 = 0,
+        .arg1 = OLD_PUBLISH_DATA_SYSTEM_STATUS_CHANGE,
         .arg2 = 0,
         .val = NULL,
     };

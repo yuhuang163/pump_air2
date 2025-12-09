@@ -30,8 +30,8 @@ static app_old_protocol_handler_context_t ctx_app_old_protocol_handler = {0};
 static void app_old_comm_poll_post_task_handler(hdr_post_args_t *args)
 {
     LOG_SRV(" Poll timer triggered - reporting device status\n");
-    app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
-    app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
+    app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT, OLD_PUBLISH_DATA_POLL_REPORT, NULL);
+    app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT, OLD_PUBLISH_DATA_POLL_REPORT, NULL);
     POST_TASK_HANDLER_DELAYED_ARG0(app_old_comm_poll_post_task_handler, 30000, "app_old_comm_poll_post_task");
 }
 
@@ -126,21 +126,20 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
 void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, void *cab)
 {
     LOG_SRV(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
-
+    servers_publish_data_args_t *args_temp = (servers_publish_data_args_t *)cab;
     switch (cid) {
         case APP_OLD_COMM_CID_NOTIFY_STATUS: {
             ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
             EXCEPTION_CHECK_VOID(ble_ctx);
             if (ble_ctx->ble_is_connected() == true) {
-                app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT);
-                app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT);
+                app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT, args_temp->arg1, args_temp->val);
+                app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT, args_temp->arg1, args_temp->val);
             }
         } break;
         case APP_OLD_COMM_CID_NOTIFY_BIND:
             app_old_comm_report_bind_status(1, 0);
             break;
         case APP_OLD_COMM_CID_NOTIFY_DISCON: {
-            servers_publish_data_args_t *args_temp = (servers_publish_data_args_t *)cab;
             if (args_temp->arg1 == true) //连接
             {
                 LOG_SRV(" ble connect");
