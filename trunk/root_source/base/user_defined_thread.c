@@ -5,7 +5,6 @@
 #include "hal_motor.h"
 #include "bsp_lcd_internal.h" // IWYU pragma: keep
 #include "root_common.h"
-#include "uart_extension_lcd.h" // IWYU pragma: keep
 #include "peripheral_bus_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
 

@@ -10,14 +10,16 @@
 #include "bsp_config.h" // IWYU pragma: keep
 #include "bsp_lcd_qspi.h" // IWYU pragma: keep
 #include "bsp_lcd_internal.h" // IWYU pragma: keep
-#include <string.h>
 
 /*
 * DEFINES
 *****************************************************************************************
 */
 #define IS_SUPPORT_LCD_TE_IRQ                    (1)
-#define LCDC_RGB565_FORMAT                       11
+#define LCDC_RGB565_FORMAT                       (11)
+#define IS_SUPPORT_LCD_PSRAM_DRIVER              (1)
+#define LCD_PIXEL_SIZE                           (LCD_H_RES * LCD_V_RES)
+#define LCD_IMG_SIZE                             (LCD_PIXEL_SIZE * sizeof(uint16_t))
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -188,6 +190,33 @@ static void lcd_qspi_wakeup(void)
     hal_lcdc_qspi_wakeup();
 }
 
+static void lcd_reset_init(void)
+{
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        (enum HAL_IOMUX_PIN_T)LCD_RST_PIN, 
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL,
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(LCD_RST_PIN, HAL_GPIO_DIR_OUT, 0);
+}
+
+static void lcd_device_reset(void)
+{
+    GPIO_PIN_CTRL(LCD_RST_PIN, 1);
+    msleep(5);
+    GPIO_PIN_CTRL(LCD_RST_PIN, 0);
+    msleep(20);
+    GPIO_PIN_CTRL(LCD_RST_PIN, 1);
+    msleep(10);
+}
+
+static int bsp_lcd_color_set(uint16_t color)
+{
+    return BSP_OK;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -273,5 +302,54 @@ int bsp_lcd_qspi_write_img_param(uint8_t cmd, const uint8_t *p_data, uint32_t da
     LOGI("write param time = %dms, data_size = %d", get_timestamp_ms(start_time), data_size);
 #endif
     return BSP_OK;
+}
+
+int bsp_lcd_init(void) 
+{
+    int ret = 0;
+    lcd_device_reset();
+    ret = bsp_lcd_qspi_init();
+    if (ret != BSP_OK) {
+        LOGE("lcd interface init failed");
+        return ret;
+    }
+    msleep(10);
+    ret = lcd_chip_init();
+    if (ret != BSP_OK) {
+        LOGE("lcd chip init failed");
+        return ret;
+    }
+    bsp_lcd_color_set(0x0000); /// 清屏
+    return BSP_OK;
+}
+
+int bsp_lcd_uart_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *args)
+{
+    return BSP_OK;
+}
+
+int bsp_lcd_refresh(const void *buf, uint32_t n_bytes)
+{
+    if (!buf || n_bytes < (sizeof(uint32_t) * 6)) {
+        LOG_PBUS("invalid args: buf:%p, n_bytes:%d", buf, n_bytes);
+        return -1;
+    }
+    uint32_t *tmp = (uint32_t *)buf;
+    uint16_t x1 = (uint16_t)tmp[0];
+    uint16_t y1 = (uint16_t)tmp[1];
+    uint16_t x2 = (uint16_t)tmp[2];
+    uint16_t y2 = (uint16_t)tmp[3];
+    uint16_t *color = (uint16_t *)tmp[4];
+
+    if (color == NULL) {
+        LOGE("color is NULL");
+        return BSP_ERR_POINTER_NULL;
+    }
+
+    if (!lcd_qspi_ready) {
+        LOGE("lcd no ready");
+        return BSP_NOT_READY;
+    } 
+    return lcd_draw_bitmap(x1, y1, x2, y2, color);
 }
 
