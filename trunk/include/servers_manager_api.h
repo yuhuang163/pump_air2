@@ -21,6 +21,20 @@ typedef enum {
     SERVERS_PUBLISH_DATA_ID_MAX
 } servers_publish_data_id_e;
 
+typedef enum {
+    OLD_PUBLISH_DATA_POLL_REPORT,                   /// 轮询上报
+    OLD_PUBLISH_DATA_PUMP_LEVEL_CHANGE = 1,      /// 泵等级变化
+    OLD_PUBLISH_DATA_PUMP_SPEED_CHANGE = 2,      /// 泵速变化
+    OLD_PUBLISH_DATA_PUMP_MODE_CHANGE = 3,       /// 泵模式变化
+    OLD_PUBLISH_DATA_PUMP_STEP_MODE_CHANGE = 4,  /// 步骤模式变化
+    OLD_PUBLISH_DATA_PUMP_STEP_LEVEL_CHANGE = 5, /// 步骤等级变化
+    OLD_PUBLISH_DATA_PUMP_STEP_SPEED_CHANGE = 6, /// 步骤速率变化
+    OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE = 7, /// 步骤所有参数变化
+    OLD_PUBLISH_DATA_BATTARNG_CHANGE = 8,         /// 电池电量变化
+    OLD_PUBLISH_DATA_SYSTEM_STATUS_CHANGE = 9,    /// 系统状态变化
+    OLD_PUBLISH_DATA_ID_MAX
+} servers_old_protocol_publish_data_id_e;
+
 typedef struct {
     int arg1;
     int arg2;

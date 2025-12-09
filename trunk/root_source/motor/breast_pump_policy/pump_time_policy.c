@@ -102,7 +102,7 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
         servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
         EXCEPTION_CHECK_INT(servers_ctx && servers_ctx->hook);
         servers_publish_data_args_t args = {
-            .arg1 = 0,
+            .arg1 = OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE,
             .arg2 = 0,
             .val = NULL,
         };

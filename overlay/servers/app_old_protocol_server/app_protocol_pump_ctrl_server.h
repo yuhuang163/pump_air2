@@ -55,7 +55,7 @@ typedef struct {
 
 //pump_ctrl
 void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab);
-void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct);
+void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_old_protocol_publish_data_id_e id, void *val);
 void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct);
 void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab);
