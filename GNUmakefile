@@ -92,9 +92,13 @@ UI_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/ui -type d)
 # UI 头文件
 UI_INC_FLAGS := $(patsubst %,-I%,$(UI_INC_DIRS))
 # UI 源码目录
-UI_DIR := $(PROJECT_ROOT)/overlay/ui
-# UI 源码文件
-UI_SRCS := $(call rwildcard,$(UI_DIR))
+UI_LCD_UART_DIR := $(PROJECT_ROOT)/overlay/ui/lcd_uart_ui
+# UI LCD UART 源码文件
+UI_LCD_UART_SRCS := $(call rwildcard,$(UI_LCD_UART_DIR))
+# UI LCD Direct 源码目录
+UI_LCD_DIRECT_DIR := $(PROJECT_ROOT)/overlay/ui/lcd_direct_ui
+# UI LCD Direct 源码文件
+UI_LCD_DIRECT_SRCS := $(call rwildcard,$(UI_LCD_DIRECT_DIR))
 
 # Protocol 头文件子目录
 PROTOCOL_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/protocol -type d)
@@ -756,9 +760,10 @@ INPUT_KEY_MODULE_SRCS := \
 
 # UI 模块源码
 UI_MODULE_SRCS := \
-	$(UI_SRCS) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c)
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/ui/*.c) \
+	$(UI_LCD_UART_SRCS)
 
 # 窗口模块源码
 WINDOWS_MODULE_SRCS := \
@@ -1015,7 +1020,6 @@ firmware:
 		OTA_BIN_COMPRESSED=1 \
 		OTA_CODE_OFFSET=0x66000 \
 		OTA_BOOT_INFO_OFFSET=0x62000 \
-		PSRAM_XCCELA_MODE=1 \
 		LVGL_TEST=$(CFG_LVGL_ENABLE) \
 		LVGL_NO_TOUCHSCREEN=1 \
 		DISPLAY_LCD=st77916 \

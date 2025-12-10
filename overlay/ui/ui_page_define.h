@@ -22,6 +22,11 @@ void ui_fill_battery_status(lcd_tlvs_t *tlv);
 void ui_fill_charge_status(lcd_tlvs_t *tlv);
 void ui_fill_img_id(lcd_tlvs_t *tlv, uint16_t img_id);
 
+/// 系统页面
+int ui_display_process_logo(ui_manager_context_t *thiz, ui_animation_play_t *ani);
+int ui_display_process_boot_qrcode(ui_manager_context_t *thiz, ui_animation_play_t *ani);
+int ui_display_process_unlock_tip(ui_manager_context_t *thiz, ui_animation_play_t *ani);
+
 /// 电池页面
 int ui_display_charge_screen(ui_manager_context_t *thiz, ui_animation_play_t *ani);
 
@@ -33,6 +38,7 @@ int ui_display_pump_complete_tip(ui_manager_context_t *thiz, ui_animation_play_t
 int ui_display_pump_mode(ui_manager_context_t *thiz, ui_animation_play_t *ani);
 int ui_display_chasing_milk_mode(ui_manager_context_t *thiz, ui_animation_play_t *ani);
 int ui_display_pump_speed(ui_manager_context_t *thiz, ui_animation_play_t *ani);
+
 #ifdef __cplusplus
 }
 #endif

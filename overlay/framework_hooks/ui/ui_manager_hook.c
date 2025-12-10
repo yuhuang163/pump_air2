@@ -19,6 +19,18 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_LVGL
+static lv_obj_t *qrcode;
+#define QRSTR_COUNT   6
+static const char *system_qr_str[QRSTR_COUNT] = {
+    "https://lvgl.io",
+    "AAAAAAAAAAAAAAAA",
+    "Hello World!",
+    "LVGL IMAGES",
+    "BES",
+    "OK, All is done!",
+};
+#endif
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -29,30 +41,11 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void reset_play_count_cb(ui_animation_play_t *play)
-{
-    play->played_count = 0;
-}
-
-static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info_t play_info)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    thiz->play_animation_lock(play_info.tag);
-    ui_animation_play_t *ani = &thiz->priv.play_info;
-    ani->played_count = 0;
-    ani->user_data = play_info.user_data;
-    ani->res_array = (uint16_t *)play_info.res_array;
-    ani->res_count = play_info.res_count;
-    ani->progress_cb = play_info.progress_cb;
-    ani->tag = (char *)play_info.tag;
-    ani->reset_play_count_cb = reset_play_count_cb;
-    thiz->play_animation_unlock(play_info.tag);
-}
-
 static void lvgl_display_handler(struct ui_manager_context *thiz)
 {
 #if IS_SUPPORT_LVGL
-    msleep(lv_timer_handler());
+    uint32_t ms_till_next = lv_timer_handler();
+    msleep(ms_till_next);
 #else
     uint8_t msg = 0;
     MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id, &msg, OS_WAIT_FOREVER);
@@ -75,7 +68,8 @@ HANDLER_EXIT:
 #if IS_SUPPORT_LVGL
 static void change_images_cb(lv_timer_t *t)
 {
-    ui_manager_context_t *ui_ctx = (ui_manager_context_t *)t->user_data;
+#if 0
+    ui_manager_context_t *ui_ctx = (ui_manager_context_t *)lv_timer_get_user_data(t);
     EXCEPTION_CHECK_VOID(ui_ctx);
     ui_ctx->play_animation_lock(NULL);
     ui_animation_play_t *ani = &ui_ctx->priv.play_info;
@@ -91,6 +85,11 @@ static void change_images_cb(lv_timer_t *t)
     ani->played_count++;
 HANDLER_EXIT:
     ui_ctx->play_animation_unlock(NULL);
+#else
+    static uint32_t index = 0;
+    lv_qrcode_update(qrcode, system_qr_str[index % QRSTR_COUNT], strlen(system_qr_str[index % QRSTR_COUNT]));
+    index++;
+#endif
 }
 #else
 static void lv_tick_timer_handler(void *args)
@@ -101,6 +100,46 @@ static void lv_tick_timer_handler(void *args)
 }
 #endif
 
+static void reset_play_count_cb(ui_animation_play_t *play)
+{
+    play->played_count = 0;
+}
+
+static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info_t play_info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    thiz->play_animation_lock(play_info.tag);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    ani->played_count = 0;
+    ani->user_data = play_info.user_data;
+    ani->res_array = (uint16_t *)play_info.res_array;
+    ani->res_count = play_info.res_count;
+    ani->progress_cb = play_info.progress_cb;
+    ani->tag = (char *)play_info.tag;
+    ani->reset_play_count_cb = reset_play_count_cb;
+    thiz->play_animation_unlock(play_info.tag);
+#if IS_SUPPORT_LVGL
+    uint32_t period = 1000 / play_info.fps;
+    if (period < 10) {
+        period = 10;
+    }
+    thiz->priv.lv_timer = lv_timer_create(change_images_cb, period, thiz);
+    lv_timer_ready(thiz->priv.lv_timer);
+#endif
+}
+
+static void ui_animation_play_deinit(struct ui_manager_context *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    thiz->play_animation_lock(NULL);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    memset(ani, 0, sizeof(ui_animation_play_t));
+    thiz->play_animation_unlock(NULL);
+#if IS_SUPPORT_LVGL
+    lv_timer_delete(thiz->priv.lv_timer);
+#endif
+}
+
 static void ui_thread_init_route(struct ui_manager_context *thiz)
 {
 #if IS_SUPPORT_LVGL
@@ -108,15 +147,26 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
     lv_tick_set_cb(get_sys_time_ms);
     lv_delay_set_cb(msleep);
     lv_hal_disp_init();
-    lv_timer_t * t = lv_timer_create(change_images_cb, 200, thiz);
+
+    lv_color_t bg_color = lv_palette_lighten(LV_PALETTE_LIGHT_BLUE, 5);
+    lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
+    qrcode = lv_qrcode_create(lv_screen_active());
+    lv_qrcode_set_size(qrcode, 120);
+    lv_qrcode_set_dark_color(qrcode, fg_color);
+    lv_qrcode_set_light_color(qrcode, bg_color);
+    lv_obj_align(qrcode, LV_ALIGN_CENTER, 120, -80);
+    lv_obj_set_style_border_color(qrcode, bg_color, 0);
+    lv_obj_set_style_border_width(qrcode, 5, 0);
+
+    lv_qrcode_update(qrcode, system_qr_str[0], strlen(system_qr_str[0]));
+    lv_timer_t * t = lv_timer_create(change_images_cb, 200, NULL);
     lv_timer_ready(t);
 #else
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
-    CREATE_TIMER(&thiz->priv.lv_tick_timer, "lv_tick_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);
-    START_TIMER(thiz->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
+    CREATE_TIMER(&thiz->priv.lv_timer, "lv_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);
+    START_TIMER(thiz->priv.lv_timer, LVGL_TIME_TICK_PERIOD);
 #endif
 }
-
 
 static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
@@ -145,20 +195,20 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == ID_SYS_PM_SUSPEND) {
                 ui->priv.is_playing_ui_animation = false;
-            #if IS_SUPPORT_LVGL
-                THREAD_SUSPEND(ui->priv.ui_hdr_thd.tid);
-            #else
-                STOP_TIMER(ui->priv.lv_tick_timer);
-            #endif
+                #if IS_SUPPORT_LVGL
+                    THREAD_SUSPEND(ui->priv.ui_hdr_thd.tid);
+                #else
+                    STOP_TIMER(ui->priv.lv_timer);
+                #endif
                 ui->priv.lv_tick_timer_running = false;
             }
             else {
-            #if IS_SUPPORT_LVGL
-                THREAD_RESUME(ui->priv.ui_hdr_thd.tid);
-            #else
-                STOP_TIMER(ui->priv.lv_tick_timer);
-                START_TIMER(ui->priv.lv_tick_timer, LVGL_TIME_TICK_PERIOD);
-            #endif
+                #if IS_SUPPORT_LVGL
+                    THREAD_RESUME(ui->priv.ui_hdr_thd.tid);
+                #else
+                    STOP_TIMER(ui->priv.lv_timer);
+                    START_TIMER(ui->priv.lv_timer, LVGL_TIME_TICK_PERIOD);
+                #endif
                 ui->priv.lv_tick_timer_running = true;
             }
             break;
@@ -267,6 +317,7 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->on_post_init_route = on_post_ui_init_route;
     ctx->hook->on_perpare_init_route = on_perpare_ui_init_route;
     ctx->hook->ui_animation_play_init = ui_animation_play_init;
+    ctx->hook->ui_animation_play_deinit = ui_animation_play_deinit;
     ctx->hook->ui_thread_init_route = ui_thread_init_route;
     ctx->hook->lvgl_display_handler = lvgl_display_handler;
     ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
