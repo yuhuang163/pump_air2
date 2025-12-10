@@ -2,13 +2,10 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "cmsis_os_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h" // IWYU pragma: keep
-#if IS_SUPPORT_LVGL
-#include "lvgl.h"
-#include "lv_hal_disp.h"
-#include "lv_hal_indev.h"
-#endif
+#include "ui_manager_api.h"
 
 /*
 * DEFINES
@@ -19,18 +16,7 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-#if IS_SUPPORT_LVGL
-static lv_obj_t *qrcode;
-#define QRSTR_COUNT   6
-static const char *system_qr_str[QRSTR_COUNT] = {
-    "https://lvgl.io",
-    "AAAAAAAAAAAAAAAA",
-    "Hello World!",
-    "LVGL IMAGES",
-    "BES",
-    "OK, All is done!",
-};
-#endif
+static ui_manager_context_t *ui_ctx = NULL;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -85,6 +71,7 @@ static void change_images_cb(lv_timer_t *t)
     ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
     ani->played_count++;
 HANDLER_EXIT:
+    LOGI("change_images_cb");
     ui_ctx->play_animation_unlock(NULL);
 }
 #else
@@ -123,9 +110,9 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     if (period < 10) {
         period = 10;
     }
-    thiz->priv.lv_timer = lv_timer_create(change_images_cb, period, thiz);
-    lv_timer_ready(thiz->priv.lv_timer);
+    lv_timer_set_period(thiz->priv.lv_timer, lvgl_time_period_to_ms(period));
 #endif
+    LOGI("%s, period: %d", play_info.tag, period);
     thiz->play_animation_unlock(play_info.tag);
 }
 
@@ -138,9 +125,7 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
     if (ani->display_remove_cb) {
         ani->display_remove_cb(thiz);
     }
-#if IS_SUPPORT_LVGL
-    lv_timer_delete(thiz->priv.lv_timer);
-#endif
+    LOGI("ui_animation_play_deinit");
     thiz->play_animation_unlock(NULL);
 }
 
@@ -148,24 +133,12 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
 {
 #if IS_SUPPORT_LVGL
     lv_init();
-    lv_tick_set_cb(get_sys_time_ms);
+    lv_tick_set_cb(get_lvgl_time_ms);
     lv_delay_set_cb(msleep);
     lv_hal_disp_init();
-#if 0
-    lv_color_t bg_color = lv_palette_lighten(LV_PALETTE_LIGHT_BLUE, 5);
-    lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
-    qrcode = lv_qrcode_create(lv_screen_active());
-    lv_qrcode_set_size(qrcode, 120);
-    lv_qrcode_set_dark_color(qrcode, fg_color);
-    lv_qrcode_set_light_color(qrcode, bg_color);
-    lv_obj_align(qrcode, LV_ALIGN_CENTER, 120, -80);
-    lv_obj_set_style_border_color(qrcode, bg_color, 0);
-    lv_obj_set_style_border_width(qrcode, 5, 0);
-
-    lv_qrcode_update(qrcode, system_qr_str[0], strlen(system_qr_str[0]));
-    lv_timer_t * t = lv_timer_create(change_images_cb, 200, NULL);
-    lv_timer_ready(t);
-#endif
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_make(0,0,0), LV_PART_MAIN);
+    thiz->priv.lv_timer = lv_timer_create(change_images_cb, lvgl_time_period_to_ms(200) , thiz);
+    lv_timer_ready(thiz->priv.lv_timer);
 #else
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
     CREATE_TIMER(&thiz->priv.lv_timer, "lv_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);

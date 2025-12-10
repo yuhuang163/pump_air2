@@ -15,10 +15,18 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-/// 系统页面
-int ui_display_process_logo(ui_manager_context_t *thiz, ui_animation_play_t *ani);
-int ui_display_process_boot_qrcode(ui_manager_context_t *thiz, ui_animation_play_t *ani);
-int ui_display_process_unlock_tip(ui_manager_context_t *thiz, ui_animation_play_t *ani);
+/// 开机LOGO页面
+void ui_display_logo_prepare(ui_manager_context_t *thiz);
+void ui_display_logo_remove(ui_manager_context_t *thiz);
+int ui_display_process_logo(ui_manager_context_t *thiz);
+/// 开机二维码页面
+void ui_display_boot_qrcode_prepare(ui_manager_context_t *thiz);
+void ui_display_boot_qrcode_remove(ui_manager_context_t *thiz);
+int ui_display_process_boot_qrcode(ui_manager_context_t *thiz);
+/// 解锁提示页面
+void ui_display_unlock_tip_prepare(ui_manager_context_t *thiz);
+void ui_display_unlock_tip_remove(ui_manager_context_t *thiz);
+int ui_display_process_unlock_tip(ui_manager_context_t *thiz);
 #ifdef __cplusplus
 }
 #endif

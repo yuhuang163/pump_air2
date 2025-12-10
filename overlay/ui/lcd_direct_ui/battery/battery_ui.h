@@ -15,8 +15,12 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-/// 电池页面
-int ui_display_charge_screen(ui_manager_context_t *thiz, ui_animation_play_t *ani);
+
+/// 充电中页面
+void ui_display_charge_screen_prepare(ui_manager_context_t *thiz);
+void ui_display_charge_screen_remove(ui_manager_context_t *thiz);
+int ui_display_charge_screen(ui_manager_context_t *thiz);
+
 #ifdef __cplusplus
 }
 #endif

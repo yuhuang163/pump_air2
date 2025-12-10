@@ -58,7 +58,12 @@ uint32_t get_timestamp_ms(uint32_t time_tick)
     return TICKS_TO_MS(offset);
 }
 
-uint32_t get_sys_time_ms(void)
+uint32_t get_lvgl_time_ms(void)
 {
-    return TICKS_TO_MS(hal_sys_timer_get());
+    return get_timestamp_ms(0);
+}
+
+uint32_t lvgl_time_period_to_ms(uint32_t time_period)
+{
+    return time_period / 2;
 }

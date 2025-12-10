@@ -13,7 +13,9 @@ extern "C" {
 #include "broadcast_manager_api.h" // IWYU pragma: keep
 #include "root_message.h" // IWYU pragma: keep
 #if IS_SUPPORT_LVGL
-#include "lvgl.h" // IWYU pragma: keep
+#include "lvgl.h"
+#include "lv_hal_disp.h"
+#include "lv_hal_indev.h"
 #endif
 
 #ifndef LVGL_TIME_TICK_PERIOD

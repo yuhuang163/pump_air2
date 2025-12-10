@@ -5,8 +5,9 @@
 #include "motor_manager_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"
-#include "ui_page_define.h"
-
+#include "system_ui.h"
+#include "battery_ui.h"
+#include "ble_ui.h"
 /*
 * DEFINES
 *****************************************************************************************
@@ -61,7 +62,6 @@ static void ui_fill_pump_mode(lcd_tlvs_t *tlv, uint8_t mode)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
 void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
 {
     // LOGI("ui_display_pump_home_screen_prepare");
