@@ -198,7 +198,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             }
             blink_info.led_index = PUMP_BREASTFEEDING_BL;
             proc->ui->hook->set_led_blink(proc->ui, blink_info);
-            switch_pump_breastfeeding_mode_ui(proc, pump, &pump_info);
+            switch_breastfeeding_mode_ui(proc, pump, &pump_info);
             break;
         case KEY_CODE_LEFT_CONTROL:
             blink_info.led_index = PUMP_LEFT_CONTROL_BL;

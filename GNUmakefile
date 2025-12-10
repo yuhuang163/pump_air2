@@ -762,8 +762,13 @@ INPUT_KEY_MODULE_SRCS := \
 UI_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/ui/*.c) \
-	$(UI_LCD_UART_SRCS)
+	$(wildcard $(PROJECT_ROOT)/overlay/ui/*.c) 
+	
+ifeq ($(CFG_LVGL_ENABLE), 1)
+UI_MODULE_SRCS += $(UI_LCD_DIRECT_SRCS)
+else
+UI_MODULE_SRCS += $(UI_LCD_UART_SRCS)
+endif
 
 # 窗口模块源码
 WINDOWS_MODULE_SRCS := \

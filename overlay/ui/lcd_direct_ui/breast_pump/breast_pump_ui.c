@@ -61,7 +61,7 @@ int ui_display_pump_mode(ui_manager_context_t *thiz, ui_animation_play_t *ani)
     return 0;
 }
 
-int ui_display_chasing_milk_mode(ui_manager_context_t *thiz, ui_animation_play_t *ani)
+int ui_display_breastfeeding_mode(ui_manager_context_t *thiz, ui_animation_play_t *ani)
 {
     return 0;
 }

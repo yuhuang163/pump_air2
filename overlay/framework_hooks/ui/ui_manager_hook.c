@@ -58,7 +58,8 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
         }
         goto HANDLER_EXIT;
     }
-    img_display_handler(thiz, ani);
+    ani->progress_cb(thiz, ani->played_count, ANI_TIMER_DRAW_BEFORE);
+    ani->progress_cb(thiz, ani->played_count, ANI_TIMER_DRAW_AFTER);
     ani->played_count++;
 HANDLER_EXIT:
     thiz->play_animation_unlock(NULL);
@@ -68,7 +69,7 @@ HANDLER_EXIT:
 #if IS_SUPPORT_LVGL
 static void change_images_cb(lv_timer_t *t)
 {
-#if 0
+#if 1
     ui_manager_context_t *ui_ctx = (ui_manager_context_t *)lv_timer_get_user_data(t);
     EXCEPTION_CHECK_VOID(ui_ctx);
     ui_ctx->play_animation_lock(NULL);
@@ -147,7 +148,7 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
     lv_tick_set_cb(get_sys_time_ms);
     lv_delay_set_cb(msleep);
     lv_hal_disp_init();
-
+#if 0
     lv_color_t bg_color = lv_palette_lighten(LV_PALETTE_LIGHT_BLUE, 5);
     lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
     qrcode = lv_qrcode_create(lv_screen_active());
@@ -161,6 +162,7 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
     lv_qrcode_update(qrcode, system_qr_str[0], strlen(system_qr_str[0]));
     lv_timer_t * t = lv_timer_create(change_images_cb, 200, NULL);
     lv_timer_ready(t);
+#endif
 #else
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
     CREATE_TIMER(&thiz->priv.lv_timer, "lv_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);

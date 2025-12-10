@@ -109,13 +109,15 @@ int switch_pump_common_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context
 int switch_pump_night_light_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump);
 int switch_pump_status_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, int status);
 int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
-int switch_pump_breastfeeding_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
+int switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
 int switch_pump_control_type_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, uint8_t control_type);
 int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info, uint8_t is_left);
 void show_pump_progress_time_policy(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump);
-void pumping_ui_hdr_remove(void);
-void pump_setting_ui_hdr_remove(void);
+void pump_result_ui_hdr_remove(void);
+void pump_level_ui_hdr_remove(void);
+void pump_speed_ui_hdr_remove(void);
 void pump_mode_ui_hdr_remove(void);
+void breastfeeding_mode_ui_hdr_remove(void);
 void stop_pump_ui_animation(ui_proc_pump_t *proc);
 #ifdef __cplusplus
 }
