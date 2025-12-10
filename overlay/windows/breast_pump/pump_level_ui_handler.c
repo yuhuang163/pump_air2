@@ -77,9 +77,9 @@ static void pump_level_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (proc->current_ui_type == PUMP_UI_TYPE_LEFT_LEVEL) {
-        ui_display_pump_left_level(ui, &ui->priv.play_info);
+        ui_display_pump_left_level(ui);
     } else if (proc->current_ui_type == PUMP_UI_TYPE_RIGHT_LEVEL) {
-        ui_display_pump_right_level(ui, &ui->priv.play_info);
+        ui_display_pump_right_level(ui);
     }
 }
 
@@ -101,6 +101,34 @@ static void pump_level_animation_progress_cb(void *user_data, int index, ui_ani_
     }
 }
 
+static void pump_left_level_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_left_level_prepare(ui);
+}
+
+static void pump_left_level_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_left_level_remove(ui);
+}
+
+static void pump_right_level_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_right_level_prepare(ui);
+}
+
+static void pump_right_level_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_right_level_remove(ui);
+}
+
 static void show_pump_level_ui(ui_proc_pump_t *proc, pump_ui_type_e ui_type)
 {
     ui_manager_context_t *ui = proc->ui;
@@ -110,14 +138,20 @@ static void show_pump_level_ui(ui_proc_pump_t *proc, pump_ui_type_e ui_type)
         .fps = PUMP_ANIMATION_FREQ,
         .res_count = 1,
         .progress_cb = pump_level_animation_progress_cb,
+        .display_prepare_cb = NULL,
+        .display_remove_cb = NULL,
         .user_data = proc,
     };
 
     /// 根据UI类型设置资源数组.
     if (ui_type == PUMP_UI_TYPE_LEFT_LEVEL) {
         play_info.res_array = (uint16_t *)s_pump_left_level_res_array;
+        play_info.display_prepare_cb = pump_left_level_ui_display_prepare;
+        play_info.display_remove_cb = pump_left_level_ui_display_remove;
     } else if (ui_type == PUMP_UI_TYPE_RIGHT_LEVEL) {
         play_info.res_array = (uint16_t *)s_pump_right_level_res_array;
+        play_info.display_prepare_cb = pump_right_level_ui_display_prepare;
+        play_info.display_remove_cb = pump_right_level_ui_display_remove;
     } else {
         return;
     }

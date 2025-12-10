@@ -3,7 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include "ui_display.h" // IWYU pragma: keep
+#include "ui_img_define.h" // IWYU pragma: keep
 #if IS_SUPPORT_LVGL
 #include "lvgl.h"
 #include "lv_hal_disp.h"
@@ -69,7 +69,6 @@ HANDLER_EXIT:
 #if IS_SUPPORT_LVGL
 static void change_images_cb(lv_timer_t *t)
 {
-#if 1
     ui_manager_context_t *ui_ctx = (ui_manager_context_t *)lv_timer_get_user_data(t);
     EXCEPTION_CHECK_VOID(ui_ctx);
     ui_ctx->play_animation_lock(NULL);
@@ -82,15 +81,11 @@ static void change_images_cb(lv_timer_t *t)
         ui_ctx->play_animation_unlock(NULL);
         return;
     }
-    img_display_handler(ui_ctx, ani);
+    ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_BEFORE);
+    ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
     ani->played_count++;
 HANDLER_EXIT:
     ui_ctx->play_animation_unlock(NULL);
-#else
-    static uint32_t index = 0;
-    lv_qrcode_update(qrcode, system_qr_str[index % QRSTR_COUNT], strlen(system_qr_str[index % QRSTR_COUNT]));
-    index++;
-#endif
 }
 #else
 static void lv_tick_timer_handler(void *args)
@@ -118,7 +113,11 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     ani->progress_cb = play_info.progress_cb;
     ani->tag = (char *)play_info.tag;
     ani->reset_play_count_cb = reset_play_count_cb;
-    thiz->play_animation_unlock(play_info.tag);
+    ani->display_prepare_cb = play_info.display_prepare_cb;
+    ani->display_remove_cb = play_info.display_remove_cb;
+    if (ani->display_prepare_cb) {
+        ani->display_prepare_cb(thiz);
+    }
 #if IS_SUPPORT_LVGL
     uint32_t period = 1000 / play_info.fps;
     if (period < 10) {
@@ -127,6 +126,7 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     thiz->priv.lv_timer = lv_timer_create(change_images_cb, period, thiz);
     lv_timer_ready(thiz->priv.lv_timer);
 #endif
+    thiz->play_animation_unlock(play_info.tag);
 }
 
 static void ui_animation_play_deinit(struct ui_manager_context *thiz)
@@ -135,10 +135,13 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
     thiz->play_animation_lock(NULL);
     ui_animation_play_t *ani = &thiz->priv.play_info;
     memset(ani, 0, sizeof(ui_animation_play_t));
-    thiz->play_animation_unlock(NULL);
+    if (ani->display_remove_cb) {
+        ani->display_remove_cb(thiz);
+    }
 #if IS_SUPPORT_LVGL
     lv_timer_delete(thiz->priv.lv_timer);
 #endif
+    thiz->play_animation_unlock(NULL);
 }
 
 static void ui_thread_init_route(struct ui_manager_context *thiz)

@@ -87,11 +87,15 @@ BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost 
 # BLE 头文件
 BLE_INC_FLAGS := $(patsubst %,-I%,$(BLE_INC_DIRS))
 
-# UI 头文件子目录
-UI_INC_DIRS := $(shell find $(PROJECT_ROOT)/overlay/ui -type d)
-# UI 头文件
-UI_INC_FLAGS := $(patsubst %,-I%,$(UI_INC_DIRS))
-# UI 源码目录
+# UI UART 头文件子目录
+UI_INC_UART_DIRS := $(shell find $(PROJECT_ROOT)/overlay/ui/lcd_uart_ui -type d)
+# UI UART 头文件
+UI_INC_UART_FLAGS := $(patsubst %,-I%,$(UI_INC_UART_DIRS))
+# UI Direct 头文件子目录
+UI_INC_DIRECT_DIRS := $(shell find $(PROJECT_ROOT)/overlay/ui/lcd_direct_ui -type d)
+# UI Direct 头文件
+UI_INC_DIRECT_FLAGS := $(patsubst %,-I%,$(UI_INC_DIRECT_DIRS))
+# UI UART 源码目录
 UI_LCD_UART_DIR := $(PROJECT_ROOT)/overlay/ui/lcd_uart_ui
 # UI LCD UART 源码文件
 UI_LCD_UART_SRCS := $(call rwildcard,$(UI_LCD_UART_DIR))
@@ -362,9 +366,15 @@ INPUT_KEY_INC_FLAGS := \
 
 # UI 模块头文件
 UI_MODULE_INC_FLAGS := \
-	$(UI_INC_FLAGS) \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/ui \
+	-I$(PROJECT_ROOT)/overlay/ui \
 	-I$(PROJECT_ROOT)/trunk/root_source/ui
+
+ifeq ($(CFG_LVGL_ENABLE),1)
+UI_MODULE_INC_FLAGS += $(UI_INC_DIRECT_FLAGS)
+else
+UI_MODULE_INC_FLAGS += $(UI_INC_UART_FLAGS)
+endif
 
 # 窗口模块头文件
 WINDOWS_INC_FLAGS := \

@@ -64,7 +64,7 @@ static void pump_speed_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void pump_speed_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_pump_speed(ui, &ui->priv.play_info);
+    ui_display_pump_speed(ui);
 }
 
 static void pump_speed_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -85,6 +85,20 @@ static void pump_speed_animation_progress_cb(void *user_data, int index, ui_ani_
         default:
             break;
     }
+}
+
+static void pump_speed_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_speed_prepare(ui);
+}
+
+static void pump_speed_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_speed_remove(ui);
 }
 
 static void show_pump_speed_ui(ui_proc_pump_t *proc)

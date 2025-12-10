@@ -74,7 +74,7 @@ static void logo_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void logo_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_process_logo(ui, &ui->priv.play_info);
+    ui_display_process_logo(ui);
 }
 
 static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -96,6 +96,20 @@ static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progre
     }
 }
 
+static void logo_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_logo_prepare(ui);
+}
+
+static void logo_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_logo_remove(ui);
+}
+
 static void show_logo_ui(ui_proc_logo_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
@@ -106,6 +120,8 @@ static void show_logo_ui(ui_proc_logo_t *proc)
         .res_array = (uint16_t *)s_logo_screen_res_array,
         .res_count = LENGTH_OF_ARRAY(s_logo_screen_res_array),
         .progress_cb = logo_animation_progress_cb,
+        .display_prepare_cb = logo_ui_display_prepare,
+        .display_remove_cb = logo_ui_display_remove,
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);

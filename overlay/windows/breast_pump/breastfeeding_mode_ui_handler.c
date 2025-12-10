@@ -63,7 +63,7 @@ static void breastfeeding_mode_ui_before_policy(ui_manager_context_t *ui, int in
 
 static void breastfeeding_mode_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_breastfeeding_mode(ui, &ui->priv.play_info);
+    ui_display_breastfeeding_mode(ui);
 }
 
 static void breastfeeding_mode_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -86,6 +86,20 @@ static void breastfeeding_mode_animation_progress_cb(void *user_data, int index,
     }
 }
 
+static void breastfeeding_mode_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_breastfeeding_mode_prepare(ui);
+}
+
+static void breastfeeding_mode_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_breastfeeding_mode_remove(ui);
+}
+
 static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
@@ -96,6 +110,8 @@ static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
         .res_array = (uint16_t *)s_breastfeeding_mode_res_array,
         .res_count = 1,
         .progress_cb = breastfeeding_mode_animation_progress_cb,
+        .display_prepare_cb = breastfeeding_mode_ui_display_prepare,
+        .display_remove_cb = breastfeeding_mode_ui_display_remove,
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);

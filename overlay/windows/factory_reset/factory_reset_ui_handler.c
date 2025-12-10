@@ -64,6 +64,20 @@ static void factory_reset_animation_progress_cb(void *user_data, int index, ui_a
     }
 }
 
+static void factory_reset_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    // ui_display_factory_reset_screen_prepare(ui);
+}
+
+static void factory_reset_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    // ui_display_factory_reset_screen_remove(ui);
+}
+
 static void show_factory_reset_ui(ui_proc_factory_reset_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
@@ -74,6 +88,8 @@ static void show_factory_reset_ui(ui_proc_factory_reset_t *proc)
         .res_array = (uint16_t *)s_factory_reset_screen_res_array,
         .res_count = LENGTH_OF_ARRAY(s_factory_reset_screen_res_array),
         .progress_cb = factory_reset_animation_progress_cb,
+        .display_prepare_cb = factory_reset_ui_display_prepare,
+        .display_remove_cb = factory_reset_ui_display_remove,
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);
