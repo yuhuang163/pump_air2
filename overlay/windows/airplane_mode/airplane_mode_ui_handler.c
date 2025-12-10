@@ -83,7 +83,7 @@ static void airplane_mode_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void airplane_mode_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_process_unlock_tip(ui, &ui->priv.play_info);
+    ui_display_process_unlock_tip(ui);
 }
 
 static void airplane_mode_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -106,6 +106,20 @@ static void airplane_mode_animation_progress_cb(void *user_data, int index, ui_a
     }
 }
 
+static void airplane_mode_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_unlock_tip_prepare(ui);
+}
+
+static void airplane_mode_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_unlock_tip_remove(ui);
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -120,6 +134,8 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
         .res_array = (uint16_t *)s_airplane_mode_res_array,
         .res_count = 1,
         .progress_cb = airplane_mode_animation_progress_cb,
+        .display_prepare_cb = airplane_mode_ui_display_prepare,
+        .display_remove_cb = airplane_mode_ui_display_remove,
         .user_data = proc,
     };
     EXCEPTION_CHECK_VOID(proc->wm->priv.misc);

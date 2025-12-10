@@ -36,8 +36,21 @@ void ui_fill_img_id(lcd_tlvs_t *tlv, uint16_t img_id)
     tlv->data[0] = img_id;
 }
 
-int ui_display_process_logo(ui_manager_context_t *thiz, ui_animation_play_t *ani)
+
+void ui_display_logo_prepare(ui_manager_context_t *thiz)
 {
+    // LOGI("ui_display_logo_prepare");
+}
+
+void ui_display_logo_remove(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_logo_remove");
+}
+
+int ui_display_process_logo(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
     lcd_tlvs_msg_t msg = {
         .srv_id = LCD_DISPLAY_EVENT_SRV,
         .tlvs = u_malloz(sizeof(lcd_tlvs_t)),
@@ -51,8 +64,20 @@ int ui_display_process_logo(ui_manager_context_t *thiz, ui_animation_play_t *ani
     return 0;
 }
 
-int ui_display_process_boot_qrcode(ui_manager_context_t *thiz, ui_animation_play_t *ani)
+void ui_display_boot_qrcode_prepare(ui_manager_context_t *thiz)
 {
+    // LOGI("ui_display_boot_qrcode_prepare");
+}
+
+void ui_display_boot_qrcode_remove(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_unlock_tip_prepare");
+}
+
+int ui_display_process_boot_qrcode(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
     lcd_tlvs_msg_t msg = {
         .srv_id = LCD_DISPLAY_EVENT_SRV,
         .tlvs = u_malloz(sizeof(lcd_tlvs_t)),
@@ -65,8 +90,20 @@ int ui_display_process_boot_qrcode(ui_manager_context_t *thiz, ui_animation_play
     return 0;
 }
 
-int ui_display_process_unlock_tip(ui_manager_context_t *thiz, ui_animation_play_t *ani)
+void ui_display_unlock_tip_prepare(ui_manager_context_t *thiz)
 {
+
+}
+
+void ui_display_unlock_tip_remove(ui_manager_context_t *thiz)
+{
+
+}
+
+int ui_display_process_unlock_tip(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
     lcd_tlvs_msg_t msg = {
         .srv_id = LCD_DISPLAY_EVENT_SRV,
         .tlvs = u_malloz(sizeof(lcd_tlvs_t)),

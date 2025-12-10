@@ -82,6 +82,19 @@ static void product_tests_ui_hdr_remove(void)
     REMOVE_TASK_HANDLER_DIRECTLY(PRODUCT_TESTS_HDR_TASK_NAME);
 }
 
+static void product_tests_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    // ui_display_product_tests_screen_prepare(ui);
+}
+
+static void product_tests_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    // ui_display_product_tests_screen_remove(ui);
+}
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -96,6 +109,8 @@ void show_product_tests_ui(ui_proc_product_test_t *proc)
         .res_array = (uint16_t *)s_product_tests_screen_res_array,
         .res_count = LENGTH_OF_ARRAY(s_product_tests_screen_res_array),
         .progress_cb = product_tests_animation_progress_cb,
+        .display_prepare_cb = product_tests_ui_display_prepare,
+        .display_remove_cb = product_tests_ui_display_remove,
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);

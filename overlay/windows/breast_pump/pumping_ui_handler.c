@@ -67,7 +67,7 @@ static void pumping_work_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void pumping_work_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_pump_home_screen(ui, &ui->priv.play_info);
+    ui_display_pump_home_screen(ui);
 }
 
 static void pumping_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -87,6 +87,20 @@ static void pumping_animation_progress_cb(void *user_data, int index, ui_ani_pro
         default:
             break;
     }
+}
+
+static void pumping_ui_display_prepare(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_home_screen_prepare(ui);
+}
+
+static void pumping_ui_display_remove(void *user_data)
+{
+    ui_manager_context_t *ui = user_data;
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_pump_home_screen_remove(ui);
 }
 
 /*

@@ -49,8 +49,21 @@ void ui_fill_charge_status(lcd_tlvs_t *tlv)
     }
 }
 
-int ui_display_charge_screen(ui_manager_context_t *thiz, ui_animation_play_t *ani)
+
+void ui_display_charge_screen_prepare(ui_manager_context_t *thiz)
 {
+    // LOGI("ui_display_charge_screen_prepare");
+}
+
+void ui_display_charge_screen_remove(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_charge_screen_remove");
+}
+
+int ui_display_charge_screen(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
     lcd_tlvs_msg_t msg = {
         .srv_id = LCD_DISPLAY_EVENT_SRV,
         .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 3),

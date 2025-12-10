@@ -73,7 +73,10 @@ typedef enum {
 
 /// 动画绘制进度回调.
 typedef void (*progress_cb_fptr)(void *user_data, int index, ui_ani_progress_state_e state);
-
+/// 动画绘制准备回调.
+typedef void (*display_prepare_cb_fptr)(void *user_data);
+/// 动画绘制移除回调.
+typedef void (*display_remove_cb_fptr)(void *user_data);
 /// 动画绘制信息.
 typedef struct ui_play_info {
     const char *tag;
@@ -83,6 +86,8 @@ typedef struct ui_play_info {
     int fps;
     ui_process_cb_parms_t *parms;
     progress_cb_fptr progress_cb;
+    display_prepare_cb_fptr display_prepare_cb;
+    display_remove_cb_fptr display_remove_cb;
 } ui_play_info_t;
 
 /// 图片数据包装.
@@ -122,7 +127,9 @@ typedef struct ui_animation_play {
     #endif
     ui_timer_t *update_timer;
     /// public:
-    void (*progress_cb)(void *user_data, int index, ui_ani_progress_state_e state);
+    progress_cb_fptr progress_cb;
+    display_prepare_cb_fptr display_prepare_cb;
+    display_remove_cb_fptr display_remove_cb;
     void (*reset_play_count_cb)(struct ui_animation_play *thiz);
 } ui_animation_play_t;
 
