@@ -68,12 +68,14 @@ int switch_pump_night_light_ui(ui_proc_pump_t *proc, breast_pump_manager_context
 
 void stop_pump_ui_animation(ui_proc_pump_t *proc)
 {
+    pump_result_ui_hdr_remove();
+    pump_level_ui_hdr_remove();
+    pump_speed_ui_hdr_remove();
+    pump_mode_ui_hdr_remove();
+    breastfeeding_mode_ui_hdr_remove();
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
     ui->hook->ui_animation_play_deinit(ui);
     ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();
-    pumping_ui_hdr_remove();
-    pump_setting_ui_hdr_remove();
-    pump_mode_ui_hdr_remove();
 }

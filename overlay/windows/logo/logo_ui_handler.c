@@ -2,8 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "window_screen_logo.h" // IWYU pragma: keep
 #include "ui_img_define.h"
+#include "ui_page_define.h" 
+#include "window_screen_logo.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -56,7 +57,7 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
     wm->dispatch_new_window_args(wm, &msg);
 }
 
-static void logo_ui_policy(ui_manager_context_t *ui)
+static void logo_ui_finished_policy(ui_manager_context_t *ui)
 {
     ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
@@ -66,17 +67,29 @@ static void logo_ui_policy(ui_manager_context_t *ui)
     }
 }
 
+static void logo_ui_before_policy(ui_manager_context_t *ui, int index)
+{
+
+}
+
+static void logo_ui_after_policy(ui_manager_context_t *ui, int index)
+{
+    ui_display_process_logo(ui, &ui->priv.play_info);
+}
+
 static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {
     static int ani_interval = 0;
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            logo_ui_policy(ui);
+            logo_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
+            logo_ui_before_policy(ui, index);
             break;
         case ANI_TIMER_DRAW_AFTER:
+            logo_ui_after_policy(ui, index);
             break;
         default:
             break;

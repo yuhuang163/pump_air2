@@ -38,7 +38,7 @@ static void product_tests_display_completed_cb(hdr_post_args_t *args)
     }
 }
 
-static void product_tests_ui_policy(ui_manager_context_t *ui)
+static void product_tests_ui_finished_policy(ui_manager_context_t *ui)
 {
     ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
@@ -48,9 +48,14 @@ static void product_tests_ui_policy(ui_manager_context_t *ui)
     }
 }
 
-static void product_tests_ui_hdr_remove(void)
+static void product_tests_ui_before_policy(ui_manager_context_t *ui, int index)
 {
-    REMOVE_TASK_HANDLER_DIRECTLY(PRODUCT_TESTS_HDR_TASK_NAME);
+
+}
+
+static void product_tests_ui_after_policy(ui_manager_context_t *ui, int index)
+{
+
 }
 
 static void product_tests_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -59,15 +64,22 @@ static void product_tests_animation_progress_cb(void *user_data, int index, ui_a
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            product_tests_ui_policy(ui);
+            product_tests_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
+            product_tests_ui_before_policy(ui, index);
             break;
         case ANI_TIMER_DRAW_AFTER:
+            product_tests_ui_after_policy(ui, index);
             break;
         default:
             break;
     }
+}
+
+static void product_tests_ui_hdr_remove(void)
+{
+    REMOVE_TASK_HANDLER_DIRECTLY(PRODUCT_TESTS_HDR_TASK_NAME);
 }
 
 /*

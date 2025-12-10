@@ -29,16 +29,35 @@ static const uint16_t s_factory_reset_screen_res_array[1] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+
+static void factory_reset_ui_finished_policy(ui_manager_context_t *ui)
+{
+
+}
+
+static void factory_reset_ui_before_policy(ui_manager_context_t *ui, int index)
+{
+
+}
+
+static void factory_reset_ui_after_policy(ui_manager_context_t *ui, int index)
+{
+
+}
+
 static void factory_reset_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {
     static int ani_interval = 0;
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
+            factory_reset_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
+            factory_reset_ui_before_policy(ui, index);
             break;
         case ANI_TIMER_DRAW_AFTER:
+            factory_reset_ui_after_policy(ui, index);
             break;
         default:
             break;

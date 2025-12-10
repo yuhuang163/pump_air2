@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "ui_img_define.h"
+#include "ui_page_define.h" 
 #include "window_screen_charge.h" // IWYU pragma: keep
 
 /*
@@ -28,7 +29,7 @@ static const uint16_t s_charging_res_array[1] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void charging_ui_policy(ui_manager_context_t *ui)
+static void charging_ui_finished_policy(ui_manager_context_t *ui)
 {
     ui_proc_charge_t *proc = (ui_proc_charge_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
@@ -44,17 +45,29 @@ static void charging_ui_policy(ui_manager_context_t *ui)
     }
 }
 
+static void charging_ui_before_policy(ui_manager_context_t *ui, int index)
+{
+
+}
+
+static void charging_ui_after_policy(ui_manager_context_t *ui, int index)
+{
+    ui_display_charge_screen(ui, &ui->priv.play_info);
+}
+
 static void charging_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            charging_ui_policy(ui);
+            charging_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
+            charging_ui_before_policy(ui, index);
             break;
         case ANI_TIMER_DRAW_AFTER:
+            charging_ui_after_policy(ui, index);
             break;
         default:
             break;
