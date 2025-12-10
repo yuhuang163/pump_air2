@@ -943,7 +943,13 @@ endif
 THIRDPARTY_ENABLE := 1
 export THIRDPARTY_LVGL_ENABLE := 1
 obj-y += ../../thirdparty/lvgl/
-ccflags-y += -Ithirdparty/lvgl/bes/ports
+ccflags-y += -Ithirdparty/lvgl 
+ccflags-y += -Ithirdparty/lvgl/src 
+ccflags-y += -Ithirdparty/lvgl/demos 
+ccflags-y += -Ithirdparty/lvgl/examples 
+ccflags-y += -Ithirdparty/lvgl/bes/ports 
+ccflags-y += -Ithirdparty/lvgl/bes/disp 
+ccflags-y += -Iplatform/drivers/graphic/lcd
 obj-y += ../../platform/drivers/graphic/
 endif
 

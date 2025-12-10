@@ -4,7 +4,6 @@
 */
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h" // IWYU pragma: keep
-#include "ui_page_define.h"
 
 /*
 * DEFINES

@@ -4,7 +4,8 @@
 */
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"
-#include "ui_page_define.h"
+#include "system_ui.h"
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -48,7 +49,6 @@ void ui_fill_charge_status(lcd_tlvs_t *tlv)
         tlv->data[0] = misc->get_charge_status();
     }
 }
-
 
 void ui_display_charge_screen_prepare(ui_manager_context_t *thiz)
 {

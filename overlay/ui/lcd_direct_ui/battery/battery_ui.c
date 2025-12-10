@@ -3,8 +3,8 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include "ui_img_define.h"
-#include "ui_page_define.h"
+#include "ui_img_define.h" // IWYU pragma: keep
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -29,7 +29,19 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int ui_display_charge_screen(ui_manager_context_t *thiz, ui_animation_play_t *ani)
+void ui_display_charge_screen_prepare(ui_manager_context_t *thiz)
 {
+
+}
+
+void ui_display_charge_screen_remove(ui_manager_context_t *thiz)
+{
+
+}
+
+int ui_display_charge_screen(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
     return 0;
 }

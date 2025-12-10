@@ -36,7 +36,6 @@ void ui_fill_img_id(lcd_tlvs_t *tlv, uint16_t img_id)
     tlv->data[0] = img_id;
 }
 
-
 void ui_display_logo_prepare(ui_manager_context_t *thiz)
 {
     // LOGI("ui_display_logo_prepare");
