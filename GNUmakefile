@@ -80,7 +80,7 @@ CFG_CUSTOM_BLE_SERVICE ?= 1
 CFG_OTA_EVENT_CALLBACK ?= 1
 
 # LVGL开关
-CFG_LVGL_ENABLE := 1
+CFG_LVGL_ENABLE := 0
 
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
@@ -763,7 +763,7 @@ UI_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ui/*.c) \
-	$(UI_LCD_DIRECT_SRCS)
+	$(UI_LCD_UART_SRCS)
 
 # 窗口模块源码
 WINDOWS_MODULE_SRCS := \

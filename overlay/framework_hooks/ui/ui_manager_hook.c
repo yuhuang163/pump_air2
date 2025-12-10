@@ -19,6 +19,7 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_LVGL
 static lv_obj_t *qrcode;
 #define QRSTR_COUNT   6
 static const char *system_qr_str[QRSTR_COUNT] = {
@@ -29,6 +30,7 @@ static const char *system_qr_str[QRSTR_COUNT] = {
     "BES",
     "OK, All is done!",
 };
+#endif
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
