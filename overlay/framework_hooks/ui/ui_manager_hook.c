@@ -111,8 +111,8 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
         period = 10;
     }
     lv_timer_set_period(thiz->priv.lv_timer, lvgl_time_period_to_ms(period));
-#endif
     LOGI("%s, period: %d", play_info.tag, period);
+#endif
     thiz->play_animation_unlock(play_info.tag);
 }
 
