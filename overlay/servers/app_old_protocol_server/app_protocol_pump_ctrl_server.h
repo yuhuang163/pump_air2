@@ -45,6 +45,19 @@ typedef enum {
     APP_OLD_COMM_MODE_MIX2 = 0x04,  // Mix2
 } app_old_comm_custom_pump_step_mode;
 
+typedef enum {
+    APP_OLD_COMM_TASTE_MODE_STIMULATION = 0x01, // 刺激模式
+    APP_OLD_COMM_TASTE_MODE_SUCTION = 0x02, // 吸奶模式
+    APP_OLD_COMM_TASTE_MODE_MIX1 = 0x03, // 混合模式
+    APP_OLD_COMM_TASTE_MODE_MIX2 = 0x04, // 混合模式
+} app_old_comm_taste_mode;
+
+typedef enum {
+    APP_OLD_COMM_TASTE_STATUS_STOP      = 0x00,
+    APP_OLD_COMM_TASTE_STATUS_RUN       = 0x01,
+    APP_OLD_COMM_TASTE_STATUS_EXIT      = 0x02,
+} app_old_comm_taste_status_ctrl_e;
+
 typedef struct {
     uint8_t pump_mode;
     uint8_t normal_pump_level;
@@ -54,6 +67,14 @@ typedef struct {
     uint8_t pump_mode_lr_or_all;
     uint8_t normal_pump_speed;
 } app_old_comm_pump_ctrl;
+
+/// 体验模式控制
+typedef struct {
+    uint8_t taste_status_ctrl; /// 0:停止 1:开始
+    uint8_t taste_pump_mode; /// 1:刺激模式 2:吸奶模式 3:混合模式 4:停止
+    uint8_t taste_pump_level; /// 0:1档 1:2档 2:3档 3:4档 4:5档 5:6档 6:7档 7:8档 8:9档 9:10档 10:11档 11:12档 12:13档 13:14档 14:15档
+    uint8_t taste_pump_speed; /// 1:低频 2:中频 3:高频
+} app_old_comm_pump_taste_ctrl;
 
 //pump_ctrl
 void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab);
@@ -65,6 +86,7 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab);
 #ifdef __cplusplus
 }
 #endif

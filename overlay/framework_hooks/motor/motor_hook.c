@@ -141,13 +141,13 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         LOG_MOTOR("motor debug stop, id: %d", id);
         return;
     }
-    EXCEPTION_CHECK_VOID(user_data);
     if (ctx->priv.user_debug_status) {
         ctx->stop_motor();
         REMOVE_TASK_HANDLER_DIRECTLY(MOTOR_DEBUG_TASK_NAME);
     }
     ctx->priv.user_debug_status = 1;
     if (id == MOTOR_USER_DEBUG_POLICY) {
+        EXCEPTION_CHECK_VOID(user_data);
         motor_policy_original_para_t *para = (motor_policy_original_para_t *)user_data;
         motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
         motor_policy_core_t *core = &policy->head.policy.core;
@@ -161,7 +161,67 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         LOG_MOTOR("user debug policy: pump_level: %d, pumping_time: %d, valve_on_time: %d, sleep_time: %d, hold_time: %d",
             para->pump_level, para->pumping_time, para->valve_on_time, para->sleep_time, para->hold_time);
         ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
-    } else if (id == MOTOR_USER_DEBUG_PUMP_ON) {
+    }
+    else if (id == MOTOR_USER_TASTE_STIMULATION_POLICY) {
+        EXCEPTION_CHECK_VOID(user_data);
+        motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
+        if (policy != NULL) {
+            breast_pump_mode_parameter_deinit(policy);
+            policy = NULL;
+        }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_stimulation");
+        ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
+    }
+    else if (id == MOTOR_USER_TASTE_PUMP_POLICY) {
+        EXCEPTION_CHECK_VOID(user_data);
+        motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
+        if (policy != NULL) {
+            breast_pump_mode_parameter_deinit(policy);
+            policy = NULL;
+        }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_pump");
+        ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
+    }
+    else if (id == MOTOR_USER_TASTE_MIX1_POLICY) {
+        EXCEPTION_CHECK_VOID(user_data);
+        motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
+        if (policy != NULL) {
+            breast_pump_mode_parameter_deinit(policy);
+            policy = NULL;
+        }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        policy =breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_mix1");
+        ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
+    }
+    else if (id == MOTOR_USER_TASTE_MIX2_POLICY) {
+        EXCEPTION_CHECK_VOID(user_data);
+        motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
+        if (policy != NULL) {
+            breast_pump_mode_parameter_deinit(policy);
+            policy = NULL;
+        }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_mix2");
+        ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
+    }
+    else if (id == MOTOR_USER_TASTE_POLICY_STOP) {
+        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
+        if (policy != NULL) {
+            breast_pump_mode_parameter_deinit(policy);
+            policy = NULL;
+        }
+        ctx->priv.user_debug_status = 0;
+        ctx->stop_motor();
+        LOG_MOTOR("motor debug stop, id: %d", id);
+    }
+    else if (id == MOTOR_USER_DEBUG_PUMP_ON) {
+        EXCEPTION_CHECK_VOID(user_data);
         motor_debug_para_t *para = (motor_debug_para_t *)user_data;
         motor.un.pwm.duty = para->duty;
         motor.un.pwm.freq = BREAST_PUMP_VALVE_FREQ;
@@ -181,6 +241,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         }
         LOG_MOTOR("motor debug pump on, duty: %d, hold_time: %d", para->duty, para->hold_time);
     } else if (id == MOTOR_USER_DEBUG_VALVE_ON) {
+        EXCEPTION_CHECK_VOID(user_data);
         motor_debug_para_t *para = (motor_debug_para_t *)user_data;
         motor.un.pwm.duty = para->duty;
         motor.un.pwm.freq = BREAST_PUMP_VALVE_FREQ;

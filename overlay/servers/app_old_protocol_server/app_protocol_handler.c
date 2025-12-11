@@ -121,6 +121,9 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
         case APP_OLD_COMM_CID_RESET_STATUS:
             app_old_comm_handle_ctrl_reset_dev_req(cal, cab);
             break;
+        case APP_OLD_COMM_CID_GET_TASTE_MODE_STATE:
+            app_old_comm_handle_get_taste_dev_status_req(cal, cab);
+            break;
         default:
             LOG_SRV(" Unknown request command 0x%02X\n", cid);
             break;

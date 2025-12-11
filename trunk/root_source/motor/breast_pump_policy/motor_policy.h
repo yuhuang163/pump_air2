@@ -22,6 +22,11 @@ typedef enum {
     MOTOR_USER_DEBUG_VALVE_ON,
     MOTOR_USER_DEBUG_VALVE_OFF,
     MOTOR_USER_DEBUG_POLICY,
+    MOTOR_USER_TASTE_STIMULATION_POLICY,
+    MOTOR_USER_TASTE_PUMP_POLICY,
+    MOTOR_USER_TASTE_MIX1_POLICY,
+    MOTOR_USER_TASTE_MIX2_POLICY,
+    MOTOR_USER_TASTE_POLICY_STOP,
     MOTOR_USER_DEBUG_ID_MAX,
 } motor_user_debug_id_e;
 
@@ -202,6 +207,12 @@ typedef struct {
     uint16_t duration;         /// 持续时间，单位s
     motor_policy_core_t core;  /// 策略实体
 } motor_policy_cfg_t;
+
+/// 马达多策略核心参数
+typedef struct {
+    motor_policy_cfg_t *policy_cfg_list;       /// 策略核心参数列表
+    uint8_t policy_cfg_count;           /// 策略数量
+} motor_multiple_policy_cfg_t;
 
 /// 马达总策略配置
 typedef struct {  

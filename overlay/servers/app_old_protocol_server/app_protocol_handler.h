@@ -18,6 +18,7 @@ typedef struct app_old_protocol_handler_context {
     protocol_manager_context_t *protocol_ctx;
     uint8_t encrypt_status;
     uint8_t encrypt_key;
+    app_old_comm_pump_taste_ctrl taste_ctrl;
 } app_old_protocol_handler_context_t;
 
 void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab);
