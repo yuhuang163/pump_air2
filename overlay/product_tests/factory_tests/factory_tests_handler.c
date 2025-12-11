@@ -135,6 +135,11 @@ int factory_tests_enter(tests_func_args_t args)
     LOGI("factory test common enter test");
     key_input_context_t *key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     EXCEPTION_CHECK_INT(key_ctx);
+    power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    EXCEPTION_CHECK_INT(power_ctx);
+    CHECK_IF_VALID(power_ctx, {
+        power_ctx->acquire_wakelock("factory_tests", -1);
+    });
     key_ctx->add_keyevent_handler("factory_click_tests", thiz, TESTS_KEY_CODE, TESTS_KEY_CLICK_EVENT,
                                   on_tests_click_event_handler);
     key_ctx->add_keyevent_handler("factory_long_press_tests", thiz, TESTS_KEY_CODE, TESTS_KEY_LONG_PRESS_EVENT,
@@ -150,6 +155,11 @@ int factory_tests_exit(tests_func_args_t args)
     LOGI("factory test aging test exit");
     key_input_context_t *key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     EXCEPTION_CHECK_INT(key_ctx);
+    power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    EXCEPTION_CHECK_INT(power_ctx);
+    CHECK_IF_VALID(power_ctx, {
+        power_ctx->release_wakelock("factory_tests");
+    });
     key_ctx->remove_keyevent_handler(on_tests_click_event_handler);
     key_ctx->remove_keyevent_handler(on_tests_long_press_event_handler);
     key_ctx->remove_keyevent_handler(on_tests_knob_event_handler);
@@ -254,7 +264,11 @@ int factory_tests_aging_test_enter(tests_func_args_t args)
     LOGI("factory test aging test: total_target_time = %d, aging_type = %d",
          thiz->priv.factory_ctx.aging_target_info.total_target_time,
          thiz->priv.factory_ctx.aging_target_info.aging_type);
-    // 开始老化测试
+    power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    EXCEPTION_CHECK_INT(power_ctx);
+    CHECK_IF_VALID(power_ctx, {
+            power_ctx->acquire_wakelock("factory_tests_aging_test", -1); });
+    // 开始老化测试 
     switch (thiz->priv.factory_ctx.aging_target_info.aging_type) {
         case AGING_MODE_TYPE_1:
             ret = factory_tests_aging_test_enter_mode1();
@@ -274,6 +288,11 @@ int factory_tests_aging_test_enter(tests_func_args_t args)
 int factory_tests_aging_test_exit(tests_func_args_t args)
 {
     LOGI("factory test aging test exit");
+    power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    EXCEPTION_CHECK_INT(power_ctx);
+    CHECK_IF_VALID(power_ctx, {
+        power_ctx->release_wakelock("factory_tests_aging_test");
+    });
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_INT(pump_ctx);
     pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
