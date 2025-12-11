@@ -97,7 +97,7 @@ typedef struct
     // uint8_t work; //0-pause 1-work
     uint8_t mode;  // 0-short 1-long 2-mix1 3-mix2
     uint8_t level; // strength level 1-15
-    uint8_t freq;  // frequency level 1-15
+    uint8_t freq;  // frequency level 1-3
     uint32_t time; // section time long //存的是单位s
 } user_define_pump_step_data_s;
 

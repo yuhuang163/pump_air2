@@ -106,6 +106,15 @@ void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
     LOG_SRV(" Executing system control command 0x%02X\n", ctrl_cmd);
     if (ctrl_cmd == APP_OLD_COMM_SYS_POWER_OFF) {
         LOG_SRV("CMD-poweroff");
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        EXCEPTION_CHECK_VOID(pbus);
+        struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
+        EXCEPTION_CHECK_VOID(battery);
+        uint8_t chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
+        if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
+            LOG_SRV("CMD-poweroff, but charging, not power off");
+            return;
+        }
         SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
     } else if (ctrl_cmd == APP_OLD_COMM_SYS_REBOOT) {
         LOG_SRV("CMD-softreset");

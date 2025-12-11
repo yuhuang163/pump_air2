@@ -61,6 +61,7 @@ typedef enum {
     APP_OLD_COMM_CID_GET_BURY_POINT_NUM = 0xBA,   // 获取埋点数量
     APP_OLD_COMM_CID_GET_BURY_POINT_DATA = 0xBB,  // 获取埋点数据
     //APP_OLD_COMM_CID_GET_FLANGE_STATUS = 0xBC,    // 获取法兰状态
+    APP_OLD_COMM_CID_SET_TRAVEL_LOCK = 0xBD, // Travel lock control
 
     APP_OLD_COMM_CID_CTRL_DEV = 0xC0, // 功能控制
     APP_OLD_COMM_CID_SET_BIND = 0xC1, // 设置绑定
@@ -74,8 +75,8 @@ typedef enum {
     APP_OLD_COMM_CID_TASTE_CTRL = 0xC8,      // 体验模式控制
     //APP_OLD_COMM_CID_MOTOR_CTRL = 0xC9,      // 体验振子模式控制
     //APP_OLD_COMM_CID_SET_HEAT = 0xCA,        // 体验加热模式控制
-    APP_OLD_COMM_CID_SET_TRAVEL_LOCK = 0xCF, // Travel lock control
-
+    APP_OLD_COMM_CID_RESET_STATUS = 0xCF,  // 重置吸奶器状态
+    
     APP_OLD_COMM_CID_NOTIFY_STATUS = 0xD0,     // 设备主动上报状态变化
     APP_OLD_COMM_CID_NOTIFY_BIND = 0xD1,       // 设备主动上报绑定
     APP_OLD_COMM_CID_NOTIFY_DISCON = 0xD2,     // 设备强制断开BLE上报

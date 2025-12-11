@@ -213,7 +213,7 @@ static void set_breast_pump_status(int status)
 
     LOG_PMP("enter work: %d", m_info->do_work);
     MUTEX_LOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
-    if (status >= BREAST_PUMP_IDLE && status <= BREAST_PUMP_FINISH) {
+    if (status >= BREAST_PUMP_IDLE && status <= BREAST_PUMP_RESET) {
         if (m_info->status != status) {
             m_info->status = status;
             LOG_PMP("status: %d, do_work: %d", status, m_info->do_work);
@@ -280,6 +280,17 @@ static void set_breast_pump_status(int status)
                     if (m_info->do_work) {
                         m_info->do_work = 0;
                         stop_breast_pump_work(status);
+                    }
+                    break;
+
+                case BREAST_PUMP_RESET: /// 用户app请求重置pump RESET后请将pump状态在设置为IDLE
+                    if (m_info->do_work) {
+                        m_info->do_work = 0;
+                        stop_breast_pump_work(status);
+                        CHECK_IF_VALID(pm_ctx, {
+                            pm_ctx->release_wakelock(PUMP_THD_WAKELOCK);
+                        });
+                        breast_pump_obj->hook->breast_pump_result_info_app_reset(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
                     }
                     break;
             }
