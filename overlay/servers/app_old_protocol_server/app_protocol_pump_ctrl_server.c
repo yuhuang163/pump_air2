@@ -44,31 +44,42 @@ uint8_t app_old_comm_get_sys_status(void)
     uint8_t chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
     int pump_status = pump_ctx->get_breast_pump_status();
     int pump_mode = pump_ctx->get_breast_pump_mode();
+    uint8_t sys_status = APP_OLD_COMM_SYS_STOP;
 
-    if ((BREAST_PUMP_START == pump_status || BREAST_PUMP_CONTINUE == pump_status)
-        && BREAST_PUMP_CUSTOM_MODE == pump_mode) {
-        LOG_SRV("APP_OLD_COMM_PUMP_USE_DEFINE_RUN");
-        return APP_OLD_COMM_PUMP_USE_DEFINE_RUN;
+    if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
+        LOG_SRV("APP_OLD_COMM_SYS_CHANRGE");
+        sys_status = APP_OLD_COMM_SYS_CHANRGE;
     }
 
     if (BREAST_PUMP_START == pump_status || BREAST_PUMP_CONTINUE == pump_status) {
         LOG_SRV("APP_OLD_COMM_SYS_RUN");
-        return APP_OLD_COMM_SYS_RUN;
+        sys_status = APP_OLD_COMM_SYS_RUN;
+    }
+
+    if ((BREAST_PUMP_START == pump_status || BREAST_PUMP_CONTINUE == pump_status)
+        && (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL)) {
+        LOG_SRV("APP_OLD_COMM_PUMP_RUN_IN_CHARGE");
+        sys_status = APP_OLD_COMM_PUMP_RUN_IN_CHARGE;
     }
 
     if (BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_PAUSE == pump_status
         || BREAST_PUMP_FINISH == pump_status) {
         LOG_SRV("APP_OLD_COMM_SYS_STOP");
-        return APP_OLD_COMM_SYS_STOP;
+        sys_status = APP_OLD_COMM_SYS_STOP;
     }
 
-    if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
-        LOG_SRV("APP_OLD_COMM_SYS_CHANRGE");
-        return APP_OLD_COMM_SYS_CHANRGE;
+    if ((BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_PAUSE == pump_status || BREAST_PUMP_FINISH == pump_status)
+        && (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL)) {
+        LOG_SRV("APP_OLD_COMM_PUMP_STOP_IN_CHARGE");
+        sys_status = APP_OLD_COMM_PUMP_STOP_IN_CHARGE;
     }
 
-    LOG_SRV("APP_OLD_COMM_SYS_STOP (default)");
-    return APP_OLD_COMM_SYS_STOP;
+    if (BREAST_PUMP_RESET == pump_status) {
+        LOG_SRV("APP_OLD_COMM_SYS_RESET");
+        sys_status = APP_OLD_COMM_SYS_RESET;
+    }
+
+    return sys_status;
 }
 
 uint8_t app_old_comm_get_pump_running_status(void)
@@ -229,14 +240,14 @@ uint8_t app_old_comm_get_current_custom_pump_speed(servers_old_protocol_publish_
         time_index = 0;
     }
     //不允许修改自定义模式频率，只能修改等级，所以从app设置缓存中获取
-    int pump_speed_level;
+    int pump_speed;
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_UINT(storage_ctx);
     user_def_pump_steps_data_t custom_steps_parameter = {0};
     storage_ctx->get_store_ram_val(STORE_ID_PUMP_CUSTOM_STEPS_PARAMETER_INFO, 0, 0, &custom_steps_parameter);
-    pump_speed_level = custom_steps_parameter.data[time_index].level;
-    LOG_SRV("custom_steps_parameter.data[%d].pump_speed_level=%d", time_index, pump_speed_level);
-    return (uint8_t)pump_speed_level;
+    pump_speed = custom_steps_parameter.data[time_index].freq;
+    LOG_SRV("custom_steps_parameter.data[%d].pump_speed=%d", time_index, pump_speed);
+    return (uint8_t)pump_speed;
 }
 
 uint32_t app_old_comm_get_current_pump_mode_run_time(void)
@@ -401,7 +412,7 @@ uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old_comm_p
     }
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_UINT(storage_ctx);
-    //appbug，app不会同时设置模式和参数
+    //appbug，就是切模式把之前目标模式的参数，也带下来了，但是切模式都要从第一步运行，要以我这边为准
     //如果模式不变，说明只设置当前模式参数,
     if (app_old_comm_pump_ctrl_date->pump_mode == app_old_comm_get_current_pump_mode()) {
         switch (app_old_comm_get_current_pump_mode()) {
@@ -425,7 +436,7 @@ uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old_comm_p
             default:
                 break;
         }
-    } else //如果模式改变说明主要用于改变模式
+    } else //如果模式改变，则改变模式,忽略参数
     {
         pump_ctx->set_breast_pump_mode(app_old_comm_pump_ctrl_date->pump_mode);
         //prd 模式不记忆
@@ -439,20 +450,26 @@ uint8_t app_old_comm_pump_run_status_ctrl(uint8_t status)
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(pump_ctx);
     LOG_SRV("run_status_ctrl %d", status);
-    if (app_old_comm_get_pump_running_status() != status)
+    int pump_status = pump_ctx->get_breast_pump_status();
+    if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE)
+    {
+        if (status == APP_OLD_COMM_SYS_RUN)
+        {
+            pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+        }
+    }
+    else if (pump_status == BREAST_PUMP_START || pump_status == BREAST_PUMP_CONTINUE)
     {
         if (status == APP_OLD_COMM_SYS_STOP)
         {
             pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
         }
-        else if (status == APP_OLD_COMM_SYS_RUN)
+    }
+    else if (pump_status == BREAST_PUMP_PAUSE)
+    {
+        if (status == APP_OLD_COMM_SYS_RUN)
         {
-            pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
-        }
-        else
-        {
-            LOG_SRV("unknow status");
-            return false;
+            pump_ctx->set_breast_pump_status(BREAST_PUMP_CONTINUE);
         }
     }
     return true;
@@ -568,7 +585,7 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_o
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     report_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(id) + 1; //normal speed //频次（1-低 2-中 3-高）（1字节）
+    report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(id); //normal speed //频次（0-低 1-中 2-高）（1字节）
     report_data[data_len++] = 0x00; //预留
     report_data[data_len++] = 0x00; //预留
 
@@ -598,7 +615,7 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     ack_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT) + 1; //normal speed
+    ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT); //normal speed
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = 0x00; //预留
     LOG_SRV(" Sending device status ACK (data len: %d)\n", data_len);
@@ -616,7 +633,6 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     // TODO: Send parameters to pump valve component
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_CTRL_DEV, 1, &cab[6]);
     
-    app_old_comm_pump_run_status_ctrl(cab[0]);
     app_old_comm_pump_ctrl app_old_comm_pump_ctrl_date;
     app_old_comm_pump_ctrl_date.pump_mode = cab[1] - 1; //0x01~0x05（按摩-吸乳-混合-自定义-智能吸乳）
     app_old_comm_pump_ctrl_date.normal_pump_level = cab[2];
@@ -624,10 +640,11 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     app_old_comm_pump_ctrl_date.user_define_pump_level= cab[4];
     app_old_comm_pump_ctrl_date.user_define_pump_speed= cab[5] - 1; //频次（1-低 2-中 3-高）（1字节）
     app_old_comm_pump_ctrl_date.pump_mode_lr_or_all= cab[6];
-    app_old_comm_pump_ctrl_date.normal_pump_speed= cab[7]-1 ;//频次（1-低 2-中 3-高）（1字节）
+    app_old_comm_pump_ctrl_date.normal_pump_speed= cab[7];//频次（0-低 1-中 2-高）（1字节）
     app_old_comm_pump_control_handler(&app_old_comm_pump_ctrl_date);
-    LOG_HEX("device control hex", cab, cal);
-    
+
+    app_old_comm_pump_run_status_ctrl(cab[0]);
+    LOG_HEX("device control hex", cab, cal);  
 }
 
 //0xc4
@@ -688,6 +705,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 		LOG_SRV("ud-mode[%d]=0x%02x", i, pump_user_defined_step_data_temp.data[i].mode);
 		LOG_SRV("ud-level[%d]=0x%02x", i, pump_user_defined_step_data_temp.data[i].level);
 		LOG_SRV("ud-time[%d]=0x%04x", i, pump_user_defined_step_data_temp.data[i].time);
+        LOG_SRV("ud-freq[%d]=0x%02x", i, pump_user_defined_step_data_temp.data[i].freq);
 	}
     //pump_user_defined_step_data_temp.custom_total_time = 1000*pump_user_defined_step_data_temp.custom_total_time; //转换为ms
 	n = 5 + 10 * i;
@@ -761,4 +779,26 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     ack_data[data_len++] = ctx->priv.ver_info.sw_version % 10;
     LOG_SRV(" Sending device info ACK (data len: %d)\n", data_len);
    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_DEV_INFO, data_len, ack_data);
+}
+
+//0xc8 体验模式设置
+void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab)
+{
+    LOG_SRV(" Handling device taste control request\n");
+    EXCEPTION_CHECK_VOID(cab);
+    // TODO: Send parameters to pump valve component
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_TASTE_REPORT, 1, &cab[6]);
+}
+
+//0xcf 重置吸奶器状态
+void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab)
+{
+    LOG_SRV(" Handling device reset request\n");
+
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump_ctx);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_RESET_STATUS, 0, NULL);
+    /// 先重置pump，再将pump状态设置为空闲
+    pump_ctx->set_breast_pump_status(BREAST_PUMP_RESET);
+    pump_ctx->set_breast_pump_status(BREAST_PUMP_IDLE);
 }

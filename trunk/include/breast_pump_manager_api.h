@@ -30,7 +30,8 @@ typedef enum {
     BREAST_PUMP_PAUSE,
     BREAST_PUMP_CONTINUE,
     BREAST_PUMP_FINISH,
-    BREAST_PUMP_FACTORY
+    BREAST_PUMP_FACTORY,
+    BREAST_PUMP_RESET,
 } breast_pump_status_e;
 
 #define PUMP_IS_GOING(state) (state == BREAST_PUMP_START || state == BREAST_PUMP_CONTINUE)
@@ -124,6 +125,7 @@ typedef struct breast_pump_manager_context {
         int (*breast_pump_completed_route)(struct breast_pump_manager_context *ctx);
         int (*start_breast_pump_work_route)(struct breast_pump_manager_context *ctx, int state);
         int (*stop_breast_pump_work_route)(struct breast_pump_manager_context *ctx, int state);
+        int (*breast_pump_result_info_app_reset)(struct breast_pump_manager_context *ctx, pump_result_info_t *result_info);
     } *hook;
 } breast_pump_manager_context_t;
 
