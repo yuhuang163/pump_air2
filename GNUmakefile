@@ -184,6 +184,7 @@ SDK_UTILS_INC_FLAGS := \
 SDK_LVGL_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes/examples/res \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes/ports \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/bes/disp \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/thirdparty/lvgl/lv_drivers \
@@ -194,6 +195,10 @@ SDK_LCD_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd/chip \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/graphic/lcd/interface
+
+# SDK JPEG 头文件
+SDK_JPEG_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/tests/hwtest/jpegdec \
 
 # Boards 头文件
 BOARDS_INC_FLAGS := \
@@ -449,6 +454,10 @@ PRODUCT_TESTS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/product_tests \
 	-I$(PROJECT_ROOT)/trunk/root_source/tests
 
+# 资源模块头文件
+RESOURCE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/resources/image_bin
+
 # 汇总所有 SDK 头文件路径
 SDK_INCLUDE_PATHS := \
 	$(SDK_CORE_INC_FLAGS) \
@@ -458,6 +467,7 @@ SDK_INCLUDE_PATHS := \
 	$(SDK_UTILS_INC_FLAGS) \
 	$(SDK_LVGL_INC_FLAGS) \
 	$(SDK_LCD_INC_FLAGS) \
+	$(SDK_JPEG_INC_FLAGS) \
 	$(DRIVERS_INC_FLAGS) \
 	$(BASE_INC_FLAGS) \
 	$(EXTERNAL_INC_FLAGS) \
@@ -478,7 +488,8 @@ SDK_INCLUDE_PATHS := \
 	$(RESOURCE_INC_FLAGS) \
 	$(NETWORK_INC_FLAGS) \
 	$(OTA_INC_FLAGS) \
-	$(PRODUCT_TESTS_INC_FLAGS)
+	$(PRODUCT_TESTS_INC_FLAGS) \
+	$(RESOURCE_INC_FLAGS)
 
 # 添加项目根目录和 SDK 头文件路径
 CPPFLAGS ?= -I$(PROJECT_ROOT) -I$(PROJECT_ROOT)/trunk $(SDK_INCLUDE_PATHS)
@@ -1036,6 +1047,7 @@ firmware:
 		OTA_CODE_OFFSET=0x66000 \
 		OTA_BOOT_INFO_OFFSET=0x62000 \
 		LVGL_TEST=$(CFG_LVGL_ENABLE) \
+		LVGL_BES_PNG=1 \
 		LVGL_NO_TOUCHSCREEN=1 \
 		DISPLAY_LCD=st77916 \
 		DEBUG_PORT=1 \

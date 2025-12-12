@@ -170,8 +170,6 @@ static void *list_del_condition_cb(void *data, list_head_t *pos)
 static int on_post_key_input_init(void *ptr)
 {
     key_input_context_t *ctx = ptr;
-
-
     #if (!IS_INPUT_KEY_TASK_POST_UI_THREAD)
     RUN_NEW_THREAD(&ctx->priv.key_evt_ctx.keyevent_thd, "keyevent_thd", 
         key_input_internal_dispatch_thread, RT_PRIO_KEY_INPUT_DISPATCH_THREAD, INPUT_KEY_THREAD_STACKSIZE);
