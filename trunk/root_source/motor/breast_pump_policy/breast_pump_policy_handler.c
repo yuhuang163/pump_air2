@@ -137,7 +137,8 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
 
     const motor_policy_manager_t *policy_obj = NULL;
     if (action == MOTOR_USER_DEBUG_POLICY_START) {
-        policy_obj = &thiz->priv.user_debug_policy;
+        body->taste_run_flag = 1;
+        policy_obj = thiz->priv.user_debug_policy;
         LOG_MOTOR("user debug policy");
     } else if (action == MOTOR_POLICY_CONTINUE) {
         LOG_MOTOR("continue policy, step_index: %d", body->current_timed_policy_index);
@@ -151,6 +152,7 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
         policy_obj = breast_pump_mode_policy_get(thiz, body->breast_pump_mode);
         LOG_MOTOR("%s mode policy", thiz->priv.pump_ctx->get_breast_pump_mode_name(body->breast_pump_mode));
     }
+    body->manager = (motor_policy_manager_t *)policy_obj;
     EXCEPTION_CHECK_VOID(policy_obj);
     negative_pressure_release(thiz);
     body->timed_policy_start_time = get_timestamp();
@@ -158,7 +160,6 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
 #if IS_SUPPORT_CLIMB_POLICY
     body->is_climb_policy = 1;
 #endif
-    body->manager = (motor_policy_manager_t *)policy_obj;
     body->timed_policy = &body->manager->head;
     body->current_timed_policy_index = 0;
     body->current_policy_index = 0;
@@ -208,6 +209,7 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
         // msleep(PUMP_POLICY_RUN_TIME_INTERVAL);
     }
     runtime->current_time_policy_running_time += get_timestamp_ms(runtime->timed_policy_start_time);
+    runtime->taste_run_flag = 0;
     negative_pressure_release(thiz);
     STOP_TIMER(policy_work_timer);
     LOG_MOTOR("exit:%d", exit_code);

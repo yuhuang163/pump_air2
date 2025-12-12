@@ -58,7 +58,7 @@ static int get_breast_pump_status_async(void)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     uint8_t status = m_info->status;
-    if (status > BREAST_PUMP_FINISH) {
+    if (status > BREAST_PUMP_RESET) {
         LOG_PMP("breast pump state: %d", status);
         status = BREAST_PUMP_IDLE;
     }

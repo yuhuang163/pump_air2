@@ -205,8 +205,13 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
         info->state.target_pressure = 0;
         return;
     }
-    /// 用户设定力度与频率(速度)策略
-    pump_user_policy_update(thiz, &map_para, pump_id); 
+    if (runtime->taste_run_flag) {
+        /// 体验模式用户策略
+        taste_mode_user_policy_update(thiz, &map_para, pump_id);
+    } else {
+        /// 用户设定力度与频率(速度)策略
+        pump_user_policy_update(thiz, &map_para, pump_id);
+    }
     /// 爬升策略
 #if IS_SUPPORT_CLIMB_POLICY
     pump_climb_policy_update(thiz, &map_para);
