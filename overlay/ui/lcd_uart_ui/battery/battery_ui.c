@@ -4,7 +4,6 @@
 */
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"
-#include "system_ui.h"
 
 /*
 * DEFINES
@@ -52,12 +51,11 @@ void ui_fill_charge_status(lcd_tlvs_t *tlv)
 
 void ui_display_charge_screen_prepare(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_charge_screen_prepare");
 }
 
 void ui_display_charge_screen_remove(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_charge_screen_remove");
+
 }
 
 int ui_display_charge_screen(ui_manager_context_t *thiz)
@@ -70,7 +68,8 @@ int ui_display_charge_screen(ui_manager_context_t *thiz)
         .tlvs_num = 3,
     };
     EXCEPTION_CHECK_UINT(msg.tlvs);
-    ui_fill_img_id(&msg.tlvs[0], UI_IMG_ID_CHARGE);
+    lcd_tlvs_t *tlv = &msg.tlvs[0];
+    UI_FILL_IMG_ID(tlv, UI_IMG_ID_CHARGE);
     ui_fill_battery_status(&msg.tlvs[1]);
     ui_fill_charge_status(&msg.tlvs[2]);
     thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);

@@ -83,7 +83,7 @@ static void airplane_mode_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void airplane_mode_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_process_unlock_tip(ui);
+    ui_display_airplane_mode_process(ui);
 }
 
 static void airplane_mode_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -110,14 +110,14 @@ static void airplane_mode_ui_display_prepare(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    ui_display_unlock_tip_prepare(ui);
+    ui_display_airplane_mode_prepare(ui);
 }
 
 static void airplane_mode_ui_display_remove(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    ui_display_unlock_tip_remove(ui);
+    ui_display_airplane_mode_remove(ui);
 }
 
 /*

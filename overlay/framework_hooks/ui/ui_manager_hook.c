@@ -17,7 +17,9 @@
 *****************************************************************************************
 */
 static ui_manager_context_t *ui_ctx = NULL;
-
+#if IS_SUPPORT_LVGL
+static os_message_id ui_hdr_msg_id = NULL;
+#endif
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -31,6 +33,9 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
 {
 #if IS_SUPPORT_LVGL
     uint32_t ms_till_next = lv_timer_handler();
+    if (ms_till_next > 10000) {
+        ms_till_next = 200;
+    }
     msleep(ms_till_next);
 #else
     uint8_t msg = 0;
@@ -55,29 +60,33 @@ HANDLER_EXIT:
 #if IS_SUPPORT_LVGL
 static void change_images_cb(lv_timer_t *t)
 {
-    static uint32_t time_stamp = 0;
-    LOGI("==>enter, %d", get_timestamp_ms(time_stamp));
-    time_stamp = get_timestamp();
-    ui_manager_context_t *ui_ctx = (ui_manager_context_t *)lv_timer_get_user_data(t);
     EXCEPTION_CHECK_VOID(ui_ctx);
+    uint8_t msg = 0;
+    static uint32_t time_stamp = 0;
+    LOGI("==>enter, %d, count: %d", get_timestamp_ms(time_stamp), ui_ctx->priv.play_info.played_count);
+    time_stamp = get_timestamp();
+    if (ui_ctx->priv.need_stop_timer) {
+        lv_timer_delete(t);
+        LOGI("==>timer stopped, lvgl timer deleted %d", ui_ctx->priv.need_stop_timer);
+        ui_ctx->priv.need_stop_timer = 0;
+        ui_ctx->priv.lv_timer = NULL;
+        MSG_QUEUE_SEND(ui_hdr_msg_id, &msg, 0);
+        return;
+    }
     ui_ctx->play_animation_lock(NULL);
-    // LOGI("==>step 1");
     ui_animation_play_t *ani = &ui_ctx->priv.play_info;
     if (ani->played_count >= ani->res_count) {
         ui_ctx->priv.is_playing_ui_animation = false;
         if (ani->progress_cb) {
             ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_FINISH);
         }
-        // LOGI("==>exit 1");
         ui_ctx->play_animation_unlock(NULL);
         return;
     }
     ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_BEFORE);
     ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
     ani->played_count++;
-    // LOGI("==>step 3, %d", ani->played_count);
 HANDLER_EXIT:
-    // LOGI("==>exit 2, %d", ani->played_count);
     ui_ctx->play_animation_unlock(NULL);
 }
 #else
@@ -113,11 +122,16 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     }
 #if IS_SUPPORT_LVGL
     uint32_t period = 1000 / play_info.fps;
-    if (period < 10) {
-        period = 10;
-    }
-    lv_timer_set_period(thiz->priv.lv_timer, 50);
     LOGI("%s, period: %d", play_info.tag, period);
+    lv_lock();
+    if (thiz->priv.lv_timer == NULL) {
+        thiz->priv.lv_timer = lv_timer_create(change_images_cb, period < 30 ? 30 : period , NULL);
+        lv_timer_ready(thiz->priv.lv_timer);
+    } else {
+        LOGW("==>timer already created");
+        lv_timer_set_period(thiz->priv.lv_timer, period < 30 ? 30 : period);
+    }
+    lv_unlock();
 #endif
     thiz->play_animation_unlock(play_info.tag);
 }
@@ -126,14 +140,36 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     thiz->play_animation_lock(NULL);
+#if IS_SUPPORT_LVGL
+    uint8_t msg = 0;
+    ui_ctx->priv.need_stop_timer = 1;
+    int ret = MSG_QUEUE_RECV(ui_hdr_msg_id, &msg, 1000);
+    if (ret != 0) {
+        LOGE("==>stop lvgl timer timeout!!!!!!");
+    }
+#endif
     ui_animation_play_t *ani = &thiz->priv.play_info;
-    memset(ani, 0, sizeof(ui_animation_play_t));
     if (ani->display_remove_cb) {
         ani->display_remove_cb(thiz);
     }
+    memset(ani, 0, sizeof(ui_animation_play_t));
     LOGI("ui_animation_play_deinit");
     thiz->play_animation_unlock(NULL);
 }
+
+#if IS_SUPPORT_LVGL
+static void set_black_background_cb(hdr_post_args_t *args)
+{
+    uint8_t msg = 0;
+    ui_manager_context_t *thiz = (ui_manager_context_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(thiz);
+    LOGI("==>set black background");
+    lv_obj_t *scr = lv_screen_active();
+    lv_obj_set_style_bg_color(scr, lv_color_black(), LV_PART_MAIN);
+    lv_refr_now(NULL);
+    LOGI("==>set black background done");
+}
+#endif
 
 static void ui_thread_init_route(struct ui_manager_context *thiz)
 {
@@ -142,9 +178,9 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
     lv_tick_set_cb(get_timestamp);
     lv_delay_set_cb(msleep);
     lv_hal_disp_init();
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_make(0,0,0), LV_PART_MAIN);
-    thiz->priv.lv_timer = lv_timer_create(change_images_cb, 50 , thiz);
-    lv_timer_ready(thiz->priv.lv_timer);
+    CREATE_MSG_TYPE_QUEUE(&ui_hdr_msg_id, 1, sizeof(uint8_t));
+    LOGI("==>lvgl init");
+    POST_TASK_HANDLER_DELAYED_ARG1(set_black_background_cb, 100, thiz, "set_black_background_cb");
 #else
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
     CREATE_TIMER(&thiz->priv.lv_timer, "lv_timer", thiz, OS_TIMER_PERIODIC, lv_tick_timer_handler);
@@ -175,7 +211,6 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
                 ui->hook->set_ui_backlight(ui, 100);
             }
             break;
-
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == ID_SYS_PM_SUSPEND) {
                 ui->priv.is_playing_ui_animation = false;
@@ -288,6 +323,7 @@ static int on_perpare_ui_init_route(struct ui_manager_context *thiz)
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_INT(pbus);
     thiz->priv.led_dev = (struct rt_device_node *)pbus->find_device(ID_DEVICE_LED);
+    ui_ctx = thiz;
     return 0;
 }
 
