@@ -17,8 +17,8 @@ typedef enum {
     APP_OLD_COMM_SYS_CHANRGE   = 0x02,
     APP_OLD_COMM_SYS_OFF       = 0x03,
     APP_OLD_COMM_SYS_RESET     = 0x05,
-    APP_OLD_COMM_PUMP_RUN_IN_CHARGE = 0x06,
-    APP_OLD_COMM_PUMP_STOP_IN_CHARGE = 0x07,
+    APP_OLD_COMM_PUMP_STOP_IN_CHARGE = 0x06,
+    APP_OLD_COMM_PUMP_RUN_IN_CHARGE = 0x07,
 } app_old_commd_sys_status_e;
 
 typedef enum {
@@ -87,6 +87,7 @@ void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
 void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_report_taste_dev_status(void);
 #ifdef __cplusplus
 }
 #endif

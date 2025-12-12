@@ -28,75 +28,6 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-/// 清理栈上策略结构体的链表节点，但不释放结构体本身
-static void user_debug_policy_cleanup(motor_policy_manager_t *policy)
-{
-    if (policy == NULL) {
-        return;
-    }
-    /// 清理额外的定时策略节点（堆分配）
-    pump_time_policy_empty(policy);
-    /// 清理子策略节点（堆分配）
-    pump_policy_del(&policy->head);
-    /// 重置结构体
-    memset(policy, 0, sizeof(motor_policy_manager_t));
-}
-
-/// 将堆分配的策略结构体内容深度复制到栈上的结构体
-static void user_debug_policy_copy(motor_policy_manager_t *dst, motor_policy_manager_t *src)
-{
-    if (dst == NULL || src == NULL) {
-        return;
-    }
-    
-    /// 先清理目标结构体
-    user_debug_policy_cleanup(dst);
-    
-    /// 复制基本字段
-    dst->timed_policy_count = src->timed_policy_count;
-    dst->head.sub_policy_count = src->head.sub_policy_count;
-    dst->head.duration_seconds = src->head.duration_seconds;
-    memcpy(&dst->head.policy.core, &src->head.policy.core, sizeof(motor_policy_core_t));
-    
-    /// 复制额外的定时策略节点（如果有）
-    motor_timed_policy_node_t *src_time_policy = src->head.next;
-    motor_timed_policy_node_t *prev_dst_time_policy = &dst->head;
-    
-    while (src_time_policy != NULL) {
-        motor_timed_policy_node_t *new_time_policy = u_malloz(sizeof(motor_timed_policy_node_t));
-        if (new_time_policy == NULL) {
-            LOGE("Failed to allocate memory for time policy copy");
-            break;
-        }
-        
-        /// 复制定时策略节点基本字段
-        new_time_policy->sub_policy_count = src_time_policy->sub_policy_count;
-        new_time_policy->duration_seconds = src_time_policy->duration_seconds;
-        memcpy(&new_time_policy->policy.core, &src_time_policy->policy.core, sizeof(motor_policy_core_t));
-        
-        /// 复制子策略节点（如果有）
-        motor_policy_node_t *src_policy = src_time_policy->policy.next;
-        motor_policy_node_t *prev_dst_policy = &new_time_policy->policy;
-        
-        while (src_policy != NULL) {
-            motor_policy_node_t *new_policy = u_malloz(sizeof(motor_policy_node_t));
-            if (new_policy == NULL) {
-                LOGE("Failed to allocate memory for policy copy");
-                break;
-            }
-            memcpy(&new_policy->core, &src_policy->core, sizeof(motor_policy_core_t));
-            prev_dst_policy->next = new_policy;
-            prev_dst_policy = new_policy;
-            src_policy = src_policy->next;
-        }
-        
-        /// 链接定时策略节点
-        prev_dst_time_policy->next = new_time_policy;
-        prev_dst_time_policy = new_time_policy;
-        src_time_policy = src_time_policy->next;
-    }
-}
-
 static int breast_pump_policy_register(struct motor_manager_context *thiz, add_breast_pump_policy_fptr add_policy_cb)
 {
     list_head_t *head = &thiz->priv.policy_list;
@@ -218,12 +149,22 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
     if (id == MOTOR_USER_DEBUG_POLICY) {
         EXCEPTION_CHECK_VOID(user_data);
         motor_policy_original_para_t *para = (motor_policy_original_para_t *)user_data;
-        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
-        motor_policy_core_t *core = &policy->head.policy.core;
+        /// 释放旧的策略
+        if (ctx->priv.user_debug_policy != NULL) {
+            breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
+            ctx->priv.user_debug_policy = NULL;
+        }
+        /// 创建新的策略并赋值给 ctx->priv.user_debug_policy
+        ctx->priv.user_debug_policy = u_malloz(sizeof(motor_policy_manager_t));
+        if (ctx->priv.user_debug_policy == NULL) {
+            LOGE("Failed to allocate memory for user debug policy");
+            return;
+        }
+        motor_policy_core_t *core = &ctx->priv.user_debug_policy->head.policy.core;
         motor_policy_original_para_t *original = &core->un.original;
-        policy->timed_policy_count = 1;
-        policy->head.duration_seconds = 1200;   /// 20分钟
-        policy->head.sub_policy_count = 1;
+        ctx->priv.user_debug_policy->timed_policy_count = 1;
+        ctx->priv.user_debug_policy->head.duration_seconds = 1200;   /// 20分钟
+        ctx->priv.user_debug_policy->head.sub_policy_count = 1;
         core->type = MOTOR_PARAM_PASS_THROUGH;
         memcpy(original, para, sizeof(motor_policy_original_para_t));
         core->config.loop_num = 1;
@@ -235,80 +176,66 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_STIMULATION_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
-        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
-        /// 清理旧的策略
-        user_debug_policy_cleanup(policy);
-        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
-        /// 创建新的策略（堆分配）
-        motor_policy_manager_t *new_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_stimulation");
-        if (new_policy != NULL) {
-            /// 将堆分配的策略内容复制到栈上的结构体
-            user_debug_policy_copy(policy, new_policy);
-            /// 释放堆分配的策略
-            breast_pump_mode_parameter_deinit(new_policy);
+        /// 释放旧的策略
+        if (ctx->priv.user_debug_policy != NULL) {
+            breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
+            ctx->priv.user_debug_policy = NULL;
         }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        /// 创建新的策略并赋值给 ctx->priv.user_debug_policy
+        ctx->priv.user_debug_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_stimulation");
         ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
     }
     else if (id == MOTOR_USER_TASTE_PUMP_POLICY) {
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_PUMP_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
-        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
-        /// 清理旧的策略
-        user_debug_policy_cleanup(policy);
-        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
-        /// 创建新的策略（堆分配）
-        motor_policy_manager_t *new_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_pump");
-        if (new_policy != NULL) {
-            /// 将堆分配的策略内容复制到栈上的结构体
-            user_debug_policy_copy(policy, new_policy);
-            /// 释放堆分配的策略
-            breast_pump_mode_parameter_deinit(new_policy);
+        /// 释放旧的策略
+        if (ctx->priv.user_debug_policy != NULL) {
+            breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
+            ctx->priv.user_debug_policy = NULL;
         }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        /// 创建新的策略并赋值给 ctx->priv.user_debug_policy
+        ctx->priv.user_debug_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_pump");
         ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
     }
     else if (id == MOTOR_USER_TASTE_MIX1_POLICY) {
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_MIX1_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
-        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
-        /// 清理旧的策略
-        user_debug_policy_cleanup(policy);
-        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
-        /// 创建新的策略（堆分配）
-        motor_policy_manager_t *new_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_mix1");
-        if (new_policy != NULL) {
-            /// 将堆分配的策略内容复制到栈上的结构体
-            user_debug_policy_copy(policy, new_policy);
-            /// 释放堆分配的策略
-            breast_pump_mode_parameter_deinit(new_policy);
+        /// 释放旧的策略
+        if (ctx->priv.user_debug_policy != NULL) {
+            breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
+            ctx->priv.user_debug_policy = NULL;
         }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        /// 创建新的策略并赋值给 ctx->priv.user_debug_policy
+        ctx->priv.user_debug_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_mix1");
         ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
     }
     else if (id == MOTOR_USER_TASTE_MIX2_POLICY) {
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_MIX2_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
-        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
-        /// 清理旧的策略
-        user_debug_policy_cleanup(policy);
-        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
-        /// 创建新的策略（堆分配）
-        motor_policy_manager_t *new_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_mix2");
-        if (new_policy != NULL) {
-            /// 将堆分配的策略内容复制到栈上的结构体
-            user_debug_policy_copy(policy, new_policy);
-            /// 释放堆分配的策略
-            breast_pump_mode_parameter_deinit(new_policy);
+        /// 释放旧的策略
+        if (ctx->priv.user_debug_policy != NULL) {
+            breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
+            ctx->priv.user_debug_policy = NULL;
         }
+        print_pump_custom_cfg(para->policy_cfg_list, para->policy_cfg_count);
+        /// 创建新的策略并赋值给 ctx->priv.user_debug_policy
+        ctx->priv.user_debug_policy = breast_pump_mode_parameter_init(para->policy_cfg_list, para->policy_cfg_count, "user_taste_mix2");
         ctx->start_motor(MOTOR_USER_DEBUG_POLICY_START);
     }
     else if (id == MOTOR_USER_TASTE_POLICY_STOP || id == MOTOR_USER_TASTE_POLICY_EXIT) {
-        motor_policy_manager_t *policy = &ctx->priv.user_debug_policy;
         ctx->priv.user_debug_status = 0;
-        ctx->absolute_stop_motor();
-        /// 清理栈上的策略结构体（不释放结构体本身）
-        user_debug_policy_cleanup(policy);
+        ctx->synchronous_stop_motor();
+        /// 清理用户调试策略
+        if (ctx->priv.user_debug_policy != NULL) {
+            breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
+            ctx->priv.user_debug_policy = NULL;
+        }
         LOG_MOTOR("motor debug stop, id: %d", id);
     }
     else if (id == MOTOR_USER_DEBUG_PUMP_ON) {

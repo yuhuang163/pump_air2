@@ -583,7 +583,7 @@ uint8_t app_old_comm_handle_ctrl_taste_dev_ctrl(app_old_comm_pump_taste_ctrl *ta
         //操作暂停退出体验模式 不用设置参数直接返回
         return true;
     }
-    //暂停后在控制启动，或在启动状态模式变化，才需要暂停后，重新加载策略启动
+    //暂停后在控制启动，或在启动状态模式变化，才需要暂停motor后，重新加载策略启动
     if ((handler_ctx->taste_ctrl.taste_status_ctrl != taste_ctrl_date->taste_status_ctrl)
         || (handler_ctx->taste_ctrl.taste_pump_mode != taste_ctrl_date->taste_pump_mode)) {
         handler_ctx->taste_ctrl.taste_pump_mode = taste_ctrl_date->taste_pump_mode;

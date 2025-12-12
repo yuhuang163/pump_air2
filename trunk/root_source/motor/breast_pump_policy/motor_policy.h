@@ -1,6 +1,7 @@
 #ifndef __MOTOR_POLICY_H__
 #define __MOTOR_POLICY_H__
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +28,8 @@ typedef enum {
     MOTOR_USER_TASTE_MIX1_POLICY,
     MOTOR_USER_TASTE_MIX2_POLICY,
     MOTOR_USER_TASTE_POLICY_STOP,
+    MOTOR_USER_TASTE_POLICY_START,
+    MOTOR_USER_TASTE_POLICY_EXIT,
     MOTOR_USER_DEBUG_ID_MAX,
 } motor_user_debug_id_e;
 
@@ -129,6 +132,12 @@ typedef struct {
     uint8_t level;             /// 吸力等级 suction_level_e
     uint8_t mode_type;         /// 吸力模式类型
 } suction_strategy_mapping_t;
+
+/// 体验模式设置
+typedef struct {
+    uint8_t level[BREAST_PUMP_NUM];
+    uint8_t speed;
+} taste_setting_t;
 
 /// 马达参数类型
 typedef enum {
@@ -254,6 +263,8 @@ typedef struct {
     uint32_t current_time_policy_running_time; /// 当前时间策略已运行时间，单位ms
     uint32_t timed_policy_start_time;  /// 时间策略开始时间，单位ms
     uint32_t manager_start_time; /// 总策略开始时间，单位ms
+    taste_setting_t taste_setting; /// 体验模式设置
+    uint8_t taste_run_flag; /// 体验模式运行标志
 } motor_policy_runtime_t;
 
 /// 吸乳策略处理
