@@ -115,8 +115,14 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
         .tag = "pumping_screen",
         .fps = PUMP_ANIMATION_FREQ,
         .res_array = (uint16_t *)s_pumping_res_array,
+    #if IS_SUPPORT_LVGL
+        .res_count = 10,
+    #else 
         .res_count = LENGTH_OF_ARRAY(s_pumping_res_array),
+    #endif
         .progress_cb = pumping_animation_progress_cb,
+        .display_prepare_cb = pumping_ui_display_prepare,
+        .display_remove_cb = pumping_ui_display_remove,
         .user_data = proc,
     };
     EXCEPTION_CHECK_VOID(proc->wm->priv.misc);

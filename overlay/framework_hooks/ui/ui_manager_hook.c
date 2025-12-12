@@ -55,23 +55,29 @@ HANDLER_EXIT:
 #if IS_SUPPORT_LVGL
 static void change_images_cb(lv_timer_t *t)
 {
+    static uint32_t time_stamp = 0;
+    LOGI("==>enter, %d", get_timestamp_ms(time_stamp));
+    time_stamp = get_timestamp();
     ui_manager_context_t *ui_ctx = (ui_manager_context_t *)lv_timer_get_user_data(t);
     EXCEPTION_CHECK_VOID(ui_ctx);
     ui_ctx->play_animation_lock(NULL);
+    // LOGI("==>step 1");
     ui_animation_play_t *ani = &ui_ctx->priv.play_info;
     if (ani->played_count >= ani->res_count) {
         ui_ctx->priv.is_playing_ui_animation = false;
         if (ani->progress_cb) {
             ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_FINISH);
         }
+        // LOGI("==>exit 1");
         ui_ctx->play_animation_unlock(NULL);
         return;
     }
     ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_BEFORE);
     ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
     ani->played_count++;
+    // LOGI("==>step 3, %d", ani->played_count);
 HANDLER_EXIT:
-    LOGI("change_images_cb");
+    // LOGI("==>exit 2, %d", ani->played_count);
     ui_ctx->play_animation_unlock(NULL);
 }
 #else
@@ -110,7 +116,7 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     if (period < 10) {
         period = 10;
     }
-    lv_timer_set_period(thiz->priv.lv_timer, lvgl_time_period_to_ms(period));
+    lv_timer_set_period(thiz->priv.lv_timer, 50);
     LOGI("%s, period: %d", play_info.tag, period);
 #endif
     thiz->play_animation_unlock(play_info.tag);
@@ -133,11 +139,11 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
 {
 #if IS_SUPPORT_LVGL
     lv_init();
-    lv_tick_set_cb(get_lvgl_time_ms);
+    lv_tick_set_cb(get_timestamp);
     lv_delay_set_cb(msleep);
     lv_hal_disp_init();
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_make(0,0,0), LV_PART_MAIN);
-    thiz->priv.lv_timer = lv_timer_create(change_images_cb, lvgl_time_period_to_ms(200) , thiz);
+    thiz->priv.lv_timer = lv_timer_create(change_images_cb, 50 , thiz);
     lv_timer_ready(thiz->priv.lv_timer);
 #else
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
