@@ -39,7 +39,7 @@ static uint8_t app_old_comm_calc_checksum(uint8_t *data, uint16_t len)
         sum += data[i];
     }
     uint8_t checksum = ~((uint8_t)sum);
-    LOG_PROTOCOL(" Calculated checksum: 0x%02X (for %d bytes)\n", checksum, len);
+    LOG_PROTOCOL(" Calculated checksum: 0x%02X (for %d bytes)", checksum, len);
     return checksum;
 }
 
@@ -118,14 +118,14 @@ static void app_old_comm_ring_queue_reset(void)
     app_old_comm_rx_queue.tail = 0;
     app_old_comm_rx_queue.len = 0;
     app_old_comm_rx_queue.last_recv_time = 0;
-    LOG_PROTOCOL(" Ring queue initialized\n");
+    LOG_PROTOCOL(" Ring queue initialized");
 }
 
 // Add data to queue
 static bool app_old_comm_ring_queue_push(uint8_t *data, uint16_t len)
 {
     if (app_old_comm_rx_queue.len + len > APP_OLD_COMM_RX_QUEUE_SIZE) {
-        LOG_PROTOCOL(" Queue overflow - cannot add %d bytes (current len: %d)\n", len, app_old_comm_rx_queue.len);
+        LOG_PROTOCOL(" Queue overflow - cannot add %d bytes (current len: %d)", len, app_old_comm_rx_queue.len);
         return false;
     }
 
@@ -135,7 +135,7 @@ static bool app_old_comm_ring_queue_push(uint8_t *data, uint16_t len)
     }
     app_old_comm_rx_queue.len += len;
     app_old_comm_rx_queue.last_recv_time = get_timestamp();
-    LOG_PROTOCOL(" Added %d bytes to queue (new len: %d)\n", len, app_old_comm_rx_queue.len);
+    LOG_PROTOCOL(" Added %d bytes to queue (new len: %d)", len, app_old_comm_rx_queue.len);
     return true;
 }
 
@@ -150,7 +150,7 @@ static uint16_t app_old_comm_ring_queue_pop(uint8_t *buf, uint16_t max_len)
         app_old_comm_rx_queue.head = (app_old_comm_rx_queue.head + 1) % APP_OLD_COMM_RX_QUEUE_SIZE;
     }
     app_old_comm_rx_queue.len -= take_len;
-    LOG_PROTOCOL(" Popped %d bytes from queue (remaining len: %d)\n", take_len, app_old_comm_rx_queue.len);
+    LOG_PROTOCOL(" Popped %d bytes from queue (remaining len: %d)", take_len, app_old_comm_rx_queue.len);
     return take_len;
 }
 
@@ -161,7 +161,7 @@ static void app_old_comm_ring_queue_clear(void)
     app_old_comm_rx_queue.head = 0;
     app_old_comm_rx_queue.tail = 0;
     app_old_comm_rx_queue.len = 0;
-    LOG_PROTOCOL(" Cleared queue (removed %d bytes)\n", cleared_len);
+    LOG_PROTOCOL(" Cleared queue (removed %d bytes)", cleared_len);
 }
 
 // Peek queue header data (without removing)
@@ -180,7 +180,7 @@ static bool app_old_comm_is_frame_timeout(void)
                   ((timeout_ms=get_timestamp_ms(app_old_comm_rx_queue.last_recv_time)) > APP_OLD_COMM_FRAME_TIMEOUT_MS);
 
     if (timeout) {
-        LOG_PROTOCOL(" Frame timeout detected (last recv: %ums ago)\n", timeout_ms);
+        LOG_PROTOCOL(" Frame timeout detected (last recv: %ums ago)", timeout_ms);
     }
     return timeout;
 }
@@ -188,7 +188,7 @@ static bool app_old_comm_is_frame_timeout(void)
 // Extract complete frame from queue
 int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protocol_frame_callback_t callback)
 {
-    LOG_PROTOCOL(" Starting frame extraction (queue len: %d)\n", app_old_comm_rx_queue.len);
+    LOG_PROTOCOL(" Starting frame extraction (queue len: %d)", app_old_comm_rx_queue.len);
     app_old_comm_ring_queue_push(data, len);
 
     int parse_result = APP_OLD_COMM_PARSE_ERR_HEADER; // Default result if no frame found
@@ -217,7 +217,7 @@ int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protoc
         }
 
         if (!header_found) {
-            LOG_PROTOCOL(" Frame header (0xAA55) not found (queue len: %d)\n", app_old_comm_rx_queue.len);
+            LOG_PROTOCOL(" Frame header (0xAA55) not found (queue len: %d)", app_old_comm_rx_queue.len);
 
             // Clear invalid/garbage packets if queue is too large
             // Criteria:
@@ -225,33 +225,33 @@ int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protoc
             // 2. Queue length >= MAX_PACKET_LEN/2 (128 bytes) - likely garbage if no header found
             // This prevents invalid data from occupying queue space indefinitely
             if (app_old_comm_rx_queue.len >= APP_OLD_COMM_MAX_PACKET_LEN / 2) {
-                LOG_PROTOCOL(" Queue too large (%d >= %d bytes) with no header, clearing garbage data\n",
+                LOG_PROTOCOL(" Queue too large (%d >= %d bytes) with no header, clearing garbage data",
                              app_old_comm_rx_queue.len, APP_OLD_COMM_MAX_PACKET_LEN / 2);
                 app_old_comm_ring_queue_clear();
             }
 
             // If we already parsed some frames, return success; otherwise return header error
             if (frames_parsed > 0) {
-                LOG_PROTOCOL(" No more headers found, returning success (parsed %d frames)\n", frames_parsed);
+                LOG_PROTOCOL(" No more headers found, returning success (parsed %d frames)", frames_parsed);
                 return APP_OLD_COMM_PARSE_SUCCESS;
             }
             return APP_OLD_COMM_PARSE_ERR_HEADER;
         }
 
-        LOG_PROTOCOL(" Found frame header at position %d\n", header_pos);
+        LOG_PROTOCOL(" Found frame header at position %d", header_pos);
 
         // 2 Clear invalid data before header
         if (header_pos > 0) {
             uint8_t dummy[APP_OLD_COMM_RX_QUEUE_SIZE];
             app_old_comm_ring_queue_pop(dummy, header_pos);
-            LOG_PROTOCOL(" Removed %d invalid bytes before header\n", header_pos);
+            LOG_PROTOCOL(" Removed %d invalid bytes before header", header_pos);
         }
 
         // 3 Check minimum length for parsing (need at least 5 bytes to read CAL field)
         // Header(2) + CT(1) + CID(1) + CAL(1) = 5 bytes minimum
         if (app_old_comm_rx_queue.len < 5) {
             app_old_comm_ring_queue_clear();
-            LOG_PROTOCOL(" Incomplete frame - need at least 5 bytes to read CAL, have %d\n", app_old_comm_rx_queue.len);
+            LOG_PROTOCOL(" Incomplete frame - need at least 5 bytes to read CAL, have %d", app_old_comm_rx_queue.len);
             return APP_OLD_COMM_PARSE_ERR_INCOMPLETE;
         }
 
@@ -259,18 +259,18 @@ int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protoc
         uint8_t cal = app_old_comm_ring_queue_peek(4);
         uint16_t total_frame_len = 2 + 1 + 1 + 1 + cal + 1; // header+CT+CID+CAL+data+checksum
 
-        LOG_PROTOCOL(" Parsed frame length: %d bytes (CAL: %d)\n", total_frame_len, cal);
+        LOG_PROTOCOL(" Parsed frame length: %d bytes (CAL: %d)", total_frame_len, cal);
 
         // Verify frame length - if invalid, clear queue and return error
         if (total_frame_len < 6 || total_frame_len > APP_OLD_COMM_MAX_PACKET_LEN) {
             app_old_comm_ring_queue_clear();
-            LOG_PROTOCOL("Invalid frame length: %d, clearing queue\n", total_frame_len);
+            LOG_PROTOCOL("Invalid frame length: %d, clearing queue", total_frame_len);
             return APP_OLD_COMM_PARSE_ERR_LENGTH;
         }
         // 5 Extract complete frame data
         uint16_t read_len = app_old_comm_ring_queue_pop(app_old_comm_frame_buf, total_frame_len);
         if (read_len != total_frame_len) {
-            LOG_PROTOCOL(" Failed to extract frame - read %d of %d bytes\n", read_len, total_frame_len);
+            LOG_PROTOCOL(" Failed to extract frame - read %d of %d bytes", read_len, total_frame_len);
             return APP_OLD_COMM_PARSE_ERR_LENGTH;
         }
 
@@ -278,7 +278,7 @@ int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protoc
         uint8_t recv_checksum = app_old_comm_frame_buf[total_frame_len - 1];
         uint8_t calc_check = app_old_comm_calc_checksum(app_old_comm_frame_buf, total_frame_len - 1);
         if (recv_checksum != calc_check) {
-            LOG_PROTOCOL(" Checksum mismatch - received 0x%02X, calculated 0x%02X, clearing queue\n", recv_checksum,
+            LOG_PROTOCOL(" Checksum mismatch - received 0x%02X, calculated 0x%02X, clearing queue", recv_checksum,
                          calc_check);
             // Checksum error indicates data corruption, clear entire queue to avoid parsing garbage data
             app_old_comm_ring_queue_clear();
@@ -289,12 +289,12 @@ int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protoc
         callback(app_old_comm_frame_buf, total_frame_len);
         frames_parsed++;
         parse_result = APP_OLD_COMM_PARSE_SUCCESS;
-        LOG_PROTOCOL(" Successfully extracted frame #%d (len: %d, remaining queue: %d)\n", frames_parsed,
+        LOG_PROTOCOL(" Successfully extracted frame #%d (len: %d, remaining queue: %d)", frames_parsed,
                      total_frame_len, app_old_comm_rx_queue.len);
 
         // If queue is empty, no need to continue
         if (app_old_comm_rx_queue.len == 0) {
-            LOG_PROTOCOL(" Queue empty after parsing %d frame(s), returning success\n", frames_parsed);
+            LOG_PROTOCOL(" Queue empty after parsing %d frame(s), returning success", frames_parsed);
             return APP_OLD_COMM_PARSE_SUCCESS;
         }
 
@@ -303,7 +303,7 @@ int app_old_protocol_assemble_packet(uint8_t *data, uint16_t len, app_old_protoc
 
     // Loop completed - return result based on what was parsed
     if (frames_parsed > 0) {
-        LOG_PROTOCOL(" Parsed %d frame(s) (max %d reached or no more frames)\n", frames_parsed, MAX_PARSE_FRAMES);
+        LOG_PROTOCOL(" Parsed %d frame(s) (max %d reached or no more frames)", frames_parsed, MAX_PARSE_FRAMES);
         return APP_OLD_COMM_PARSE_SUCCESS;
     }
 
@@ -316,7 +316,7 @@ int app_old_protocol_frame_deserialize(uint8_t *frame_buf, uint16_t len, old_pro
     // 1. Verify frame header
     uint16_t header = (frame_buf[0] << 8) | frame_buf[1];
     if (header != APP_OLD_COMM_SOP_FCF) {
-        LOG_PROTOCOL(" Invalid frame header 0x%04X (expected 0x%04X)\n",
+        LOG_PROTOCOL(" Invalid frame header 0x%04X (expected 0x%04X)",
                header, APP_OLD_COMM_SOP_FCF);
         return APP_OLD_COMM_PARSE_ERR_HEADER;
     }
@@ -342,7 +342,7 @@ int app_old_protocol_frame_deserialize(uint8_t *frame_buf, uint16_t len, old_pro
     frame->cal = frame_buf[4];
     frame->cab = frame_buf + 5;
     frame->checksum = frame_buf[4 + frame->cal + 1];
-    LOG_PROTOCOL(" Parsed frame - Type: %s (0x%02X), Command: %s (0x%02X), Data len: %d\n",
+    LOG_PROTOCOL(" Parsed frame - Type: %s (0x%02X), Command: %s (0x%02X), Data len: %d",
            app_old_comm_get_cmd_type_str(ct), frame->ct,
            app_old_comm_get_cmd_id_str(cid), frame->cid,
            frame->cal);
@@ -357,7 +357,7 @@ int app_old_protocol_frame_deserialize(uint8_t *frame_buf, uint16_t len, old_pro
         case APP_OLD_COMM_CT_DEVICE:
             break;
         default:
-            LOG_PROTOCOL(" Unknown command type 0x%02X\n", ct);
+            LOG_PROTOCOL(" Unknown command type 0x%02X", ct);
             return APP_OLD_COMM_PARSE_ERR_CMD_UNKNOWN;
     }
 
@@ -430,7 +430,7 @@ int app_old_protocol_frame_builder_send(app_old_commcmd_type_e cmdtype, app_old_
 #if BLE_PAYLOAD_CRYPTION
     LOG_HEX("app_send_data hex", send_buf, len);
 #endif
-    LOG_PROTOCOL(" Sending cmdtype %s for %s (len: %d)\n", app_old_comm_get_cmd_type_str(cmdtype), app_old_comm_get_cmd_id_str(cid), len);
+    LOG_PROTOCOL(" Sending cmdtype %s for %s (len: %d)", app_old_comm_get_cmd_type_str(cmdtype), app_old_comm_get_cmd_id_str(cid), len);
     app_commication_send_data_via_ble(send_buf, len);
     return true;
 }
