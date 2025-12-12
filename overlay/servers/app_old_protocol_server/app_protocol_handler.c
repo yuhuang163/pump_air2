@@ -29,7 +29,7 @@ static app_old_protocol_handler_context_t ctx_app_old_protocol_handler = {0};
 */
 static void app_old_comm_poll_post_task_handler(hdr_post_args_t *args)
 {
-    LOG_SRV(" Poll timer triggered - reporting device status\n");
+    LOG_SRV(" Poll timer triggered - reporting device status");
     app_old_comm_report_device_status(APP_OLD_COMM_LEFT_CT, OLD_PUBLISH_DATA_POLL_REPORT, NULL);
     app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT, OLD_PUBLISH_DATA_POLL_REPORT, NULL);
     POST_TASK_HANDLER_DELAYED_ARG0(app_old_comm_poll_post_task_handler, 30000, "app_old_comm_poll_post_task");
@@ -42,7 +42,7 @@ static void app_old_comm_poll_post_task_handler(hdr_post_args_t *args)
 // Handle request commands (APP->device)
 void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uint8_t *cab)
 {
-    LOG_SRV(" Handling %s request (data len: %d)\n",
+    LOG_SRV(" Handling %s request (data len: %d)",
            app_old_comm_get_cmd_id_str(cid), cal);
 
     // Print command data if available
@@ -125,7 +125,7 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
             app_old_comm_handle_get_taste_dev_status_req(cal, cab);
             break;
         default:
-            LOG_SRV(" Unknown request command 0x%02X\n", cid);
+            LOG_SRV(" Unknown request command 0x%02X", cid);
             break;
     }
 }
@@ -133,7 +133,7 @@ void app_old_comm_handle_request_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, uin
 // Handle report commands (device->APP)
 void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, void *cab)
 {
-    LOG_SRV(" Handling %s (data len: %d)\n", app_old_comm_get_cmd_id_str(cid), cal);
+    LOG_SRV(" Handling %s (data len: %d)", app_old_comm_get_cmd_id_str(cid), cal);
     servers_publish_data_args_t *args_temp = (servers_publish_data_args_t *)cab;
     switch (cid) {
         case APP_OLD_COMM_CID_NOTIFY_STATUS: {
@@ -172,7 +172,7 @@ void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, vo
 #endif
         } break;
         default:
-            LOG_SRV(" Unhandled response command %s (0x%02X)\n",
+            LOG_SRV(" Unhandled response command %s (0x%02X)",
                    app_old_comm_get_cmd_id_str(cid), cid);
             break;
     }

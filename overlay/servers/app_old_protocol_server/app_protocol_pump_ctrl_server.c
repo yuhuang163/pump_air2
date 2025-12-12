@@ -569,72 +569,92 @@ uint8_t app_old_comm_handle_ctrl_taste_dev_ctrl(app_old_comm_pump_taste_ctrl *ta
     EXCEPTION_CHECK_UINT(motor);
     EXCEPTION_CHECK_UINT(motor->hook);
     EXCEPTION_CHECK_UINT(motor->hook->motor_debug_with_user_para);
-    motor_policy_cfg_t policy_cfg[CUSTOM_MODE_MOTOR_POLICY_NUMBER] = {0};
     motor_multiple_policy_cfg_t para = {0};
-    if (taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_STOP) {
-        LOG_SRV(" Taste control stop");
-        motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_STOP, NULL);
-        return true;
-    }
-    if (taste_ctrl_date->taste_pump_mode == APP_OLD_COMM_TASTE_MODE_STIMULATION
-        && taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
-        LOG_SRV(" Taste control stimulation");
-        motor_policy_cfg_t stimulation_default_temp[STIMULATION_MODE_LEN] = {0};
-        memcpy(stimulation_default_temp, &stimulation_default, sizeof(stimulation_default));
-        stimulation_default_temp[0].core.un.mapping.level = taste_ctrl_date->taste_pump_level;
-        stimulation_default_temp[0].core.un.mapping.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
-        memcpy(policy_cfg, &stimulation_default_temp, sizeof(stimulation_default_temp));
-        para.policy_cfg_list = policy_cfg;
-        para.policy_cfg_count = STIMULATION_MODE_LEN;
-        motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_STIMULATION_POLICY, &para);
-        return true;
-    }
-    if (taste_ctrl_date->taste_pump_mode == APP_OLD_COMM_TASTE_MODE_SUCTION
-        && taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
-        LOG_SRV(" Taste control suction");
-        motor_policy_cfg_t pump_default_temp[PUMP_MODE_LEN] = {0};
-        memcpy(pump_default_temp, &pump_default, sizeof(pump_default));
-        pump_default_temp[0].core.un.mapping.level = taste_ctrl_date->taste_pump_level;
-        pump_default_temp[0].core.un.mapping.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
-        memcpy(policy_cfg, &pump_default_temp, sizeof(pump_default_temp));
-        para.policy_cfg_list = policy_cfg;
-        para.policy_cfg_count = PUMP_MODE_LEN;
-        motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_PUMP_POLICY, &para);
-        return true;
-    }
-    if (taste_ctrl_date->taste_pump_mode == APP_OLD_COMM_TASTE_MODE_MIX1
-        && taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
-        LOG_SRV(" Taste control mix1");
-        motor_policy_cfg_t mix_default_temp[MIX_MODE_LEN] = {0};
-        memcpy(mix_default_temp, &mix_default, sizeof(mix_default));
-        for (uint8_t j = 0; j < MIX_MODE_LEN; j++) {
-            mix_default_temp[j].core.un.mapping.level = taste_ctrl_date->taste_pump_level;
-            mix_default_temp[j].core.un.mapping.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+    app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
+    if (handler_ctx->taste_ctrl.taste_status_ctrl != taste_ctrl_date->taste_status_ctrl) {
+        handler_ctx->taste_ctrl.taste_status_ctrl = taste_ctrl_date->taste_status_ctrl;
+        if(taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_EXIT)
+        {
+            motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_EXIT, NULL);
         }
-        memcpy(policy_cfg, &mix_default_temp, sizeof(mix_default_temp));
-        para.policy_cfg_list = policy_cfg;
-        para.policy_cfg_count = MIX_MODE_LEN;
-        motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_MIX1_POLICY, &para);
-        return true;
-    }
-    if (taste_ctrl_date->taste_pump_mode == APP_OLD_COMM_TASTE_MODE_MIX2
-        && taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
-        LOG_SRV(" Taste control mix2");
-        motor_policy_cfg_t mix_default2_temp[MIX2_MODE_LEN] = {0};
-        memcpy(mix_default2_temp, &mix_default2, sizeof(mix_default2));
-        for (uint8_t j = 0; j < MIX2_MODE_LEN; j++) {
-            mix_default2_temp[j].core.un.mapping.level = taste_ctrl_date->taste_pump_level;
-            mix_default2_temp[j].core.un.mapping.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+        else if (taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_STOP) {
+            motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_STOP, NULL);
         }
-        memcpy(policy_cfg, &mix_default2_temp, sizeof(mix_default2_temp));
-        para.policy_cfg_list = policy_cfg;
-        para.policy_cfg_count = MIX2_MODE_LEN;
-        motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_MIX2_POLICY, &para);
+        //操作暂停退出体验模式 不用设置参数直接返回
         return true;
     }
-    if (taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_EXIT) {
-        LOG_SRV(" Taste control exit");
-        motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_STOP, NULL);
+    //暂停后在控制启动，或在启动状态模式变化，才需要暂停后，重新加载策略启动
+    if ((handler_ctx->taste_ctrl.taste_status_ctrl != taste_ctrl_date->taste_status_ctrl)
+        || (handler_ctx->taste_ctrl.taste_pump_mode != taste_ctrl_date->taste_pump_mode)) {
+        handler_ctx->taste_ctrl.taste_pump_mode = taste_ctrl_date->taste_pump_mode;
+        handler_ctx->taste_ctrl.taste_status_ctrl = taste_ctrl_date->taste_status_ctrl;
+        handler_ctx->taste_ctrl.taste_pump_level = taste_ctrl_date->taste_pump_level;
+        handler_ctx->taste_ctrl.taste_pump_speed = taste_ctrl_date->taste_pump_speed;
+        /// 停止体验模式
+        if ((handler_ctx->taste_ctrl.taste_pump_mode != taste_ctrl_date->taste_pump_mode))
+        {
+            motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_STOP, NULL);
+        }
+        /// 设置用户区体验模式参数，用于下次启动时使用
+        taste_setting_t taste_setting;
+        taste_setting.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+        for (uint8_t j = 0; j < BREAST_PUMP_NUM; j++) {
+            taste_setting.level[j] = taste_ctrl_date->taste_pump_level;
+        }
+        motor->hook->motor_debug_with_taste_setting(motor, &taste_setting);
+        /// 设置体验模式默认策略
+        if (taste_ctrl_date->taste_pump_mode == APP_OLD_COMM_TASTE_MODE_SUCTION
+            && taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
+            LOG_SRV(" Taste control suction");
+            motor_policy_cfg_t pump_default_temp[PUMP_MODE_LEN] = {0};
+            memcpy(pump_default_temp, &pump_default, sizeof(pump_default));
+            pump_default_temp[0].core.un.mapping.level = taste_ctrl_date->taste_pump_level;
+            pump_default_temp[0].core.un.mapping.speed =
+                taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+            para.policy_cfg_list = pump_default_temp;
+            para.policy_cfg_count = PUMP_MODE_LEN;
+            //会重新启动motor
+            motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_PUMP_POLICY, &para);
+            return true;
+        }
+        if (taste_ctrl_date->taste_pump_mode == APP_OLD_COMM_TASTE_MODE_MIX1
+            && taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
+            LOG_SRV(" Taste control mix1");
+            motor_policy_cfg_t mix_default_temp[MIX_MODE_LEN] = {0};
+            memcpy(mix_default_temp, &mix_default, sizeof(mix_default));
+            for (uint8_t j = 0; j < MIX_MODE_LEN; j++) {
+                mix_default_temp[j].core.un.mapping.level = taste_ctrl_date->taste_pump_level;
+                mix_default_temp[j].core.un.mapping.speed =
+                    taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+            }
+            para.policy_cfg_list = mix_default_temp;
+            para.policy_cfg_count = MIX_MODE_LEN;
+            motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_MIX1_POLICY, &para);
+            return true;
+        }
+        if (taste_ctrl_date->taste_pump_mode == APP_OLD_COMM_TASTE_MODE_MIX2
+            && taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
+            LOG_SRV(" Taste control mix2");
+            motor_policy_cfg_t mix_default2_temp[MIX2_MODE_LEN] = {0};
+            memcpy(mix_default2_temp, &mix_default2, sizeof(mix_default2));
+            for (uint8_t j = 0; j < MIX2_MODE_LEN; j++) {
+                mix_default2_temp[j].core.un.mapping.level = taste_ctrl_date->taste_pump_level;
+                mix_default2_temp[j].core.un.mapping.speed =
+                    taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+            }
+            para.policy_cfg_list = mix_default2_temp;
+            para.policy_cfg_count = MIX2_MODE_LEN;
+            motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_MIX2_POLICY, &para);
+            return true;
+        }
+    }
+    else { //模式和状态都没有变化，说明只需要直接设置taste用户参数
+        taste_setting_t taste_setting;
+        taste_setting.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+        for (uint8_t j = 0; j < BREAST_PUMP_NUM; j++) {
+            taste_setting.level[j] = taste_ctrl_date->taste_pump_level;
+        }
+        motor->hook->motor_debug_with_taste_setting(motor, &taste_setting);
         return true;
     }
     LOGE(" Invalid taste control parameters: mode=%d, status=%d", 
@@ -874,17 +894,18 @@ void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab)
     // TODO: Send parameters to pump valve component
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_TASTE_CTRL, 0, NULL);
 
-    app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
-    handler_ctx->taste_ctrl.taste_status_ctrl = cab[0];
-    handler_ctx->taste_ctrl.taste_pump_mode = cab[1];
-    handler_ctx->taste_ctrl.taste_pump_level = cab[2];
-    handler_ctx->taste_ctrl.taste_pump_speed = cab[3];
-    LOG_SRV("handler_ctx->taste_ctrl.taste_status_ctrl = %d", handler_ctx->taste_ctrl.taste_status_ctrl);
-    LOG_SRV("handler_ctx->taste_ctrl.taste_pump_mode = %d", handler_ctx->taste_ctrl.taste_pump_mode);
-    LOG_SRV("handler_ctx->taste_ctrl.taste_pump_level = %d", handler_ctx->taste_ctrl.taste_pump_level);
-    LOG_SRV("handler_ctx->taste_ctrl.taste_pump_speed = %d", handler_ctx->taste_ctrl.taste_pump_speed);
+    app_old_comm_pump_taste_ctrl taste_ctrl = {0};
+    taste_ctrl.taste_status_ctrl = cab[0];
+    taste_ctrl.taste_pump_mode = cab[1];
+    taste_ctrl.taste_pump_level = cab[2];
+    taste_ctrl.taste_pump_speed = cab[3];
+    LOG_SRV("taste_ctrl.taste_status_ctrl = %d", taste_ctrl.taste_status_ctrl);
+    LOG_SRV("taste_ctrl.taste_pump_mode = %d", taste_ctrl.taste_pump_mode);
+    LOG_SRV("taste_ctrl.taste_pump_level = %d", taste_ctrl.taste_pump_level);
+    LOG_SRV("taste_ctrl.taste_pump_speed = %d", taste_ctrl.taste_pump_speed);
 
-    app_old_comm_handle_ctrl_taste_dev_ctrl(&handler_ctx->taste_ctrl);
+    app_old_comm_handle_ctrl_taste_dev_ctrl(&taste_ctrl);
+    app_old_comm_handle_report_taste_dev_status();
 }
 
 //0xB8 体验模式获取状态
@@ -900,9 +921,22 @@ void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab)
     ack_data[data_len++] = handler_ctx->taste_ctrl.taste_pump_speed;
     // TODO: Send parameters to pump valve component
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_TASTE_MODE_STATE, data_len, ack_data);
-
 }
 
+//0xd8 体验模式状态上报
+void app_old_comm_handle_report_taste_dev_status(void)
+{
+    LOG_SRV(" Handling get device taste status request\n");
+    uint8_t ack_data[10] = {0};
+    uint16_t data_len = 0;
+    app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
+    ack_data[data_len++] = handler_ctx->taste_ctrl.taste_status_ctrl;
+    ack_data[data_len++] = handler_ctx->taste_ctrl.taste_pump_mode;
+    ack_data[data_len++] = handler_ctx->taste_ctrl.taste_pump_level;
+    ack_data[data_len++] = handler_ctx->taste_ctrl.taste_pump_speed;
+    // TODO: Send parameters to pump valve component
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_TASTE_REPORT, data_len, ack_data);
+}
 //0xcf 重置吸奶器状态
 void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab)
 {
