@@ -17,8 +17,10 @@ extern "C" {
 typedef struct ui_proc_logo {
     uint32_t ani_timer_cnt;
     window_context_t w_ctx;
-    // ui_page_handle_t bridge;
+    window_manager_context_t *wm;
+    ui_manager_context_t *ui;
     uint32_t margic; /// 窗口标识.
+    uint32_t last_progress_ani_time; /// 上次进度动画时间.
 } ui_proc_home_t;
 
 
@@ -26,11 +28,15 @@ typedef enum {
     HDR_ACTION_MAX
 } home_ui_hdr_action_e;
 
+/// 主界面动画展示时间
+#define HOME_ANIMATION_DISPLAY_TIME      (2000) /// 2s
+
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
 void start_home_ui_animation(ui_proc_home_t *proc);
+void stop_home_ui_animation(ui_proc_home_t *proc);
 
 #ifdef __cplusplus
 }

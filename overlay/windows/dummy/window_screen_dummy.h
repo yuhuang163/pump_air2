@@ -14,6 +14,9 @@ extern "C" {
 #include "windows_map_define.h" // IWYU pragma: keep
 #include "input_key_code.h" // IWYU pragma: keep
 
+/// dummy界面动画频率
+#define DUMMY_ANIMATION_FREQ                 (12)
+
 typedef enum {
     HDR_ACTION_NIGHT_LIGHT_ONOFF = 100,
     HDR_ACTION_NIGHT_LIGHT_LEVEL,
@@ -28,14 +31,18 @@ typedef struct ui_proc_dummy {
     broadcast_obj_t receiver;
     uint32_t margic; /// 窗口标识.
     uint32_t enter_dummy_time; /// 进入dummy时间.
+    uint32_t last_progress_ani_time; /// 上次动画进度时间.
 } ui_proc_dummy_t;
 
+/// dummy界面动画展示时间
+#define DUMMY_ANIMATION_DISPLAY_TIME      (2000) /// 2s
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
 int switch_dummy_night_light_onoff_ui(ui_proc_dummy_t *proc);
-
+void start_dummy_ui_animation(ui_proc_dummy_t *proc);
+void stop_dummy_ui_animation(ui_proc_dummy_t *proc);
 #ifdef __cplusplus
 }
 #endif

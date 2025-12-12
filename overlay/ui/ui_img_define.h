@@ -35,6 +35,13 @@ typedef enum {
 
 } ui_img_id_type_e;
 
+#define UI_FILL_IMG_ID(tlv, img_id) \
+do { \
+    tlv->type = LCD_IMG_ID; \
+    tlv->data_size = 1; \
+    tlv->data[0] = img_id; \
+} while (0)
+
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
