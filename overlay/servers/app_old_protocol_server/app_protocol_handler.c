@@ -144,6 +144,13 @@ void app_old_comm_handle_response_cmd(app_old_comm_cmd_id_e cid, uint8_t cal, vo
                 app_old_comm_report_device_status(APP_OLD_COMM_RIGHT_CT, args_temp->arg1, args_temp->val);
             }
         } break;
+        case APP_OLD_COMM_CID_TASTE_REPORT: {
+            ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+            EXCEPTION_CHECK_VOID(ble_ctx);
+            if (ble_ctx->ble_is_connected() == true) {
+                app_old_comm_handle_report_taste_dev_status(args_temp->arg1, args_temp->val);
+            }
+        } break;
         case APP_OLD_COMM_CID_NOTIFY_BIND:
             app_old_comm_report_bind_status(1, 0);
             break;

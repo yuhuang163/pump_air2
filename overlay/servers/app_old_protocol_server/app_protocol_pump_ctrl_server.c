@@ -451,6 +451,7 @@ uint8_t app_old_comm_pump_run_status_ctrl(uint8_t status)
     EXCEPTION_CHECK_UINT(pump_ctx);
     LOG_SRV("run_status_ctrl %d", status);
     int pump_status = pump_ctx->get_breast_pump_status();
+
     if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE)
     {
         if (status == APP_OLD_COMM_SYS_RUN)
@@ -563,7 +564,7 @@ uint8_t app_old_comm_update_storage_custom_setting(user_def_pump_steps_data_t *p
 
 uint8_t app_old_comm_handle_ctrl_taste_dev_ctrl(app_old_comm_pump_taste_ctrl *taste_ctrl_date)
 {
-    LOG_SRV(" Handling device taste control request\n");
+    LOG_SRV(" Handling device taste control request");
     EXCEPTION_CHECK_UINT(taste_ctrl_date);
     motor_manager_context_t *motor = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     EXCEPTION_CHECK_UINT(motor);
@@ -573,15 +574,27 @@ uint8_t app_old_comm_handle_ctrl_taste_dev_ctrl(app_old_comm_pump_taste_ctrl *ta
     app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
     if (handler_ctx->taste_ctrl.taste_status_ctrl != taste_ctrl_date->taste_status_ctrl) {
         handler_ctx->taste_ctrl.taste_status_ctrl = taste_ctrl_date->taste_status_ctrl;
-        if(taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_EXIT)
-        {
+        if (taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_EXIT) {
             motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_EXIT, NULL);
-        }
-        else if (taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_STOP) {
+            breast_pump_manager_context_t *pump_ctx =
+                (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+            EXCEPTION_CHECK_UINT(pump_ctx);
+            ///退出体验模式后，继续运行正常pump  //CONTINUE 存在问题 timestep和 time都被体验策略改了
+            pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+            //操作暂停退出体验模式 不用设置参数直接返回
+            return true;
+        } else if (taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_STOP) {
             motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_STOP, NULL);
+            //操作暂停退出体验模式 不用设置参数直接返回
+            return true;
+        } else if (taste_ctrl_date->taste_status_ctrl == APP_OLD_COMM_TASTE_STATUS_RUN) {
+            ///如果正常pump正在运行，先退出正常pump，再启动体验模式
+            //先暂停正常pump运行
+            breast_pump_manager_context_t *pump_ctx =
+                (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+            EXCEPTION_CHECK_UINT(pump_ctx);
+            pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
         }
-        //操作暂停退出体验模式 不用设置参数直接返回
-        return true;
     }
     //暂停后在控制启动，或在启动状态模式变化，才需要暂停motor后，重新加载策略启动
     if ((handler_ctx->taste_ctrl.taste_status_ctrl != taste_ctrl_date->taste_status_ctrl)
@@ -590,16 +603,19 @@ uint8_t app_old_comm_handle_ctrl_taste_dev_ctrl(app_old_comm_pump_taste_ctrl *ta
         handler_ctx->taste_ctrl.taste_status_ctrl = taste_ctrl_date->taste_status_ctrl;
         handler_ctx->taste_ctrl.taste_pump_level = taste_ctrl_date->taste_pump_level;
         handler_ctx->taste_ctrl.taste_pump_speed = taste_ctrl_date->taste_pump_speed;
-        /// 停止体验模式
-        if ((handler_ctx->taste_ctrl.taste_pump_mode != taste_ctrl_date->taste_pump_mode))
-        {
-            motor->hook->motor_debug_with_user_para(motor, MOTOR_USER_TASTE_POLICY_STOP, NULL);
-        }
-        /// 设置用户区体验模式参数，用于下次启动时使用
+
+        /// 设置用户区体验模式参数，用于启动体验模式时使用
         taste_setting_t taste_setting;
+        if(taste_ctrl_date->taste_pump_speed > 2)
         taste_setting.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
+        if (taste_setting.speed > BREAST_PUMP_SPEED_HIGH) {
+            taste_setting.speed = BREAST_PUMP_SPEED_HIGH;
+        }
         for (uint8_t j = 0; j < BREAST_PUMP_NUM; j++) {
             taste_setting.level[j] = taste_ctrl_date->taste_pump_level;
+            if (taste_setting.level[j] > BREAST_PUMP_LEVEL_15) {
+                taste_setting.level[j] = BREAST_PUMP_LEVEL_15;
+            }
         }
         motor->hook->motor_debug_with_taste_setting(motor, &taste_setting);
         /// 设置体验模式默认策略
@@ -696,7 +712,7 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_o
 //0xb0
 void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
 {
-    LOG_SRV(" Handling get device status request\n");
+    LOG_SRV(" Handling get device status request");
     uint8_t ack_data[45] = {0};
     uint16_t data_len = 0;
 
@@ -719,17 +735,17 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT); //normal speed
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = 0x00; //预留
-    LOG_SRV(" Sending device status ACK (data len: %d)\n", data_len);
+    LOG_SRV(" Sending device status ACK (data len: %d)", data_len);
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_STATUS, data_len, ack_data);
 }
 
 //0xc0
 void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_SRV(" Handling device control request\n");
+    LOG_SRV(" Handling device control request");
     EXCEPTION_CHECK_VOID(cab);
     if (cal < 0x0A) {
-        LOG_SRV(" Invalid data length for CTRL_DEV (expected >=0X0A, got %d)\n", cal);
+        LOG_SRV(" Invalid data length for CTRL_DEV (expected >=0X0A, got %d)", cal);
     }
     // TODO: Send parameters to pump valve component
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_CTRL_DEV, 1, &cab[6]);
@@ -846,9 +862,9 @@ void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
 //0xf0
 void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_SRV(" Handling get device info request\n");
+    LOG_SRV(" Handling get device info request");
     if (cal != 0x04) {
-        LOG_SRV(" Invalid data length for GET_DEV_INFO (expected 4, got %d)\n", cal);
+        LOG_SRV(" Invalid data length for GET_DEV_INFO (expected 4, got %d)", cal);
         return;
     }
     storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
@@ -878,17 +894,17 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     ack_data[data_len++] = handler_ctx->encrypt_key;//encrypt_key;
 #endif
     ack_data[data_len++] = ctx->priv.ver_info.sw_version % 10;
-    LOG_SRV(" Sending device info ACK (data len: %d)\n", data_len);
+    LOG_SRV(" Sending device info ACK (data len: %d)", data_len);
    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_DEV_INFO, data_len, ack_data);
 }
 
 //0xc8 体验模式设置
 void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_SRV(" Handling device taste control request\n");
+    LOG_SRV(" Handling device taste control request");
     EXCEPTION_CHECK_VOID(cab);
     if (cal < 0x04) {
-        LOG_SRV(" Invalid data length for TASTE_CTRL (expected >=0X04, got %d)\n", cal);
+        LOG_SRV(" Invalid data length for TASTE_CTRL (expected >=0X04, got %d)", cal);
         return;
     }
     // TODO: Send parameters to pump valve component
@@ -905,13 +921,13 @@ void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab)
     LOG_SRV("taste_ctrl.taste_pump_speed = %d", taste_ctrl.taste_pump_speed);
 
     app_old_comm_handle_ctrl_taste_dev_ctrl(&taste_ctrl);
-    app_old_comm_handle_report_taste_dev_status();
+    app_old_comm_handle_report_taste_dev_status(OLD_PUBLISH_DATA_TASTE_POLL_REPORT, NULL);
 }
 
 //0xB8 体验模式获取状态
 void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab)
 {
-    LOG_SRV(" Handling get device taste status request\n");
+    LOG_SRV(" Handling get device taste status request");
     uint8_t ack_data[10] = {0};
     uint16_t data_len = 0;
     app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
@@ -924,9 +940,9 @@ void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab)
 }
 
 //0xd8 体验模式状态上报
-void app_old_comm_handle_report_taste_dev_status(void)
+void app_old_comm_handle_report_taste_dev_status(servers_old_protocol_publish_data_id_e id, void *val)
 {
-    LOG_SRV(" Handling get device taste status request\n");
+    LOG_SRV(" Handling get device taste status request id = %d", id);
     uint8_t ack_data[10] = {0};
     uint16_t data_len = 0;
     app_old_protocol_handler_context_t *handler_ctx = app_old_protocol_handler_ctx_get();
@@ -934,6 +950,28 @@ void app_old_comm_handle_report_taste_dev_status(void)
     ack_data[data_len++] = handler_ctx->taste_ctrl.taste_pump_mode;
     ack_data[data_len++] = handler_ctx->taste_ctrl.taste_pump_level;
     ack_data[data_len++] = handler_ctx->taste_ctrl.taste_pump_speed;
+    switch (id) {
+        case OLD_PUBLISH_DATA_TASTE_START_REPORT:
+            ack_data[0] = APP_OLD_COMM_TASTE_STATUS_RUN;
+            handler_ctx->taste_ctrl.taste_status_ctrl = APP_OLD_COMM_TASTE_STATUS_RUN;
+            break;
+        case OLD_PUBLISH_DATA_TASTE_STOP_REPORT:
+            ack_data[0] = APP_OLD_COMM_TASTE_STATUS_STOP;
+            handler_ctx->taste_ctrl.taste_status_ctrl = APP_OLD_COMM_TASTE_STATUS_STOP;
+            break;
+        case OLD_PUBLISH_DATA_TASTE_EXIT_REPORT:
+            ack_data[0] = APP_OLD_COMM_TASTE_STATUS_EXIT;
+            handler_ctx->taste_ctrl.taste_status_ctrl = APP_OLD_COMM_TASTE_STATUS_EXIT;
+            break;
+        case OLD_PUBLISH_DATA_TASTE_MODE_CHANGE:
+            break;
+        case OLD_PUBLISH_DATA_TASTE_LEVEL_CHANGE:
+            break;
+        case OLD_PUBLISH_DATA_TASTE_SPEED_CHANGE:
+            break;
+        default:
+            break;
+    }
     // TODO: Send parameters to pump valve component
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_TASTE_REPORT, data_len, ack_data);
 }
@@ -949,3 +987,4 @@ void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab)
     pump_ctx->set_breast_pump_status(BREAST_PUMP_RESET);
     pump_ctx->set_breast_pump_status(BREAST_PUMP_IDLE);
 }
+ 

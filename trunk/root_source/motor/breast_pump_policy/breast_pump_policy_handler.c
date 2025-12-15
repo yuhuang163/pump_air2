@@ -136,6 +136,7 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     body->breast_pump_mode = thiz->priv.pump_ctx->get_breast_pump_mode();
 
     const motor_policy_manager_t *policy_obj = NULL;
+    body->taste_run_flag = 0;//常规模式下，体验模式标志位清零
     if (action == MOTOR_USER_DEBUG_POLICY_START) {
         body->taste_run_flag = 1;
         policy_obj = thiz->priv.user_debug_policy;
@@ -173,11 +174,17 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
     servers_publish_data_args_t args = {
-        .arg1 = OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE,
+        .arg1 =
+            (body->taste_run_flag ? OLD_PUBLISH_DATA_TASTE_START_REPORT : OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE),
         .arg2 = 0,
         .val = NULL,
     };
-    servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    if (body->taste_run_flag) {
+        servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_TASTE_REPORT, &args);
+    }
+    else {
+        servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    }
 }
 
 int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_task_para_t *play_para)
@@ -209,9 +216,21 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
         // msleep(PUMP_POLICY_RUN_TIME_INTERVAL);
     }
     runtime->current_time_policy_running_time += get_timestamp_ms(runtime->timed_policy_start_time);
-    runtime->taste_run_flag = 0;
     negative_pressure_release(thiz);
     STOP_TIMER(policy_work_timer);
+    if (runtime->taste_run_flag) {
+        //策略退出后通知app
+        servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+        EXCEPTION_CHECK_INT(servers_ctx && servers_ctx->hook);
+        servers_publish_data_args_t args = {
+            .arg1 = OLD_PUBLISH_DATA_TASTE_STOP_REPORT,
+            .arg2 = 0,
+            .val = NULL,
+        };
+        servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_TASTE_REPORT, &args);
+    }
+    runtime->taste_run_flag = 0;
+
     LOG_MOTOR("exit:%d", exit_code);
 
     return exit_code;
