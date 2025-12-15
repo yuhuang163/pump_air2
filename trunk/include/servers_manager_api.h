@@ -32,6 +32,13 @@ typedef enum {
     OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE = 7, /// 步骤所有参数变化
     OLD_PUBLISH_DATA_BATTARNG_CHANGE = 8,         /// 电池电量变化
     OLD_PUBLISH_DATA_SYSTEM_STATUS_CHANGE = 9,    /// 系统状态变化
+    OLD_PUBLISH_DATA_TASTE_POLL_REPORT = 10,    /// 体验模式轮询上报
+    OLD_PUBLISH_DATA_TASTE_START_REPORT = 11,    /// 体验模式启动上报
+    OLD_PUBLISH_DATA_TASTE_STOP_REPORT = 12,    /// 体验模式停止上报
+    OLD_PUBLISH_DATA_TASTE_EXIT_REPORT = 13,    /// 体验模式退出上报
+    OLD_PUBLISH_DATA_TASTE_MODE_CHANGE = 14,    /// 体验模式模式变化
+    OLD_PUBLISH_DATA_TASTE_LEVEL_CHANGE = 15,    /// 体验模式等级变化
+    OLD_PUBLISH_DATA_TASTE_SPEED_CHANGE = 16,    /// 体验模式速率变化
     OLD_PUBLISH_DATA_ID_MAX
 } servers_old_protocol_publish_data_id_e;
 

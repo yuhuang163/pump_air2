@@ -90,7 +90,7 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
             runtime->current_time_policy_running_time = 0;
         }
         /// 更新步数索引.
-        if (thiz->priv.pump_ctx) {
+        if (thiz->priv.pump_ctx && (!runtime->taste_run_flag)) {
             thiz->priv.pump_ctx->priv.m_info.step_index = runtime->current_timed_policy_index;
         }
         /// 释放负压
@@ -105,15 +105,17 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
             runtime->timed_policy->next, runtime->timed_policy->duration_seconds, 
             runtime->timed_policy->policy.core.un.mapping.level);
 
-        //每一步定时策略更新后，将当前的策略的setting通知app
-        servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
-        EXCEPTION_CHECK_INT(servers_ctx && servers_ctx->hook);
-        servers_publish_data_args_t args = {
-            .arg1 = OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE,
-            .arg2 = 0,
-            .val = NULL,
-        };
-        servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+        if (!runtime->taste_run_flag) {
+            //每一步定时策略更新后，将当前的策略的setting通知app
+            servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+            EXCEPTION_CHECK_INT(servers_ctx && servers_ctx->hook);
+            servers_publish_data_args_t args = {
+                .arg1 = OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE,
+                .arg2 = 0,
+                .val = NULL,
+            };
+            servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+        }
         return 0;
     }
 

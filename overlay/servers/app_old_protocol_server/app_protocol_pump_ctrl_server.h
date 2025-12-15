@@ -24,6 +24,7 @@ typedef enum {
 typedef enum {
     APP_OLD_COMM_LEFT_CT       = 0x00,
     APP_OLD_COMM_RIGHT_CT      = 0x01,
+    APP_OLD_COMM_ALL_CT        = 0x02,
 } app_old_commd_l_r_ctrl_e;
 
 // Breast pumping mode definitions
@@ -87,7 +88,7 @@ void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
 void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab);
-void app_old_comm_handle_report_taste_dev_status(void);
+void app_old_comm_handle_report_taste_dev_status(servers_old_protocol_publish_data_id_e id, void *val);
 #ifdef __cplusplus
 }
 #endif
