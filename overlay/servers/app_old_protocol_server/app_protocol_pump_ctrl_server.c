@@ -533,12 +533,19 @@ uint8_t app_old_comm_pump_custom_step_para_to_local_motor_policy(user_def_pump_s
         }
     }
     print_pump_custom_cfg(custom_mode_policy_cfg, cfg_num);
-    //motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
-    //EXCEPTION_CHECK_UINT(motor_ctx);
-    //EXCEPTION_CHECK_UINT(motor_ctx->hook);
-    //EXCEPTION_CHECK_UINT(motor_ctx->hook->motor_debug_with_user_para);
-    //motor_ctx->hook->generate_motor_para(motor_ctx, BREAST_PUMP_CUSTOM_MODE, custom_mode_policy_cfg, cfg_num*sizeof(motor_policy_cfg_t));
-    custom_mode_parameter_update(custom_mode_policy_cfg, cfg_num);
+    motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    EXCEPTION_CHECK_UINT(motor_ctx);
+    EXCEPTION_CHECK_UINT(motor_ctx->hook);
+    EXCEPTION_CHECK_UINT(motor_ctx->hook->motor_debug_with_user_para);
+    motor_ctx->hook->generate_motor_para(motor_ctx, BREAST_PUMP_CUSTOM_MODE, custom_mode_policy_cfg, cfg_num*sizeof(motor_policy_cfg_t));
+    //创建自定义模式策略后，如果当前是自定义模式，需要暂停pump，再启动pump   
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump_ctx);
+    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE) {
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+    }
+    //custom_mode_parameter_update(custom_mode_policy_cfg, cfg_num);
     return true;
 }
 
@@ -606,7 +613,6 @@ uint8_t app_old_comm_handle_ctrl_taste_dev_ctrl(app_old_comm_pump_taste_ctrl *ta
 
         /// 设置用户区体验模式参数，用于启动体验模式时使用
         taste_setting_t taste_setting;
-        if(taste_ctrl_date->taste_pump_speed > 2)
         taste_setting.speed = taste_ctrl_date->taste_pump_speed - 1; //频次（1-低 2-中 3-高 需要减1）
         if (taste_setting.speed > BREAST_PUMP_SPEED_HIGH) {
             taste_setting.speed = BREAST_PUMP_SPEED_HIGH;
@@ -728,6 +734,7 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = (app_old_comm_get_pump_mode_run_total_time() >> 8) & 0xFF;
     ack_data[data_len++] = (app_old_comm_get_current_pump_mode_run_time() >> 0) & 0xFF;
     ack_data[data_len++] = (app_old_comm_get_current_pump_mode_run_time() >> 8) & 0xFF;
+    ack_data[data_len++] = 0; //v3无储奶检测
     ack_data[data_len++] = app_old_comm_check_if_low_battery();
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
@@ -830,10 +837,10 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     //存入flash
     app_old_comm_set_custom_pump_step_parameter_infor(&pump_user_defined_step_data_temp);
     //先暂停pump
-    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    EXCEPTION_CHECK_VOID(pump_ctx);
-    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
-        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+    //breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    //EXCEPTION_CHECK_VOID(pump_ctx);
+    //if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
+    //    pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
     //将storage的custom 目标pump time更新
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_VOID(storage_ctx);
@@ -846,8 +853,8 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     //int custom_mode_parameter_update(motor_policy_cfg_t *cfg, uint8_t cfg_num)
     app_old_comm_pump_custom_step_para_to_local_motor_policy(&pump_user_defined_step_data_temp);
     //重新启动pump
-    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
-        pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+    //if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE)
+    //    pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
 
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
 }
