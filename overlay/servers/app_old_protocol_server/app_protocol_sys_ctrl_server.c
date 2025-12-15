@@ -1,3 +1,5 @@
+#include "cmsis_os.h"
+#include "hal_pmu.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "app_protocol_handler.h"
 #include "protocol_manager_api.h"
@@ -121,7 +123,19 @@ void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
     } else if (ctrl_cmd == APP_OLD_COMM_SYS_OTA) {
         LOG_SRV("CMD-ota");
     } else if (ctrl_cmd == APP_OLD_COMM_SYS_OFF_OTA_RECOVERY) {
-        LOG_SRV("CMD-recover");
+        LOG_SRV("CMD-factory recover");
+            //先暂停pump
+        breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+        EXCEPTION_CHECK_VOID(pump_ctx);
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+        msleep(200);//确保motor线程退出，泄压完成
+        storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+        if (st && st->factory_reset) {
+            st->factory_reset(RESET_AND_REBOOT);
+        }
+        else {
+            LOG_SRV("factory_reset failed");
+        }
     }
     // TODO: Execute system control logic
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SYS_CTRL, 1, &ctrl_cmd);
