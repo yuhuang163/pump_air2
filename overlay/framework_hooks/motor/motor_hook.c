@@ -99,7 +99,7 @@ static int generate_motor_para(struct motor_manager_context *ctx, int mode, void
     int ret = -1;
     /// 替换新参数前检测当前模式参数是否正在使用
     if (ctx->priv.runtime.breast_pump_mode == mode && ctx->priv.motor_state != MOTOR_POLICY_IDLE) {
-        ctx->stop_motor();
+        ctx->synchronous_stop_motor();
         stop_flag = 1;
     }
 
