@@ -10,6 +10,7 @@ import os
 import sys
 import argparse
 import struct
+import glob
 
 
 def get_png_resolution(png_data):
@@ -113,21 +114,82 @@ def png_to_txt(png_path, output_dir=None, output_filename=None, include_resoluti
         return False
 
 
+def batch_convert(input_path, output_dir=None, include_resolution=True, recursive=False):
+    """
+    批量转换PNG文件
+    
+    Args:
+        input_path: 输入文件或目录路径
+        output_dir: 输出目录，如果为None则使用PNG文件所在目录
+        include_resolution: 是否在文件名中包含分辨率信息
+        recursive: 是否递归处理子目录
+    """
+    if os.path.isfile(input_path):
+        # 单个文件
+        return png_to_txt(input_path, output_dir, None, include_resolution)
+    elif os.path.isdir(input_path):
+        # 目录，查找所有PNG文件
+        if recursive:
+            pattern = os.path.join(input_path, '**', '*.png')
+        else:
+            pattern = os.path.join(input_path, '*.png')
+        
+        png_files = glob.glob(pattern, recursive=recursive)
+        
+        if not png_files:
+            print(f"错误: 在目录 {input_path} 中未找到PNG文件")
+            return False
+        
+        print(f"找到 {len(png_files)} 个PNG文件，开始批量转换...")
+        print("-" * 60)
+        
+        success_count = 0
+        fail_count = 0
+        
+        for png_file in sorted(png_files):
+            # 如果指定了输出目录，保持相对路径结构
+            file_output_dir = output_dir
+            if output_dir and recursive:
+                # 计算相对路径，保持目录结构
+                rel_path = os.path.relpath(os.path.dirname(png_file), input_path)
+                if rel_path != '.':
+                    file_output_dir = os.path.join(output_dir, rel_path)
+            
+            if png_to_txt(png_file, file_output_dir, None, include_resolution):
+                success_count += 1
+            else:
+                fail_count += 1
+            print()  # 空行分隔
+        
+        print("-" * 60)
+        print(f"批量转换完成: 成功 {success_count} 个, 失败 {fail_count} 个")
+        
+        return fail_count == 0
+    else:
+        print(f"错误: 路径不存在 - {input_path}")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description='将PNG图片转换为TXT格式的数据文件',
+        description='将PNG图片转换为TXT格式的数据文件（支持单文件和批量转换）',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
+  # 转换单个文件
   %(prog)s input.png
   %(prog)s input.png -o output_dir
   %(prog)s input.png -o output_dir -n output.txt
+  
+  # 批量转换目录下所有PNG文件
+  %(prog)s img_dir -o output_dir
+  %(prog)s img_dir -o output_dir -r
         """
     )
     
     parser.add_argument(
-        'png_file',
-        help='输入的PNG图片文件路径'
+        'input_path',
+        help='输入的PNG图片文件路径或包含PNG文件的目录路径'
     )
     
     parser.add_argument(
@@ -139,7 +201,7 @@ def main():
     parser.add_argument(
         '-n', '--name',
         dest='output_filename',
-        help='输出文件名（默认：PNG文件名_宽度x高度.txt）'
+        help='输出文件名（仅单文件模式有效，默认：PNG文件名_宽度x高度.txt）'
     )
     
     parser.add_argument(
@@ -150,14 +212,42 @@ def main():
         help='不在文件名中包含分辨率信息'
     )
     
+    parser.add_argument(
+        '-r', '--recursive',
+        dest='recursive',
+        action='store_true',
+        default=False,
+        help='递归处理子目录（仅目录模式有效）'
+    )
+    
     args = parser.parse_args()
     
-    success = png_to_txt(
-        args.png_file,
-        args.output_dir,
-        args.output_filename,
-        args.include_resolution
-    )
+    # 判断是文件还是目录
+    if os.path.isfile(args.input_path):
+        # 单文件模式
+        if args.recursive:
+            print("警告: -r/--recursive 参数仅对目录有效，已忽略")
+        
+        success = png_to_txt(
+            args.input_path,
+            args.output_dir,
+            args.output_filename,
+            args.include_resolution
+        )
+    elif os.path.isdir(args.input_path):
+        # 批量转换模式
+        if args.output_filename:
+            print("警告: -n/--name 参数仅对单文件模式有效，已忽略")
+        
+        success = batch_convert(
+            args.input_path,
+            args.output_dir,
+            args.include_resolution,
+            args.recursive
+        )
+    else:
+        print(f"错误: 路径不存在 - {args.input_path}")
+        success = False
     
     sys.exit(0 if success else 1)
 
