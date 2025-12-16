@@ -13,6 +13,7 @@ extern "C" {
 #include "app_protocol_pump_ctrl_server.h"
 #include "app_protocol_sys_ctrl_server.h"
 #include "app_protocol_auth_server.h"
+#include "app_protocol_taste_ctrl_server.h"
 
 typedef struct app_old_protocol_handler_context {
     protocol_manager_context_t *protocol_ctx;

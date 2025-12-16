@@ -35,6 +35,7 @@ void app_old_comm_handle_set_travel_lock_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_report_discon_status(void);
 void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_right);
 void app_old_comm_handle_ctrl_dev_sys_status_req(uint8_t cal, uint8_t *cab);
+
 #ifdef __cplusplus
 }
 #endif
