@@ -1,6 +1,5 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "app_protocol_handler.h"
-#include "protocol_manager_api.h"
 #include "storage_manager_api.h"
 
 /*
@@ -33,7 +32,8 @@ void app_old_comm_handle_get_triple_req(void)
 
     // TODO: Handle GET_TRIPLE request
     factory_dev_info_t factory_dev_info;
-    uint8_t *tmp_buf = (uint8_t *)u_malloz(30);
+	uint8_t size_buf= 30;
+    uint8_t *tmp_buf = (uint8_t *)u_malloz(size_buf);
     EXCEPTION_CHECK_VOID(tmp_buf);
     storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_VOID(ctx);
@@ -77,7 +77,7 @@ void app_old_comm_handle_get_triple_req(void)
 
 	// 创建目标数组
 	// uint8_t combined[len_prod + len_devid + len_sec];
-	memset(tmp_buf, 0, sizeof(tmp_buf));
+	memset(tmp_buf, 0, size_buf);	// 确保tmp_buf被清零
 	memcpy(tmp_buf, product_id, len_prod);
 	memcpy(tmp_buf + len_prod, devid, len_devid);
 	memcpy((tmp_buf + len_prod + len_devid), send_secret, len_sec);
