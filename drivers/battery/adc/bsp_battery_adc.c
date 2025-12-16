@@ -40,6 +40,7 @@ static const battery_adc_t sg_batt_adc = {
 */
 int battery_adc_init(void)
 {
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
         (enum HAL_IOMUX_PIN_T)BATT_ADC_POWER_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
@@ -50,6 +51,7 @@ int battery_adc_init(void)
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir(BATT_ADC_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
     msleep(50);
+#endif
     bsp_adc_init();
     return 0;
 }

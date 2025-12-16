@@ -12,11 +12,12 @@ extern "C" {
 #include "hal_iomux.h" // IWYU pragma: keep
 #include "hal_gpio.h" // IWYU pragma: keep
 #include "hal_gpadc.h" // IWYU pragma: keep
+#include "project_config.h"
 
 /// GPIO控制宏定义
 #define GPIO_PIN_CTRL(pin, status)      ((status) ? hal_gpio_pin_set(pin) : hal_gpio_pin_clr(pin))
 
-#if 0
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
 /// ADC相关定义
 #define BATT_ADC_POWER_PIN              HAL_GPIO_PIN_P4_4
 #define BATT_ADC_CHANNEL                HAL_GPADC_CHAN_2
@@ -45,10 +46,80 @@ extern "C" {
 #define PUMP_POWER_PIN                  HAL_GPIO_PIN_P0_3
 /// LCD电源控制引脚
 #define LCD_POWER_PIN                   HAL_GPIO_PIN_P4_7
+/// I2C
+#define I2C2_SCL_PIN                    HAL_GPIO_PIN_P0_4
+#define I2C2_SDA_PIN                    HAL_GPIO_PIN_P0_5
+#define I2C3_SCL_PIN                    HAL_GPIO_PIN_P0_6
+#define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
+#define I2C4_SCL_PIN                    HAL_GPIO_PIN_P1_0
+#define I2C4_SDA_PIN                    HAL_GPIO_PIN_P1_1
+#define W100DP_I2C_ID1                  I2C_MASTER_ID_1
+#define W100DP_I2C_ID2                  I2C_MASTER_ID_2
+#define CHARGE_I2C_ID                   I2C_MASTER_ID_0
+#define TOUCH_KEY_I2C_ID                I2C_MASTER_ID_0
 /// 充电中断引脚
 #define CHARGE_INT_PIN                  HAL_GPIO_PIN_P0_1
 /// 充电电源控制引脚
 #define CHARGE_POWER_PIN                HAL_GPIO_PIN_P0_2
+#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+/// ADC相关定义
+#define BATT_ADC_CHANNEL                HAL_GPADC_CHAN_2
+#define PUMP1_ADC_CHANNEL               HAL_GPADC_CHAN_0
+#define PUMP2_ADC_CHANNEL               HAL_GPADC_CHAN_1
+/// LCD相关定义
+#define LCD_POWER_PIN                   HAL_GPIO_PIN_P1_2
+#define LCD_RST_PIN                     HAL_GPIO_PIN_P4_1
+#define LCD_TE_PIN                      HAL_GPIO_PIN_P4_0
+#define LCD_CLK_PIN                     HAL_GPIO_PIN_P3_0
+#define LCD_CS_PIN                      HAL_GPIO_PIN_P3_1
+#define LCD_D0_PIN                      HAL_GPIO_PIN_P3_2
+#define LCD_D1_PIN                      HAL_GPIO_PIN_P3_3
+#define LCD_D2_PIN                      HAL_GPIO_PIN_P3_4
+#define LCD_D3_PIN                      HAL_GPIO_PIN_P3_5
+/// 泵阀相关定义
+#define PWM_VALVE1_PIN                  HAL_GPIO_PIN_P3_6
+#define PWM_PUMP1_PIN                   HAL_GPIO_PIN_P3_7
+#define PWM_VALVE2_PIN                  HAL_GPIO_PIN_P4_3
+#define PWM_PUMP2_PIN                   HAL_GPIO_PIN_P4_2
+/// 按键相关定义
+#define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_6
+#define TOUCH_INT_PIN                   HAL_GPIO_PIN_P4_6
+#define NOBUTTON_PIN                    HAL_GPIO_PIN_P4_7
+/// USB相关定义
+#define PLUG_IN_PIN                     HAL_GPIO_PIN_P1_7
+/// 日志串口
+#define LOG_UART_TX_PIN                 HAL_GPIO_PIN_P2_3
+#define LOG_UART_RX_PIN                 HAL_GPIO_PIN_P2_2
+/// 夜灯相关定义
+#define NIGHT_LIGHT_PIN                 HAL_GPIO_PIN_P2_4
+/// I2C相关定义
+#define I2C0_SCL_PIN                    HAL_GPIO_PIN_P0_0
+#define I2C0_SDA_PIN                    HAL_GPIO_PIN_P0_1
+#define I2C1_SCL_PIN                    HAL_GPIO_PIN_P0_2
+#define I2C1_SDA_PIN                    HAL_GPIO_PIN_P0_3
+#define I2C2_SCL_PIN                    HAL_GPIO_PIN_P0_4
+#define I2C2_SDA_PIN                    HAL_GPIO_PIN_P0_5
+#define I2C3_SCL_PIN                    HAL_GPIO_PIN_P0_6
+#define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
+#define TM1650_I2C_ID                   I2C_MASTER_ID_1
+#define TOUCH_KEY_I2C_ID                I2C_MASTER_ID_1
+#define W100DP_I2C_ID1                  I2C_MASTER_ID_0
+#define W100DP_I2C_ID2                  I2C_MASTER_ID_3
+#define CHARGE_I2C_ID                   I2C_MASTER_ID_2
+/// 充电芯片相关定义
+#define CHARGE_INT_PIN                  HAL_GPIO_PIN_P2_7
+#define CHARGE_POWER_PIN                HAL_GPIO_PIN_P2_6
+#define CHARGE_SLEEP_PIN                HAL_GPIO_PIN_P1_4
+/// 版本识别定义
+#define HW_VERSION_DETECT_PIN           HAL_GPIO_PIN_P1_5
+/// 过流检测引脚
+#define PUMP1_OVC_DETECT_PIN            HAL_GPIO_PIN_P4_5
+#define PUMP2_OVC_DETECT_PIN            HAL_GPIO_PIN_P4_6
+/// 系统电源相关定义
+#define SYS_POWER_PIN                   HAL_GPIO_PIN_P2_5
+#define SYS_3V3_EN_PIN                  HAL_GPIO_PIN_P1_3
+/// 泵奶电源控制引脚
+#define PUMP_POWER_PIN                  HAL_GPIO_PIN_P2_5
 #else
 /// ADC相关定义
 #define BATT_ADC_POWER_PIN              HAL_GPIO_PIN_P4_4
@@ -89,6 +160,10 @@ extern "C" {
 #define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
 #define I2C4_SCL_PIN                    HAL_GPIO_PIN_P1_0
 #define I2C4_SDA_PIN                    HAL_GPIO_PIN_P1_1
+#define W100DP_I2C_ID1                  I2C_MASTER_ID_1
+#define W100DP_I2C_ID2                  I2C_MASTER_ID_2
+#define CHARGE_I2C_ID                   I2C_MASTER_ID_0
+#define TOUCH_KEY_I2C_ID                I2C_MASTER_ID_0
 /// 充电中断引脚
 #define CHARGE_INT_PIN                  HAL_GPIO_PIN_P0_1
 /// 充电电源控制引脚

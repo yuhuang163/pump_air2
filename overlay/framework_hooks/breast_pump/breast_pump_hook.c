@@ -84,8 +84,6 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     return ret;
 }
 
-
-
 static int make_progress_route(breast_pump_manager_context_t *ctx, pump_result_info_t *result_info)
 {
     int notify_id = -1;

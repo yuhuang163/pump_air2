@@ -20,17 +20,17 @@
 
 #define CHARHE_CHECK_NO_BATT_0              0xFF 
 #define CHARHE_CHECK_NO_BATT_1              0xFE 
-#define CHARGE_I2C_ID                       I2C_MASTER_ID_0
 #define CHARGE_I2C_ADDR                     0x75
 #define CHARGE_RETRY_COUNT                  3
 #define CHARGE_GET_10BIT_DATA(data)         (((data[1] & 0xFF03) << 8) | data[0])
 
+#define CHARGE_ABNORMAL_MAX_COUNT           10
 /*
 * LOCAL VARIABLE DEFINITIONS)
 *****************************************************************************************
 */
+static uint16_t s_charge_abnormal_count = 0;
 static bool s_charge_is_ready = false;
-static bool s_charge_abnormal = false;
 static charge_chip_status_t s_charge_status = {0};
 static uint8_t s_charge_full_debounce = 0;
 static void (*s_charge_irq_callback)(void *param);
@@ -55,38 +55,62 @@ static const char *charge_status_arr[] = {
 static int charge_write_nbyte(i2c_master_data_t *data)
 {
     int ret = 0;
-    data->dev_address = CHARGE_I2C_ADDR;
+
+    if (s_charge_is_ready == 0) {
+        LOGE("charge is not ready");
+        return BSP_NOT_READY;
+    }
+
     for (uint8_t i = 0; i < CHARGE_RETRY_COUNT; i++) {
         ret = bsp_i2c_write_byte(CHARGE_I2C_ID, data);
         if (ret == BSP_OK) {
-            break;
+            s_charge_abnormal_count = 0;
+            return BSP_OK;
         }
         msleep(10);
     }
-    return ret;
+
+    s_charge_abnormal_count++;
+    if (s_charge_abnormal_count > CHARGE_ABNORMAL_MAX_COUNT) {
+        s_charge_is_ready = 0;
+    }
+
+    return BSP_ERROR;
 }
 
 static int charge_read_nbyte(i2c_master_data_t *data)
 {
     int ret = 0;
-    data->dev_address = CHARGE_I2C_ADDR;
+    
+    if (s_charge_is_ready == 0) {
+        LOGE("charge is not ready");
+        return BSP_NOT_READY;
+    }
+
     for (uint8_t i = 0; i < CHARGE_RETRY_COUNT; i++) {
         ret = bsp_i2c_read_byte(CHARGE_I2C_ID, data);
         if (ret == BSP_OK) {
-            break;
+            s_charge_abnormal_count = 0;
+            return BSP_OK;
         }
         msleep(10);
     }
-    return ret;
+
+    s_charge_abnormal_count++;
+    if (s_charge_abnormal_count > CHARGE_ABNORMAL_MAX_COUNT) {
+        s_charge_is_ready = 0;
+    }
+
+    return BSP_ERROR;
 }
 
 static void charge_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
     uint8_t msg = 0;
-    LOG_PBUS("charge irq pin[%d] triggered", pin);
+
+    // LOG_PBUS("charge irq pin[%d] triggered", pin);
     if (pin == CHARGE_INT_PIN && s_charge_device_thd.msg_id) {
         MSG_QUEUE_SEND(s_charge_device_thd.msg_id, &msg, 0);
-        // bsp_irq_msg_send(INT_NUM_CHARGE);
     }
 }
 
@@ -135,16 +159,23 @@ static void charge_power_control(bool enable)
 
 static int charge_device_is_ready(void)
 {
+    int ret = 0;
     uint8_t value = 0;
-    i2c_master_data_t data = {0};
-    data.reg_addr = CHARGE_ID_REG;
-    data.data = &value;
-    data.len = 1;
-    int ret = charge_read_nbyte(&data);
-    LOG_PBUS("charge id: %02X, ret: %d", value, ret);
-    if (value == CHARGE_ID_VALUE) {
-        return BSP_OK;
+    i2c_master_data_t read_data = {
+        .dev_address = CHARGE_I2C_ADDR,
+        .reg_addr = CHARGE_ID_REG,
+        .data = &value,
+        .len = 1,
+    };
+
+    for (uint8_t i = 0; i < 3; i++) {
+        ret = bsp_i2c_read_byte(CHARGE_I2C_ID, &read_data);
+        if (value == CHARGE_ID_VALUE) {
+            return BSP_OK;
+        }
+        msleep(10);
     }
+
     return BSP_ERROR;
 }
 
@@ -152,6 +183,7 @@ static int charge_vbat_config(void)
 {
     uint8_t reg_data = 0;
     i2c_master_data_t data = {
+        .dev_address = CHARGE_I2C_ADDR,
         .reg_addr = CHARGE_VBAT_SET_REG,
         .data = &reg_data,
         .len = 1,
@@ -179,6 +211,7 @@ static int charge_vin_config(void)
 {
     uint8_t reg_data[2] = {0};
     i2c_master_data_t data = {
+        .dev_address = CHARGE_I2C_ADDR,
         .reg_addr = CHARGE_VINDPM_H_REG,
         .data = reg_data,
         .len = 2,
@@ -200,6 +233,7 @@ static int charge_adc_config(uint8_t adc_en)
 {
     uint8_t adc_set = 0;
     i2c_master_data_t data = {
+        .dev_address = CHARGE_I2C_ADDR,
         .reg_addr = CHARGE_ADC_SET_REG,
         .data = &adc_set,
         .len = 1,
@@ -216,11 +250,11 @@ static int charge_scale_config(void)
 {
     uint8_t scale = 0;
     i2c_master_data_t data = {
+        .dev_address = CHARGE_I2C_ADDR,
         .reg_addr = CHARGE_ADC_SCALE_REG,
         .data = &scale,
         .len = 1,
     };
-    #
     scale = VBUS_SCALE_CFG | IBUS_SCALE_CFG | VBAT_SCALE_CFG | IBAT_SCALE_CFG;
     return charge_write_nbyte(&data);
 }
@@ -229,6 +263,7 @@ static int charge_interrupt_config(void)
 {
     uint8_t reg_data[2] = {0};
     i2c_master_data_t data = {
+        .dev_address = CHARGE_I2C_ADDR,
         .reg_addr = CHARGE_ADC_SCALE_REG,
         .data = reg_data,
         .len = 2,
@@ -244,6 +279,7 @@ static int charge_status_poll(charge_chip_status_t *status)
 {
     uint8_t reg_data[12] = {0};
     i2c_master_data_t data = {
+        .dev_address = CHARGE_I2C_ADDR,
         .reg_addr = CHARGE_ADC_VBUS_L_REG,
         .data = (uint8_t *)&reg_data,
         .len = 12,
@@ -358,7 +394,7 @@ void add_charge_irq_callback(void (*cb)(void *param))
 
 int get_charge_state(void) 
 {
-    if (s_charge_abnormal) {
+    if (s_charge_is_ready == false) {
         return CHARGE_STATE_ERROR;
     }
     if (s_charge_status.charge_full && s_charge_status.plug_in) {
@@ -395,7 +431,6 @@ int bsp_charge_init(void)
     msleep(10);
     ret = charge_device_is_ready();
     if (ret != BSP_OK) {
-        s_charge_abnormal = true;
         LOGE("charge device is not ready, ret: %d", ret);
         return ret;
     }
@@ -419,21 +454,27 @@ int bsp_charge_init(void)
         LOGE("charge vbat config failed, ret: %d", ret);
         return ret;
     }
+    s_charge_is_ready = true;
+    s_charge_abnormal_count = 0;
     CREATE_MSG_TYPE_QUEUE(&s_charge_device_thd.msg_id, 1, 1);
     RUN_NEW_THREAD(&s_charge_device_thd, "charge", charge_device_thread, RT_PRIO_CHARGE_DEVICE_THREAD, 
         (CHARGE_DEVICE_THREAD_STACKSIZE));
     charge_irq_control(true);
-    s_charge_is_ready = true;
     charge_power_control(true);
+
     return BSP_OK;
 }
 
 int bsp_charge_resume(void)
 {
+    s_charge_is_ready = true;
+    s_charge_abnormal_count = 0;
     return BSP_OK;
 }
 
 int bsp_charge_suspend(void)
 {
+    // s_charge_is_ready = false;
+    // s_charge_abnormal_count = 0;
     return BSP_OK;
 }

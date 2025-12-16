@@ -11,6 +11,7 @@ extern "C" {
 ******************************************************************************/
 // #include "bsp_config.h"
 #include "stdint.h" // IWYU pragma: keep
+#include "plat_types.h" // IWYU pragma: keep
 #include "root_common_api.h" // IWYU pragma: keep
 
 #ifndef IRAM_ATTR
