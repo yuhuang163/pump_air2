@@ -53,8 +53,10 @@ static void sys_power_gpio_control(bool enable)
 
 static void sys_3v3_en_gpio_control(bool enable)
 {
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
     GPIO_PIN_CTRL(SYS_3V3_EN_PIN, enable ? 0 : 1);
     LOG_PBUS("sys_3v3_en_gpio_control: %d", enable);
+#endif
 }
 
 static int sys_power_dev_open(struct rt_device_node *dev)
