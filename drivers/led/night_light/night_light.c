@@ -12,7 +12,7 @@
 *****************************************************************************************
 */
 #define NIGHT_LIGHT_SIZE                          1
-#define NIGHT_LIGHT_PIN                           HAL_GPIO_PIN_P4_2  // 右边控制背光灯
+#define NIGHT_LIGHT_PIN                           HAL_GPIO_PIN_P4_2  
 #define LED_PIN_CTRL(pin, status)                 ((status) ? hal_gpio_pin_set(pin) : hal_gpio_pin_clr(pin))
 
 typedef struct {

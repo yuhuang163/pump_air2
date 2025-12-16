@@ -36,6 +36,12 @@ void sys_power_gpio_init(void)
     };
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_POWER_PIN,  HAL_GPIO_DIR_OUT,  1);
+
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+    gpio_map.pin = (enum HAL_IOMUX_PIN_T)SYS_3V3_EN_PIN;
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_3V3_EN_PIN,  HAL_GPIO_DIR_OUT,  0);
+#endif
     LOG_PBUS("sys_power_gpio_init");
 }
 
@@ -45,8 +51,17 @@ static void sys_power_gpio_control(bool enable)
     LOG_PBUS("sys_power_gpio_control: %d", enable);
 }
 
+static void sys_3v3_en_gpio_control(bool enable)
+{
+    GPIO_PIN_CTRL(SYS_3V3_EN_PIN, enable ? 0 : 1);
+    LOG_PBUS("sys_3v3_en_gpio_control: %d", enable);
+}
+
 static int sys_power_dev_open(struct rt_device_node *dev)
 {
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+    sys_power_gpio_init();
+#endif
     return 0;
 }
 

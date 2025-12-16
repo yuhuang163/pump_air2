@@ -100,6 +100,15 @@ extern "C" {
 #define LVGL_TIME_TICK_PERIOD                          (20) /// 单位ms
 /// 开机长按时间
 #define BOOT_LONG_PRESS_TIME                           (3000)
+/// 硬件版本配置
+#define V3_2710IMP_HARDWARE_VERSION                    (0)
+#define V3_2710IMC_DEMO_HARDWARE_VERSION               (1)
+#define V3_2710IMC_HARDWARE_VERSION                    (2)
+#ifdef BOARD_V3_2710IMC
+#define V3_HARDWARE_VERSION                            (2)
+#else
+#define V3_HARDWARE_VERSION                            (0)
+#endif
 #ifdef __cplusplus
 }
 #endif
