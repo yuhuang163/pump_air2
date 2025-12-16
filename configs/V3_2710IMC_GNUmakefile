@@ -1,3 +1,5 @@
+# V3_2710IMC_GNUmakefile
+
 SDK_SRCTREE := $(CURDIR)/trunk/platform_chip/bes/sdk
 PROJECT_ROOT := $(CURDIR)
 O ?= $(PROJECT_ROOT)/project/build
