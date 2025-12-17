@@ -64,6 +64,13 @@ int get_pump_data_info_from_flash(int num, void *body);
 int delete_pump_data_info_from_flash(int num);
 /// 填充泵奶数据接口
 int fill_in_pump_data_info(int num);
+
+/// 埋点数据接口
+void reset_pump_buried_info(storage_manager_context_t *ctx, sys_buried_info_list_t *buried_info_list);
+int write_pump_buried_info_to_flash(store_func_args_t args);
+int read_pump_buried_info_from_flash(store_func_args_t args);
+int write_pump_buried_info_to_ram(store_func_args_t args);
+
 #ifdef __cplusplus
 }
 #endif
