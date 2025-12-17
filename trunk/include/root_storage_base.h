@@ -108,6 +108,10 @@ extern "C" {
 #define STORAGE_UTC_TIMESTAMP_MAGIC_NUM                                        (0xAFFA5890)
 #endif
 
+#ifndef STORAGE_BREAST_PUMP_BURY_INFO_MAGIC_NUM
+#define STORAGE_BREAST_PUMP_BURY_INFO_MAGIC_NUM                                (0xAFFA5891)
+#endif
+
 /*
  * GLOBAL FUNCTION DECLARATION
  *****************************************************************************************

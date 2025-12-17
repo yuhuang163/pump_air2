@@ -72,6 +72,7 @@ const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
     {STORE_ID_PUMP_CONTROL_TYPE, write_pump_control_type_to_ram},
     {STORE_ID_SYS_NIGHT_LIGHT_INFO, write_night_light_info_to_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, write_airplane_mode_state_to_ram},
+    {STORE_ID_BREAST_PUMP_BURY_INFO, write_pump_buried_info_to_ram},
 };
 
 const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
@@ -150,10 +151,12 @@ static int init_system_persist_info(storage_manager_context_t *ctx)
     read_user_bind_info_from_flash(args);
     args.val = &sys_info->pump_info;
     read_pump_info_from_flash(args);
+    args.val = &sys_info->buried_info_list;
+    read_pump_buried_info_from_flash(args);
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_CONFIG] = CRC16(&sys_info->config, sizeof(sys_config_info_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_STATE]  = CRC16(&sys_info->state, sizeof(sys_state_info_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_INFO]  = CRC16(&sys_info->pump_info, sizeof(sys_pump_info_t));
-    
+    ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_BURY_INFO]  = CRC16(&sys_info->buried_info_list, sizeof(sys_buried_info_list_t));
     return 0;
 }
 
@@ -189,6 +192,13 @@ static int system_persist_info_sync_flash(storage_manager_context_t *ctx)
         write_pump_info_to_flash(args);
         LOG_STORE("-->pump info sync flash");
     }
+    ///  泵奶埋点信息
+    info_crc = CRC16(&sys_info->buried_info_list, sizeof(sys_buried_info_list_t));
+    if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_BURY_INFO]) {
+        args.val = &sys_info->buried_info_list;
+        write_pump_buried_info_to_flash(args);
+        LOG_STORE("-->pump buried info sync flash");
+    }
     return 0;
 }
 
@@ -204,6 +214,8 @@ static int user_database_reset(void)
     reset_sys_state_info(thiz, &thiz->priv.sys_info.state);
     msleep(10);
     reset_pump_data_head(thiz, &thiz->priv.pump_data_head);
+    msleep(10);
+    reset_pump_buried_info(thiz, &thiz->priv.sys_info.buried_info_list);
     LOGE("==> user database reset !!!!!!!!!!!!!!!");
     
     return 0;

@@ -29,6 +29,7 @@ extern "C" {
 
 #define ROOT_BREAST_PUMP_STEP_MAX                   8
 #define FACTORY_AGE_INFO_MAX                        3   /// 老化信息最大保存3条
+#define ROOT_BREAST_PUMP_BURY_DATA_NUM            10    /// 埋点数据最大保存10条
 
 typedef enum  { 
     SYS_DAY_MONDAY = 0,
@@ -286,12 +287,35 @@ typedef struct {
     uint32_t sync_sys_time;       /// 保存第一次同步系统时间时 本地经历的最终时间点 用于计算泵奶记录的差值.
 } sys_state_info_t;
 
+/// 描述埋点数据
+typedef struct sys_buried_info {
+    union {
+        u32 dat32;
+        u8 dat[4];
+    } rtc_time; /// 系统时间
+    uint8_t sys_event;
+    uint8_t pump_state;
+    uint8_t pump_mode;
+    uint8_t pump_level;
+    uint8_t battery;
+    uint8_t milk;
+    uint8_t shock_swicth;
+    uint8_t heat_swicth;
+    uint8_t angle;
+} sys_buried_info_t;
+
+typedef struct {
+    sys_buried_info_t buried_info[ROOT_BREAST_PUMP_BURY_DATA_NUM];
+    uint16_t buried_index; /// 埋点索引
+} sys_buried_info_list_t;
+
 /// 描述系统信息
 typedef struct sys_persist_info {
     sys_config_info_t config;
     sys_state_info_t state;
     sys_pump_info_t pump_info;
     user_bind_info_t bind_info;
+    sys_buried_info_list_t buried_info_list;
 } sys_persist_info_t;
 
 /// 描述板子信息

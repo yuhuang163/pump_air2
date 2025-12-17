@@ -8,6 +8,7 @@
 #include "storage_manager_internal.h" // IWYU pragma: keep
 #include "breast_pump_mode.h" // IWYU pragma: keep
 #include "persist_storage.h" // IWYU pragma: keep
+#include "breast_pump_persist_data.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -115,6 +116,62 @@ int write_pump_data_head_to_flash(store_func_args_t args)
         LOGE("write pump data head failure! ret: %d", ret);
     }
     u_free(store_pump_data_head);
+
+    return ret;
+}
+
+int write_pump_buried_info_to_flash(store_func_args_t args)
+{
+    int ret = 0;
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_buried_info_list_t *buried_info_list = (sys_buried_info_list_t *)args.val;
+    EXCEPTION_CHECK_INT(buried_info_list);
+    breast_pump_buried_info_storage_t *store_buried_info = u_malloz(sizeof(breast_pump_buried_info_storage_t));
+    EXCEPTION_CHECK_INT(store_buried_info);
+    store_buried_info->magic = STORAGE_BREAST_PUMP_BURY_INFO_MAGIC_NUM;
+    memcpy(&store_buried_info->buried_info_list, buried_info_list, sizeof(sys_buried_info_list_t));
+    store_buried_info->crc = CRC16(&store_buried_info->buried_info_list, sizeof(sys_buried_info_list_t));
+    ret = user_database_put(args.ctx, PERSIST_KEY_BREAST_PUMP_BURY_INFO, (uint8_t *)store_buried_info,
+                sizeof(breast_pump_buried_info_storage_t));
+    if (ret != 0) {
+        LOGE("write pump buried info failure! ret: %d", ret);
+    }
+    u_free(store_buried_info);
+
+    return ret;
+}
+
+void reset_pump_buried_info(storage_manager_context_t *ctx, sys_buried_info_list_t *buried_info_list)
+{
+    EXCEPTION_CHECK_VOID(ctx);
+    memset(buried_info_list, 0, sizeof(sys_buried_info_list_t));
+    store_func_args_t args = {
+        .ctx = ctx,
+        .arg1 = 0,
+        .arg2 = 0,
+        .val = buried_info_list,
+    };
+    LOG_STORE_WRAP("==> storage_reset_pump_buried_info !!!!!!!!!!!!!!!");
+    write_pump_buried_info_to_flash(args);
+}
+
+int read_pump_buried_info_from_flash(store_func_args_t args)
+{
+    int ret = 0;
+    EXCEPTION_CHECK_INT(args.ctx);
+    sys_buried_info_list_t *buried_info_list = (sys_buried_info_list_t *)args.val;
+    EXCEPTION_CHECK_INT(buried_info_list);
+    breast_pump_buried_info_storage_t *store_buried_info = u_malloz(sizeof(breast_pump_buried_info_storage_t));
+    EXCEPTION_CHECK_INT(store_buried_info);
+    ret = user_database_get(args.ctx, PERSIST_KEY_BREAST_PUMP_BURY_INFO, (uint8_t *)store_buried_info,
+                    sizeof(breast_pump_buried_info_storage_t));
+    if (ret == 0) {
+        memcpy(buried_info_list, &store_buried_info->buried_info_list, sizeof(sys_buried_info_list_t));
+    } else {
+        reset_pump_buried_info(args.ctx, buried_info_list);
+        LOGE("read pump buried info failure! ret: %d", ret);
+    }
+    u_free(store_buried_info);
 
     return ret;
 }
@@ -474,6 +531,23 @@ int read_pump_control_type_from_ram(store_func_args_t args)
     int *tmp = (int *)args.val;
     EXCEPTION_CHECK_INT(tmp);
     *tmp = pump_info->control_type;
+    return 0;
+}
+
+int write_pump_buried_info_to_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    uint16_t buried_index = args.ctx->priv.sys_info.buried_info_list.buried_index;
+    if (buried_index >= ROOT_BREAST_PUMP_BURY_DATA_NUM) {
+        LOGE("buried_index: %d, out of range, reset to 0", buried_index);
+        buried_index = 0;
+    }
+    sys_buried_info_t *buried_info = (sys_buried_info_t *)args.val;
+    sys_buried_info_list_t *buried_info_list = &args.ctx->priv.sys_info.buried_info_list;
+    EXCEPTION_CHECK_INT(buried_info_list);
+    memcpy(&buried_info_list->buried_info[buried_index], buried_info, sizeof(sys_buried_info_t));
+    // 增加索引并立即回绕，避免存储越界索引
+    args.ctx->priv.sys_info.buried_info_list.buried_index = (buried_index + 1) % ROOT_BREAST_PUMP_BURY_DATA_NUM;
     return 0;
 }
 
