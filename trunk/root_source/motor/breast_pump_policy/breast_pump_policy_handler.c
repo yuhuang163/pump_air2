@@ -116,9 +116,9 @@ void negative_pressure_release(struct motor_manager_context *thiz)
 
     uint16_t wait_time = 120;
     while (wait_time) {
-        if (!thiz->is_can_play_now()) {
-            break;
-        }
+        //if (!thiz->is_can_play_now()) {
+        //    break;
+        //}
         msleep(10);
         wait_time = wait_time > 10 ? wait_time - 10 : 0;
     }
@@ -144,6 +144,7 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     } else if (action == MOTOR_POLICY_CONTINUE) {
         LOG_MOTOR("continue policy, step_index: %d", body->current_timed_policy_index);
         body->current_policy_index = 0;
+        negative_pressure_release(thiz);
         for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
             memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
             pump_policy_info_reset(thiz, body, i);

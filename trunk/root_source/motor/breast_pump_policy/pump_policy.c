@@ -222,9 +222,9 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
         uint8_t level = map_para.level >= BREAST_PUMP_LEVEL_MAX ? (BREAST_PUMP_LEVEL_MAX - 1) : map_para.level;
         uint8_t speed = map_para.speed >= SUCTION_SPEED_MAX ? (SUCTION_SPEED_MAX - 1) : map_para.speed;
         pump_level = short_level_table[level]; /// 获取负压等级
-        info->original.pump_level    = suction_table[pump_level].pump_level;
-        info->original.pumping_time  = suction_table[pump_level].pumping_time;
-        info->original.valve_on_time = suction_table[pump_level].valve_on_time;
+        info->original.pump_level    = short_suction_table[pump_level].pump_level;
+        info->original.pumping_time  = short_suction_table[pump_level].pumping_time;
+        info->original.valve_on_time = short_suction_table[pump_level].valve_on_time;
         info->original.hold_time     = SHORT_SUCTION_HOLD_TIME; 
         info->original.sleep_time    = short_suction_time_table[speed] - info->original.pumping_time - 
                             info->original.valve_on_time - info->original.hold_time;
@@ -245,9 +245,9 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
             pump_freq = long_pump_freq_table[0][0]; /// 使用默认频率
         }
         pump_level = long_level_table[level]; /// 获取负压等级
-        info->original.pump_level    = suction_table[pump_level].pump_level;
-        info->original.pumping_time  = suction_table[pump_level].pumping_time;
-        info->original.valve_on_time = suction_table[pump_level].valve_on_time;
+        info->original.pump_level    = long_suction_table[pump_level].pump_level;
+        info->original.pumping_time  = long_suction_table[pump_level].pumping_time;
+        info->original.valve_on_time = long_suction_table[pump_level].valve_on_time;
         info->original.hold_time     = LONG_SUCTION_HOLD_TIME; 
         pump_time = (ONE_MIN_TIME_MS / pump_freq / 10) * 10;
         info->original.sleep_time    = pump_time - info->original.pumping_time - info->original.valve_on_time - 
