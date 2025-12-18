@@ -150,6 +150,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         EXCEPTION_CHECK_VOID(user_data);
         motor_policy_original_para_t *para = (motor_policy_original_para_t *)user_data;
         ctx->synchronous_stop_motor();
+        ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
         if (ctx->priv.user_debug_policy != NULL) {
             breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
@@ -178,6 +179,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         LOG_MOTOR("MOTOR_USER_TASTE_STIMULATION_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
         ctx->synchronous_stop_motor();
+        ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
         if (ctx->priv.user_debug_policy != NULL) {
             breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
@@ -193,6 +195,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         LOG_MOTOR("MOTOR_USER_TASTE_PUMP_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
         ctx->synchronous_stop_motor();
+        ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
         if (ctx->priv.user_debug_policy != NULL) {
             breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
@@ -208,6 +211,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         LOG_MOTOR("MOTOR_USER_TASTE_MIX1_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
         ctx->synchronous_stop_motor();
+        ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
         if (ctx->priv.user_debug_policy != NULL) {
             breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);
@@ -223,6 +227,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         LOG_MOTOR("MOTOR_USER_TASTE_MIX2_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
         ctx->synchronous_stop_motor();
+        ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
         if (ctx->priv.user_debug_policy != NULL) {
             breast_pump_mode_parameter_deinit(ctx->priv.user_debug_policy);

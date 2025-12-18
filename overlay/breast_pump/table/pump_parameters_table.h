@@ -18,7 +18,7 @@ extern "C" {
 #define SHORT_SUCTION_TIME_0               ((ONE_MIN_TIME_MS / 90 / 10)   * 10)  /// 1次吸奶时间，单位ms
 #define SHORT_SUCTION_TIME_1               ((ONE_MIN_TIME_MS / 100 / 10)  * 10)  /// 1次吸奶时间，单位ms
 #define SHORT_SUCTION_TIME_2               ((ONE_MIN_TIME_MS / 110 / 10)  * 10)  /// 1次吸奶时间，单位ms
-#define PUMP_SLEEP_TIME_MAX                1000  /// 最大休眠时间，单位ms
+#define PUMP_SLEEP_TIME_MAX                2000  /// 最大休眠时间，单位ms
 #define PUMP_SLEEP_TIME_MIN                20  /// 最小休眠时间，单位ms
 
 /// 短吸吸奶时间表
@@ -29,7 +29,46 @@ static const uint16_t short_suction_time_table[SUCTION_SPEED_MAX] = {
 };
 
 /// 吸力参数表（单位kpa）
-static const suction_parameters_t suction_table[SUCTION_LEVEL_MAX] = {
+static const suction_parameters_t long_suction_table[SUCTION_LEVEL_MAX] = {
+    {0,  60, 100}, /// 0KPA   
+    {40, 60, 100}, /// 6KPA   
+    {50, 80, 100}, /// 7KPA      
+    {50, 80, 100}, /// 8KPA   
+    {55, 90, 100}, /// 9KPA     
+    {60, 100, 100}, /// 10KPA   
+    {60, 110, 100}, /// 11KPA      
+    {60, 130, 100}, /// 12KPA   
+    {60, 150, 100}, /// 13KPA   
+    {60, 160, 100}, /// 14KPA      
+    {60, 180, 120}, /// 15KPA   
+    {60, 200, 120}, /// 16KPA   
+    {70, 200, 120}, /// 17KPA       
+    {70, 220, 120}, /// 18KPA   
+    {70, 240, 120}, /// 19KPA   
+    {75, 260, 120}, /// 20KPA      
+    {75, 280, 120}, /// 21KPA   
+    {75, 300, 120}, /// 22KPA   
+    {75, 320, 120}, /// 23KPA   
+    {75, 340, 120}, /// 24KPA   
+    {75, 360, 120}, /// 25KPA   
+    {75, 390, 150}, /// 26KPA      
+    {75, 410, 150}, /// 27KPA   
+    {80, 440, 150}, /// 28KPA   
+    {80, 470, 160}, /// 29KPA   
+    {80, 500, 160}, /// 30KPA  
+    {80, 530, 160}, /// 31KPA   
+    {80, 550, 160}, /// 32KPA   
+    {85, 580, 200}, /// 33KPA   
+    {85, 620, 200}, /// 34KPA   
+    {85, 660, 200}, /// 35KPA   
+    {90, 680, 200}, /// 36KPA   
+    {90, 720, 200}, /// 37KPA   
+    {90, 760, 220}, /// 38KPA   
+    {90, 810, 220}, /// 39KPA         
+};
+
+/// 吸力参数表（单位kpa）
+static const suction_parameters_t short_suction_table[SUCTION_LEVEL_MAX] = {
     {0,  60, 100}, /// 0KPA   
     {40, 60, 100}, /// 6KPA   
     {50, 80, 100}, /// 7KPA      
