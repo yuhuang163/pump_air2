@@ -27,6 +27,8 @@ typedef enum {
     INT_NUM_KEY_5,
     INT_NUM_KEY_6,
     INT_NUM_TOUCH_KEY,
+    INT_NUM_KNOB_LEFT,
+    INT_NUM_KNOB_RIGHT,
 
     INT_NUM_IMU       = 0x10,
     INT_NUM_F_SENSOR  = 0x11,

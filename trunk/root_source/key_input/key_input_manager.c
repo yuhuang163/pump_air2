@@ -291,7 +291,7 @@ static int dispatch_key_event_wrapper(void *context, int keycode, int keytype)
 
     if (ctx->hook && ctx->hook->get_key_code_name) {
         const char *name = ctx->hook->get_key_code_name(keycode);
-        LOG_KEY("event: %s/%s\n", name, to_event_name(keytype));
+        LOG_KEY("event: %d/%s/%s\n", keycode, name, to_event_name(keytype));
     } else {
         LOG_KEY("event: %d/%s\n", keycode, to_event_name(keytype));
     }

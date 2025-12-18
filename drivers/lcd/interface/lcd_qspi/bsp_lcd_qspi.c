@@ -74,19 +74,19 @@ static void lcd_te_irq_control(bool enable)
         HAL_GPIO_IRQ_POLARITY_LOW_FALLING,
         lcd_te_irq_callback
     };
-    hal_gpio_setup_irq(LCD_TE_PIN, &gpio_irq_cfg);
+    hal_gpio_setup_irq(USR_LCD_TE_PIN, &gpio_irq_cfg);
 }
 
 static void lcd_te_irq_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)LCD_TE_PIN,  
+        (enum HAL_IOMUX_PIN_T)USR_LCD_TE_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_PULLUP_ENABLE,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(LCD_TE_PIN,  HAL_GPIO_DIR_IN,  1);
+    hal_gpio_pin_set_dir(USR_LCD_TE_PIN,  HAL_GPIO_DIR_IN,  1);
     gpio_map.pin = (enum HAL_IOMUX_PIN_T)HAL_GPIO_PIN_P1_4;
     hal_gpio_pin_set_dir(HAL_GPIO_PIN_P1_4,  HAL_GPIO_DIR_OUT,  1);
     gpio_map.pin = (enum HAL_IOMUX_PIN_T)HAL_GPIO_PIN_P1_5;
@@ -193,22 +193,22 @@ static void lcd_qspi_wakeup(void)
 static void lcd_reset_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)LCD_RST_PIN, 
+        (enum HAL_IOMUX_PIN_T)USR_LCD_RST_PIN, 
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(LCD_RST_PIN, HAL_GPIO_DIR_OUT, 0);
+    hal_gpio_pin_set_dir(USR_LCD_RST_PIN, HAL_GPIO_DIR_OUT, 0);
 }
 
 static void lcd_device_reset(void)
 {
-    GPIO_PIN_CTRL(LCD_RST_PIN, 1);
+    GPIO_PIN_CTRL(USR_LCD_RST_PIN, 1);
     msleep(5);
-    GPIO_PIN_CTRL(LCD_RST_PIN, 0);
+    GPIO_PIN_CTRL(USR_LCD_RST_PIN, 0);
     msleep(20);
-    GPIO_PIN_CTRL(LCD_RST_PIN, 1);
+    GPIO_PIN_CTRL(USR_LCD_RST_PIN, 1);
     msleep(10);
 }
 

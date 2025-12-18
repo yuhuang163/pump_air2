@@ -9,6 +9,13 @@
 * DEFINES
 *****************************************************************************************
 */
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#define LCD_POWER_ON     0
+#define LCD_POWER_OFF    1
+#else
+#define LCD_POWER_ON     1
+#define LCD_POWER_OFF    0
+#endif
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -30,18 +37,18 @@ static void (*s_lcd_ready_callback)(int type, int status);
 static void lcd_power_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)LCD_POWER_PIN, 
+        (enum HAL_IOMUX_PIN_T)USR_LCD_POWER_PIN, 
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(LCD_POWER_PIN, HAL_GPIO_DIR_OUT, 0);
+    hal_gpio_pin_set_dir(USR_LCD_POWER_PIN, HAL_GPIO_DIR_OUT, LCD_POWER_OFF);
 }
 
 static void lcd_power_control(bool enable)
 {
-    GPIO_PIN_CTRL(LCD_POWER_PIN, enable ? 1 : 0);
+    GPIO_PIN_CTRL(USR_LCD_POWER_PIN, enable ? LCD_POWER_ON : LCD_POWER_OFF);
     LOG_PBUS("lcd_power_control: %d", enable);
 }
 

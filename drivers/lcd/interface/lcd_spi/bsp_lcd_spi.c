@@ -25,10 +25,10 @@
 #define IS_SUPPORT_LCD_DEBUG                    (0)
 
 #define DMA_MAX_SIZE                            (3072)
-#define LCD_WRITE_CMD(X)                        GPIO_PIN_CTRL(LCD_DC_PIN, X ? 1 : 0) 
-#define LCD_WRITE_DATA(X)                       GPIO_PIN_CTRL(LCD_DC_PIN, X ? 1 : 0) 
+#define LCD_WRITE_CMD(X)                        GPIO_PIN_CTRL(USR_LCD_DC_PIN, X ? 1 : 0) 
+#define LCD_WRITE_DATA(X)                       GPIO_PIN_CTRL(USR_LCD_DC_PIN, X ? 1 : 0) 
 #if IS_SUPPORT_LCD_SPI_SOFT_CS
-#define LCD_WRITE_CS(X)                         GPIO_PIN_CTRL(LCD_CS_PIN, X ? 1 : 0) 
+#define LCD_WRITE_CS(X)                         GPIO_PIN_CTRL(USR_LCD_CS_PIN, X ? 1 : 0) 
 #else
 #define LCD_WRITE_CS(X)                         
 #endif
@@ -90,19 +90,19 @@ static void lcd_te_irq_control(bool enable)
         HAL_GPIO_IRQ_POLARITY_LOW_FALLING,
         lcd_te_irq_callback
     };
-    hal_gpio_setup_irq(LCD_TE_PIN, &gpio_irq_cfg);
+    hal_gpio_setup_irq(USR_LCD_TE_PIN, &gpio_irq_cfg);
 }
 
 static void lcd_te_irq_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)LCD_TE_PIN,  
+        (enum HAL_IOMUX_PIN_T)USR_LCD_TE_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_PULLUP_ENABLE,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(LCD_TE_PIN,  HAL_GPIO_DIR_IN,  1);
+    hal_gpio_pin_set_dir(USR_LCD_TE_PIN,  HAL_GPIO_DIR_IN,  1);
     gpio_map.pin = (enum HAL_IOMUX_PIN_T)HAL_GPIO_PIN_P1_4;
     hal_gpio_pin_set_dir(HAL_GPIO_PIN_P1_4,  HAL_GPIO_DIR_OUT,  1);
     gpio_map.pin = (enum HAL_IOMUX_PIN_T)HAL_GPIO_PIN_P1_5;
@@ -127,18 +127,18 @@ static void lcd_spi_send_callback(int error)
 static int lcd_spi_gpio_init(void) 
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)LCD_DC_PIN, 
+        (enum HAL_IOMUX_PIN_T)USR_LCD_DC_PIN, 
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(LCD_DC_PIN, HAL_GPIO_DIR_OUT, 1);
+    hal_gpio_pin_set_dir(USR_LCD_DC_PIN, HAL_GPIO_DIR_OUT, 1);
 
 #if IS_SUPPORT_LCD_SPI_SOFT_CS
-    gpio_map.pin = (enum HAL_IOMUX_PIN_T)LCD_CS_PIN;
+    gpio_map.pin = (enum HAL_IOMUX_PIN_T)USR_LCD_CS_PIN;
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(LCD_CS_PIN, HAL_GPIO_DIR_OUT, 1);
+    hal_gpio_pin_set_dir(USR_LCD_CS_PIN, HAL_GPIO_DIR_OUT, 1);
 #endif
     return BSP_OK;
 }

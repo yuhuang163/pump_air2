@@ -68,6 +68,7 @@ static void reboot_system_test_cb(void)
 
 static int lcd_data_send_test_cb(void)
 {
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     rt_device_node_t *lcd_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
     EXCEPTION_CHECK_INT(lcd_dev);
@@ -83,6 +84,7 @@ static int lcd_data_send_test_cb(void)
     msg.tlvs[0].data[0] = img_id;
     lcd_dev->ioctl(lcd_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
     u_free(msg.tlvs);
+#endif
     return 1000;
 }
 

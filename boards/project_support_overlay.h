@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 /// 设备支持
-#define IS_SUPPORT_DEVICE_UART                           (1)
 #define IS_SUPPORT_DEVICE_IRQ                            (1)
 #define IS_SUPPORT_DEVICE_FLASH                          (1)
 #define IS_SUPPORT_DEVICE_DATABASE                       (1)
@@ -76,6 +75,26 @@ extern "C" {
 #define IS_SUPPORT_LVGL                                  (1)
 #else
 #define IS_SUPPORT_LVGL                                  (0)
+#endif
+
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+/// 支持PD充电
+#define IS_SUPPORT_PD_CHARGE                             (1)
+/// 支持旋钮
+#define IS_SUPPORT_DEVICE_KNOB                           (1)
+/// 支持电池直采
+#define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (0)
+/// 支持UART
+#define IS_SUPPORT_DEVICE_UART                           (0)
+#else
+/// 支持PD充电
+#define IS_SUPPORT_PD_CHARGE                             (0)
+/// 支持旋钮
+#define IS_SUPPORT_DEVICE_KNOB                           (0)
+/// 支持电池直采
+#define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (1)
+/// 支持UART
+#define IS_SUPPORT_DEVICE_UART                           (1)
 #endif
 
 #ifdef __cplusplus

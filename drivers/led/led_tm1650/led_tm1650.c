@@ -7,6 +7,7 @@
 #include "bsp_config.h"
 #include "bsp_i2c.h"
 #include "bsp_led_internal.h"
+#include <string.h>
 /*
 * DEFINES
 *****************************************************************************************
@@ -15,9 +16,10 @@
 #define LED_THREAD_POLL_INTERVAL     (10)
 #define TM1650_RETRY_COUNT           3
 
-#define TM1650_COMMAND_ADDRESS       0x24 // 48
+#define TM1650_COMMAND_ADDRESS       0x48
 #define TM1650_DISPLAY_ON            0x01
-#define TM1650_8BIT_MODE             0x08
+#define TM1650_7BIT_MODE             0x08
+
 #define TM1650_LEVEL_1               0x10
 #define TM1650_LEVEL_2               0x20
 #define TM1650_LEVEL_3               0x30
@@ -113,14 +115,14 @@ static uint8_t led_extension_level_convert_code(uint8_t level)
     if (level >= TM1650_LEVEL_MAX) {
         level = TM1650_LEVEL_MAX - 1;
     }
-    return led_level_code[level] | TM1650_8BIT_MODE | TM1650_DISPLAY_ON;
+    return led_level_code[level] | TM1650_DISPLAY_ON;
 }
 
 static void led_extension_display(void)
 {
     i2c_master_data_t i2c_data = {0};
     for (uint8_t i = 0; i < TM1650_ADDR_DIG_MAX; i++) {
-        i2c_data.dev_address = led_dig_addr[i];
+        i2c_data.dev_address = (led_dig_addr[i] >> 1);
         i2c_data.reg_addr = led_dig_data[i];
         led_extension_write_nbyte(&i2c_data);
     }
@@ -214,7 +216,7 @@ static void led_blink_handle(uint8_t index)
     }
 }
 
-static void led_thread_timer_handle(void)
+static void led_thread_timer_handle(void *arg)
 {
     uint8_t msg = 0;
     MSG_QUEUE_SEND(s_led_device_thd.msg_id, (void *)&msg, 0);
@@ -223,12 +225,14 @@ static void led_thread_timer_handle(void)
 static void led_device_thread(void *arg)
 {
     uint8_t msg = 0;
-    i2c_master_data_t i2c_data = {0};
+    i2c_master_data_t i2c_data = {
+        .dev_address = (TM1650_COMMAND_ADDRESS >> 1),
+        .reg_addr = led_extension_level_convert_code(0),
+        .data = NULL,
+        .len = 0,
+    };
     msleep(20);
-    i2c_data.dev_address = TM1650_COMMAND_ADDRESS;
-    i2c_data.reg_addr = led_extension_level_convert_code(LED_LEVEL_MAX);
-    i2c_data.data = NULL;
-    i2c_data.len = 0;
+    LOGI("led extension init, reg_addr: %d", i2c_data.reg_addr);
     if (led_extension_write_nbyte(&i2c_data) != BSP_OK) {
         LOGE("led extension init failed");
     }

@@ -5,6 +5,9 @@
 #include "bsp_common.h" // IWYU pragma: keep
 #include "scan_key.h" // IWYU pragma: keep
 #include "bsp_key_internal.h"
+#if IS_SUPPORT_DEVICE_KNOB
+#include "bsp_knob.h" // IWYU pragma: keep
+#endif
 
 /*
 * DEFINES
@@ -47,10 +50,14 @@ static int scan_key_module_init(void)
         LOGE("key init fail:%d", ret);
         return ret;
     }
+#if IS_SUPPORT_DEVICE_KNOB
+    bsp_knob_init();
+#endif
     ret = scan_key_input_init(node, key_code_value, KEY_CODE_SIZE);
     if (node) {
         node->status = DEVICE_BUS_INIT;
     }
+
     return ret;
 }
 
