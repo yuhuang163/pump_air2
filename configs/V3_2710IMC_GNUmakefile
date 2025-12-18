@@ -71,7 +71,7 @@ CFG_CUSTOM_BLE_SERVICE ?= 1
 CFG_OTA_EVENT_CALLBACK ?= 1
 
 # LVGL开关
-CFG_LVGL_ENABLE := 0
+CFG_LVGL_ENABLE := 1
 
 # 硬件版本
 BOARD_V3_2710IMC ?= 1
@@ -216,7 +216,12 @@ DRIVERS_BASE_INC_FLAGS := \
 
 # 电池驱动头文件
 DRIVERS_BATTERY_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/drivers/battery
+	-I$(PROJECT_ROOT)/drivers/battery \
+	-I$(PROJECT_ROOT)/drivers/battery/charge
+
+ifeq ($(BOARD_V3_2710IMC),1)
+DRIVERS_BATTERY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/battery/charge_pd
+endif
 
 # BLE 驱动头文件
 DRIVERS_BLE_INC_FLAGS := \
@@ -257,11 +262,19 @@ DRIVERS_IMU_INC_FLAGS := \
 DRIVERS_KEY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/key \
 	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b
+ifeq ($(BOARD_V3_2710IMC),1)
+DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
+endif
 
 # LCD 驱动头文件
 DRIVERS_LCD_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/drivers/lcd \
-	-I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart
+	-I$(PROJECT_ROOT)/drivers/lcd 
+	
+ifeq ($(BOARD_V3_2710IMC),1)	
+DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi
+else
+DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart
+endif
 
 # LED 驱动头文件
 DRIVERS_LED_INC_FLAGS := \
@@ -633,6 +646,9 @@ DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
+ifeq ($(BOARD_V3_2710IMC),1)
+DRIVERS_BATTERY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/battery/charge_pd/*.c)
+endif
 
 # BLE 驱动源码
 DRIVERS_BLE_SRCS := \
@@ -673,11 +689,19 @@ DRIVERS_IMU_SRCS := \
 DRIVERS_KEY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c)
+ifeq ($(BOARD_V3_2710IMC),1)
+DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/knob/*.c)
+endif
 
 # LCD 驱动源码
 DRIVERS_LCD_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c)
+	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) 
+	
+ifeq ($(BOARD_V3_2710IMC),1)	
+DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi/*.c)
+else
+DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c)
+endif
 
 # LED 驱动源码
 DRIVERS_LED_SRCS := \
@@ -685,7 +709,7 @@ DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
 
 ifeq ($(BOARD_V3_2710IMC),1)
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_extension/*.c)
+DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
 else
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c) 
 endif
@@ -1047,7 +1071,6 @@ firmware:
 		LVGL_NO_TOUCHSCREEN=1 \
 		DISPLAY_LCD=st77916 \
 		DEBUG_PORT=1 \
-		DEBUG=1 \
 		all
 
 # Bootloader 构建（默认参数）

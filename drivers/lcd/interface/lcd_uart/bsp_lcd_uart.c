@@ -6,7 +6,7 @@
 #include "hal_uart.h" // IWYU pragma: keep
 #include "hal_timer.h" // IWYU pragma: keep
 #include "hal_iomux.h" // IWYU pragma: keep
-#include "root_common.h"
+#include "bsp_internal.h" // IWYU pragma: keep
 #include "bsp_lcd_uart.h" // IWYU pragma: keep
 
 /*

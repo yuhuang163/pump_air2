@@ -145,7 +145,7 @@ static void led_blink_handle(uint8_t index)
     }
 }
 
-static void led_thread_timer_handle(void)
+static void led_thread_timer_handle(void *arg)
 {
     uint8_t msg = 0;
     MSG_QUEUE_SEND(s_led_device_thd.msg_id, (void *)&msg, 0);

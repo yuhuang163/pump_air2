@@ -406,12 +406,15 @@ static int battery_voltage_poll(void)
     
     s_batt_poll_time = get_timestamp();
     log_timer++;
+#if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     ret = battery_adc_single_conversion(&voltage);
     if ( ret != BSP_OK) {
         // LOGE("get batt voltage failed");
         return ret;
     }
-
+#else
+    voltage = get_charge_battery_voltage();
+#endif
     battery.charge = get_charge_state();
     battery.temperature = get_charging_temperature();
     if (battery.charge == CHARGE_STATE_CHARGING) {
@@ -439,7 +442,11 @@ const battery_status_t *battery_status_get(void)
 
 static int battery_dev_open(struct rt_device_node *dev)
 {
+#if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     battery_adc_init();
+#else
+    add_charge_battery_poll_callback(battery_voltage_poll);
+#endif
     battery_health_update();
     bsp_charge_init();
     LOG_PBUS("battery init ok, health:%d%%, percent: %d%% voltage: %d",
@@ -479,7 +486,11 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
         case OP_CODE_BAT_GET_VOLTAGE:
             return battery_voltage_get();
         case OP_CODE_BAT_POLL_VOLTAGE:
-            return battery_voltage_poll();
+            #if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
+                return battery_voltage_poll();
+            #else
+                return 0;
+            #endif
         case OP_CODE_BAT_HEALTH_SET:
             tmp = (uint32_t *)args;
             battery_health_set((uint8_t)tmp[0]);
@@ -501,7 +512,9 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
 
 static int battery_dev_suspend(struct rt_device_node *dev)
 {
+#if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     battery_adc_suspend();
+#endif
     if (node) {
         node->status = DEVICE_BUS_SUSPEND;
     }
@@ -510,7 +523,9 @@ static int battery_dev_suspend(struct rt_device_node *dev)
 
 static int battery_dev_resume(struct rt_device_node *dev)
 {
+#if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     battery_adc_resume();
+#endif
     battery_health_update();
     s_batt_poll_time = 0;
     if (node) {

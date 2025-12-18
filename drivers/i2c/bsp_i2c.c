@@ -60,14 +60,14 @@ static const i2c_master_config_t s_i2c_config[I2C_MASTER_COUNT] = {
         .iomux_set = hal_iomux_set_i2c1,
         .scl_pin = I2C1_SCL_PIN,
         .sda_pin = I2C1_SDA_PIN,
-        .speed = 100000,
+        .speed = 200000,
     },
     {
         .id = HAL_I2C_ID_2, 
         .iomux_set = hal_iomux_set_i2c2,
         .scl_pin = I2C2_SCL_PIN,
         .sda_pin = I2C2_SDA_PIN,
-        .speed = I2C_MASTER_SPEED,
+        .speed = 100000,
     },
     {
         .id = HAL_I2C_ID_3, 

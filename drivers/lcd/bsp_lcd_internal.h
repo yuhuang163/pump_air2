@@ -10,9 +10,11 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "bsp_common.h" // IWYU pragma: keep
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#include "bsp_lcd_bes_qspi.h" // IWYU pragma: keep
+#else
 #include "bsp_lcd_uart.h" // IWYU pragma: keep
-// #include "bsp_lcd_spi.h" // IWYU pragma: keep
-// #include "bsp_lcd_qspi.h" // IWYU pragma: keep
+#endif
 
 /// 水平偏移量
 #define LCD_H_OFFSET                    0

@@ -41,7 +41,9 @@ typedef struct product_tests_comm_context {
     struct rt_device_node *imudev;
     struct rt_device_node *motordev;
     struct rt_device_node *leddev;
+#if IS_SUPPORT_DEVICE_UART
     struct rt_device_node *fcuartdev;
+#endif
     /// @brief 相关模块上下文句柄
     struct resource_manager_context *res; /// 资源管理器
     struct storage_manager_context *st; /// 存储管理器
