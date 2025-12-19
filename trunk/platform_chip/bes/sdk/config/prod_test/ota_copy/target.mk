@@ -9,8 +9,3 @@ ifeq ($(MTEST_BUILTIN),1)
 core-y += apps/mem_scan/
 export MTEST_BUILTIN_OTA := 1
 endif
-
-export APP_BOOT_GPIO_CONTROL := 1
-ifeq ($(APP_BOOT_GPIO_CONTROL),1)
-KBUILD_CPPFLAGS += -DAPP_BOOT_GPIO_CONTROL
-endif

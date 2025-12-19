@@ -116,7 +116,7 @@ typedef enum IRQn
     SENSOR_ENG1_IRQn            =  49,      /*!< Sensor Engine Interrupt            */
     SENSOR_ENG2_IRQn            =  50,      /*!< Sensor Engine Interrupt            */
     SENSOR_ENG3_IRQn            =  51,      /*!< Sensor Engine Interrupt            */
-    LM_SENSOR0_IRQn             =  52,      /*!< LM Sensor Interrupt                */
+    LM_SENSOR_IRQn              =  52,      /*!< LM Sensor Interrupt                */
     PMU_IRQn                    =  53,      /*!< PMU Interrupt                      */
     PMU1_IRQn                   =  54,      /*!< PMU1 Interrupt                     */
     DUMP_IRQn                   =  55,      /*!< DUMP Interrupt                     */
@@ -252,7 +252,9 @@ typedef enum IRQn
 #define TIMER11_IRQn            BTH_TIMER21_IRQn
 #else
 #define DMA0_IRQn               AUDMA_IRQn
+#ifndef CP_AS_SUBSYS
 #define DMA1_IRQn               GPDMA_IRQn
+#endif
 #define TIMER00_IRQn            AON_TIMER20_IRQn
 #define TIMER01_IRQn            AON_TIMER21_IRQn
 #define TIMER10_IRQn            BTH_TIMER00_IRQn

@@ -89,10 +89,6 @@ endif
 
 ifeq ($(NOAPP),1)
 ccflags-y += -DNOAPP
-
-ifeq ($(CHIP_HAS_PSRAM),1)
-obj-y += ../../platform/drivers/psram/
-endif
 endif
 
 ifeq ($(CHIP_HAS_DDR),1)
@@ -930,27 +926,21 @@ obj-y += ../../tests/hwtest/spi_test.c
 ccflags-y += -DSPI_TEST
 endif
 
+ifeq ($(CHIP_HAS_GRABOX), 1)
+obj-y += ../../services/grabox/
+endif
+
 ifeq ($(LVGL_TEST),1)
 ccflags-y += -DLVGL_TEST
 export GRAPH_MODULE := 1
 export DRIVER_GRAPHIC_ENABLE := 1
 export DRIVER_JPEG_ENABLE := 1
 export LVGL_GPU_VGLITE ?= 1
-export LVGL_NO_TOUCHSCREEN ?= 1
-ifeq ($(LVGL_NO_TOUCHSCREEN), 0)
 export LVGL_TP_TMA525C ?= 1
-endif
 THIRDPARTY_ENABLE := 1
 export THIRDPARTY_LVGL_ENABLE := 1
 obj-y += ../../thirdparty/lvgl/
-ccflags-y += -Ithirdparty/lvgl 
-ccflags-y += -Ithirdparty/lvgl/src 
-ccflags-y += -Ithirdparty/lvgl/demos 
-ccflags-y += -Ithirdparty/lvgl/examples 
-ccflags-y += -Ithirdparty/lvgl/bes/ports 
-ccflags-y += -Ithirdparty/lvgl/bes/disp 
-ccflags-y += -Iplatform/drivers/graphic/lcd
-obj-y += ../../platform/drivers/graphic/
+ccflags-y += -Ithirdparty/lvgl/bes/ports
 endif
 
 ifeq ($(PCIE_TEST),1)

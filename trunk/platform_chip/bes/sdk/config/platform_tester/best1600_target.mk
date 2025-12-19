@@ -311,7 +311,7 @@ endif
 LIB_LDFLAGS += -lstdc++ -lsupc++
 
 ifneq ($(filter 1,$(SENSOR_TEST) $(POWER_TEST)),)
-CFLAGS_IMAGE += -u _printf_float -u _scanf_float
+export ENABLE_PRINT_FLOAT ?= 1
 endif
 
 OS_SCHEDULERSTKSIZE := 256

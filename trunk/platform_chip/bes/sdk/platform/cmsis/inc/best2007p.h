@@ -99,7 +99,6 @@ typedef enum IRQn
     BTPCM_IRQn                  =  30,      /*!< BTPCM Interrupt                    */
     I2S0_IRQn                   =  31,      /*!< I2S0 Interrupt                     */
     SPDIF0_IRQn                 =  32,      /*!< SPDIF0 Interrupt                   */
-    DWCOEX2MCU_WCN_5G_IRQn      =  33,      /*!< DWCOEX2MCU WCN CNT 5G Interrupt    */
     CMU_SLEEP_IRQn              =  34,      /*!< CMU SLEEP Interrupt                */
     AON_GPIO_IRQn               =  35,      /*!< AON GPIO Interrupt                 */
     AON_WDT_IRQn                =  36,      /*!< AON Watchdog Timer Interrupt       */
@@ -112,8 +111,7 @@ typedef enum IRQn
     MCUT2BT_DONE2_IRQn          =  43,      /*!< MCUT2BT DATA2 DONE Interrupt       */
     BT2MCU_DATA3_IRQn           =  44,      /*!< BT2MCU DATA3 IND Interrupt         */
     BT2MCU_DATA2_IRQn           =  45,      /*!< BT2MCU DATA2 IND Interrupt         */
-    CSP2MCU_ALL_IRQn            =  46,      /*!< CSP2MCU ALL Interrupt              */
-    DWCOEX2MCU_WCN_2G_IRQn      =  47,      /*!< DWCOEX2MCU WCN CNT 2G Interrupt    */
+    CSP2MCU_ALL_IRQn            =  46,      /*!< CSP2MCU ALL Interrupt         */
     MCU2WIFI_DONE1_IRQn         =  48,      /*!< MCUT2WIFI DATA1 DONE Interrupt     */
     MCU2WIFI_DONE_IRQn          =  49,      /*!< MCUT2WIFI DATA DONE Interrupt      */
     WIFI2MCU_DATA1_IRQn         =  50,      /*!< WIFI2MCU DATA1 IND Interrupt       */
@@ -127,7 +125,7 @@ typedef enum IRQn
     SEC_ENG_IRQn                =  58,      /*!< SEC_ENG Interrupt                  */
     RTC_IRQn                    =  59,      /*!< RTC Interrupt                      */
     GPADC_IRQn                  =  60,      /*!< GPADC Interrupt                    */
-    DWCOEX2MCU_OCCUPY_IRQn      =  61,      /*!< DWCOEX2MCU OCCUPY Interrupt        */
+    CHARGER_IRQn                =  61,      /*!< Charger Interrupt                  */
     PWRKEY_IRQn                 =  62,      /*!< Power key Interrupt                */
     WIFIDUMP_IRQn               =  63,      /*!< WIFIDUMP Interrupt                 */
     CHKSUM_IRQn                 =  64,      /*!< Checksum Interrupt                 */
@@ -147,8 +145,7 @@ typedef enum IRQn
 
 #define GPIO_IRQn               AON_GPIO_IRQn
 #define GPIOAUX_IRQn            AON_GPIOAUX_IRQn
-#define WDT_IRQn                AON_WDT_IRQn
-#define CHARGER_IRQn            RTC_IRQn
+#define WDT_IRQn                MCU_WDT_IRQn
 
 #include "plat_addr_map.h"
 

@@ -552,6 +552,7 @@ extern "C" {
 #define GPIO_BASE                               AON_GPIO_BASE
 #define GPIO1_BASE                              AON_GPIO1_BASE
 #define GPIO2_BASE                              AON_GPIO2_BASE
+
 #define PWM_BASE                                AON_PWM_BASE
 #define PWM1_BASE                               AON_PWM1_BASE
 #define WDT_BASE                                AON_WDT_BASE

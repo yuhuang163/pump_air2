@@ -40,7 +40,8 @@ ccflags-y := \
 	-Iapps/main	\
 	-Iinclude/open-amp \
 	-Iservices/nv_section/log_section \
-	-Iplatform/drivers/cp_subsys
+	-Iplatform/drivers/cp_subsys \
+	-Ithirdparty/lvgl/bes/ports
 
 ifneq ($(DEBUG_PORT),)
 ccflags-y += -DDEBUG_PORT=$(DEBUG_PORT)
@@ -270,14 +271,15 @@ KBUILD_CPPFLAGS += -DTEST_HAL_PATTERN -DTEST_TIMER_BBK
 obj-y += cp_timer_bbk/
 
 export TRIGGER_MODE ?= timer
+
 ifeq ($(TRIGGER_MODE),timer)
 KBUILD_CPPFLAGS += -DTIMER_TRIGGER
 endif
+
 ifeq ($(TRIGGER_MODE),gpio)
 KBUILD_CPPFLAGS += -DGPIO_TRIGGER
 endif
 endif # TEST_TIMER_BBK
-
 
 ifneq ($(filter TEST_FC,$(TEST_HAL_PATTERN)),)
 obj-y += fc_test/
@@ -312,4 +314,14 @@ endif
 ifneq ($(filter TEST_BECO, $(TEST_HAL_PATTERN)),)
 KBUILD_CPPFLAGS += -DTEST_HAL_PATTERN -DTEST_BECO
 obj-y += beco_test/
+endif
+
+ifneq ($(filter CMSIS_TEST, $(TEST_HAL_PATTERN)),)
+KBUILD_CPPFLAGS += -DTEST_HAL_PATTERN -DCMSIS_TEST
+ccflags-y += -Iinclude/cmsis_dsp/
+ccflags-y += -Iinclude/cmsis_nn/
+endif
+
+ifeq ($(LVGL_TEST), 1)
+ccflags-y += -DLVGL_TEST
 endif

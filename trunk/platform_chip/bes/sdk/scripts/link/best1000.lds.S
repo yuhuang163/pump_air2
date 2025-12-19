@@ -448,7 +448,7 @@ SECTIONS
 		*:hal_sysfreq.o(.text*)
 #if defined(PSRAM_ENABLE) || defined(PSRAMUHS_ENABLE)
 		*:hal_psram*.o(.text*)
-		*:psram_drv*.o(.text*)
+        *:psram_drv*.o(.text*)
 		*:psram_opi*.o(.text*)
 		*:hal_trace*.o(.text*)
 		*:pmu_*.o(.text*)
@@ -521,7 +521,7 @@ SECTIONS
 		*:hal_sysfreq.o(.data* .rodata*)
 #if defined(PSRAM_ENABLE) || defined(PSRAMUHS_ENABLE)
 		*:hal_psram*.o(.data* .rodata*)
-		*:psram_drv*.o(.data* .rodata*)
+        *:psram_drv*.o(.data* .rodata*)
 		*:psram_opi*.o(.data* .rodata*)
 		*:hal_trace*.o(.data* .rodata*)
 		*:pmu_*.o(.data* .rodata*)
@@ -585,7 +585,7 @@ SECTIONS
 		*:hal_sysfreq.o(.bss*)
 #if defined(PSRAM_ENABLE) || defined(PSRAMUHS_ENABLE)
 		*:hal_psram*.o(.bss*)
-		*:psram_drv*.o(.bss*)
+        *:psram_drv*.o(.bss*)
 		*:psram_opi*.o(.bss*)
 		*:hal_trace*.o(.bss*)
 		*:pmu_*.o(.bss*)
@@ -3991,3 +3991,4 @@ SECTIONS
 		*(.dynamic)
 	}
 }
+

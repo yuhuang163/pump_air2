@@ -36,15 +36,15 @@
 #define RTOS_ERR(...)       TR_INFO( TR_MOD(HAL), "//RTOS: "  __VA_ARGS__)
 
 #ifndef LVGL_STACK_SIZE
-#define LVGL_STACK_SIZE     (128*1024)
+#define LVGL_STACK_SIZE     (256*1024)
 #endif
-#if (LVGL_STACK_SIZE > (64*1024))
+#if (LVGL_STACK_SIZE > (256*1024))
 #define BUF_LOC             PSRAM_BSS_LOC
 #else
 #define BUF_LOC
 #endif
 
-#define MAX_THREAD_COUNT    5
+#define MAX_THREAD_COUNT    10
 
 struct thread_info_t {
     uint32_t id;

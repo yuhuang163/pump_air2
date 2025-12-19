@@ -1,5 +1,5 @@
 #include "../../examples/lv_examples.h"
-#if LV_USE_IMAGE
+#if defined(LV_USE_IMAGE) && defined(LV_FS_MEMFS_LETTER)
 #include "src/misc/lv_fs_private.h"
 #include "hal_location.h"
 #include "hal_cache.h"

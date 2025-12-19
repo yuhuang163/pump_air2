@@ -81,8 +81,7 @@
 /* i2c synchronization timeout ms */
 #define HAL_I2C_SYNC_TM_MS (2000)
 #define HAL_I2C_DLY_MS (1)
-// #define HAL_I2C_WAIT_ACT_MS (1000)
-#define HAL_I2C_WAIT_ACT_MS (20)
+#define HAL_I2C_WAIT_ACT_MS (1000)
 #define HAL_I2C_WAIT_TFE_MS (1000)
 #define HAL_I2C_WAIT_TFNF_MS (1000)
 #define HAL_I2C_WAIT_RFNE_MS (1000)

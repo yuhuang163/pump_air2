@@ -133,7 +133,7 @@ static void hal_trace_fault_handler(void);
 #ifdef TRACE_CPU_IMM_OUTPUT
 #define TRACE_BUF_SIZE                  0
 #else
-#define TRACE_BUF_SIZE                  (16 * 1024)
+#define TRACE_BUF_SIZE                  (4 * 1024)
 #endif
 #endif
 #if defined(TRACE_CPU_IMM_OUTPUT) && (TRACE_BUF_SIZE > 0)
@@ -3377,7 +3377,7 @@ void hal_trace_fault_dump(const uint32_t *regs, const uint32_t *extra, uint32_t 
     int_lock_global();
 
     hal_wdt_disable_irq(HAL_WDT_ID_0);
-#ifdef CHIP_ROLE_CP
+#ifndef CHIP_ROLE_CP
     pmu_wdt_stop();
 #endif
 
