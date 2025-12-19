@@ -58,7 +58,7 @@ static uint8_t tx_buf[BUF_SIZE];
 static uint8_t rx_buf[BUF_SIZE];
 #else
 #define CRC_SIZE    4
-#define BUF_SIZE  (4096+CRC_SIZE)
+#define BUF_SIZE  (1024+CRC_SIZE)
 static uint8_t tx_buf[BUF_SIZE];
 static uint8_t rx_buf[BUF_SIZE];
 #endif
@@ -230,9 +230,7 @@ void xtc_spi_slave_dump_crash(uint8_t *buf, uint32_t len, uint8_t status)
         _len = TRIGGER_LEN - length;
         memcpy(ptr, buf, _len);
         xtc_spi_slave_write(spi_dump_buf, TRIGGER_LEN);
-#ifdef CORE_DUMP_TO_SPI
         hal_sys_timer_delay(MS_TO_TICKS(5));
-#endif
 
         ptr = spi_dump_buf;
         buf += _len;
@@ -358,7 +356,7 @@ void spi_slave_test(void)
     TRACE(3,"SPI SLAVE TEST");
     spi_slave_device_open();
     set_slave_iomux();
-    
+
 #ifdef SPI_WAKEUP
     wakeup_gpio_init();
     hal_sysfreq_req(HAL_SYSFREQ_USER_INIT, HAL_CMU_FREQ_32K);

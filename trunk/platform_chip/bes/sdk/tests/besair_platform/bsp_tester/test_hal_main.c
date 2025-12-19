@@ -24,6 +24,7 @@
 #include "test_hal_api.h"
 #include "dhry.h"
 #include "pmu.h"
+#include "lv_main.h"
 
 extern int coremark_main(int argc, char *argv[]);
 extern void bbk_dhry_test();
@@ -230,6 +231,14 @@ void test_hal_pattern(void)
 
 #ifdef TEST_BECO
     beco_test();
+#endif
+
+#ifdef CMSIS_TEST
+    cmsis_test();
+#endif
+
+#ifdef LVGL_TEST
+    lvgl_test();
 #endif
 
 #endif

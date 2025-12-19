@@ -1423,6 +1423,7 @@ void hal_iomux_set_spi2(void)
 #endif
 
     hal_iomux_init(pinmux_spi_3wire, ARRAY_SIZE(pinmux_spi_3wire));
+    hal_iomux_set_io_drv(pinmux_spi_3wire[0].pin, 3);
 #ifdef SPI2_IOMUX_4WIRE
     hal_iomux_init(pinmux_spi_4wire, ARRAY_SIZE(pinmux_spi_4wire));
 #endif

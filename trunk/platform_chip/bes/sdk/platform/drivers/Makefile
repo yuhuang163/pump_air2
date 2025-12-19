@@ -1,5 +1,7 @@
 obj-y := ana/ codec/ norflash/ sbcacc/ spi_norflash/ random/
 
+obj-y := $(filter-out codec/ sbcacc/ spi_norflash/ random/, $(obj-y))
+
 ifneq ($(NO_BT_DRIVER),1)
 obj-y += bt/ btpcm/
 endif
@@ -68,6 +70,10 @@ ifeq ($(CHIP_HAS_HIFI4),1)
 obj-y += hifi4/
 endif
 
+ifeq ($(CHIP_HAS_JPEG),1)
+obj-y += jpeg/
+endif
+
 ifeq ($(BT_HOST),1)
 ifeq ($(CHIP_SUBSYS),)
 obj-y += bt_host/
@@ -84,8 +90,4 @@ endif
 
 ifeq ($(LINUX_FWDRV),1)
 obj-y += fw_linux/
-endif
-
-ifeq ($(CHIP_HAS_JPEG),1)
-obj-y += jpeg/
 endif

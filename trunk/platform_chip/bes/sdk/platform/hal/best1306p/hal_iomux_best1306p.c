@@ -1055,17 +1055,6 @@ void hal_iomux_set_dig_mic(uint32_t map)
     hal_cmu_mcu_pdm_clock_out(clk_map);
 }
 
-enum HAL_IOMUX_PIN_T hal_iomux_get_spi_clk()
-{
-#if (SPI_IOMUX_INDEX == 24)
-    return HAL_IOMUX_PIN_P2_4;
-#elif (SPI_IOMUX_INDEX == 40)
-    return HAL_IOMUX_PIN_P4_0;
-#else
-    return HAL_IOMUX_PIN_P1_4;
-#endif
-}
-
 void hal_iomux_set_spi(void)
 {
     static const struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux_spi_3wire[] = {
@@ -1098,19 +1087,6 @@ void hal_iomux_set_spi(void)
     hal_iomux_init(pinmux_spi_3wire, ARRAY_SIZE(pinmux_spi_3wire));
 #ifdef SPI_IOMUX_4WIRE
     hal_iomux_init(pinmux_spi_4wire, ARRAY_SIZE(pinmux_spi_4wire));
-#endif
-}
-
-enum HAL_IOMUX_PIN_T hal_iomux_get_spilcd_clk()
-{
-#if (SPILCD_IOMUX_INDEX == 14)
-    return HAL_IOMUX_PIN_P1_4;
-#elif (SPILCD_IOMUX_INDEX == 24)
-    return HAL_IOMUX_PIN_P2_4;
-#elif (SPILCD_IOMUX_INDEX == 44)
-    return HAL_IOMUX_PIN_P4_4;
-#else
-    return HAL_IOMUX_PIN_P3_0;
 #endif
 }
 

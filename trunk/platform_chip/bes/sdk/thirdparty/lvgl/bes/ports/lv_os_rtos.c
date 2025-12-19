@@ -44,7 +44,7 @@
 #define BUF_LOC
 #endif
 
-#define MAX_THREAD_COUNT    5
+#define MAX_THREAD_COUNT    10
 
 struct thread_info_t {
     uint32_t id;

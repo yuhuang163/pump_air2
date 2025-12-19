@@ -589,7 +589,6 @@ static enum HAL_SLEEP_STATUS_T SRAM_TEXT_LOC hal_sleep_lowpower_mode(void)
 
     pm_notif_wakeup(mode);
     // End of restoring normal modules
-
     hal_fast_sys_timer_flag_set(true);
 
 #ifdef SLEEP_MIN_SYS_FREQ_MHZ

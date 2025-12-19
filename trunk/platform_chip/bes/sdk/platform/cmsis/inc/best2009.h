@@ -137,10 +137,12 @@ typedef enum IRQn
     ISDATA2_IRQn                =  70,
     CSI0_IRQn                   =  ISDATA2_IRQn,/*!< CSI0 Interrupt                 */
     CSI1_IRQn                   =  CSI0_IRQn,   /*!< CSI1 Interrupt                 */
+    CSIDMA_IRQn                 =  CSI0_IRQn,   /*!< CSI DMA Interrupt              */
     ISDATA3_IRQn                =  71,
     DSI0_IRQn                   =  ISDATA3_IRQn,/*!< DSI0 Interrupt                 */
     DSI1_IRQn                   =  DSI0_IRQn,   /*!< DSI1 Interrupt                 */
     DSI_IRQn                    =  DSI0_IRQn,   /*!< DSI Interrupt                  */
+    DISPLAY_IRQn                =  DSI0_IRQn,   /*!< DISPLAY Interrupt              */
     UART4_IRQn                  =  72,          /*!< UART4 Interrupt                */
     I2C3_IRQn                   =  73,          /*!< I2C3 Interrupt                 */
     I2C4_IRQn                   =  74,          /*!< I2C4 Interrupt                 */
@@ -213,15 +215,9 @@ typedef enum IRQn
     SYS_CVP_IRQn                =  139,         /*!< Sys CVP Interrupt              */
     SYS_DSI_IRQn                =  140,         /*!< Sys DSI Interrupt              */
     SYS_DISPLAY_IRQn            =  141,         /*!< Sys Display Interrupt          */
-    DISPLAY_IRQn                =  SYS_DISPLAY_IRQn,
     SYS_CSI2_DMAC_IRQn          =  142,         /*!< Sys CSI2_DMAC Interrupt        */
     SYS_CSI1_DMAC_IRQn          =  143,         /*!< Sys CSI1_DMAC Interrupt        */
     SYS_CSI0_DMAC_IRQn          =  144,         /*!< Sys CSI0_DMAC Interrupt        */
-#ifdef CONFIG_CSI2_2LANE_MODE
-    CSIDMA_IRQn                 =  SYS_CSI2_DMAC_IRQn,
-#else
-    CSIDMA_IRQn                 =  SYS_CSI0_DMAC_IRQn,
-#endif
     SYS_PCM_IRQn                =  145,         /*!< Sys PCM Interrupt              */
     SYS_SPI0_IRQn               =  146,         /*!< Sys SPI0 Interrupt             */
     SYS_I2C0_IRQn               =  147,         /*!< Sys I2C0 Interrupt             */
@@ -238,9 +234,6 @@ typedef enum IRQn
 } IRQn_Type;
 
 #define GPIO_IRQn               AON_GPIO_IRQn
-#define GPIO1_IRQn              AON_GPIO_IRQn
-#define GPIO2_IRQn              AON_GPIO_IRQn
-#define GPIO3_IRQn              AON_GPIO_IRQn
 #define GPIOAUX_IRQn            AON_GPIOAUX_IRQn
 #ifdef CORE_SLEEP_POWER_DOWN
 #define TIMER00_IRQn            AON_TIMER00_IRQn

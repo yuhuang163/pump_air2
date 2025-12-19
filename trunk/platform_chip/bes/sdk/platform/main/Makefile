@@ -930,6 +930,10 @@ obj-y += ../../tests/hwtest/spi_test.c
 ccflags-y += -DSPI_TEST
 endif
 
+ifeq ($(CHIP_HAS_GRABOX), 1)
+obj-y += ../../services/grabox/
+endif
+
 ifeq ($(LVGL_TEST),1)
 ccflags-y += -DLVGL_TEST
 export GRAPH_MODULE := 1

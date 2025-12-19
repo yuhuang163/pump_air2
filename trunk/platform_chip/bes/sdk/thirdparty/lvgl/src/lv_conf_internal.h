@@ -1689,7 +1689,7 @@
     #ifdef CONFIG_LV_ATTRIBUTE_MEM_ALIGN
         #define LV_ATTRIBUTE_MEM_ALIGN CONFIG_LV_ATTRIBUTE_MEM_ALIGN
     #else
-        #define LV_ATTRIBUTE_MEM_ALIGN
+        #define LV_ATTRIBUTE_MEM_ALIGN __attribute__((aligned(64)))
     #endif
 #endif
 
