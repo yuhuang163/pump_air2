@@ -59,6 +59,7 @@ static struct img_data_t png_images[PNG_IMG_COUNT] = {
 
 static lv_obj_t *logo_root;
 static uint32_t start_time = 0;
+static uint32_t rgb_color_change_time = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -104,13 +105,36 @@ static int system_test_png_process(void)
     return 0;
 }
 
+static int system_lcd_test_init(void)
+{
+    /// 设置初始背景色为红色
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0xFF0000), LV_PART_MAIN);
+    rgb_color_change_time = get_timestamp();
+    return 0;
+}
+
+static int system_lcd_test_process(void)
+{
+    /// 五色交替：每 1 秒切换一次颜色（红、绿、蓝、黑、白）
+    static uint8_t color_index = 0;  /// 0=红色, 1=绿色, 2=蓝色, 3=黑色, 4=白色
+    uint32_t color_colors[5] = {0xFF0000, 0x00FF00, 0x0000FF, 0x000000, 0xFFFFFF};  /// 红、绿、蓝、黑、白
+    
+    if (get_timestamp() - rgb_color_change_time > 1000) {
+        rgb_color_change_time = get_timestamp();
+        color_index = (color_index + 1) % 5;
+        lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(color_colors[color_index]), LV_PART_MAIN);
+        LOGI("===> lcd test color: %d", color_index);
+    }
+    return 0;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
 int ui_display_logo_prepare(ui_manager_context_t *thiz)
 {
-    system_test_png_init();
+    system_lcd_test_init();
     return 0;
 }
 
@@ -122,6 +146,6 @@ int ui_display_logo_remove(ui_manager_context_t *thiz)
 
 int ui_display_logo_process(ui_manager_context_t *thiz)
 {
-    system_test_png_process();
+    system_lcd_test_process();
     return 0;
 }
