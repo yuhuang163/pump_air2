@@ -332,6 +332,8 @@ void disp_lcdc_send_frame(const void *buf)
     uint32_t lock;
 
 #ifdef RTOS
+    hal_sys_timer_delay(MS_TO_TICKS(1));
+    lcdc_vsync_cb();
     if (framedone_sem)
         osSemaphoreAcquire(framedone_sem, -1);
 #else

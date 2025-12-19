@@ -37,3 +37,8 @@ subdir-ccflags-y += \
 				   -Iplatform/drivers/graphic/fb \
 				   -Iplatform/drivers/graphic/lcdc \
 				   -Iplatform/drivers/graphic/lcd
+
+ifeq ($(LVGL_TEST),1)
+obj-y += lcdc/
+obj-y += gpu/
+endif
