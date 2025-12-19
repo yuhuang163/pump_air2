@@ -14,6 +14,8 @@ subdir-ccflags-y += \
 # LCD panel select
 ifeq ($(DISPLAY_LCD),gc9503np)
 subdir-ccflags-y += -DDISPLAY_GC9503NP
+else ifeq ($(DISPLAY_LCD),st77916)
+subdir-ccflags-y += -DDISPLAY_ST77916
 else ifeq ($(DISPLAY_LCD),a064)
 subdir-ccflags-y += -DDISPLAY_A064
 else ifeq ($(DISPLAY_LCD),hx8394f)
@@ -30,6 +32,14 @@ else ifeq ($(DISPLAY_LCD),st7102rgb)
 subdir-ccflags-y += -DDISPLAY_ST7102RGB
 else
 subdir-ccflags-y += -DDISPLAY_RM69330
+endif
+
+# LCD 引脚配置：如果通过 Makefile 传入了 DISPLAY_RST_PIN 和 DISPLAY_TE_PIN，则定义相应的宏
+ifneq ($(DISPLAY_RST_PIN),)
+subdir-ccflags-y += -DDISPLAY_RST_PIN=$(DISPLAY_RST_PIN)
+endif
+ifneq ($(DISPLAY_TE_PIN),)
+subdir-ccflags-y += -DDISPLAY_TE_PIN=$(DISPLAY_TE_PIN)
 endif
 
 # Display BUS select

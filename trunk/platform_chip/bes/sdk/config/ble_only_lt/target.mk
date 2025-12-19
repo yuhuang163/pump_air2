@@ -26,8 +26,7 @@ endif
 export FLASH_DEEP_SLEEP ?= 1
 export SPLIT_CORE_M_CORE_L ?= 0
 export ALLOW_WARNING ?= 1
-export PSRAM_ENABLE ?=0
-export PSRAM_SPEED ?= 0
+export PSRAM_ENABLE ?= 0
 export POWER_MODE           ?= DIG_DCDC
 
 DEBUG_PORT  ?= 1
@@ -38,8 +37,8 @@ export FAULT_DUMP := 1
 
 export NO_OVERLAY := 1
 
-export TRACE_BAUD_RATE := 8*115200
-export TRACE_BUF_SIZE ?= 4*1024
+export TRACE_BAUD_RATE := 2000000
+export TRACE_BUF_SIZE ?= 16*1024
 
 init-y      :=
 core-y      := platform/main/ platform/cmsis/ platform/drivers/ platform/hal/ utils/cqueue/
@@ -80,7 +79,7 @@ export ENABLE_PRINT_FLOAT ?= 1
 export CORE_DUMP ?= 0
 export ALLOW_WARNING ?= 1
 
-export OS_TASKCNT ?= 16
+export OS_TASKCNT ?= 28
 export OS_SCHEDULERSTKSIZE ?= 512
 export OS_IDLESTKSIZE ?= 1024
 export OS_FIFOSZ ?= 24
@@ -89,3 +88,15 @@ export BLE_ONLY_LT := 1
 ifeq ($(BLE_ONLY_LT),1)
 KBUILD_CPPFLAGS += -DBLE_ONLY_LT
 endif
+
+ifeq ($(PSRAM_ENABLE), 1)
+export PSRAM_SIZE ?= 0x400000
+export PSRAM_SPEED ?= 200
+export PSRAM_XCCELA_MODE ?= 1
+export PSRAM_POLLING ?= 1
+KBUILD_CPPFLAGS += -DSYS_PSRAM_BASE=PSRAM_BASE -DSYS_PSRAM_NC_BASE=PSRAM_NC_BASE
+else
+export PSRAM_SPEED ?= 0
+endif
+
+$(info [PSRAM] ENABLE=$(PSRAM_ENABLE) SIZE=$(PSRAM_SIZE) SPEED=$(PSRAM_SPEED) XCCELA=$(PSRAM_XCCELA_MODE) POLLING=$(PSRAM_POLLING))

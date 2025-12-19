@@ -68,6 +68,8 @@ struct lcd_command {
 #include "mipsharp12_cmds.h"
 #elif defined(DISPLAY_MIPSHARP14)
 #include "mipsharp14_cmds.h"
+#elif defined(DISPLAY_ST77916)
+#include "st77916_cmds.h"
 #endif
 
 #endif /* __LCD_CONFIG_H__ */

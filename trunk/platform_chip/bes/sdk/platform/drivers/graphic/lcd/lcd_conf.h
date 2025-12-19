@@ -63,6 +63,8 @@
 #include "mipsharp12_conf.h"
 #elif defined(DISPLAY_MIPSHARP14)
 #include "mipsharp14_conf.h"
+#elif defined(DISPLAY_ST77916)
+#include "st77916_conf.h"
 #endif
 
 /* LCD panel power/reset pins */
@@ -141,10 +143,23 @@
 #endif
 
 #if defined(CHIP_BEST1306P)
+#if 0
 #define LCD_RST_PIN HAL_GPIO_PIN_P4_7
 #define LCD_1V8_PIN HAL_GPIO_PIN_P1_0
 #define LCD_2V8_PIN HAL_GPIO_PIN_P1_1
 #define LCD_TE_PIN  HAL_GPIO_PIN_P2_4
+#else
+#ifdef DISPLAY_RST_PIN
+#define LCD_RST_PIN DISPLAY_RST_PIN
+#else
+#define LCD_RST_PIN HAL_GPIO_PIN_P3_6
+#endif
+#ifdef DISPLAY_TE_PIN
+#define LCD_TE_PIN DISPLAY_TE_PIN
+#else
+#define LCD_TE_PIN  HAL_GPIO_PIN_P3_7
+#endif
+#endif
 #endif
 
 #if defined(CHIP_BEST1600)
