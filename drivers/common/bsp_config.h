@@ -63,11 +63,25 @@ extern "C" {
 #define CHARGE_INT_PIN                  HAL_GPIO_PIN_P0_1
 /// 充电电源控制引脚
 #define CHARGE_POWER_PIN                HAL_GPIO_PIN_P0_2
+/// 马达PWM相关定义
+#define PWM_PUMP1_PIN                   HAL_GPIO_PIN_P3_7
+#define PWM_PUMP2_PIN                   HAL_GPIO_PIN_P4_0
+#define PWM_VALVE1_PIN                  HAL_GPIO_PIN_P3_6
+#define PWM_VALVE2_PIN                  HAL_GPIO_PIN_P4_1
+#define MOTOR_PUMP1_PWM_ID              HAL_PWM1_ID_3
+#define MOTOR_PUMP1_PWM_IMUX            hal_iomux_set_pwm7
+#define MOTOR_PUMP2_PWM_ID              HAL_PWM_ID_1
+#define MOTOR_PUMP2_PWM_IMUX            hal_iomux_set_pwm1
+#define MOTOR_VALVE1_PWM_ID             HAL_PWM1_ID_2
+#define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm6
+#define MOTOR_VALVE2_PWM_ID             HAL_PWM_ID_0
+#define MOTOR_VALVE2_PWM_IMUX           hal_iomux_set_pwm0
 #elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
 /// ADC相关定义
 #define BATT_ADC_CHANNEL                HAL_GPADC_CHAN_4
 #define PUMP1_ADC_CHANNEL               HAL_GPADC_CHAN_2
 #define PUMP2_ADC_CHANNEL               HAL_GPADC_CHAN_3
+#define LIGHT_ADC_CHANNEL               HAL_GPADC_CHAN_4
 /// LCD相关定义
 #define USR_LCD_POWER_PIN               HAL_GPIO_PIN_P1_2
 #define USR_LCD_RST_PIN                 HAL_GPIO_PIN_P4_1
@@ -83,11 +97,19 @@ extern "C" {
 #define PWM_PUMP1_PIN                   HAL_GPIO_PIN_P3_7
 #define PWM_VALVE2_PIN                  HAL_GPIO_PIN_P4_3
 #define PWM_PUMP2_PIN                   HAL_GPIO_PIN_P4_2
+#define MOTOR_PUMP1_PWM_ID              HAL_PWM1_ID_3
+#define MOTOR_PUMP1_PWM_IMUX            hal_iomux_set_pwm7
+#define MOTOR_PUMP2_PWM_ID              HAL_PWM_ID_2
+#define MOTOR_PUMP2_PWM_IMUX            hal_iomux_set_pwm2
+#define MOTOR_VALVE1_PWM_ID             HAL_PWM1_ID_2
+#define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm6
+#define MOTOR_VALVE2_PWM_ID             HAL_PWM_ID_3
+#define MOTOR_VALVE2_PWM_IMUX           hal_iomux_set_pwm3
 /// 按键相关定义
 #define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_7
 #define TOUCH_INT_PIN                   HAL_GPIO_PIN_P4_6
-#define KNOB_B_PIN                   HAL_GPIO_PIN_P1_0
-#define KNOB_A_PIN                  HAL_GPIO_PIN_P1_1
+#define KNOB_B_PIN                      HAL_GPIO_PIN_P1_0
+#define KNOB_A_PIN                      HAL_GPIO_PIN_P1_1
 /// USB相关定义
 #define CHARGE_PD_INT_PIN               HAL_GPIO_PIN_P1_6
 /// 日志串口
@@ -124,6 +146,7 @@ extern "C" {
 #define SYS_3V3_EN_PIN                  HAL_GPIO_PIN_P1_3
 /// 泵奶电源控制引脚
 #define PUMP_POWER_PIN                  HAL_GPIO_PIN_P2_5
+
 #else
 /// ADC相关定义
 #define BATT_ADC_POWER_PIN              HAL_GPIO_PIN_P4_4
@@ -174,6 +197,19 @@ extern "C" {
 #define CHARGE_INT_PIN                  HAL_GPIO_PIN_P0_1
 /// 充电电源控制引脚
 #define CHARGE_POWER_PIN                HAL_GPIO_PIN_P0_2
+/// 马达PWM相关定义
+#define PWM_PUMP1_PIN                   HAL_GPIO_PIN_P3_7
+#define PWM_PUMP2_PIN                   HAL_GPIO_PIN_P4_0
+#define PWM_VALVE1_PIN                  HAL_GPIO_PIN_P3_6
+#define PWM_VALVE2_PIN                  HAL_GPIO_PIN_P4_1
+#define MOTOR_PUMP1_PWM_ID              HAL_PWM1_ID_3
+#define MOTOR_PUMP1_PWM_IMUX            hal_iomux_set_pwm7
+#define MOTOR_PUMP2_PWM_ID              HAL_PWM_ID_1
+#define MOTOR_PUMP2_PWM_IMUX            hal_iomux_set_pwm1
+#define MOTOR_VALVE1_PWM_ID             HAL_PWM1_ID_2
+#define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm6
+#define MOTOR_VALVE2_PWM_ID             HAL_PWM_ID_0
+#define MOTOR_VALVE2_PWM_IMUX           hal_iomux_set_pwm0
 #endif
 
 /*

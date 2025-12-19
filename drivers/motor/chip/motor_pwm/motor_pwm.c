@@ -4,10 +4,9 @@
 */
 #include "hal_motor.h"
 #include "hal_pwm.h"
-#include "hal_iomux.h"
-#include "rtx_lib.h"  // IWYU pragma: keep
 #include "hal_timer.h"
 #include "bsp_common.h" 
+#include "bsp_config.h"
 #include "bsp_motor_internal.h"
 
 /*
@@ -27,10 +26,10 @@ typedef struct {
 *****************************************************************************************
 */
 static const motor_pwm_cfg_t motor_pwm_cfg[] = {
-    {HAL_PWM_ID_1,  hal_iomux_set_pwm1},
-    {HAL_PWM1_ID_3, hal_iomux_set_pwm7}, // P37
-    {HAL_PWM_ID_0,  hal_iomux_set_pwm0},
-    {HAL_PWM1_ID_2, hal_iomux_set_pwm6}, // P36
+    {MOTOR_PUMP1_PWM_ID,   MOTOR_PUMP1_PWM_IMUX},
+    {MOTOR_PUMP2_PWM_ID,   MOTOR_PUMP2_PWM_IMUX},
+    {MOTOR_VALVE1_PWM_ID,  MOTOR_VALVE1_PWM_IMUX},
+    {MOTOR_VALVE2_PWM_ID,  MOTOR_VALVE2_PWM_IMUX},
 };
 
 static uint8_t motor_pwm_status[MOTOR_PWM_ID_MAX];
