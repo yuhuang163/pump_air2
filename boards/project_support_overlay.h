@@ -86,6 +86,8 @@ extern "C" {
 #define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (0)
 /// 支持UART
 #define IS_SUPPORT_DEVICE_UART                           (0)
+/// 支持光传感器
+#define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (1)
 #else
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (0)
@@ -95,6 +97,8 @@ extern "C" {
 #define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (1)
 /// 支持UART
 #define IS_SUPPORT_DEVICE_UART                           (1)
+/// 支持光传感器
+#define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
 #endif
 
 #ifdef __cplusplus

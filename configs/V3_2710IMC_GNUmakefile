@@ -13,6 +13,10 @@ CROSS_COMPILE ?= $(CONFIG_CROSS_COMPILE)
 PWM2_IOMUX_INDEX ?= 42
 PWM3_IOMUX_INDEX ?= 43
 
+# LCD 引脚配置（可通过命令行覆盖）
+DISPLAY_RST_PIN ?= HAL_GPIO_PIN_P4_1
+DISPLAY_TE_PIN ?= HAL_GPIO_PIN_P4_0
+
 # -------------- 工具宏定义 --------------
 # 递归查找指定目录下的所有 .c 文件
 # 用法: $(call rwildcard,目录路径)
@@ -74,7 +78,9 @@ CFG_OTA_EVENT_CALLBACK ?= 1
 CFG_LVGL_ENABLE := 1
 
 # 硬件版本
-BOARD_V3_2710IMC ?= 1
+V3_2710IMP_HARDWARE_VERSION ?= 0
+V3_2710IMC_HARDWARE_VERSION ?= 1
+V3_HARDWARE_VERSION ?= $(V3_2710IMC_HARDWARE_VERSION)
 
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
@@ -206,6 +212,10 @@ DRIVERS_ADC_INC_FLAGS := \
 DRIVERS_AIR_PRESSURE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/air_pressure
 
+# 光传感器驱动头文件
+DRIVERS_LIGHT_SENSOR_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/light_sensor
+	
 # 音频驱动头文件
 DRIVERS_AUDIO_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/audio
@@ -219,7 +229,7 @@ DRIVERS_BATTERY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/battery \
 	-I$(PROJECT_ROOT)/drivers/battery/charge
 
-ifeq ($(BOARD_V3_2710IMC),1)
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
 DRIVERS_BATTERY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/battery/charge_pd
 endif
 
@@ -262,7 +272,7 @@ DRIVERS_IMU_INC_FLAGS := \
 DRIVERS_KEY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/key \
 	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b
-ifeq ($(BOARD_V3_2710IMC),1)
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
 endif
 
@@ -270,7 +280,7 @@ endif
 DRIVERS_LCD_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/lcd 
 	
-ifeq ($(BOARD_V3_2710IMC),1)	
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
 DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi
 else
 DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart
@@ -315,6 +325,10 @@ DRIVERS_INC_FLAGS := \
 	$(DRIVERS_MOTOR_INC_FLAGS) \
 	$(DRIVERS_UART_INC_FLAGS) \
 	$(DRIVERS_WIFI_INC_FLAGS)
+
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+DRIVERS_INC_FLAGS += $(DRIVERS_LIGHT_SENSOR_INC_FLAGS)
+endif	
 
 # 基础模块头文件
 BASE_INC_FLAGS := \
@@ -512,9 +526,9 @@ CPPFLAGS += -DCFG_LVGL_ENABLE
 endif
 
 # 硬件版本
-ifeq ($(BOARD_V3_2710IMC),1)
-CPPFLAGS += -DBOARD_V3_2710IMC
-endif
+CPPFLAGS += -DV3_2710IMC_HARDWARE_VERSION=$(V3_2710IMC_HARDWARE_VERSION)
+CPPFLAGS += -DV3_2710IMP_HARDWARE_VERSION=$(V3_2710IMP_HARDWARE_VERSION)
+CPPFLAGS += -DV3_HARDWARE_VERSION=$(V3_HARDWARE_VERSION)
 
 # 调试日志相关宏定义
 ifeq ($(REL_TRACE_ENABLE),1)
@@ -646,7 +660,7 @@ DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
-ifeq ($(BOARD_V3_2710IMC),1)
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
 DRIVERS_BATTERY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/battery/charge_pd/*.c)
 endif
 
@@ -677,6 +691,10 @@ DRIVERS_FLASH_SRCS := \
 DRIVERS_FORCE_SENSOR_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/force_sensor/*.c)
 
+# 光传感器驱动源码
+DRIVERS_LIGHT_SENSOR_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/light_sensor/*.c)
+
 # I2C 驱动源码
 DRIVERS_I2C_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/i2c/*.c)
@@ -689,7 +707,7 @@ DRIVERS_IMU_SRCS := \
 DRIVERS_KEY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c)
-ifeq ($(BOARD_V3_2710IMC),1)
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/knob/*.c)
 endif
 
@@ -697,7 +715,7 @@ endif
 DRIVERS_LCD_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) 
 	
-ifeq ($(BOARD_V3_2710IMC),1)	
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
 DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi/*.c)
 else
 DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c)
@@ -708,7 +726,7 @@ DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
 
-ifeq ($(BOARD_V3_2710IMC),1)
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
 else
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c) 
@@ -748,6 +766,10 @@ DRIVERS_SRCS := \
 	$(DRIVERS_MOTOR_SRCS) \
 	$(DRIVERS_UART_SRCS) \
 	$(DRIVERS_WIFI_SRCS)
+
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+DRIVERS_SRCS += $(DRIVERS_LIGHT_SENSOR_SRCS)
+endif	
 
 # 基础模块源码
 BASE_MODULE_SRCS := \
@@ -1050,6 +1072,8 @@ export FLASH_REMAP
 export CHIP_HAS_CP
 export CHIP
 export WERROR_ENABLE
+export DISPLAY_RST_PIN
+export DISPLAY_TE_PIN
 
 # 固件构建（默认参数）
 firmware:
@@ -1070,6 +1094,8 @@ firmware:
 		LVGL_BES_PNG=1 \
 		LVGL_NO_TOUCHSCREEN=1 \
 		DISPLAY_LCD=st77916 \
+		DISPLAY_RST_PIN=$(DISPLAY_RST_PIN) \
+		DISPLAY_TE_PIN=$(DISPLAY_TE_PIN) \
 		DEBUG_PORT=1 \
 		all
 

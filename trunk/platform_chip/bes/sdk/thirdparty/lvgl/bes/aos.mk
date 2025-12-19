@@ -34,6 +34,14 @@ else
 subdir-ccflags-y += -DDISPLAY_RM69330
 endif
 
+# LCD 引脚配置：如果通过 Makefile 传入了 DISPLAY_RST_PIN 和 DISPLAY_TE_PIN，则定义相应的宏
+ifneq ($(DISPLAY_RST_PIN),)
+subdir-ccflags-y += -DDISPLAY_RST_PIN=$(DISPLAY_RST_PIN)
+endif
+ifneq ($(DISPLAY_TE_PIN),)
+subdir-ccflags-y += -DDISPLAY_TE_PIN=$(DISPLAY_TE_PIN)
+endif
+
 # Display BUS select
 ifneq ($(filter best1306p best1503,$(CHIP)),)
 export DISPLAY_BUS ?= qspi

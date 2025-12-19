@@ -70,6 +70,13 @@ else
 subdir-ccflags-y += -DDISPLAY_RM69330
 endif
 
+ifneq ($(DISPLAY_RST_PIN),)
+subdir-ccflags-y += -DDISPLAY_RST_PIN=$(DISPLAY_RST_PIN)
+endif
+ifneq ($(DISPLAY_TE_PIN),)
+subdir-ccflags-y += -DDISPLAY_TE_PIN=$(DISPLAY_TE_PIN)
+endif
+
 # Display BUS select
 ifeq ($(DISPLAY_BUS),qspi)
 subdir-ccflags-y += -DCONFIG_LCDC_USE_QSPI

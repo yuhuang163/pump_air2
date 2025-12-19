@@ -63,7 +63,7 @@ static void change_images_cb(lv_timer_t *t)
     EXCEPTION_CHECK_VOID(ui_ctx);
     uint8_t msg = 0;
     static uint32_t time_stamp = 0;
-    LOGI("==>enter, %d, count: %d", get_timestamp_ms(time_stamp), ui_ctx->priv.play_info.played_count);
+    // LOGI("==>enter, %d, count: %d", get_timestamp_ms(time_stamp), ui_ctx->priv.play_info.played_count);
     time_stamp = get_timestamp();
     if (ui_ctx->priv.need_stop_timer) {
         lv_timer_delete(t);

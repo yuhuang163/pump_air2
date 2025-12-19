@@ -149,8 +149,16 @@
 #define LCD_2V8_PIN HAL_GPIO_PIN_P1_1
 #define LCD_TE_PIN  HAL_GPIO_PIN_P2_4
 #else
+#ifdef DISPLAY_RST_PIN
+#define LCD_RST_PIN DISPLAY_RST_PIN
+#else
 #define LCD_RST_PIN HAL_GPIO_PIN_P3_6
+#endif
+#ifdef DISPLAY_TE_PIN
+#define LCD_TE_PIN DISPLAY_TE_PIN
+#else
 #define LCD_TE_PIN  HAL_GPIO_PIN_P3_7
+#endif
 #endif
 #endif
 
