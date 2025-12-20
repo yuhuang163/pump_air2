@@ -10,8 +10,8 @@
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_PNG_TEST                0
-#define IS_SUPPORT_JPEG_TEST               1
+#define IS_SUPPORT_PNG_TEST                1
+#define IS_SUPPORT_JPEG_TEST               0
 #define IS_SUPPORT_BAJ_TEST                0
 #define IS_SUPPORT_BG_TEST                 0
 
@@ -69,8 +69,8 @@ static struct img_data_t png_images[PNG_IMG_COUNT] = {
 
 static PSRAM_DATA_LOC uint8_t jpeg_data0[] = {
     // #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv422_128x128.txt"
-    // #include "../../tests/hwtest/jpegdec/jpeg_yuv444_128x128.txt"
-    #include "../../tests/hwtest/jpegdec/jpeg_yuv422_128x128.txt"
+    #include "../../tests/hwtest/jpegdec/jpeg_yuv444_128x128.txt"
+    // #include "../../tests/hwtest/jpegdec/jpeg_yuv422_128x128.txt"
     // #include "../../tests/hwtest/jpegdec/jpeg_yuv444_480x480.txt"
 };
 

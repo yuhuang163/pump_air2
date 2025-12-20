@@ -529,6 +529,23 @@ static int dispatch_new_window(window_context_t *ctx)
     window_context_record_t *record = &s_window_record;
     static uint32_t counter = 0;
 
+#if IS_SUPPORT_LVGL
+    /// 等待LVGL初始化完成，防止在初始化未完成时创建窗口导致崩溃
+    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    if (ui && ui->is_lvgl_initialized) {
+        uint32_t wait_count = 0;
+        while (!ui->is_lvgl_initialized(ui) && wait_count < 100) {
+            LOG_WM("waiting for LVGL initialization... (%lu)", wait_count);
+            msleep(10);
+            wait_count++;
+        }
+        if (!ui->is_lvgl_initialized(ui)) {
+            LOG_WM("ERROR: LVGL initialization timeout, window creation aborted!");
+            return -99;
+        }
+    }
+#endif
+
     next = dichotomy_find_window_obj(ctx->new_window_id);
     if (!next) {
         LOG_WM("not found window_id: %d", ctx->new_window_id);

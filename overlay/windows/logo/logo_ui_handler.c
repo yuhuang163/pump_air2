@@ -64,7 +64,7 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
 
 static void logo_ui_finished_policy(ui_manager_context_t *ui)
 {
-#if 1
+#if 0
     ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {

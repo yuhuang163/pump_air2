@@ -179,7 +179,11 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
     lv_delay_set_cb(msleep);
     lv_hal_disp_init();
     CREATE_MSG_TYPE_QUEUE(&ui_hdr_msg_id, 1, sizeof(uint8_t));
-    LOGI("==>lvgl init");
+    
+    /// 标记LVGL初始化完成，防止其他线程在初始化未完成时使用LVGL
+    thiz->priv.lvgl_initialized = true;
+    LOGI("==>lvgl init done, initialized flag set to true");
+    
     POST_TASK_HANDLER_DELAYED_ARG1(set_black_background_cb, 100, thiz, "set_black_background_cb");
 #else
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
@@ -323,6 +327,12 @@ static int on_perpare_ui_init_route(struct ui_manager_context *thiz)
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_INT(pbus);
     thiz->priv.led_dev = (struct rt_device_node *)pbus->find_device(ID_DEVICE_LED);
+    
+    #if IS_SUPPORT_LVGL
+    /// 初始化LVGL标志为false，等待ui_thread_init_route完成后设置为true
+    thiz->priv.lvgl_initialized = false;
+    #endif
+    
     ui_ctx = thiz;
     return 0;
 }

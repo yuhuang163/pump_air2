@@ -174,6 +174,9 @@ typedef struct ui_manager_context {
         bool is_playing_ui_animation; /// 是否正在播放UI动画
         uint8_t ui_backlight_val; /// 背光亮度
         bool lv_tick_timer_running; /// LVGL定时器是否正在运行
+        #if IS_SUPPORT_LVGL
+        bool lvgl_initialized; /// LVGL是否已初始化完成
+        #endif
         ui_animation_play_t play_info; /// 当前播放的动画信息
     } priv;
 
@@ -181,6 +184,9 @@ typedef struct ui_manager_context {
     void (*animation_play_status_update)(struct ui_manager_context *thiz, bool flag);
     void (*play_animation_lock)(const char *tag);
     void (*play_animation_unlock)(const char *tag);
+    #if IS_SUPPORT_LVGL
+    bool (*is_lvgl_initialized)(struct ui_manager_context *thiz);
+    #endif
     /// 外部hook点.
     struct __ui_manager_hook {
         int (*on_post_init_route)(struct ui_manager_context *thiz);

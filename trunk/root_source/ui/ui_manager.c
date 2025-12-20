@@ -41,6 +41,14 @@ static void ui_play_animation_unlock(const char *tag)
     }
 }
 
+#if IS_SUPPORT_LVGL
+static bool is_lvgl_initialized(ui_manager_context_t *ui)
+{
+    EXCEPTION_CHECK_BOOL(ui);
+    return ui->priv.lvgl_initialized;
+}
+#endif
+
 static int post_msg_to_flush(const char *tag, multi_func_msg_data_t *msg)
 {
     EXCEPTION_CHECK_INT(msg);
@@ -122,6 +130,9 @@ void *register_module_for_ui_manager_new(list_head_t *list_head)
     ptr->animation_play_status_update = animation_play_status_update;
     ptr->play_animation_lock = ui_play_animation_lock;
     ptr->play_animation_unlock = ui_play_animation_unlock;
+    #if IS_SUPPORT_LVGL
+    ptr->is_lvgl_initialized = is_lvgl_initialized;
+    #endif
     thiz = ptr;
     return ADD_MODULE("ui", ID_MODULE_UI, on_perpare_ui_init, 
         on_post_ui_init, ptr, list_head, sizeof(ui_manager_context_t));
