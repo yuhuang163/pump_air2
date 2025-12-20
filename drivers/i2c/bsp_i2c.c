@@ -20,8 +20,8 @@
 #else
 #define I2C_MASTER_COUNT                            3
 #endif
-#define I2C_MASTER_SPEED                            400000
-#define IS_SUPPORT_I2C_MASTER_TASK                  0 
+#define I2C_MASTER_SPEED                            100000 // 400000
+#define IS_SUPPORT_I2C_MASTER_TASK                  1 
 #define I2C_MASTER_ID_IS_INVALID(x) \
 do { \
     if ((x >= I2C_MASTER_ID_MAX) || (x < 0)) { \
