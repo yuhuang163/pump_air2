@@ -26,7 +26,7 @@ endif
 export FLASH_DEEP_SLEEP ?= 1
 export SPLIT_CORE_M_CORE_L ?= 0
 export ALLOW_WARNING ?= 1
-export PSRAM_ENABLE ?= 0
+export PSRAM_ENABLE ?=0
 export PSRAM_SPEED ?= 0
 export POWER_MODE           ?= DIG_DCDC
 
@@ -89,4 +89,3 @@ export BLE_ONLY_LT := 1
 ifeq ($(BLE_ONLY_LT),1)
 KBUILD_CPPFLAGS += -DBLE_ONLY_LT
 endif
-

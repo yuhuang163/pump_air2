@@ -73,7 +73,7 @@
 #define LV_ATTRIBUTE_LARGE_CONST            PSRAM_DATA_LOC
 #define LV_ATTRIBUTE_LARGE_RAM_ARRAY        PSRAM_BSS_LOC
 
-#define LV_DRAW_THREAD_STACK_SIZE           (16 * 1024U)
+#define LV_DRAW_THREAD_STACK_SIZE           (64 * 1024U)
 
 /* enable logging */
 #define LV_USE_LOG                          0
@@ -84,18 +84,18 @@
 
 /* font configs */
 #define LV_FONT_MONTSERRAT_14               1
-#define LV_FONT_MONTSERRAT_16               1
-#define LV_FONT_MONTSERRAT_18               1
+#define LV_FONT_MONTSERRAT_16               0
+#define LV_FONT_MONTSERRAT_18               0
 #define LV_FONT_MONTSERRAT_20               1
-#define LV_FONT_MONTSERRAT_22               1
+#define LV_FONT_MONTSERRAT_22               0
 #define LV_FONT_MONTSERRAT_24               1
 #define LV_FONT_MONTSERRAT_26               1
-#define LV_FONT_MONTSERRAT_32               1
-#define LV_FONT_MONTSERRAT_40               1
-#define LV_FONT_MONTSERRAT_48               1
-#define LV_USE_FONT_COMPRESSED              1
+#define LV_FONT_MONTSERRAT_32               0
+#define LV_FONT_MONTSERRAT_40               0
+#define LV_FONT_MONTSERRAT_48               0
+#define LV_USE_FONT_COMPRESSED              0
 
-#define LV_FONT_DEJAVU_16_PERSIAN_HEBREW    1
+#define LV_FONT_DEJAVU_16_PERSIAN_HEBREW    0
 #define LV_FONT_SIMSUN_16_CJK               1
 
 #define LV_FONT_DEFAULT                     &lv_font_montserrat_14
