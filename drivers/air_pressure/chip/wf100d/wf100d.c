@@ -34,6 +34,7 @@
 #define WF100D_LOG_DEBUG               0
 
 #define WF100D_ABNORMAL_MAX_COUNT      10
+#define WF100D_LOG_COUNT_INTERVAL      100
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -41,6 +42,7 @@
 static air_pressue_status_t s_air_pressure[AIR_PRESSURE_NUM] = {0};
 static uint16_t s_dev_abnormal_count[AIR_PRESSURE_NUM] = {0};
 static uint8_t s_dev_is_ready[AIR_PRESSURE_NUM] = {0};
+static uint16_t s_log_count = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -56,7 +58,9 @@ static int wf100d_write_nbyte(uint8_t index, i2c_master_data_t *data)
     }
     
     if (s_dev_is_ready[index] == 0) {
-        LOGE("air pressure is not ready: %d", index);
+        if (s_log_count % WF100D_LOG_COUNT_INTERVAL == 0) {
+            LOGE("air pressure is not ready: %d", index);
+        }
         return BSP_NOT_READY;
     }
 
@@ -72,6 +76,8 @@ static int wf100d_write_nbyte(uint8_t index, i2c_master_data_t *data)
     s_dev_abnormal_count[index]++;
     if (s_dev_abnormal_count[index] > WF100D_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
+    } else {
+        LOGI("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;
@@ -87,7 +93,9 @@ static int wf100d_read_nbyte(uint8_t index, i2c_master_data_t *data)
     }
     
     if (s_dev_is_ready[index] == 0) {
-        LOGE("air pressure is not ready: %d", index);
+        if (s_log_count % WF100D_LOG_COUNT_INTERVAL == 0) {
+            LOGE("air pressure is not ready: %d", index);
+        }
         return BSP_NOT_READY;
     }
 
@@ -103,6 +111,8 @@ static int wf100d_read_nbyte(uint8_t index, i2c_master_data_t *data)
     s_dev_abnormal_count[index]++;
     if (s_dev_abnormal_count[index] > WF100D_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
+    } else {
+        LOGI("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;
@@ -110,7 +120,33 @@ static int wf100d_read_nbyte(uint8_t index, i2c_master_data_t *data)
 
 static int wf100d_read_nbyte_no_retry(uint8_t index, i2c_master_data_t *data)
 {
-    return bsp_i2c_read_byte(index == 0 ? W100DP_I2C_ID1 : W100DP_I2C_ID2, data);
+    int ret = 0;
+    if (index >= AIR_PRESSURE_NUM) {
+        LOGE("air pressure index is invalid: %d", index);
+        return BSP_INVALID_PARAMETER;
+    }
+    
+    if (s_dev_is_ready[index] == 0) {
+        if (s_log_count % WF100D_LOG_COUNT_INTERVAL == 0) {
+            LOGE("air pressure is not ready: %d", index);
+        }
+        return BSP_NOT_READY;
+    }
+
+    ret = bsp_i2c_read_byte(index == 0 ? W100DP_I2C_ID1 : W100DP_I2C_ID2, data);
+    if (ret == BSP_OK) {
+        s_dev_abnormal_count[index] = 0;
+        return BSP_OK;
+    }
+
+    s_dev_abnormal_count[index]++;
+    if (s_dev_abnormal_count[index] > WF100D_ABNORMAL_MAX_COUNT) {
+        s_dev_is_ready[index] = 0;
+    } else {
+        LOGI("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
+    }
+
+    return BSP_ERROR;
 }
 
 static int air_pressure_start_conversion(uint8_t index)
@@ -137,7 +173,10 @@ static int wait_air_pressure_conversion_completed(uint8_t index)
     };
 
     while(wait_timeout --) {
-        wf100d_read_nbyte_no_retry(index, &air_pressure);
+        if (wf100d_read_nbyte_no_retry(index, &air_pressure) != BSP_OK) {
+            return BSP_ERROR;
+        }
+
         if (reg_val == 1) {
             return BSP_OK;
         }
@@ -243,5 +282,6 @@ int bsp_read_air_pressure_status(void *args)
     PRINT_LOG("time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
         get_timestamp_ms(start_time), out_status[0].pressure, out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
 #endif
+    s_log_count++;
     return BSP_OK;
 }
