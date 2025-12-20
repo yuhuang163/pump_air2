@@ -60,14 +60,14 @@ RTC_CALENDAR ?= 1
 PMU_CLK_USE_EXT_CRYSTAL ?= 0
 
 # VHPPA voltage switch
-VHPPA_VOLT ?= 1.95V
-VCODEC_VOLT ?= 1.95V
+VHPPA_VOLT ?= 1.9V
+VCODEC_VOLT ?= 1.9V
 
 # USB voltage switch
-VUSB_ON ?= 1
+VUSB_ON ?= 0
 
 # PSRAM enable switch
-PSRAM_ENABLE ?= 1
+PSRAM_ENABLE ?= 0
 
 # littlefs section size
 LITTLEFS_SECTION_SIZE ?= 0x4000
@@ -941,9 +941,7 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		CFG_OTA_EVENT_CALLBACK=$(CFG_OTA_EVENT_CALLBACK) \
 		CFG_CUSTOM_APP=$(CFG_CUSTOM_APP) \
 		VHPPA_VOLT=$(VHPPA_VOLT) \
-		VCODEC_VOLT=$(VCODEC_VOLT) \
-		VUSB_ON=$(VUSB_ON) \
-		PSRAM_ENABLE=$(PSRAM_ENABLE)
+		VCODEC_VOLT=$(VCODEC_VOLT) 
 
 	@set -e; \
 		out_dir="$(O)/$(T)"; \
@@ -1028,7 +1026,6 @@ print-vars:
 	@echo WERROR_ENABLE=$(WERROR_ENABLE)
 
 # -------------- 便捷目标：固件与 Bootloader 隔离构建 --------------
-
 # 透传关键编译变量到子 make（仅导出，不设默认值，避免影响普通构建）
 export NO_CP
 export BES_OTA
@@ -1042,6 +1039,14 @@ export FLASH_REMAP
 export CHIP_HAS_CP
 export CHIP
 export WERROR_ENABLE
+export DISPLAY_RST_PIN
+export DISPLAY_TE_PIN
+export CHIP_HAS_GRABOX
+export VUSB_ON
+export PSRAM_ENABLE
+export PSRAM_SIZE
+export PSRAM_SPEED
+export PSRAM_XCCELA_MODE
 
 # 固件构建（默认参数）
 firmware:
@@ -1058,10 +1063,16 @@ firmware:
 		OTA_BIN_COMPRESSED=1 \
 		OTA_CODE_OFFSET=0x66000 \
 		OTA_BOOT_INFO_OFFSET=0x62000 \
+		PSRAM_ENABLE=$(PSRAM_ENABLE) \
+		PSRAM_SIZE=0x800000 \
+		PSRAM_SPEED=200 \
+		PSRAM_XCCELA_MODE=$(PSRAM_ENABLE) \
 		LVGL_TEST=$(CFG_LVGL_ENABLE) \
-		LVGL_BES_PNG=1 \
-		LVGL_NO_TOUCHSCREEN=1 \
+		LVGL_BES_PNG=$(CFG_LVGL_ENABLE) \
+		LVGL_NO_TOUCHSCREEN=$(CFG_LVGL_ENABLE) \
 		DISPLAY_LCD=st77916 \
+		CHIP_HAS_GRABOX=$(CHIP_HAS_GRABOX) \
+		VUSB_ON=$(VUSB_ON) \
 		DEBUG_PORT=1 \
 		all
 

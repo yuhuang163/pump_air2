@@ -117,6 +117,7 @@ static int motor_debug_test_cb(void)
     if(state > MOTOR_USER_DEBUG_VALVE_OFF) {
         state = MOTOR_USER_DEBUG_PUMP_ON;
     }
+    LOG_PBUS("===> motor debug test!!!!! state: %d, duty: %d, hold_time: %d", state, para.duty, para.hold_time);
     motor_ctx->hook->motor_debug_with_user_para(motor_ctx, state, &para);
     state++;
     return 1000;
@@ -132,6 +133,7 @@ static void sys_dump_wdg_test_cb(void)
     }
 }
 
+void light_sensor_test(void);
 static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
 {
     // sys_dump_wdg_test_cb();
@@ -140,7 +142,9 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, lcd_data_send_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, run_led_test_cb(), "pressure_test:continue"); 
     // motor_debug_policy_test_cb();
-    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
+    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
+    // light_sensor_test();
+    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test:continue");
 }
 #endif
 
