@@ -89,10 +89,6 @@ endif
 
 ifeq ($(NOAPP),1)
 ccflags-y += -DNOAPP
-
-ifeq ($(CHIP_HAS_PSRAM),1)
-obj-y += ../../platform/drivers/psram/
-endif
 endif
 
 ifeq ($(CHIP_HAS_DDR),1)
@@ -954,7 +950,6 @@ ccflags-y += -Ithirdparty/lvgl/examples
 ccflags-y += -Ithirdparty/lvgl/bes/ports 
 ccflags-y += -Ithirdparty/lvgl/bes/disp 
 ccflags-y += -Iplatform/drivers/graphic/lcd
-obj-y += ../../platform/drivers/graphic/
 endif
 
 ifeq ($(PCIE_TEST),1)
