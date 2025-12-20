@@ -379,6 +379,9 @@ SENSOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+SENSOR_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/sensor/light_sensor
+endif	
 
 # 音频模块头文件
 AUDIO_INC_FLAGS := \
@@ -816,6 +819,9 @@ SENSOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c)
+ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+SENSOR_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/sensor/light_sensor/*.c)
+endif	
 
 # 音频模块源码
 AUDIO_MODULE_SRCS := \

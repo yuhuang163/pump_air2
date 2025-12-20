@@ -125,6 +125,10 @@ typedef struct {
     uint16_t air_pressure_serial_num;
     air_pressue_status_t air_pressure_data[AIR_PRESSURE_NUM];
     #endif
+    #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
+    uint16_t light_sensor_serial_num;
+    light_sensor_data_t light_sensor_data;
+    #endif
     uint32_t sensor_mask; /// 传感器掩码，用于记录传感器数据是否有效
 } sensor_wrapper_data_t;
 
