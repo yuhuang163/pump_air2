@@ -11,6 +11,9 @@ else
     echo "第五个参数为：$5"
 fi
 
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # 获取目录参数
 ALPHA=$1
 COMPRESS=$2
@@ -45,7 +48,7 @@ traverse_directory() {
                 # 生成输出文件名，使用 .baj 后缀
                 local output_file="$out_dir/${base_name}_${ALPHA}_${SAMPLES}.baj"
                 # 执行转换命令
-                ./png2baj $ALPHA $COMPRESS $QUALITY $SAMPLES "$FILE" "$output_file"
+                "$SCRIPT_DIR/png2baj" $ALPHA $COMPRESS $QUALITY $SAMPLES "$FILE" "$output_file"
             fi
         fi
     done

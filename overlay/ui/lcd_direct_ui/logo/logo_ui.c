@@ -10,18 +10,24 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PNG_IMG_COUNT  6
+#define IS_SUPPORT_PNG_TEST                0
+#define IS_SUPPORT_JPEG_TEST               1
+#define IS_SUPPORT_BAJ_TEST                0
+#define IS_SUPPORT_BG_TEST                 0
 
 struct img_data_t {
     uint8_t *data;
     uint32_t size;
 };
 
+
+
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-
+#if IS_SUPPORT_PNG_TEST
+#define PNG_IMG_COUNT  6
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data0[] = {
     // #include "../../thirdparty/lvgl/bes/examples/res/png_200x200_icon.txt"
     // #include "../../../resources/img_bin/18_296x296.txt"
@@ -56,40 +62,43 @@ static struct img_data_t png_images[PNG_IMG_COUNT] = {
     { png_data0, sizeof(png_data0) },
     { png_data0, sizeof(png_data0) },
 };
+#endif
+
+#if IS_SUPPORT_JPEG_TEST
+#define JPEG_IMG_COUNT  2
 
 static PSRAM_DATA_LOC uint8_t jpeg_data0[] = {
-    #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv422_128x128.txt"
+    // #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv422_128x128.txt"
+    // #include "../../tests/hwtest/jpegdec/jpeg_yuv444_128x128.txt"
+    #include "../../tests/hwtest/jpegdec/jpeg_yuv422_128x128.txt"
+    // #include "../../tests/hwtest/jpegdec/jpeg_yuv444_480x480.txt"
 };
 
 static PSRAM_DATA_LOC uint8_t jpeg_data1[] = {
     #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv444_100x68.txt"
 };
 
-static PSRAM_DATA_LOC uint8_t jpeg_data2[] = {
-    #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv444_65x65.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t jpeg_data3[] = {
-    #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv444_61x58.txt"
-};
-    
-static PSRAM_DATA_LOC uint8_t jpeg_data4[] = {
-    #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv420_100x72.txt"
-};
-    
-static PSRAM_DATA_LOC uint8_t jpeg_data5[] = {
-    #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv420_75x100.txt"
-};
-
-#define JPEG_IMG_COUNT  6
 static struct img_data_t jpeg_images[JPEG_IMG_COUNT] = {
     { jpeg_data0, sizeof(jpeg_data0) },
     { jpeg_data1, sizeof(jpeg_data1) },
-    { jpeg_data2, sizeof(jpeg_data2) },
-    { jpeg_data3, sizeof(jpeg_data3) },
-    { jpeg_data4, sizeof(jpeg_data4) },
-    { jpeg_data5, sizeof(jpeg_data5) },
 };
+#endif
+
+#if IS_SUPPORT_BAJ_TEST
+#define BAJ_IMG_COUNT  2
+static PSRAM_DATA_LOC uint8_t baj_data0[] = {
+    #include "../../../resources/img_bin/home21_a8_444.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t baj_data1[] = {
+    #include "../../../resources/img_bin/home31_a8_444.txt"
+};
+
+static struct img_data_t baj_images[BAJ_IMG_COUNT] = {
+    { baj_data0, sizeof(baj_data0) },
+    { baj_data1, sizeof(baj_data1) },
+};
+#endif
 
 static lv_obj_t *logo_root;
 static uint32_t start_time = 0;
@@ -104,6 +113,7 @@ static uint32_t rgb_color_change_time = 0;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_PNG_TEST
 static int system_test_png_init(void)
 {
     if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
@@ -137,7 +147,9 @@ static int system_test_png_process(void)
 #endif
     return 0;
 }
+#endif
 
+#if IS_SUPPORT_JPEG_TEST
 static int system_test_jpeg_init(void)
 {
     if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
@@ -146,7 +158,7 @@ static int system_test_jpeg_init(void)
     lv_fs_path_ex_t jpg_path;
     lv_fs_make_path_from_buffer(&jpg_path, LV_FS_MEMFS_LETTER, jpeg_data0, sizeof(jpeg_data0), "jpg");
     lv_image_set_src(logo_root, (const void *)&jpg_path);
-    lv_obj_align(logo_root, LV_ALIGN_CENTER, 140, 80);
+    lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);
     return 0;
 }
 
@@ -159,20 +171,46 @@ static int system_test_jpeg_process(void)
     lv_fs_make_path_from_buffer(&jpg_path, LV_FS_MEMFS_LETTER, jpeg_data, jpeg_size, "jpg");
     lv_image_set_src(logo_root, (const void *)&jpg_path);
     LOGI("===> system_test_jpeg_process: %d", index);
-#if 1
-    if (get_timestamp() - start_time > 10000) {
+    if (get_timestamp() - start_time > 1000) {
         start_time = get_timestamp();
         index++;
-        if (index > 2) {
-            index = 0;
-        }
     }
-#else
-    index++;
+    return 0;
+}
 #endif
+
+#if IS_SUPPORT_BAJ_TEST
+static int system_test_baj_init(void)
+{
+    if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
+        logo_root = lv_image_create(lv_screen_active());
+    }
+    lv_fs_path_ex_t baj_path;
+    lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data0, sizeof(baj_data0), "baj");
+    lv_image_set_src(logo_root, (const void *)&baj_path);
+    lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);
     return 0;
 }
 
+static int system_test_baj_process(void)
+{
+    static uint32_t index = 0;
+    lv_fs_path_ex_t baj_path;
+    uint8_t *baj_data = baj_images[index % BAJ_IMG_COUNT].data;
+    uint32_t baj_size = baj_images[index % BAJ_IMG_COUNT].size;
+    lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data, baj_size, "baj");
+    lv_image_set_src(logo_root, (const void *)&baj_path);
+    LOGI("===> system_test_baj_process: %d", index);
+    if (get_timestamp() - start_time > 1000) {
+        start_time = get_timestamp();
+        index++;
+    }
+    return 0;
+}
+#endif
+
+
+#if IS_SUPPORT_BG_TEST
 static int system_lcd_test_init(void)
 {
     /// 设置初始背景色为红色
@@ -215,6 +253,7 @@ static int system_lcd_test_process(void)
     }
     return 0;
 }
+#endif
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -222,8 +261,15 @@ static int system_lcd_test_process(void)
 */
 int ui_display_logo_prepare(ui_manager_context_t *thiz)
 {
+#if IS_SUPPORT_PNG_TEST
+    system_test_png_init();
+#endif
+#if IS_SUPPORT_BG_TEST
     system_lcd_test_init();
-    // system_test_jpeg_init();
+#endif
+#if IS_SUPPORT_JPEG_TEST
+    system_test_jpeg_init();
+#endif
     return 0;
 }
 
@@ -235,7 +281,17 @@ int ui_display_logo_remove(ui_manager_context_t *thiz)
 
 int ui_display_logo_process(ui_manager_context_t *thiz)
 {
+#if IS_SUPPORT_PNG_TEST
+    system_test_png_process();
+#endif
+#if IS_SUPPORT_BG_TEST
     system_lcd_test_process();
-    // system_test_jpeg_process();
+#endif
+#if IS_SUPPORT_JPEG_TEST
+    system_test_jpeg_process();
+#endif
+#if IS_SUPPORT_BAJ_TEST
+    system_test_baj_process();
+#endif
     return 0;
 }

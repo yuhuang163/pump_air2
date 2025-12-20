@@ -10,11 +10,13 @@
 * DEFINES
 *****************************************************************************************
 */
+#define IS_SUPPORT_VAR_TEST                0
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_VAR_TEST
 LV_IMAGE_DECLARE(img_cogwheel_argb);
 LV_IMAGE_DECLARE(img_cogwheel_rgb);
 LV_IMAGE_DECLARE(img_cogwheel_indexed16);
@@ -31,7 +33,7 @@ static const lv_image_dsc_t *var_images[VAR_IMG_COUNT] = {
     &img_mario_i4,
     &img_mario_i8,
 };
-
+#endif
 static lv_obj_t *dummy_root;
 
 /*
@@ -43,6 +45,7 @@ static lv_obj_t *dummy_root;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_VAR_TEST
 static int system_test_var_init(void)
 {
     if (dummy_root == NULL || !lv_obj_is_valid(dummy_root)) {
@@ -60,6 +63,7 @@ static int system_test_var_process(void)
     index++;
     return 0;
 }
+#endif
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -68,7 +72,9 @@ static int system_test_var_process(void)
 void ui_display_dummy_prepare(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_CLEAN();
+#if IS_SUPPORT_VAR_TEST
     system_test_var_init();
+#endif
     LOG_UI("ui_display_dummy_prepare");
 }
 
@@ -79,6 +85,8 @@ void ui_display_dummy_remove(ui_manager_context_t *thiz)
 
 int ui_display_dummy_process(ui_manager_context_t *thiz)
 {
+#if IS_SUPPORT_VAR_TEST
     system_test_var_process();
+#endif
     return 0;
 }
