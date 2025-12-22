@@ -67,7 +67,7 @@ typedef enum {
 } suction_speed_e;
 
 /// 吸力等级
-#define SUCTION_DEFAULT_LEVEL_VALUE   6  /// 默认吸力等级，默认6KPA为初始值
+#define SUCTION_DEFAULT_LEVEL_VALUE   5  /// 默认吸力等级，默认5KPA为初始值
 typedef enum {
     SUCTION_LEVEL_0KPA = 0,
     SUCTION_LEVEL_6KPA,

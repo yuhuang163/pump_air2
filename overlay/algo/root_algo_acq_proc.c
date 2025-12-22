@@ -43,7 +43,7 @@ void algo_sampling_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_
     sampling_data->timestamp = get_timestamp_ms(0);
     /// 气压数据
     for (int i = 0; i < AIR_PRESSURE_NUM; i++) {
-        #if IS_SUPPORT_AIR_PRESSURE
+        #if IS_SUPPORT_DEVICE_AIR_PRESSURE
             sampling_data->air_pressure[i] = sensor_data->air_pressure_data[i].pressure;
         #else
             sampling_data->air_pressure[i] = 0;
