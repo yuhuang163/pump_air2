@@ -11,12 +11,17 @@
 * DEFINES
 *****************************************************************************************
 */
+#define IS_SUPPORT_LIGHT_SENSOR_DBG_PRINT          (1)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
 static rt_device_node_t *node = NULL;
+
+#if IS_SUPPORT_LIGHT_SENSOR_DBG_PRINT
+static uint16_t light_sensor_log_count = 0;
+#endif
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -27,7 +32,12 @@ static int light_sensor_single_conversion(uint32_t *light_voltage)
     uint16_t voltage = 0;
     bsp_adc_single_conversion(LIGHT_ADC_CHANNEL, 10, &voltage);
     *light_voltage = voltage;
-    LOGE("voltage:%d, %d", *light_voltage, voltage);
+#if IS_SUPPORT_LIGHT_SENSOR_DBG_PRINT
+    light_sensor_log_count++;
+    if (light_sensor_log_count % 20 == 0) {
+        LOGE("voltage:%d, %d", *light_voltage, voltage);
+    }
+#endif
     return BSP_OK;
 }
 
