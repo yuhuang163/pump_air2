@@ -41,14 +41,16 @@ void dispatch_air_pressure_client(sensor_wrapper_data_t *sensor_data, sensor_evt
 }
 
 void air_pressure_polling_handler(sensor_wrapper_data_t *sensor_data)
-{         
-    if (thiz->priv.air_pressure.dev) {
-        thiz->priv.air_pressure.polling_cnt++;
-        DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.air_pressure.dev, OP_CODE_AIR_PRESSURE_GET_STATUS,
-                sensor_data->air_pressure_data);
-        sensor_data->air_pressure_serial_num++;
-        sensor_data->sensor_mask |= SENSOR_MASK_AIR_PRESSURE;
-    }
+{        
+    EXECUTE_EVERY_X_DELAY(AIR_PRESSURE_POLLING_PERIOD, {
+        if (thiz->priv.air_pressure.dev) {
+            thiz->priv.air_pressure.polling_cnt++;
+            DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.air_pressure.dev, OP_CODE_AIR_PRESSURE_GET_STATUS,
+                    sensor_data->air_pressure_data);
+            sensor_data->air_pressure_serial_num++;
+            sensor_data->sensor_mask |= SENSOR_MASK_AIR_PRESSURE;
+        }
+    });
 }
 
 void on_perpare_air_pressure_init(sensor_manager_context_t *ptr)

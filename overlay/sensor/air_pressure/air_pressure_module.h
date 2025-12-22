@@ -10,7 +10,7 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 
-#define AIR_PRESSURE_POLLING_PERIOD              (10)
+#define AIR_PRESSURE_POLLING_PERIOD              (20 - 1)
 
 struct rt_device_node;
 typedef struct _air_pressure_module_data {
