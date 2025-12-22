@@ -292,6 +292,7 @@ static void set_breast_pump_status(int status)
                         });
                         breast_pump_obj->hook->breast_pump_result_info_app_reset(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
                     }
+                    m_info->step_index = 0;
                     break;
             }
             SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, m_info->do_work,
