@@ -64,15 +64,24 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
 
 static void logo_ui_finished_policy(ui_manager_context_t *ui)
 {
-#if 0
+#if IS_SUPPORT_LVGL
+    #if 0
     ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(logo_display_completed_cb, 10, proc,
             LOGO_DISPLAY_TASK_NAME);
     }
-#else
+    #else
     ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
+    #endif
+#else
+    ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
+        POST_TASK_HANDLER_DELAYED_ARG1(logo_display_completed_cb, 10, proc,
+            LOGO_DISPLAY_TASK_NAME);
+    }
 #endif
 }
 

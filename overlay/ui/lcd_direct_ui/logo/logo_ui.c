@@ -10,17 +10,15 @@
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_PNG_TEST                1
+#define IS_SUPPORT_PNG_TEST                0
 #define IS_SUPPORT_JPEG_TEST               0
-#define IS_SUPPORT_BAJ_TEST                0
+#define IS_SUPPORT_BAJ_TEST                1
 #define IS_SUPPORT_BG_TEST                 0
 
 struct img_data_t {
     uint8_t *data;
     uint32_t size;
 };
-
-
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -31,18 +29,18 @@ struct img_data_t {
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data0[] = {
     // #include "../../thirdparty/lvgl/bes/examples/res/png_200x200_icon.txt"
     // #include "../../../resources/img_bin/18_296x296.txt"
-    #include "../../../resources/img_bin/home22.txt"
+    #include "../../../resources/img_bin_png/home22.txt"
     // #include "../../../resources/img_bin/home21_270x270.txt"
     // #include "../../../resources/img_bin/home31.txt"
 };
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data1[] = {
     // #include "../../../resources/img_bin/18.txt"
-    #include "../../../resources/img_bin/home32.txt"
+    #include "../../../resources/img_bin_png/home32.txt"
 };
 
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data2[] = {
     // #include "../../thirdparty/lvgl/bes/examples/res/png_128x128_mario.txt"
-    #include "../../../resources/img_bin/charge_1.txt"
+    #include "../../../resources/img_bin_png/charge_1.txt"
 };
 // static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data3[] = {
 //     #include "../../thirdparty/lvgl/bes/examples/res/png_200x100_30fps.txt"
@@ -87,11 +85,19 @@ static struct img_data_t jpeg_images[JPEG_IMG_COUNT] = {
 #if IS_SUPPORT_BAJ_TEST
 #define BAJ_IMG_COUNT  2
 static PSRAM_DATA_LOC uint8_t baj_data0[] = {
-    #include "../../../resources/img_bin/home21_a8_444.txt"
+    // #include "../../../resources/img_bin/home22_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/home32_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/logo_360x360_a4_q99_422.txt"
+    #include "../../../resources/img_bin/pp_mode_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/user_qrcode_360x360_a4_q99_422.txt"
 };
 
 static PSRAM_DATA_LOC uint8_t baj_data1[] = {
-    #include "../../../resources/img_bin/home31_a8_444.txt"
+    // #include "../../../resources/img_bin/home22_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/home32_360x360_a4_q99_422.txt"
+    #include "../../../resources/img_bin/logo_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/pp_mode_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/user_qrcode_360x360_a4_q99_422.txt"
 };
 
 static struct img_data_t baj_images[BAJ_IMG_COUNT] = {
@@ -200,7 +206,7 @@ static int system_test_baj_process(void)
     uint32_t baj_size = baj_images[index % BAJ_IMG_COUNT].size;
     lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data, baj_size, "baj");
     lv_image_set_src(logo_root, (const void *)&baj_path);
-    LOGI("===> system_test_baj_process: %d", index);
+    LOGI("===> test 5 baj: %d", index);
     if (get_timestamp() - start_time > 1000) {
         start_time = get_timestamp();
         index++;
@@ -269,6 +275,9 @@ int ui_display_logo_prepare(ui_manager_context_t *thiz)
 #endif
 #if IS_SUPPORT_JPEG_TEST
     system_test_jpeg_init();
+#endif
+#if IS_SUPPORT_BAJ_TEST
+    system_test_baj_init();
 #endif
     return 0;
 }
