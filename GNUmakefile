@@ -463,7 +463,8 @@ PRODUCT_TESTS_INC_FLAGS := \
 
 # 资源模块头文件
 RESOURCE_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/overlay/resources/image_bin
+	-I$(PROJECT_ROOT)/overlay/resources/image_bin \
+	-I$(PROJECT_ROOT)/overlay/resources
 
 # 汇总所有 SDK 头文件路径
 SDK_INCLUDE_PATHS := \
