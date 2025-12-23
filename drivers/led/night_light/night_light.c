@@ -15,6 +15,7 @@
 */
 #define NIGHT_LIGHT_SIZE                          1
 #define IS_SUPPORT_NIGHT_LIGHT_SUSPEND            (0)
+#define NIGHT_LIGHT_PERIOD                        1000
 
 typedef struct {
     enum HAL_GPIO_PIN_T pin;
@@ -38,6 +39,8 @@ static const night_light_cfg_t night_light_cfg[NIGHT_LIGHT_SIZE] = {
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
 static HWTIMER_ID night_light_hwt = NULL;
 static uint8_t night_light_time_is_running = 0;
+static uint8_t night_light_duty = 0;
+static uint8_t night_light_count = 0;
 #endif
 
 /*
@@ -69,30 +72,66 @@ static void night_light_level_set(uint8_t index, led_luminous_t luminous)
     LOG_PBUS("index: %d, duty: %d", index, duty);
 }
 #else
-static void led_timer_stop(void)
+static void night_light_timer_stop(void)
 {
     if (night_light_hwt) {
         hwtimer_stop(night_light_hwt);
     }
     night_light_time_is_running = 0;
+    night_light_count = 0;
 }
 
-static void led_timer_start(uint32_t period)
+static void night_light_timer_start(uint32_t period)
 {
     uint32_t period_ticks = US_TO_TICKS(period);
-    hwtimer_start(night_light_hwt, period_ticks);
+    if (night_light_hwt) {
+        hwtimer_start(night_light_hwt, period_ticks);
+    }
     night_light_time_is_running = 1;
 }
 
-static void led_timeout_handler(void *param)
+static void night_light_timeout_handler(void *param)
 {
-    uint8_t level_refresh_flag = 0;
+    if (night_light_count == 0 || night_light_count >= LED_LEVEL_MAX) {
+        night_light_count = 0;
+        hal_gpio_pin_set_dir(NIGHT_LIGHT_PIN, HAL_GPIO_DIR_OUT, 1);
+    } else if (night_light_count == night_light_duty) {
+        hal_gpio_pin_set_dir(NIGHT_LIGHT_PIN, HAL_GPIO_DIR_OUT, 0);
+    }
+    night_light_count++;
+    night_light_timer_start(NIGHT_LIGHT_PERIOD);
 }
 
 static void night_light_level_set(uint8_t index, led_luminous_t luminous)
 {
     if (luminous.level == 0) {
         hal_gpio_pin_set_dir(NIGHT_LIGHT_PIN, HAL_GPIO_DIR_OUT, 0);
+        night_light_timer_stop();
+        return;
+    }
+    if (luminous.level >= LED_LEVEL_MAX) {
+        hal_gpio_pin_set_dir(NIGHT_LIGHT_PIN, HAL_GPIO_DIR_OUT, 1);
+        night_light_timer_stop();
+        return;
+    }
+    night_light_duty = luminous.level;
+    night_light_timer_start(NIGHT_LIGHT_PERIOD);
+}
+
+static void night_light_timer_init(void)
+{
+    if (night_light_hwt == NULL) {
+        night_light_hwt = hwtimer_alloc(night_light_timeout_handler, 0);
+    }
+    LOGI("night_light_timer_init done");
+}
+
+static void led_timer_deinit(void)
+{
+    if (night_light_hwt) {
+        hwtimer_stop(night_light_hwt);
+        hwtimer_free(night_light_hwt);
+        night_light_hwt = NULL;
     }
 }
 #endif
@@ -107,14 +146,18 @@ void bsp_night_light_init(void)
     for (uint8_t i = 0; i < LENGTH_OF_ARRAY(night_light_cfg); i++) {
         night_light_cfg[i].iomux_set();
     }
+#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+    night_light_timer_init();
+#else
+    #error "Unsupported hardware version"
 #endif
 }
 
 void bsp_night_light_resume(void)
 {
-    #if IS_SUPPORT_NIGHT_LIGHT_SUSPEND
-        bsp_night_light_init();
-    #endif
+#if IS_SUPPORT_NIGHT_LIGHT_SUSPEND
+    bsp_night_light_init();
+#endif
 }
 
 void bsp_night_light_suspend(void)
@@ -159,3 +202,22 @@ int bsp_night_light_status_set(void *args)
     return 0;
 }
 
+int bsp_night_light_test(void)
+{
+    static uint8_t level = 0;
+    level++;
+    if (level > 10) {
+        level = 0;
+    }
+
+    led_status_msg_t night_light_msg = {
+        .led_index = 0,
+        .led_status = {
+            .mode = LED_MODE_LEVEL,
+            .un.luminous = {
+                .level = level,
+            },
+        },
+    };
+    return bsp_night_light_status_set(&night_light_msg);
+}
