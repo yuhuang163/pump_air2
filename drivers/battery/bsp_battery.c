@@ -255,7 +255,7 @@ static void uncharge_voltage_handler(uint16_t voltage)
 
     /// 大偏差补偿
     for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charge_tables); i++) {
-        if (offset > sc_full_load_tables[i].dropout_voltage) {
+        if (offset > sc_charge_tables[i].dropout_voltage) {
             if (i == 0) {
                 vref = 0;
                 comp_count++; 
