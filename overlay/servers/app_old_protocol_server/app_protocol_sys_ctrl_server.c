@@ -106,8 +106,14 @@ void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
         peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
         EXCEPTION_CHECK_VOID(pbus);
         struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
-        EXCEPTION_CHECK_VOID(battery);
-        uint8_t chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
+        uint8_t chage_state = 0;
+        //如果V3电池不存在，则认为电池充满，不进行关机操作
+        if (battery) {
+            chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
+        } else {
+            chage_state = CHARGE_STATE_CHARGING;
+        }
+        LOG_SRV("chage_state=%d", chage_state);
         if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
             LOG_SRV("CMD-poweroff, but charging, not power off");
             return;

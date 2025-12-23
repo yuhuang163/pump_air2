@@ -48,8 +48,12 @@ uint8_t app_old_comm_get_sys_status(void)
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_UINT(pbus);
     struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
-    EXCEPTION_CHECK_UINT(battery);
-    uint8_t chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
+    uint8_t chage_state = 0;
+    if (battery) {
+        chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
+    } else {
+        chage_state = CHARGE_STATE_UNCHARGE;
+    }
     int pump_status = pump_ctx->get_breast_pump_status();
     int pump_mode = pump_ctx->get_breast_pump_mode();
     uint8_t sys_status = APP_OLD_COMM_SYS_STOP;
@@ -104,8 +108,11 @@ uint8_t app_old_comm_get_battery_percent(void)
     EXCEPTION_CHECK_UINT(pbus);
     struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
     uint8_t percent = 0;
-    EXCEPTION_CHECK_UINT(battery);
-    DEVICE_READ_ARGS(battery, &percent, sizeof(percent));
+    if (battery) {
+        DEVICE_READ_ARGS(battery, &percent, sizeof(percent));
+    } else {
+        percent = 100;
+    }
     LOG_SRV("percent=%d", percent);
     return percent;
 }
@@ -115,9 +122,12 @@ bool app_old_comm_check_if_low_battery(void)
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_UINT(pbus);
     struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
-    EXCEPTION_CHECK_UINT(battery);
     int percent = 0;
-    DEVICE_READ_ARGS(battery, &percent, sizeof(percent));
+    if (battery) {
+        DEVICE_READ_ARGS(battery, &percent, sizeof(percent));
+    } else {
+        percent = 100;
+    }
     LOG_SRV("percent=%d", percent);
     if (percent <= LOW_BAT_PERCENTAGE) {
         return 1;
