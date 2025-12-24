@@ -22,10 +22,10 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 固定参数
-ALPHA="a4"
+ALPHA="a8"
 COMPRESS="1"
 QUALITY="99"
-SAMPLES="422"
+SAMPLES="444"
 
 # 获取输入输出目录
 INPUT_DIRECTORY=$1

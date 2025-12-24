@@ -1,0 +1,49 @@
+/*
+* INCLUDE FILES
+*****************************************************************************************
+*/
+#include "motor_manager_api.h"
+#include "root_common_api.h" // IWYU pragma: keep
+#include "ui_img_define.h"
+#include "ui_page_define.h" // IWYU pragma: keep
+
+/*
+* DEFINES
+*****************************************************************************************
+*/
+
+/*
+* LOCAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* GLOBAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* LOCAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+void ui_display_pump_complete_tip_prepare(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_complete_tip_prepare");
+}
+
+void ui_display_pump_complete_tip_remove(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_complete_tip_remove");
+}
+
+int ui_display_pump_complete_tip(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    return 0;
+}

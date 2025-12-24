@@ -3,22 +3,18 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include "ui_img_define.h" // IWYU pragma: keep
+#include "ui_img_define.h"   // IWYU pragma: keep
+#include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h" // IWYU pragma: keep
 
 /*
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_PNG_TEST                0
+#define IS_SUPPORT_PNG_TEST                1
 #define IS_SUPPORT_JPEG_TEST               0
-#define IS_SUPPORT_BAJ_TEST                1
+#define IS_SUPPORT_BAJ_TEST                0
 #define IS_SUPPORT_BG_TEST                 0
-
-struct img_data_t {
-    uint8_t *data;
-    uint32_t size;
-};
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -29,13 +25,15 @@ struct img_data_t {
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data0[] = {
     // #include "../../thirdparty/lvgl/bes/examples/res/png_200x200_icon.txt"
     // #include "../../../resources/img_bin/18_296x296.txt"
-    #include "../../../resources/img_bin_png/home22.txt"
+    // #include "../../../resources/img_bin_png/home22.txt"
+    #include "../../../resources/img_bin_png/ver_img_360x360.txt"
     // #include "../../../resources/img_bin/home21_270x270.txt"
     // #include "../../../resources/img_bin/home31.txt"
 };
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data1[] = {
     // #include "../../../resources/img_bin/18.txt"
-    #include "../../../resources/img_bin_png/home32.txt"
+    // #include "../../../resources/img_bin_png/home32.txt"
+    #include "../../../resources/img_bin_png/ver_img_360x360.txt"
 };
 
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data2[] = {
@@ -52,7 +50,7 @@ static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data2[] = {
 //     #include "../../thirdparty/lvgl/bes/examples/res/png_128x128_lena.txt"
 // };
 
-static struct img_data_t png_images[PNG_IMG_COUNT] = {
+static ui_img_data_t png_images[PNG_IMG_COUNT] = {
     { png_data0, sizeof(png_data0) },
     { png_data1, sizeof(png_data1) },
     { png_data2, sizeof(png_data2) },
@@ -76,33 +74,35 @@ static PSRAM_DATA_LOC uint8_t jpeg_data1[] = {
     #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv444_100x68.txt"
 };
 
-static struct img_data_t jpeg_images[JPEG_IMG_COUNT] = {
+static ui_img_data_t jpeg_images[JPEG_IMG_COUNT] = {
     { jpeg_data0, sizeof(jpeg_data0) },
     { jpeg_data1, sizeof(jpeg_data1) },
 };
 #endif
 
 #if IS_SUPPORT_BAJ_TEST
-#define BAJ_IMG_COUNT  2
+#define BAJ_IMG_COUNT  1
 static PSRAM_DATA_LOC uint8_t baj_data0[] = {
     // #include "../../../resources/img_bin/home22_360x360_a4_q99_422.txt"
     // #include "../../../resources/img_bin/home32_360x360_a4_q99_422.txt"
     // #include "../../../resources/img_bin/logo_360x360_a4_q99_422.txt"
-    #include "../../../resources/img_bin/pp_mode_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/pp_mode_360x360_a4_q99_422.txt"
     // #include "../../../resources/img_bin/user_qrcode_360x360_a4_q99_422.txt"
+    #include "../../../resources/img_bin/logo_221x29_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/home_com_bg_360x360_a4_q99_422.txt"
 };
 
 static PSRAM_DATA_LOC uint8_t baj_data1[] = {
     // #include "../../../resources/img_bin/home22_360x360_a4_q99_422.txt"
     // #include "../../../resources/img_bin/home32_360x360_a4_q99_422.txt"
-    #include "../../../resources/img_bin/logo_360x360_a4_q99_422.txt"
+    // #include "../../../resources/img_bin/logo_360x360_a4_q99_422.txt"
     // #include "../../../resources/img_bin/pp_mode_360x360_a4_q99_422.txt"
     // #include "../../../resources/img_bin/user_qrcode_360x360_a4_q99_422.txt"
 };
 
-static struct img_data_t baj_images[BAJ_IMG_COUNT] = {
+static ui_img_data_t baj_images[BAJ_IMG_COUNT] = {
     { baj_data0, sizeof(baj_data0) },
-    { baj_data1, sizeof(baj_data1) },
+    // { baj_data1, sizeof(baj_data1) },
 };
 #endif
 
@@ -136,12 +136,13 @@ static int system_test_png_process(void)
 {
     static uint32_t index = 0;
     lv_fs_path_ex_t png_path;
-    uint8_t *png_data = png_images[index % PNG_IMG_COUNT].data;
+    const uint8_t *png_data = png_images[index % PNG_IMG_COUNT].data;
     uint32_t png_size = png_images[index % PNG_IMG_COUNT].size;
     lv_fs_make_path_from_buffer(&png_path, LV_FS_MEMFS_LETTER, png_data, png_size, "png");
     lv_image_set_src(logo_root, (const void *)&png_path);
 #if 1
-    if (get_timestamp() - start_time > 10000) {
+    LOGI("===> test 7 png: %d", index);
+    if (get_timestamp() - start_time > 5000) {
         start_time = get_timestamp();
         index++;
         if (index > 2) {
@@ -191,10 +192,30 @@ static int system_test_baj_init(void)
     if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
         logo_root = lv_image_create(lv_screen_active());
     }
+    lv_obj_set_style_bg_color(logo_root, lv_color_white(), 0);     /// 设置背景颜色为白色
     lv_fs_path_ex_t baj_path;
     lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data0, sizeof(baj_data0), "baj");
     lv_image_set_src(logo_root, (const void *)&baj_path);
     lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);
+#if 0
+    lv_obj_t * arc = lv_arc_create(lv_scr_act());
+    lv_obj_set_size(arc, 200, 200);
+    lv_obj_center(arc);
+    
+    lv_arc_set_bg_angles(arc, 135, 405);
+    lv_arc_set_angles(arc, 135, 300);
+    
+    /* 背景圆弧 */
+    lv_obj_set_style_arc_color(arc, lv_color_hex(0xEFEFEF), LV_PART_MAIN);
+    lv_obj_set_style_arc_width(arc, 14, LV_PART_MAIN);
+    
+    /* 深色前景圆弧 */
+    lv_obj_set_style_arc_color(arc, lv_color_hex(0xB86A6A), LV_PART_INDICATOR);
+    lv_obj_set_style_arc_width(arc, 14, LV_PART_INDICATOR);
+    
+    /* 去掉旋钮 */
+    lv_obj_remove_style(arc, NULL, LV_PART_KNOB);
+#endif
     return 0;
 }
 
@@ -202,8 +223,9 @@ static int system_test_baj_process(void)
 {
     static uint32_t index = 0;
     lv_fs_path_ex_t baj_path;
-    uint8_t *baj_data = baj_images[index % BAJ_IMG_COUNT].data;
+    const uint8_t *baj_data = baj_images[index % BAJ_IMG_COUNT].data;
     uint32_t baj_size = baj_images[index % BAJ_IMG_COUNT].size;
+    lv_obj_set_style_bg_color(logo_root, lv_color_white(), 0);     /// 设置背景颜色为白色
     lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data, baj_size, "baj");
     lv_image_set_src(logo_root, (const void *)&baj_path);
     LOGI("===> test 5 baj: %d", index);
