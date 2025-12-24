@@ -100,6 +100,10 @@ extern "C" {
 #define LVGL_TIME_TICK_PERIOD                          (20) /// 单位ms
 /// 开机长按时间
 #define BOOT_LONG_PRESS_TIME                           (3000)
+/// 屏幕宽度
+#define PANLE_DISPLAY_W                                (360)
+/// 屏幕高度
+#define PANLE_DISPLAY_H                                (360)
 #ifdef __cplusplus
 }
 #endif

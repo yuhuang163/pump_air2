@@ -1,0 +1,82 @@
+/*
+* INCLUDE FILES
+*****************************************************************************************
+*/
+#include "root_common_api.h" // IWYU pragma: keep
+#include "ui_img_define.h"   // IWYU pragma: keep
+#include "ui_page_define.h" // IWYU pragma: keep
+
+/*
+* DEFINES
+*****************************************************************************************
+*/
+
+/*
+* LOCAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* GLOBAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* LOCAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+void ui_display_pump_left_level_prepare(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_left_level_prepare");
+}
+
+void ui_display_pump_left_level_remove(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_left_level_remove");
+}
+
+int ui_display_pump_left_level(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    return 0;
+}
+
+void ui_display_pump_right_level_prepare(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_right_level_prepare");
+}
+
+void ui_display_pump_right_level_remove(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_right_level_remove");
+}
+
+int ui_display_pump_right_level(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    return 0;
+}
+
+void ui_display_pump_speed_prepare(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_speed_prepare");
+}
+
+void ui_display_pump_speed_remove(ui_manager_context_t *thiz)
+{
+    // LOGI("ui_display_pump_speed_remove");
+}
+
+int ui_display_pump_speed(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    return 0;
+}
