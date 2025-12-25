@@ -10,6 +10,9 @@
 #include "bsp_common.h" 
 #include "bsp_motor_internal.h"
 #include "motor_pwm.h"
+
+// 前向声明，确保编译器识别函数
+int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq);
 /*
 * DEFINES
 *****************************************************************************************
@@ -30,6 +33,7 @@ typedef struct {
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
 static void bsp_motor_pump_1_timer_timeout_handler(void *param);
 static void bsp_motor_pump_2_timer_timeout_handler(void *param);
+void bsp_motor_pwm_test_all_step_counts(void);
 #endif
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -117,9 +121,6 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
         new_duty = timer_info[pwm_id].target_duty;
     }
     
-    // 更新当前占空比
-    timer_info[pwm_id].current_duty = new_duty;
-    
     // 更新PWM配置
     struct HAL_PWM_CFG_T pwm_cfg = {
         .freq = timer_info[pwm_id].pwm_cfg.freq,
@@ -127,12 +128,25 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
         .inv = timer_info[pwm_id].pwm_cfg.inv,
         .sleep_on = timer_info[pwm_id].pwm_cfg.sleep_on,
     };
-
-    hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
+    if (timer_info[pwm_id].current_duty != new_duty) {
+        //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
+        hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+    }
+    // 更新当前占空比
+    timer_info[pwm_id].current_duty = new_duty;
+    // 如果还没达到目标占空比，且定时器应该运行，则重新启动定时器
     if (new_duty < timer_info[pwm_id].target_duty && timer_info[pwm_id].time_status == 1) {
         if (timer_info[pwm_id].time_id != NULL) {
-            hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
+            enum E_HWTIMER_T ret = hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
+            if (ret != E_HWTIMER_OK) {
+                LOGE("Failed to restart timer in callback: pwm_id=%d, ret=%d", pwm_id, ret);
+                // 如果启动失败，清除运行标志，避免无限重试
+                timer_info[pwm_id].time_status = 0;
+            }
         }
+    } else if (new_duty >= timer_info[pwm_id].target_duty) {
+        // 已达到目标占空比，清除运行标志
+        timer_info[pwm_id].time_status = 0;
     }
 }
 
@@ -154,9 +168,6 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
         new_duty = timer_info[pwm_id].target_duty;
     }
     
-    // 更新当前占空比
-    timer_info[pwm_id].current_duty = new_duty;
-    
     // 更新PWM配置
     struct HAL_PWM_CFG_T pwm_cfg = {
         .freq = timer_info[pwm_id].pwm_cfg.freq,
@@ -165,11 +176,26 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
         .sleep_on = timer_info[pwm_id].pwm_cfg.sleep_on,
     };
 
-    hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
+    //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
+    if (timer_info[pwm_id].current_duty != new_duty) {
+        hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+    }
+
+    // 更新当前占空比
+    timer_info[pwm_id].current_duty = new_duty;
+    // 如果还没达到目标占空比，且定时器应该运行，则重新启动定时器
     if (new_duty < timer_info[pwm_id].target_duty && timer_info[pwm_id].time_status == 1) {
         if (timer_info[pwm_id].time_id != NULL) {
-            hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
+            enum E_HWTIMER_T ret = hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
+            if (ret != E_HWTIMER_OK) {
+                LOGE("Failed to restart timer in callback: pwm_id=%d, ret=%d", pwm_id, ret);
+                // 如果启动失败，清除运行标志，避免无限重试
+                timer_info[pwm_id].time_status = 0;
+            }
         }
+    } else if (new_duty >= timer_info[pwm_id].target_duty) {
+        // 已达到目标占空比，清除运行标志
+        timer_info[pwm_id].time_status = 0;
     }
 }
 
@@ -194,20 +220,37 @@ static void bsp_motor_start_periodic_task(motor_pwm_control_id_e pwm_id)
     // 将毫秒转换为tick
     uint32_t ticks = MS_TO_HWTICKS(timer_info[pwm_id].time_period);
     
+    // 如果定时器正在运行，先停止它
     if (hwtimer_active(timer_info[pwm_id].time_id)) {
-        hwtimer_stop(timer_info[pwm_id].time_id);
+        enum E_HWTIMER_T ret = hwtimer_stop(timer_info[pwm_id].time_id);
+        if (ret != E_HWTIMER_OK && ret != E_HWTIMER_IN_CALLBACK) {
+            LOGE("Failed to stop timer before start: pwm_id=%d, ret=%d", pwm_id, ret);
+        }
+        // 如果定时器正在回调中，等待回调完成（通过检查状态）
+        // 注意：E_HWTIMER_IN_CALLBACK 表示定时器正在回调中，这是正常的
     }
     // 启动定时器
-    hwtimer_start(timer_info[pwm_id].time_id, ticks);
+    enum E_HWTIMER_T ret = hwtimer_start(timer_info[pwm_id].time_id, ticks);
+    if (ret != E_HWTIMER_OK) {
+        LOGE("Failed to start timer: pwm_id=%d, ret=%d", pwm_id, ret);
+        timer_info[pwm_id].time_status = 0;
+        return;
+    }
     timer_info[pwm_id].time_status = 1;
 }
 
 static void bsp_motor_stop_periodic_task(motor_pwm_control_id_e pwm_id)
 {
-    LOGI("Stop periodic task: %d", pwm_id);
-    if (timer_info[pwm_id].time_id != NULL) {
-        hwtimer_stop(timer_info[pwm_id].time_id);
+    if (timer_info[pwm_id].time_id != NULL && timer_info[pwm_id].time_status == 1) {
+        LOGI("Stop periodic task: %d", pwm_id);
+        // 先清除运行标志，防止回调中重新启动
         timer_info[pwm_id].time_status = 0;
+        enum E_HWTIMER_T ret = hwtimer_stop(timer_info[pwm_id].time_id);
+        if (ret != E_HWTIMER_OK && ret != E_HWTIMER_IN_CALLBACK) {
+            LOGE("Failed to stop timer: pwm_id=%d, ret=%d", pwm_id, ret);
+        }
+        // 注意：E_HWTIMER_IN_CALLBACK 表示定时器正在回调中，这是正常的
+        // 由于我们已经清除了 time_status，回调中不会重新启动定时器
     }
 }
 
@@ -301,13 +344,13 @@ static int8_t bsp_motor_pwm_gradual_change_start(motor_para_t *motor_para, motor
         if (duty_diff > 0) {
             // 向上取整：(duty_diff + step_count - 1) / step_count
             timer_info[pwm_id].duty_step = (duty_diff + step_count - 1) / step_count;
-        } else if (duty_diff == 0) {
-            timer_info[pwm_id].duty_step = 0; // 无需变化
         } else {
-            // 目标占空比小于初始占空比（异常情况），默认以初始占空比启动PWM
+            // 目标占空比小于等于初始占空比（异常情况），默认以初始占空比启动PWM
             LOGE("target_duty (%d) < init_duty (%d), this should not happen!", 
                  timer_info[pwm_id].target_duty, timer_info[pwm_id].init_duty);
             timer_info[pwm_id].duty_step = 0;
+            // 清除定时器运行状态
+            timer_info[pwm_id].time_status = 0;
             return 0;
         }
         
@@ -354,6 +397,8 @@ int bsp_motor_init(void)
         LOGE("Failed to initialize timer system");
         return BSP_ERROR;
     }
+    // 直接运行PWM测试函数
+    //bsp_motor_pwm_test_all_step_counts();
 #endif
     return BSP_OK;
 }
@@ -423,7 +468,9 @@ int bsp_motor_stop(void *args)
         return ret;
     }
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
-    bsp_motor_stop_periodic_task(pwm_id);
+    if (pwm_id == MOTOR_PWM_PUMP_1 || pwm_id == MOTOR_PWM_PUMP_2) {
+        bsp_motor_stop_periodic_task(pwm_id);
+    }
 #endif
     ret = hal_pwm_disable(motor_pwm_cfg[pwm_id].id);
 #if IS_SUPPORT_PUMP_RUN_TIME_TEST
@@ -472,8 +519,7 @@ void bsp_motor_pwm_test_all_step_counts(void)
          PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY, 
          PUMP_PWM_GRADUAL_CHANGE_PERIOD,
          PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE);
-    LOGI("Formula: step_count = (target_duty * SCALE + PERIOD - 1) / PERIOD");
-    LOGI("Testing all step_count values from 1 to 128");
+    LOGI("Testing all target_duty values from %d to 100", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
     LOGI("------------------------------------------------------");
     
     uint8_t init_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY;
@@ -483,33 +529,12 @@ void bsp_motor_pwm_test_all_step_counts(void)
     int pass_count = 0;
     int fail_count = 0;
     
-    // 测试所有可能的 step_count 值（1-128）
-    for (uint16_t step_count = 1; step_count <= 128; step_count++) {
-        // 根据 step_count 反推 target_duty
-        // change_time = step_count * time_period (最小值，向下取整)
-        // target_duty = change_time / scale
-        // 为了得到特定的 step_count，需要满足：
-        // (target_duty * scale + time_period - 1) / time_period == step_count
-        // 即：step_count * time_period - time_period + 1 <= target_duty * scale < step_count * time_period + time_period
-        // 所以：target_duty >= (step_count * time_period - time_period + 1) / scale
-        //      target_duty < (step_count * time_period + time_period) / scale
-        
-        uint16_t min_change_time = step_count * time_period - time_period + 1;
-        uint16_t max_change_time = step_count * time_period + time_period - 1;
-        uint8_t min_target_duty = (min_change_time + scale - 1) / scale; // 向上取整
-        uint8_t max_target_duty = max_change_time / scale; // 向下取整
-        
-        // 选择一个代表性的 target_duty（取中间值）
-        uint8_t target_duty = (min_target_duty + max_target_duty) / 2;
-        if (target_duty < init_duty) {
-            target_duty = init_duty + 1;
-        }
-        if (target_duty > 255) {
-            target_duty = 255;
-        }
-        
-        // 验证计算
+    // 直接测试所有 target_duty 从 init_duty 到 100
+    for (uint8_t target_duty = init_duty; target_duty <= 100; target_duty++) {
+        // 计算变化时间
         uint16_t change_time = target_duty * scale;
+        
+        // 计算步数
         uint16_t calculated_step_count = (change_time + time_period - 1) / time_period;
         if (calculated_step_count == 0) {
             calculated_step_count = 1;
@@ -537,73 +562,30 @@ void bsp_motor_pwm_test_all_step_counts(void)
         }
         
         // 计算实际运行时间（定时器会在达到目标时提前停止）
-        // total_time = actual_steps * time_period（实际执行的步数 * 周期）
         uint16_t total_time = actual_steps * time_period;
-        uint16_t total_time_max = calculated_step_count * time_period; // 最大可能时间
+        uint16_t total_time_max = calculated_step_count * time_period;
         
         bool can_reach_target = (final_duty >= target_duty);
-        bool step_count_match = (calculated_step_count == step_count);
         
-        if (step_count_match && can_reach_target) {
+        if (can_reach_target) {
             pass_count++;
-            // 只输出部分结果，避免日志过多
-            if (step_count <= 20 || step_count % 10 == 0 || step_count == 128) {
-                LOGI("step_count=%3d: target_duty=%3d, change_time=%3dms, duty_diff=%3d, duty_step=%2d, final=%3d", 
-                     step_count, target_duty, change_time, duty_diff, duty_step, final_duty);
-                LOGI("  actual_steps=%3d, total_time=%3dms (max=%3dms) [PASS]", 
-                     actual_steps, total_time, total_time_max);
-            }
+            // 输出所有 target_duty <= 100 的测试数据（单行格式，避免日志过多）
+            LOGI("target_duty=%3d: change_time=%3dms, step_count=%3d, diff=%3d, step=%2d, final=%3d, actual_steps=%3d, total_time=%3dms (max=%3dms) [PASS]",
+                 target_duty, change_time, calculated_step_count, duty_diff, duty_step, final_duty, 
+                 actual_steps, total_time, total_time_max);
         } else {
             fail_count++;
-            LOGI("step_count=%3d: target_duty=%3d, calculated_step_count=%3d, can_reach=%d [FAIL]",
-                 step_count, target_duty, calculated_step_count, can_reach_target ? 1 : 0);
+            LOGI("target_duty=%3d: change_time=%3dms, step_count=%3d, diff=%3d, step=%2d, final=%3d [FAIL]",
+                 target_duty, change_time, calculated_step_count, duty_diff, duty_step, final_duty);
         }
     }
     
     LOGI("------------------------------------------------------");
     LOGI("========== Test Summary ==========");
-    LOGI("Total tested: 128 (step_count from 1 to 128)");
+    LOGI("Total tested: %d (target_duty from %d to 100)", 100 - init_duty + 1, init_duty);
     LOGI("Passed: %d", pass_count);
     LOGI("Failed: %d", fail_count);
-    LOGI("Success rate: %.2f%%", (float)pass_count * 100.0f / 128);
-    LOGI("==================================");
-    
-    // 输出一些关键步数的详细信息
-    LOGI("------------------------------------------------------");
-    LOGI("Key step_count values detail:");
-    uint16_t key_steps[] = {1, 2, 5, 10, 20, 25, 50, 75, 100, 128};
-    for (uint32_t i = 0; i < sizeof(key_steps) / sizeof(key_steps[0]); i++) {
-        uint16_t step = key_steps[i];
-        if (step > 128) continue;
-        
-        // 计算对应的 target_duty
-        uint16_t min_change_time = step * time_period - time_period + 1;
-        uint8_t target_duty = (min_change_time + scale - 1) / scale;
-        if (target_duty < init_duty) target_duty = init_duty + 1;
-        if (target_duty > 255) target_duty = 255;
-        
-        uint16_t change_time = target_duty * scale;
-        uint16_t calculated_step_count = (change_time + time_period - 1) / time_period;
-        if (calculated_step_count == 0) calculated_step_count = 1;
-        int16_t duty_diff = (int16_t)target_duty - (int16_t)init_duty;
-        uint8_t duty_step = 0;
-        if (duty_diff > 0) {
-            duty_step = (duty_diff + calculated_step_count - 1) / calculated_step_count;
-        }
-        
-        // 计算实际需要的步数（定时器会在达到目标时提前停止）
-        uint16_t actual_steps_needed = 0;
-        if (duty_diff > 0 && duty_step > 0) {
-            actual_steps_needed = (duty_diff + duty_step - 1) / duty_step;
-        }
-        uint16_t total_time = actual_steps_needed * time_period; // 实际运行时间
-        uint16_t total_time_max = calculated_step_count * time_period; // 最大可能时间
-        
-        LOGI("  step_count=%3d: target_duty=%3d, change_time=%3dms, duty_diff=%3d, duty_step=%2d",
-             step, target_duty, change_time, duty_diff, duty_step);
-        LOGI("    actual_steps_needed=%3d, total_time=%3dms (max=%3dms)",
-             actual_steps_needed, total_time, total_time_max);
-    }
+    LOGI("Success rate: %.2f%%", (float)pass_count * 100.0f / (100 - init_duty + 1));
     LOGI("==================================");
 }
 #endif

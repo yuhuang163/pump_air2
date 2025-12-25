@@ -224,6 +224,118 @@ _exit:
     return 0;
 }
 
+/**
+ * @brief 更新PWM占空比（不停止PWM）
+ * @param id PWM ID
+ * @param duty 占空比 (0-100)
+ * @param freq PWM频率 (Hz)
+ * @return 0: 成功, 1: ID无效, 2: duty无效, 3: PWM未启动
+ * @note 此函数只修改占空比，不停止PWM，可以实现平滑的步进变化
+ */
+int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq)
+{
+    uint32_t mod_freq;
+    uint32_t load;
+    uint32_t toggle;
+    uint32_t lock;
+    uint8_t ratio;
+    uint8_t index;
+    uint8_t offset;
+    uint32_t current_load;
+
+    if (id >= HAL_PWM_ID_QTY) {
+        return 1;
+    }
+    if (duty > 100) {
+        return 2;
+    }
+
+    // 检查PWM是否已经启动
+    if ((pwm_map & (1 << id)) == 0) {
+        // PWM未启动，返回错误
+        return 3;
+    }
+
+    ratio = duty;
+
+#ifdef PWM1_BASE
+    if (id < HAL_PWM1_ID_0) {
+        index = 0;
+        offset = id - HAL_PWM_ID_0;
+    } else {
+        index = 1;
+        offset = id - HAL_PWM1_ID_0;
+    }
+#else
+    index = 0;
+    offset = id - HAL_PWM_ID_0;
+#endif
+
+    // 使用已保存的mod_freq，如果没有则根据freq计算
+    if (pwm_mod_freq[id] != 0) {
+        mod_freq = pwm_mod_freq[id];
+    } else {
+        // 如果没有保存的频率信息，使用默认值
+        mod_freq = PWM_FAST_CLOCK;
+    }
+
+    lock = int_lock();
+
+    // 读取当前的LOAD值，确保与硬件一致
+    // 这是关键：必须使用当前硬件中的LOAD值来计算toggle，而不是重新计算
+    if (offset == 0) {
+        current_load = GET_BITFIELD(pwm[index]->LOAD01, PWM_LOAD01_0);
+    } else if (offset == 1) {
+        current_load = GET_BITFIELD(pwm[index]->LOAD01, PWM_LOAD01_1);
+    } else if (offset == 2) {
+        current_load = GET_BITFIELD(pwm[index]->LOAD23, PWM_LOAD23_2);
+    } else {
+        current_load = GET_BITFIELD(pwm[index]->LOAD23, PWM_LOAD23_3);
+    }
+
+    // 基于当前的LOAD值计算toggle值，确保一致性
+    if (ratio == 100) {
+        toggle = PWM_MAX_VALUE;
+    } else if (ratio == 0) {
+        toggle = 0;
+    } else {
+        // 从LOAD值反推实际的load（LOAD = PWM_MAX_VALUE + 1 - load）
+        load = PWM_MAX_VALUE + 1 - current_load;
+        if (load == 0 || load > PWM_MAX_VALUE) {
+            // 如果LOAD值异常，说明PWM可能未正确配置，使用默认计算
+            load = mod_freq / freq;
+            if (load == 0) {
+                load = 1;
+            }
+        }
+        toggle = load * ratio / 100;
+        if (toggle == 0) {
+            toggle = 1;
+        }
+        toggle = PWM_MAX_VALUE - toggle;
+    }
+
+    // 使用内存屏障确保寄存器写入顺序，减少不连续的可能性
+    __DMB();
+    
+    // 只修改TOGGLE寄存器，不修改EN位，保持PWM运行
+    if (offset == 0) {
+        pwm[index]->TOGGLE01 = SET_BITFIELD(pwm[index]->TOGGLE01, PWM_TOGGLE01_0, toggle);
+    } else if (offset == 1) {
+        pwm[index]->TOGGLE01 = SET_BITFIELD(pwm[index]->TOGGLE01, PWM_TOGGLE01_1, toggle);
+    } else if (offset == 2) {
+        pwm[index]->TOGGLE23 = SET_BITFIELD(pwm[index]->TOGGLE23, PWM_TOGGLE23_2, toggle);
+    } else {
+        pwm[index]->TOGGLE23 = SET_BITFIELD(pwm[index]->TOGGLE23, PWM_TOGGLE23_3, toggle);
+    }
+    
+    __DMB();
+
+    int_unlock(lock);
+
+    return 0;
+}
+
 int hal_pwm_breathing_led_enable(enum HAL_PWM_ID_T id, const struct HAL_PWM_BR_CFG_T *cfg)
 {
     uint8_t index;
