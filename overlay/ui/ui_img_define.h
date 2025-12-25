@@ -10,6 +10,7 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
+#include "lv_user_font.h" // IWYU pragma: keep
 
 /// 图片ID类型
 typedef enum {
@@ -41,6 +42,11 @@ do { \
     tlv->data_size = 1; \
     tlv->data[0] = img_id; \
 } while (0)
+
+typedef struct {
+    const uint8_t *data;
+    uint32_t size;
+} ui_img_data_t;
 
 /*
 * GLOBAL FUNCTION DECLARATION
