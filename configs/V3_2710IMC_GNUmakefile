@@ -1174,5 +1174,3 @@ bootloader:
 		PSRAM_SIZE=0x800000 \
 		PSRAM_SPEED=0 \
 		sdk_only
-
-
