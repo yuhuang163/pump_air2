@@ -10,7 +10,9 @@ extern "C" {
 
 /// LVGL 字体声明 - Roboto 21px
 /// 包含字符: 0-9, A-Z, a-z
-extern const lv_font_t lv_font_roboto_21;
+extern const lv_font_t lv_font_roboto_21_medium;
+extern const lv_font_t lv_font_roboto_21_regular;
+
 
 #ifdef __cplusplus
 }

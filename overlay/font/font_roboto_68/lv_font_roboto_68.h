@@ -10,7 +10,7 @@ extern "C" {
 
 /// LVGL 字体声明 - Roboto 68px
 /// 包含字符: ':'
-extern const lv_font_t lv_font_roboto_68;
+extern const lv_font_t lv_font_roboto_68_medium;
 
 #ifdef __cplusplus
 }
