@@ -16,6 +16,8 @@ extern "C" {
 #define PUMP_TEXT_UNSELECTED_COLOR         0xFFFFFF
 #define PUMP_ARC_SELECTED_COLOR            0xB3686D
 #define PUMP_ARC_UNSELECTED_COLOR          0xF7EFEF
+#define PUMP_LEVEL_LINE_COLOR              0xD9D9D9
+
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
