@@ -10,7 +10,9 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
+#if IS_SUPPORT_LVGL
 #include "lv_user_font.h" // IWYU pragma: keep
+#endif
 
 /// 图片ID类型
 typedef enum {
