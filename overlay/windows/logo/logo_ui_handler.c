@@ -46,7 +46,8 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
     }
     multi_func_msg_data_t msg = {0};
 #if IS_SUPPORT_LVGL
-    msg.union_body.extra.window_id = ID_WINDOW_HOME;
+    // msg.union_body.extra.window_id = ID_WINDOW_HOME;
+    msg.union_body.extra.window_id = ID_WINDOW_PUMP;
     wm->dispatch_new_window_args(wm, &msg);
 #else
     st->get_store_ram_val(STORE_ID_SYS_AIRPLANE_MODE_STATE, 0, 0, &airplane_mode_state);
@@ -65,7 +66,7 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
 static void logo_ui_finished_policy(ui_manager_context_t *ui)
 {
 #if IS_SUPPORT_LVGL
-    #if 0
+    #if 1
     ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
@@ -137,7 +138,7 @@ static void show_logo_ui(ui_proc_logo_t *proc)
         .fps = LOGO_ANIMATION_FREQ,
         .res_array = (uint16_t *)s_logo_screen_res_array,
     #if IS_SUPPORT_LVGL
-        .res_count = 100,
+        .res_count = 10,
     #else 
         .res_count = LENGTH_OF_ARRAY(s_logo_screen_res_array),
     #endif

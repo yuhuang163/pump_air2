@@ -6,6 +6,7 @@
 #include "ui_img_define.h"     // IWYU pragma: keep
 #include "ui_page_define.h"    // IWYU pragma: keep
 #include "pump_ui_define.h"    // IWYU pragma: keep
+#include "ui_manager.h"   // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -26,7 +27,7 @@ static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
 };
 
 static PSRAM_DATA_LOC uint8_t home_bg_1_data[] = {
-    #include "../../../resources/img_png_bin/ver_img_360x360.txt"
+    #include "../../../resources/img_png_bin/home_comp_360x360.txt"
 };
 
 static PSRAM_DATA_LOC uint8_t home_ble_data[] = {
@@ -54,43 +55,24 @@ static ui_img_data_t home_images[HOME_IMG_COUNT] = {
     { home_stimulate_icon, sizeof(home_stimulate_icon) },
 };
 
-/// 泵奶主界面对象（白色背景容器）
 static lv_obj_t * pump_root;
-/// 动画背景图片对象
 static lv_obj_t * pump_bg_img;
-/// 电池图标对象
 static lv_obj_t * battery_img;
-/// 蓝牙图标对象
 static lv_obj_t * ble_img;
-/// 分割线对象
 static lv_obj_t * home_line_img;
-/// 时间冒号对象
 static lv_obj_t * pump_time_colon;
-/// 时间分钟对象
 static lv_obj_t * pump_time_minute;
-/// 时间秒对象
 static lv_obj_t * pump_time_second;
-/// 速度图标对象
 static lv_obj_t * pump_speed_label;
-/// 速度标签内部文字对象
 static lv_obj_t * pump_speed_label_txt;
-/// 左档位圆弧对象
 static lv_obj_t * pump_left_level_arc;
-/// 左档位标签容器对象
 static lv_obj_t * pump_left_level_label;
-/// 左档位标签内部文字对象
 static lv_obj_t * pump_left_level_label_txt;
-/// 右档位圆弧对象
 static lv_obj_t * pump_right_level_arc;
-/// 右档位标签容器对象
 static lv_obj_t * pump_right_level_label;
-/// 右档位标签内部文字对象
 static lv_obj_t * pump_right_level_label_txt;
-/// 模式标签对象
 static lv_obj_t * pump_mode_label;
-/// 模式图标对象
 static lv_obj_t * pump_mode_icon;
-/// 模式标签内部文字对象
 static lv_obj_t * pump_mode_label_txt;
 
 static uint32_t start_time = 0;
@@ -202,13 +184,13 @@ static void pump_home_time_update(void)
         pump_time_second = lv_label_create(pump_root);
     }
     lv_label_set_text(pump_time_minute, "12");
-    lv_obj_set_style_text_font(pump_time_minute, &lv_font_roboto_81, 0);
+    lv_obj_set_style_text_font(pump_time_minute, &lv_font_roboto_81_medium, 0);
     lv_obj_align(pump_time_minute, LV_ALIGN_TOP_LEFT, 80, 168);
     lv_label_set_text(pump_time_colon, ":");
-    lv_obj_set_style_text_font(pump_time_colon, &lv_font_roboto_68, 0);
+    lv_obj_set_style_text_font(pump_time_colon, &lv_font_roboto_68_medium, 0);
     lv_obj_align(pump_time_colon, LV_ALIGN_TOP_LEFT, 175, 179);
     lv_label_set_text(pump_time_second, "54");
-    lv_obj_set_style_text_font(pump_time_second, &lv_font_roboto_81, 0);
+    lv_obj_set_style_text_font(pump_time_second, &lv_font_roboto_81_medium, 0);
     lv_obj_align(pump_time_second, LV_ALIGN_TOP_LEFT, 196, 168);
 }
 
@@ -234,7 +216,7 @@ static void pump_home_left_level_label_update(void)
     lv_obj_set_style_radius(pump_left_level_label, 19, 0);  /// 高度 38 → 圆角设 19（或更大）
     lv_label_set_text(pump_left_level_label_txt, "L6");  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_left_level_label_txt, lv_color_hex(PUMP_TEXT_UNSELECTED_COLOR), 0);
-    lv_obj_set_style_text_font(pump_left_level_label_txt, &lv_font_roboto_21, 0);  /// 设置字体
+    lv_obj_set_style_text_font(pump_left_level_label_txt, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_center(pump_left_level_label_txt); /// 文字居中
     lv_obj_align(pump_left_level_label, LV_ALIGN_TOP_LEFT, 66 + 4, 102);    /// 设置左档位标签位置
 }
@@ -285,7 +267,7 @@ static void pump_home_right_level_label_update(void)
     lv_obj_set_style_radius(pump_right_level_label, 19, 0);   /// 高度 38 → 圆角设 19（或更大）
     lv_label_set_text(pump_right_level_label_txt, "R12");  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_right_level_label_txt, lv_color_hex(PUMP_TEXT_SELECTED_COLOR), 0);
-    lv_obj_set_style_text_font(pump_right_level_label_txt, &lv_font_roboto_21, 0);  /// 设置字体
+    lv_obj_set_style_text_font(pump_right_level_label_txt, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_center(pump_right_level_label_txt); /// 文字居中
     lv_obj_align(pump_right_level_label, LV_ALIGN_TOP_LEFT, 236 + 2, 102);    /// 设置右档位标签位置
     
@@ -337,7 +319,7 @@ static void pump_home_speed_label_update(void)
     lv_obj_set_style_radius(pump_speed_label, 19, 0);   /// 高度 38 → 圆角设 19（或更大）
     lv_label_set_text(pump_speed_label_txt, "Medium");  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_speed_label_txt, lv_color_hex(PUMP_TEXT_SELECTED_COLOR), 0);
-    lv_obj_set_style_text_font(pump_speed_label_txt, &lv_font_roboto_21, 0);  /// 设置字体
+    lv_obj_set_style_text_font(pump_speed_label_txt, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_center(pump_speed_label_txt); /// 文字居中
     lv_obj_align(pump_speed_label, LV_ALIGN_TOP_LEFT, 131 + 2, 102);    /// 设置右档位标签位置
 }
@@ -363,7 +345,7 @@ static void pump_home_mode_label_update(void)
     lv_image_set_src(pump_mode_label, (const void *)&home_mode_bg_path);
     lv_label_set_text(pump_mode_label_txt, "Stimulate");  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_mode_label_txt, lv_color_hex(PUMP_TEXT_UNSELECTED_COLOR), 0);
-    lv_obj_set_style_text_font(pump_mode_label_txt, &lv_font_roboto_21, 0);  /// 设置字体
+    lv_obj_set_style_text_font(pump_mode_label_txt, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_align(pump_mode_label_txt, LV_ALIGN_TOP_LEFT, 48, 15);
     lv_obj_align(pump_mode_label, LV_ALIGN_TOP_LEFT, 101 + 4, 283);    /// 设置模式标签位置
 
@@ -380,16 +362,25 @@ static void pump_home_mode_label_update(void)
 */
 void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
 {
-    pump_home_init();        
+#if 0
+    pump_home_init();  
+#else
+    ui_display_pump_left_level_prepare(thiz);
+#endif
 }
 
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 {
-
+#if 0
+    LVGL_OBJ_DELETE(pump_root);
+#else
+    ui_display_pump_left_level_remove(thiz);
+#endif
 }
 
 int ui_display_pump_home_screen(ui_manager_context_t *thiz)
 {
+#if 0
     pump_home_bg_update();
     pump_home_ble_update();
     pump_home_battery_update();
@@ -405,5 +396,8 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
         start_time = get_timestamp();
         LOGI("===> test 12 baj");
     }
+#else
+    ui_display_pump_left_level(thiz);
+#endif
     return 0;
 }
