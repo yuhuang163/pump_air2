@@ -405,6 +405,14 @@ else
 UI_MODULE_INC_FLAGS += $(UI_INC_UART_FLAGS)
 endif
 
+# 字体模块头文件
+FONT_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/font \
+	-I$(PROJECT_ROOT)/overlay/font/font_roboto_81 \
+	-I$(PROJECT_ROOT)/overlay/font/font_roboto_21 \
+	-I$(PROJECT_ROOT)/overlay/font/font_roboto_32 \
+	-I$(PROJECT_ROOT)/overlay/font/font_roboto_68
+
 # 窗口模块头文件
 WINDOWS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/windows \
@@ -504,6 +512,7 @@ SDK_INCLUDE_PATHS := \
 	$(AUDIO_INC_FLAGS) \
 	$(INPUT_KEY_INC_FLAGS) \
 	$(UI_MODULE_INC_FLAGS) \
+	$(FONT_INC_FLAGS) \
 	$(WINDOWS_INC_FLAGS) \
 	$(AIRPLANE_MODE_INC_FLAGS) \
 	$(POWER_INC_FLAGS) \
@@ -846,6 +855,13 @@ else
 UI_MODULE_SRCS += $(UI_LCD_UART_SRCS)
 endif
 
+# 字体模块源码
+FONT_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_81/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_21/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_32/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_68/*.c)
+
 # 窗口模块源码
 WINDOWS_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
@@ -939,6 +955,7 @@ EXTRA_SRCS := \
 	$(AUDIO_MODULE_SRCS) \
 	$(INPUT_KEY_MODULE_SRCS) \
 	$(UI_MODULE_SRCS) \
+	$(FONT_MODULE_SRCS) \
 	$(WINDOWS_MODULE_SRCS) \
 	$(AIRPLANE_MODE_MODULE_SRCS) \
 	$(POWER_MODULE_SRCS) \
