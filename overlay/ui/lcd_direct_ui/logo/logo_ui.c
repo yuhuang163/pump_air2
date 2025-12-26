@@ -310,8 +310,9 @@ static void sys_logo_label_update(void)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int ui_display_logo_prepare(ui_manager_context_t *thiz)
+void ui_display_logo_prepare(ui_manager_context_t *thiz)
 {
+    EXCEPTION_CHECK_VOID(thiz);
 #if IS_SUPPORT_PNG_TEST
     system_test_png_init();
 #elif IS_SUPPORT_BG_TEST
@@ -321,17 +322,18 @@ int ui_display_logo_prepare(ui_manager_context_t *thiz)
 #elif IS_SUPPORT_BAJ_TEST
     system_test_baj_init();
 #endif
-    return 0;
+    thiz->priv.fps_count = 0;
+    thiz->priv.fps_start_time = get_timestamp();
 }
 
-int ui_display_logo_remove(ui_manager_context_t *thiz)
+void ui_display_logo_remove(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_DELETE(logo_root);
-    return 0;
 }
 
 int ui_display_logo_process(ui_manager_context_t *thiz)
 {
+    EXCEPTION_CHECK_INT(thiz);
 #if IS_SUPPORT_PNG_TEST
     system_test_png_process();
 #elif IS_SUPPORT_BG_TEST
@@ -343,5 +345,11 @@ int ui_display_logo_process(ui_manager_context_t *thiz)
 #else
     sys_logo_label_update();
 #endif
+    thiz->priv.fps_count++;
+    if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
+        thiz->priv.fps_start_time = get_timestamp();
+        LOGI("===> logo fps: %d", thiz->priv.fps_count);
+        thiz->priv.fps_count = 0;
+    }
     return 0;
 }
