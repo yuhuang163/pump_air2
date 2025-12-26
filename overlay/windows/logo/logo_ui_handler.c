@@ -10,7 +10,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define LOGO_ANIMATION_FREQ                 (12)
+#define LOGO_ANIMATION_FREQ                 (25)
 #define LOGO_DISPLAY_TASK_NAME              "logo_display_cmp"
 
 /*
@@ -138,7 +138,7 @@ static void show_logo_ui(ui_proc_logo_t *proc)
         .fps = LOGO_ANIMATION_FREQ,
         .res_array = (uint16_t *)s_logo_screen_res_array,
     #if IS_SUPPORT_LVGL
-        .res_count = 10,
+        .res_count = 60,
     #else 
         .res_count = LENGTH_OF_ARRAY(s_logo_screen_res_array),
     #endif

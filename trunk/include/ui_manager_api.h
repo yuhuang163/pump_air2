@@ -176,6 +176,8 @@ typedef struct ui_manager_context {
         bool lv_tick_timer_running; /// LVGL定时器是否正在运行
         #if IS_SUPPORT_LVGL
         bool lvgl_initialized; /// LVGL是否已初始化完成
+        uint16_t fps_count;    /// FPS计数器
+        uint32_t fps_start_time;    /// FPS开始时间戳
         #endif
         ui_animation_play_t play_info; /// 当前播放的动画信息
     } priv;

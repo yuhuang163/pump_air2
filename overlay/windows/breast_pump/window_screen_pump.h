@@ -16,7 +16,7 @@ extern "C" {
 #include "input_key_code.h" // IWYU pragma: keep
 
 /// 泵奶动画频率
-#define PUMP_ANIMATION_FREQ                    (12)
+#define PUMP_ANIMATION_FREQ                    (25)
 /// 判断泵奶时间
 #define IS_PUMPTIME_LESS_THEN_30S(result)      ((result)->real_valid_time_sec < 30 )
 #define IS_PUMPTIME_LESS_THEN_120S(result)     ((result)->real_valid_time_sec < 120)
