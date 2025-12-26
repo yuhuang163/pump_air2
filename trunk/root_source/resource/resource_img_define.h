@@ -25,6 +25,10 @@ extern "C" {
 /// 资源头部固定大小（包括wrapper+obj_info数组）
 #define IMG_RES_HEADER_FIXED_SIZE (32 * 1024)  /// 固定32KB
 
+/// 资源包文件名前缀（用于生成资源包文件名）
+/// 例如：V3_RES_V100_20251226_b21c1468a.bin
+#define IMG_RES_NAME_PREFIX ("V3")
+
 /// 当前资源包版本 (格式: 0xMMmm, MM=主版本, mm=次版本)
 #define IMG_RES_VERSION_CURRENT (0x0100) /// v1.0
 
