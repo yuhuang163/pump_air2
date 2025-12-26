@@ -38,10 +38,17 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 ### 执行打包
-python3 "$SCRIPT_DIR/pack_resources.py" \
+PACK_LOG="$(python3 "$SCRIPT_DIR/pack_resources.py" \
     "$CONFIG_FILE" \
     "$OUTPUT_FILE" \
-    "$HEADER_FILE"
+    "$HEADER_FILE")"
+
+echo "$PACK_LOG"
+
+FINAL_OUTPUT_FILE="$(echo "$PACK_LOG" | grep -E '^OUTPUT_FILE_FINAL=' | tail -n 1 | cut -d= -f2-)"
+if [ -n "$FINAL_OUTPUT_FILE" ]; then
+    OUTPUT_FILE="$FINAL_OUTPUT_FILE"
+fi
 
 ### 显示结果
 if [ $? -eq 0 ]; then

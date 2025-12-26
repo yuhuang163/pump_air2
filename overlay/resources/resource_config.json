@@ -4,205 +4,317 @@
     "description": "资源包配置文件 - 映射资源ID到实际图片文件",
     "resource_type": "IMG_RES_TYPE_UI",
     "language": "IMG_RES_LANG_TYPE_ZH",
-    "compressed": false
+    "compressed": false,
+    "config_hint": "建议按 resource_id（数值ID）升序添加/维护 resources；打包脚本会根据头文件解析出的数值ID自动排序后再打包。"
   },
   "resources": [
     {
-      "resource_id": "RESOURCE_ID_COMMON_PUMP_MODE_1",
-      "description": "常规模式1",
+      "resource_id": "RESOURCE_ID_BLE_CONNECT",
+      "description": "蓝牙连接图标",
+      "file": "img_baj/ble_connect_14x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_BLE_DISCONNECT",
+      "description": "蓝牙断开图标",
+      "file": "img_baj/ble_disconnect_14x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_BLE_LINE_ICON",
+      "description": "蓝牙连接线图标",
+      "file": "img_baj/ble_line_icon_2x16_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CHARGE_PAGE_BATT_0",
+      "description": "充电页电量0%",
+      "file": "img_baj/charge_page_batt_0_78x45_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CHARGE_PAGE_BATT_25",
+      "description": "充电页电量25%",
+      "file": "img_baj/charge_page_batt_25_78x45_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CHARGE_PAGE_BATT_50",
+      "description": "充电页电量50%",
+      "file": "img_baj/charge_page_batt_50_78x45_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CHARGE_PAGE_BATT_75",
+      "description": "充电页电量75%",
+      "file": "img_baj/charge_page_batt_75_78x45_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CHARGE_PAGE_BATT_100",
+      "description": "充电页电量100%",
+      "file": "img_baj/charge_page_batt_100_78x45_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_CHARGE_0",
+      "description": "首页-充电电量0%",
+      "file": "img_baj/home_charge_0_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_CHARGE_25",
+      "description": "首页-充电电量25%",
+      "file": "img_baj/home_charge_25_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_CHARGE_50",
+      "description": "首页-充电电量50%",
+      "file": "img_baj/home_charge_50_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_CHARGE_75",
+      "description": "首页-充电电量75%",
+      "file": "img_baj/home_charge_75_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_CHARGE_100",
+      "description": "首页-充电电量100%",
+      "file": "img_baj/home_charge_100_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_UNCHARGE_BATTERY_0",
+      "description": "首页-未充电电量0%",
+      "file": "img_baj/home_uncharge_battery_0_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_UNCHARGE_BATTERY_25",
+      "description": "首页-未充电电量25%",
+      "file": "img_baj/home_uncharge_battery_25_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_UNCHARGE_BATTERY_50",
+      "description": "首页-未充电电量50%",
+      "file": "img_baj/home_uncharge_battery_50_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_UNCHARGE_BATTERY_75",
+      "description": "首页-未充电电量75%",
+      "file": "img_baj/home_uncharge_battery_75_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_UNCHARGE_BATTERY_100",
+      "description": "首页-未充电电量100%",
+      "file": "img_baj/home_uncharge_battery_100_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_UNCHARGE_LOW_POWER",
+      "description": "首页-低电量提示",
+      "file": "img_baj/home_uncharge_low_power_37x21_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_BOTTLE",
+      "description": "引导-奶瓶",
+      "file": "img_baj/guide_bottle_35x109_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_KNOB",
+      "description": "引导-旋钮",
+      "file": "img_baj/guide_knob_165x153_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PHONE",
+      "description": "引导-手机",
+      "file": "img_baj/guide_phone_68x127_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PHONE_BOTTLE",
+      "description": "引导-手机+奶瓶",
+      "file": "img_baj/guide_phone_bottle_135x137_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_INITIATING_MODE",
+      "description": "模式-启动界面",
+      "file": "img_baj/initiating_mode_360x360_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MILK_MODE",
+      "description": "模式-奶量界面",
+      "file": "img_baj/milk_mode_360x360_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_PERSONALIZATION_MODE",
+      "description": "模式-个性化界面",
+      "file": "img_baj/personalization_mode_360x360_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_PP_MODE",
+      "description": "模式-PP界面",
       "file": "img_baj/pp_mode_360x360_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_COMMON_PUMP_MODE_2",
-      "description": "常规模式2",
-      "file": "img_baj/pp_mode_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_MODE_LACTATION_ICON_P",
+      "description": "模式-泌乳图标(P)",
+      "file": "img_baj/mode_lactation_icon_p_20x23_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_COMMON_PUMP_MODE_3",
-      "description": "常规模式3",
-      "file": "img_baj/pp_mode_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_MODE_LACTATION_ICON_W",
+      "description": "模式-泌乳图标(W)",
+      "file": "img_baj/mode_lactation_icon_w_20x23_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CUSTOM_PUMP_MODE_1",
-      "description": "自定义模式1",
-      "file": "img_baj/pp_mode_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_MODE_MIX_ICON_P",
+      "description": "模式-混合图标(P)",
+      "file": "img_baj/mode_mix_icon_p_26x26_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CUSTOM_PUMP_MODE_2",
-      "description": "自定义模式2",
-      "file": "img_baj/pp_mode_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_MODE_MIX_ICON_W",
+      "description": "模式-混合图标(W)",
+      "file": "img_baj/mode_mix_icon_w_26x26_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CUSTOM_PUMP_MODE_3",
-      "description": "自定义模式3",
-      "file": "img_baj/pp_mode_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_MODE_STIMULATE_ICON_P",
+      "description": "模式-刺激图标(P)",
+      "file": "img_baj/mode_stimulate_icon_p_23x20_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CUSTOM_PUMP_MODE_4",
-      "description": "自定义模式4",
-      "file": "img_baj/pp_mode_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_MODE_STIMULATE_ICON_W",
+      "description": "模式-刺激图标(W)",
+      "file": "img_baj/mode_stimulate_icon_w_23x20_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_FREQUENCY_LOW",
-      "description": "低频",
-      "file": "img_baj/home21_270x270_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_INITIA_ICON",
+      "description": "首页-启动图标",
+      "file": "img_baj/home_initia_icon_20x20_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_FREQUENCY_MEDIUM",
-      "description": "中频",
-      "file": "img_baj/home22_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_LACTATION_ICON",
+      "description": "首页-泌乳图标",
+      "file": "img_baj/home_lactation_icon_15x17_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_FREQUENCY_HIGH",
-      "description": "高频",
-      "file": "img_baj/home23_180x180_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_MILK_ICON",
+      "description": "首页-奶量图标",
+      "file": "img_baj/home_milk_icon_14x13_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_TRAVEL_LOCK_TIP",
-      "description": "旅行锁提示",
-      "file": "img_baj/home31_270x270_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_MIX_ICON",
+      "description": "首页-混合图标",
+      "file": "img_baj/home_mix_icon_20x20_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_COMPLETE_TIP",
-      "description": "泵奶完成提示",
-      "file": "img_baj/home32_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_PERSONALIZATION_ICON",
+      "description": "首页-个性化图标",
+      "file": "img_baj/home_personalization_icon_14x13_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BATTERY_LOW_TIP",
-      "description": "电池电量低提示",
-      "file": "img_baj/18_296x296_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_PP_ICON",
+      "description": "首页-PP图标",
+      "file": "img_baj/home_pp_icon_14x13_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BATTERY_EMPTY_TIP",
-      "description": "电池电量空提示",
-      "file": "img_baj/18_296x296_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_STIMULATE_ICON",
+      "description": "首页-刺激图标",
+      "file": "img_baj/home_stimulate_icon_19x19_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BATTERY_LEVEL_5_TIP",
-      "description": "电池电量5格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_PUMP_FINISH_ICON",
+      "description": "泵奶完成图标",
+      "file": "img_baj/pump_finish_icon_64x64_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BATTERY_LEVEL_4_TIP",
-      "description": "电池电量4格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_START_LOGO_ICON",
+      "description": "启动LOGO",
+      "file": "img_baj/start_logo_icon_221x29_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BATTERY_LEVEL_3_TIP",
-      "description": "电池电量3格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_TRAVEL_LOCK",
+      "description": "旅行锁图标",
+      "file": "img_baj/travel_lock_64x64_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BATTERY_LEVEL_2_TIP",
-      "description": "电池电量2格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BATTERY_LEVEL_1_TIP",
-      "description": "电池电量1格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BATTERY_CHARGING_EMPTY_TIP",
-      "description": "电池充电电量空提示",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BATTERY_CHARGING_LEVEL_5_TIP",
-      "description": "电池充电电量5格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BATTERY_CHARGING_LEVEL_4_TIP",
-      "description": "电池充电电量4格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BATTERY_CHARGING_LEVEL_3_TIP",
-      "description": "电池充电电量3格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BATTERY_CHARGING_LEVEL_2_TIP",
-      "description": "电池充电电量2格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BATTERY_CHARGING_LEVEL_1_TIP",
-      "description": "电池充电电量1格",
-      "file": "img_baj/charge_1_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BLE_DISCONNECTED_TIP",
-      "description": "蓝牙断开提示",
-      "file": "img_baj/user_qrcode_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_BLE_CONNECTED_TIP",
-      "description": "蓝牙连接提示",
-      "file": "img_baj/user_qrcode_360x360_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_LOGO",
-      "description": "品牌logo",
-      "file": "img_baj/logo_360x360_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_TRAVEL_LOCK_CONTENT",
+      "description": "旅行锁提示文案",
+      "file": "img_baj/travel_lock_content_122x48_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     }
   ]
 }
-
