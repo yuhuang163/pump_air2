@@ -16,8 +16,8 @@ extern "C" {
 *****************************************************************************************
 */
 /// 开机LOGO页面
-int ui_display_logo_prepare(ui_manager_context_t *thiz);
-int ui_display_logo_remove(ui_manager_context_t *thiz);
+void ui_display_logo_prepare(ui_manager_context_t *thiz);
+void ui_display_logo_remove(ui_manager_context_t *thiz);
 int ui_display_logo_process(ui_manager_context_t *thiz);
 
 #ifdef __cplusplus

@@ -2,10 +2,11 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "motor_manager_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
-#include "ui_img_define.h"
+#include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
+#include "pump_ui_define.h" // IWYU pragma: keep
+#include "ui_manager.h"   // IWYU pragma: keep
 
 /*
 * DEFINES
