@@ -156,6 +156,17 @@ int platform_flash_read(const char *partition, uint32_t addr, uint8_t *data, uin
         }
         return norflash_api_read(NORFLASH_API_MODULE_ID_FACTORY_DATA, addr, data, size);
     }
+    else if (strcmp(partition, PARTITION_PICTURE_DATA_INT_NAME) == 0) {
+        if ((addr + size) > PICTURE_DATA_INT_END_ADDR) {
+            LOGE("platform_flash_read: partition = %s, addr = %x, size = %x", partition, addr, size);
+            return -1;
+        }
+        return norflash_api_read(NORFLASH_API_MODULE_ID_LUTE_PICTURE_RESOURCES, addr, data, size);
+    }
+    else if (strcmp(partition, PARTITION_PICTURE_DATA_EXT_NAME) == 0) {
+        LOGE("platform_flash_read: partition = %s, addr = %x, size = %x", partition, addr, size);
+        return -1;
+    }
     return -1;
 }
 
@@ -174,6 +185,17 @@ int platform_flash_write(const char *partition, uint32_t addr, uint8_t *data, ui
         }
         return norflash_api_write(NORFLASH_API_MODULE_ID_FACTORY_DATA, addr, data, size, false);
     }
+    else if (strcmp(partition, PARTITION_PICTURE_DATA_INT_NAME) == 0) {
+        if ((addr + size) > PICTURE_DATA_INT_END_ADDR) {
+            LOGE("platform_flash_write: partition = %s, addr = %x, size = %x", partition, addr, size);
+            return -1;
+        }
+        return norflash_api_write(NORFLASH_API_MODULE_ID_LUTE_PICTURE_RESOURCES, addr, data, size, false);
+    }
+    else if (strcmp(partition, PARTITION_PICTURE_DATA_EXT_NAME) == 0) {
+        LOGE("platform_flash_write: partition = %s, addr = %x, size = %x", partition, addr, size);
+        return -1;
+    }
     return -1;
 }
 
@@ -191,6 +213,17 @@ int platform_flash_erase(const char *partition, uint32_t addr, uint32_t size)
             return -1;
         }
         return norflash_api_erase(NORFLASH_API_MODULE_ID_FACTORY_DATA, addr, size, false);
+    }
+    else if (strcmp(partition, PARTITION_PICTURE_DATA_INT_NAME) == 0) {
+        if ((addr + size) > PICTURE_DATA_INT_END_ADDR) {
+            LOGE("platform_flash_erase: partition = %s, addr = %x, size = %x", partition, addr, size);
+            return -1;
+        }
+        return norflash_api_erase(NORFLASH_API_MODULE_ID_LUTE_PICTURE_RESOURCES, addr, size, false);
+    }
+    else if (strcmp(partition, PARTITION_PICTURE_DATA_EXT_NAME) == 0) {
+        LOGE("platform_flash_erase: partition = %s, addr = %x, size = %x", partition, addr, size);
+        return -1;
     }
     return -1;
 }

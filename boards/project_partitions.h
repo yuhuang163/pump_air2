@@ -11,6 +11,9 @@ extern uint32_t __littlefs_start[];
 extern uint32_t __littlefs_end[];
 extern uint32_t __factory_data_start[];
 extern uint32_t __factory_data_end[];
+extern uint32_t __lute_picture_resources_start[];
+extern uint32_t __lute_picture_resources_end[];
+
 
 // FDS 4k Sector num
 #define FDS_START_ADDR                        (uint32_t)__littlefs_start
@@ -23,6 +26,12 @@ extern uint32_t __factory_data_end[];
 #define FACTORY_DATA_END_ADDR                 (uint32_t)__factory_data_end
 #define FACTORY_DATA_BLOCK_SIZE               (FACTORY_DATA_START_ADDR - FACTORY_DATA_END_ADDR)
 #define FACTORY_DATA_SECTOR_NUM               (FACTORY_DATA_BLOCK_SIZE / 4096)
+
+// picture data internal flash
+#define PICTURE_DATA_INT_START_ADDR            (uint32_t)__lute_picture_resources_start
+#define PICTURE_DATA_INT_END_ADDR              (uint32_t)__lute_picture_resources_end
+#define PICTURE_DATA_INT_BLOCK_SIZE            (PICTURE_DATA_INT_START_ADDR - PICTURE_DATA_INT_END_ADDR)
+#define PICTURE_DATA_INT_SECTOR_NUM            (PICTURE_DATA_INT_BLOCK_SIZE / 4096)
 
 #ifdef __cplusplus
 }
