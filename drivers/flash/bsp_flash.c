@@ -51,6 +51,13 @@ static int flash_section_init(void)
                     block_size, sector_size, page_size, FACTORY_DATA_BLOCK_SIZE, 
                     flash_callback);
 
+    flash_id = norflash_api_get_dev_id_by_addr(PICTURE_DATA_INT_START_ADDR);
+    hal_norflash_get_size(flash_id, NULL, &block_size, &sector_size, &page_size);
+    result = norflash_api_register(NORFLASH_API_MODULE_ID_LUTE_PICTURE_RESOURCES,
+                    flash_id, (uint32_t)PICTURE_DATA_INT_START_ADDR, 
+                    (uint32_t)PICTURE_DATA_INT_END_ADDR - (uint32_t)PICTURE_DATA_INT_START_ADDR,
+                    block_size, sector_size, page_size, PICTURE_DATA_INT_BLOCK_SIZE, 
+                    flash_callback);
     return result;
 }
 
@@ -76,11 +83,11 @@ static int flash_dev_read(struct rt_device_node *dev, void *buf, uint32_t n_byte
 {
     int ret = 0;
     uint32_t lock = 0;
-    uint32_t *tmp = (uint32_t *)buf;
+    flash_raw_data_info_t *tmp = (flash_raw_data_info_t *)buf;
     
     EXCEPTION_CHECK_INT(tmp);
     lock = platform_int_lock_global();
-    ret = platform_flash_read(PARTITION_FACTORY_DATA_NAME, tmp[0], (uint8_t *)tmp[1], tmp[2]) != 0 ? BSP_ERROR : BSP_OK;
+    ret = platform_flash_read(tmp->partition, tmp->addr, tmp->buf, tmp->size) != 0 ? BSP_ERROR : BSP_OK;
     platform_int_unlock_global(lock);
     if (ret != BSP_OK) {
         LOGE("flash dev read failure! result = %d.",ret);
@@ -93,11 +100,11 @@ static int flash_dev_write(struct rt_device_node *dev, const void *buf, uint32_t
 {
     int ret = 0;
     uint32_t lock = 0;
-    uint32_t *tmp = (uint32_t *)buf;
+    flash_raw_data_info_t *tmp = (flash_raw_data_info_t *)buf;
 
     EXCEPTION_CHECK_INT(tmp);
     lock = platform_int_lock_global();
-    ret = platform_flash_write(PARTITION_FACTORY_DATA_NAME, tmp[0], (uint8_t *)tmp[1], tmp[2]) != 0 ? BSP_ERROR : BSP_OK;
+    ret = platform_flash_write(tmp->partition, tmp->addr, tmp->buf, tmp->size) != 0 ? BSP_ERROR : BSP_OK;
     platform_int_unlock_global(lock);
     if (ret != BSP_OK) {
         LOGE("flash dev write failure! result = %d.",ret);
@@ -110,11 +117,11 @@ static int flash_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
 {
     int ret = 0;
     uint32_t lock = 0;
-    uint32_t *temp = (uint32_t *)args;
+    flash_raw_data_info_t *temp = (flash_raw_data_info_t *)args;
     switch (op_code) {
         case OP_CODE_FLASH_ERASE:
             lock = platform_int_lock_global();
-            ret = platform_flash_erase(PARTITION_FACTORY_DATA_NAME, temp[0], temp[1]) != 0 ? BSP_ERROR : BSP_OK;
+            ret = platform_flash_erase(temp->partition, temp->addr, temp->size) != 0 ? BSP_ERROR : BSP_OK;
             platform_int_unlock_global(lock);
             if (ret != BSP_OK) {
                 LOGE("flash dev erase failure! result = %d.",ret);
