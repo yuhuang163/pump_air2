@@ -56,8 +56,9 @@ do { \
     if (lenght < 512) { lenght = 512;}\
     char *log_str = u_malloz(lenght);\
     if (log_str == NULL) { break; }\
+    const uint8_t *hex_data__ = (const uint8_t *)(data); \
     for (uint16_t i = 0; i < size; i++) { \
-        sprintf((log_str + (i * 3)) , "%02X ", data[i]); \
+        sprintf((log_str + (i * 3)) , "%02X ", (unsigned)hex_data__[i]); \
     } \
     PRINT_LOG("[%d][%d]:%s:%s\r\n", platform_get_utc_time(), get_timestamp_ms(0), tag, log_str); \
     u_free(log_str);\

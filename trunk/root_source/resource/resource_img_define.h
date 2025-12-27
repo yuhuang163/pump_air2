@@ -81,44 +81,6 @@ typedef struct img_res_head_wrapper {
 } __attribute__((packed)) img_res_head_wrapper_t;
 
 /*
-* INLINE HELPER FUNCTIONS
-*****************************************************************************************
-*/
-
-/// 检查资源包版本是否兼容
-static inline bool img_res_version_compatible(uint16_t ver) {
-    /// 主版本号相同则兼容 (比较高8位)
-    return ((ver >> 8) == (IMG_RES_VERSION_CURRENT >> 8));
-}
-
-/// 检查魔数是否有效
-static inline bool img_res_magic_valid(uint32_t magic) {
-    return (magic == IMG_RES_MAGIC);
-}
-
-/// 获取obj_info数组指针 (固定偏移：紧随wrapper后)
-static inline img_res_obj_info_t* img_res_get_obj_info(img_res_head_wrapper_t *wrapper) {
-    if (!wrapper) return NULL;
-    return (img_res_obj_info_t*)((uint8_t*)wrapper + sizeof(img_res_head_wrapper_t));
-}
-
-/// 获取资源数据体指针 (固定偏移：32KB处)
-static inline uint8_t* img_res_get_body(img_res_head_wrapper_t *wrapper) {
-    if (!wrapper) return NULL;
-    return (uint8_t*)wrapper + IMG_RES_HEADER_FIXED_SIZE;
-}
-
-/// 计算最大可容纳资源数量
-static inline uint16_t img_res_get_max_count(void) {
-    return (IMG_RES_HEADER_FIXED_SIZE - sizeof(img_res_head_wrapper_t)) / sizeof(img_res_obj_info_t);
-}
-
-/// 计算头部结构实际占用大小
-static inline uint32_t img_res_calc_header_size(uint32_t res_count) {
-    return sizeof(img_res_head_wrapper_t) + res_count * sizeof(img_res_obj_info_t);
-}
-
-/*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */

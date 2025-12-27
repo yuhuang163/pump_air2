@@ -416,6 +416,12 @@ static void window_boot_completed_cb(hdr_post_args_t *args)
 {
     window_manager_context_t *wm = (window_manager_context_t *)args->user_data;
     EXCEPTION_CHECK_VOID(wm);
+#if IS_SUPPORT_MODULE_RES
+    if (wm->priv.res) {
+        LOG_WM("wait res ready");
+        wm->priv.res->wait_init_completed(wm->priv.res);
+    }
+#endif
     wm->window_boot_completed(wm);
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     multi_func_msg_data_t __msg = {0};

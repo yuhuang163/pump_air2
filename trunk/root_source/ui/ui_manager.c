@@ -88,6 +88,13 @@ static int on_post_ui_init(void *self)
 {
     ui_manager_context_t *ui = (ui_manager_context_t *)self;
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+#if IS_SUPPORT_MODULE_RES
+    thiz->priv.res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
+    if (!thiz->priv.res) {
+        LOG_UI("res module not found");
+        return -1;
+    }
+#endif
     if (pbus) {
         thiz->priv.panel_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
     }
@@ -130,9 +137,9 @@ void *register_module_for_ui_manager_new(list_head_t *list_head)
     ptr->animation_play_status_update = animation_play_status_update;
     ptr->play_animation_lock = ui_play_animation_lock;
     ptr->play_animation_unlock = ui_play_animation_unlock;
-    #if IS_SUPPORT_LVGL
+#if IS_SUPPORT_LVGL
     ptr->is_lvgl_initialized = is_lvgl_initialized;
-    #endif
+#endif
     thiz = ptr;
     return ADD_MODULE("ui", ID_MODULE_UI, on_perpare_ui_init, 
         on_post_ui_init, ptr, list_head, sizeof(ui_manager_context_t));

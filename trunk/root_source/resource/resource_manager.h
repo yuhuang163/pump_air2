@@ -9,8 +9,8 @@ extern "C" {
 /*******************************************************************************
 * Include files
 ******************************************************************************/
-#include "resource_img_define.h"
-#include "resource_id_define.h"
+#include "resource_img_define.h" // IWYU pragma: keep
+#include "resource_id_define.h" // IWYU pragma: keep
 
 /*
 * GLOBAL FUNCTION DECLARATION
