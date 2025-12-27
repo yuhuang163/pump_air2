@@ -106,11 +106,8 @@ static ui_img_data_t baj_images[BAJ_IMG_COUNT] = {
 };
 #endif
 
-static PSRAM_DATA_LOC uint8_t logo_img_data[] = {
-    #include "../../../resources/img_baj_bin/start_logo_icon_221x29_a4_q99_422.txt"
-};
-
 static lv_obj_t *logo_root;
+static res_img_info_t logo_img_info;
 static uint32_t start_time = 0;
 
 /*
@@ -287,8 +284,29 @@ static int system_lcd_test_process(void)
 }
 #endif
 
-static void sys_logo_label_update(void)
+static void sys_logo_img_init(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info)
 {
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    int ret = thiz->priv.res->res_ui_img_data_load(id, info);
+    if (ret != 0) {
+        LOGE("load img data failed, id=%u ret=%d", (unsigned)id, ret);
+    }
+}
+
+static void sys_logo_img_deinit(ui_manager_context_t *thiz, res_img_info_t *info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    thiz->priv.res->res_ui_img_data_unload(info);
+}
+
+static void sys_logo_label_update(ui_manager_context_t *thiz)
+{
+    sys_logo_img_init(thiz, RESOURCE_ID_START_LOGO_ICON, &logo_img_info);
+    EXCEPTION_CHECK_VOID(logo_img_info.data);
     if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
         logo_root = lv_image_create(lv_screen_active());
     }
@@ -298,8 +316,8 @@ static void sys_logo_label_update(void)
     lv_obj_set_style_border_width(logo_root, 0, 0);                /// 设置边框宽度为0（无边框）
     lv_obj_set_style_pad_all(logo_root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
     lv_fs_path_ex_t logo_img_path;
-    lv_fs_make_path_from_buffer(&logo_img_path, LV_FS_MEMFS_LETTER, logo_img_data,
-        sizeof(logo_img_data), "baj");
+    lv_fs_make_path_from_buffer(&logo_img_path, LV_FS_MEMFS_LETTER, logo_img_info.data,
+        logo_img_info.size, "baj");
     lv_image_set_src(logo_root, (const void *)&logo_img_path);
     lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);    /// 设置模式标签位置
     lv_obj_clear_flag(logo_root, LV_OBJ_FLAG_CLICKABLE); /// 让 root 不吃事件，防止挡子控件
@@ -329,6 +347,7 @@ void ui_display_logo_prepare(ui_manager_context_t *thiz)
 void ui_display_logo_remove(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_DELETE(logo_root);
+    sys_logo_img_deinit(thiz, &logo_img_info);
 }
 
 int ui_display_logo_process(ui_manager_context_t *thiz)
@@ -343,7 +362,7 @@ int ui_display_logo_process(ui_manager_context_t *thiz)
 #elif IS_SUPPORT_BAJ_TEST
     system_test_baj_process();
 #else
-    sys_logo_label_update();
+    sys_logo_label_update(thiz);
 #endif
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

@@ -1,6 +1,7 @@
 #ifndef __UI_IMG_DEFINE_H__
 #define __UI_IMG_DEFINE_H__
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,6 +13,7 @@ extern "C" {
 #include "root_common_api.h" // IWYU pragma: keep
 #if IS_SUPPORT_LVGL
 #include "lv_user_font.h" // IWYU pragma: keep
+#include "resource_id_define.h" // IWYU pragma: keep
 #endif
 
 /// 图片ID类型

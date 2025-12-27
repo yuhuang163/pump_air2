@@ -23,13 +23,6 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BLE_LINE_ICON",
-      "description": "蓝牙连接线图标",
-      "file": "img_baj/ble_line_icon_2x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
       "resource_id": "RESOURCE_ID_CHARGE_PAGE_BATT_0",
       "description": "充电页电量0%",
       "file": "img_baj/charge_page_batt_0_78x45_a4_q99_422.baj",
