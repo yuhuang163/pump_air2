@@ -116,7 +116,7 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
         .fps = PUMP_ANIMATION_FREQ,
         .res_array = (uint16_t *)s_pumping_res_array,
     #if IS_SUPPORT_LVGL
-        .res_count = 1000,
+        .res_count = 3600,
     #else 
         .res_count = LENGTH_OF_ARRAY(s_pumping_res_array),
     #endif

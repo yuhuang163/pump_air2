@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "lv_font_roboto_14.h" // IWYU pragma: keep
+#include "lv_font_roboto_16.h" // IWYU pragma: keep
 #include "lv_font_roboto_17.h" // IWYU pragma: keep
 #include "lv_font_roboto_18.h" // IWYU pragma: keep
 #include "lv_font_roboto_19.h" // IWYU pragma: keep

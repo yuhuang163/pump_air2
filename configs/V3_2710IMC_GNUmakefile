@@ -426,6 +426,7 @@ endif
 FONT_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/font \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_14 \
+	-I$(PROJECT_ROOT)/overlay/font/font_roboto_16 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_17 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_18 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_19 \
@@ -890,6 +891,7 @@ endif
 # 字体模块源码
 FONT_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_14/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_16/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_17/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_18/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_19/*.c) \

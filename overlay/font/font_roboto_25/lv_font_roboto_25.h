@@ -8,7 +8,7 @@ extern "C" {
 #include "stdint.h" // IWYU pragma: keep
 #include "lvgl.h"  // IWYU pragma: keep
 
-/// LVGL 字体声明 - Roboto 21px
+/// LVGL 字体声明 - Roboto 25px
 /// 包含字符: 0-9, A-Z, a-z
 extern const lv_font_t lv_font_roboto_25_medium;
 
