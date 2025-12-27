@@ -28,6 +28,13 @@ CFLAGS ?= -O2 -g -std=$(CSTD) -fvisibility=default
 EXTRA_SDK_ARCH_FLAGS := -mthumb -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard
 EXTRA_CFLAGS ?= -std=gnu99 $(EXTRA_SDK_ARCH_FLAGS)
 
+# -------------- 单个告警关闭（Clang/GCC）--------------
+# 关闭 pointer-to-int-cast: -Wno-pointer-to-int-cast
+# 关闭 int-conversion:     -Wno-int-conversion
+WARN_SUPPRESS_FLAGS += -Wno-pointer-to-int-cast -Wno-int-conversion
+CFLAGS += $(WARN_SUPPRESS_FLAGS)
+EXTRA_CFLAGS += $(WARN_SUPPRESS_FLAGS)
+
 # Add -Werror if WERROR_ENABLE is set to 1
 ifeq ($(WERROR_ENABLE),1)
 CFLAGS += -Werror
@@ -184,7 +191,10 @@ SDK_SERVICES_INC_FLAGS := \
 SDK_UTILS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/heap \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/libc/inc \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/hwtimer_list
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/hwtimer_list \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/mbedtls/include \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/mbedtls/include/mbedtls \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/utils/mbedtls/include/psa
 
 # SDK LVGL 头文件
 SDK_LVGL_INC_FLAGS := \
@@ -349,7 +359,8 @@ BASE_INC_FLAGS := \
 EXTERNAL_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/external/littlefs \
 	-I$(PROJECT_ROOT)/trunk/external/littlefs/fds \
-	-I$(PROJECT_ROOT)/trunk/external/scan_key
+	-I$(PROJECT_ROOT)/trunk/external/scan_key \
+	-I$(PROJECT_ROOT)/trunk/external/md5
 
 # 算法模块头文件
 ALGORITHM_INC_FLAGS := \
@@ -503,6 +514,7 @@ PRODUCT_TESTS_INC_FLAGS := \
 
 # 资源模块头文件
 RESOURCE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/trunk/root_source/resource \
 	-I$(PROJECT_ROOT)/overlay/resources/image_bin \
 	-I$(PROJECT_ROOT)/overlay/resources
 
@@ -813,7 +825,8 @@ BASE_MODULE_SRCS := \
 EXTERNAL_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/littlefs/fds/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c)
+	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/external/md5/*.c)
 
 # 算法模块源码
 ALGORITHM_MODULE_SRCS := \
@@ -946,7 +959,8 @@ STORAGE_MODULE_SRCS := \
 
 # 资源模块源码
 RESOURCE_MODULE_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/resource/*.c)
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/resource/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/resources/*.c)
 
 # 网络模块源码
 NETWORK_MODULE_SRCS := \
