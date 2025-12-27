@@ -116,9 +116,8 @@ static void pump_home_bg_update(void)
 }
 #endif
 
-static void pump_level_arc_update(void)
+static void pump_level_arc_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(level_root);
     if (level_arc == NULL || !lv_obj_is_valid(level_arc)) {
         level_arc = lv_scale_create(level_root);
         EXCEPTION_CHECK_VOID(level_arc);
@@ -145,9 +144,8 @@ static void pump_level_arc_update(void)
     lv_obj_set_style_line_color(level_arc, lv_color_hex(PUMP_LEVEL_LINE_COLOR), LV_PART_ITEMS); /// 次刻度线颜色
 }
 
-static void pump_level_arc_progress_update(uint8_t level)
+static void pump_level_arc_progress_update(ui_manager_context_t *thiz, uint8_t level)
 {
-    EXCEPTION_CHECK_VOID(level_root);
     if (level_arc_progress == NULL || !lv_obj_is_valid(level_arc_progress)) {
         level_arc_progress = lv_arc_create(level_root);
         EXCEPTION_CHECK_VOID(level_arc_progress);
@@ -156,8 +154,15 @@ static void pump_level_arc_progress_update(uint8_t level)
     lv_obj_center(level_arc_progress);
     
     lv_arc_set_bg_angles(level_arc_progress, 152, 388);
-    lv_arc_set_angles(level_arc_progress, 152, 388);
-    
+    uint16_t end_angle = 0;
+    if (level > 15) {
+        end_angle = 388;
+    } else if (level == 0) {
+        end_angle = 152;
+    } else {
+        end_angle = ((388 - 152) * level / 15) + 152;
+    }
+    lv_arc_set_angles(level_arc_progress, 152, end_angle);
     /* 背景圆弧 */
     lv_obj_set_style_arc_color(level_arc_progress, lv_color_hex(PUMP_LEVEL_ARC_UNSEL_COLOR), LV_PART_MAIN);
     lv_obj_set_style_arc_width(level_arc_progress, 17, LV_PART_MAIN);
@@ -170,9 +175,8 @@ static void pump_level_arc_progress_update(uint8_t level)
     lv_obj_remove_style(level_arc_progress, NULL, LV_PART_KNOB);
 }
 
-static void pump_level_root_text_update(void)
+static void pump_level_root_text_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(level_root);
     if (level_root_text == NULL || !lv_obj_is_valid(level_root_text)) {
         level_root_text = lv_label_create(level_root);
         EXCEPTION_CHECK_VOID(level_root_text);
@@ -183,22 +187,26 @@ static void pump_level_root_text_update(void)
     lv_obj_align(level_root_text, LV_ALIGN_TOP_LEFT, 155, 113); /// 设置文字位置
 }
 
-static void pump_level_root_value_update(uint8_t level)
+static void pump_level_root_value_update(ui_manager_context_t *thiz, uint8_t level)
 {
-    EXCEPTION_CHECK_VOID(level_root);
     if (level_root_value == NULL || !lv_obj_is_valid(level_root_value)) {
         level_root_value = lv_label_create(level_root);
         EXCEPTION_CHECK_VOID(level_root_value);
     }
-    lv_label_set_text(level_root_value, "12");  /// 设置 label 文字内容和样式
+    char level_value[4] = {0};
+    sprintf(level_value, "%d", level);
+    lv_label_set_text(level_root_value, level_value);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(level_root_value, lv_color_hex(PUMP_LEVEL_VALUE_COLOR), 0);
     lv_obj_set_style_text_font(level_root_value, &lv_font_roboto_79_semibold, 0);  /// 设置字体
-    lv_obj_align(level_root_value, LV_ALIGN_TOP_LEFT, 138, 150); /// 设置文字位置
+    if(level > 9) {
+        lv_obj_align(level_root_value, LV_ALIGN_TOP_LEFT, 138, 150); /// 设置文字位置
+    } else {
+        lv_obj_align(level_root_value, LV_ALIGN_TOP_LEFT, 138 + 23, 150); /// 设置文字位置
+    }
 }
 
-static void pump_left_level_lable_update(bool is_selected)
+static void pump_left_level_lable_update(ui_manager_context_t *thiz, bool is_selected)
 {
-    EXCEPTION_CHECK_VOID(level_root);
     if (left_level_label == NULL || !lv_obj_is_valid(left_level_label)) {
         left_level_label = lv_obj_create(level_root);
         EXCEPTION_CHECK_VOID(left_level_label);
@@ -225,9 +233,8 @@ static void pump_left_level_lable_update(bool is_selected)
     lv_obj_align(left_level_label, LV_ALIGN_TOP_LEFT, 75, 254);    /// 设置右档位标签位置
 }
 
-static void pump_right_level_lable_update(bool is_selected)
+static void pump_right_level_lable_update(ui_manager_context_t *thiz, bool is_selected)
 {
-    EXCEPTION_CHECK_VOID(level_root);
     if (right_level_label == NULL || !lv_obj_is_valid(right_level_label)) {
         right_level_label = lv_obj_create(level_root);
         EXCEPTION_CHECK_VOID(right_level_label);
@@ -272,20 +279,28 @@ void ui_display_pump_left_level_remove(ui_manager_context_t *thiz)
 
 int ui_display_pump_left_level(ui_manager_context_t *thiz)
 {
+    EXCEPTION_CHECK_INT(thiz);
+    EXCEPTION_CHECK_INT(level_root);
 #if IS_SUPPORT_LEVEL_COMP_BG
     pump_home_bg_update();
 #endif
-    pump_level_arc_update();
-    pump_level_arc_progress_update(6);
-    pump_level_root_text_update();
-    pump_level_root_value_update(6);
-    pump_left_level_lable_update(false);
-    pump_right_level_lable_update(true);
+    static uint8_t level = 0, status = 0;
+    pump_level_arc_update(thiz);
+    pump_level_arc_progress_update(thiz, level);
+    pump_level_root_text_update(thiz);
+    pump_level_root_value_update(thiz, level);
+    pump_left_level_lable_update(thiz, status == 0 ? true : false);
+    pump_right_level_lable_update(thiz, status == 0 ? false : true);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOGI("===> pump left level fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
+        level++;
+        if (level > 15) {
+            level = 0;
+        }
+        status = (status == 0) ? 1 : 0;
     }
     return 0;
 }
@@ -305,21 +320,28 @@ void ui_display_pump_right_level_remove(ui_manager_context_t *thiz)
 
 int ui_display_pump_right_level(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_UINT(thiz);
+    EXCEPTION_CHECK_INT(thiz);
+    EXCEPTION_CHECK_INT(level_root);
 #if IS_SUPPORT_LEVEL_COMP_BG
     pump_home_bg_update();
 #endif
-    pump_level_arc_update();
-    pump_level_arc_progress_update(6);
-    pump_level_root_text_update();
-    pump_level_root_value_update(6);
-    pump_left_level_lable_update(false);
-    pump_right_level_lable_update(true);
+    static uint8_t level = 0, status = 0;
+    pump_level_arc_update(thiz);
+    pump_level_arc_progress_update(thiz, level);
+    pump_level_root_text_update(thiz);
+    pump_level_root_value_update(thiz, level);
+    pump_left_level_lable_update(thiz, status == 0 ? true : false);
+    pump_right_level_lable_update(thiz, status == 0 ? false : true);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOGI("===> pump right level fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
+        level++;
+        if (level > 15) {
+            level = 0;
+        }
+        status = (status == 0) ? 1 : 0;
     }
     return 0;
 }
