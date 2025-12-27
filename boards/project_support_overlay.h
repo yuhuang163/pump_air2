@@ -30,7 +30,6 @@ extern "C" {
 #define IS_SUPPORT_MODULE_PBUS                           (1)
 #define IS_SUPPORT_MODULE_PM                             (1)
 #define IS_SUPPORT_MODULE_STORAGE                        (1)
-#define IS_SUPPORT_MODULE_RES                            (0)
 #define IS_SUPPORT_MODULE_TIME_SYSTEM                    (1)
 #define IS_SUPPORT_MODULE_WM                             (1)
 #define IS_SUPPORT_MODULE_UI                             (1)
@@ -88,6 +87,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_UART                           (0)
 /// 支持光传感器
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (1)
+/// 支持资源管理
+#define IS_SUPPORT_MODULE_RES                            (1)
 #else
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (0)
@@ -99,6 +100,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_UART                           (1)
 /// 支持光传感器
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
+/// 支持资源管理
+#define IS_SUPPORT_MODULE_RES                            (0)
 #endif
 
 #ifdef __cplusplus

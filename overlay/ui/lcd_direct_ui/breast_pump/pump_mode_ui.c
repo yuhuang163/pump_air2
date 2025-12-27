@@ -7,6 +7,7 @@
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "pump_ui_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
+#include <stdint.h>
 
 /*
 * DEFINES
@@ -67,40 +68,16 @@ static PSRAM_DATA_LOC uint8_t mode_bg_data[] = {
 };
 #endif
 
-static PSRAM_DATA_LOC uint8_t stimulate_icon_selected_data[] = {
-    #include "../../../resources/img_baj_bin/mode_stimulate_icon_w_23x20_a4_q99_422.txt"
+const static uint16_t mode_icon_selected[MODE_MAX_COUNT] = {
+    RESOURCE_ID_MODE_STIMULATE_ICON_W,
+    RESOURCE_ID_MODE_LACTATION_ICON_W,
+    RESOURCE_ID_MODE_MIX_ICON_W,
 };
 
-static PSRAM_DATA_LOC uint8_t stimulate_icon_unselected_data[] = {
-    #include "../../../resources/img_baj_bin/mode_stimulate_icon_p_23x20_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t lactation_icon_selected_data[] = {
-    #include "../../../resources/img_baj_bin/mode_lactation_icon_w_20x23_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t lactation_icon_unselected_data[] = {
-    #include "../../../resources/img_baj_bin/mode_lactation_icon_p_20x23_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t mix_icon_selected_data[] = {
-    #include "../../../resources/img_baj_bin/mode_mix_icon_w_26x26_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t mix_icon_unselected_data[] = {
-    #include "../../../resources/img_baj_bin/mode_mix_icon_p_26x26_a4_q99_422.txt"
-};
-
-static ui_img_data_t mode_icon_selected[MODE_MAX_COUNT] = {
-    { stimulate_icon_selected_data, sizeof(stimulate_icon_selected_data) },
-    { lactation_icon_selected_data, sizeof(lactation_icon_selected_data) },
-    { mix_icon_selected_data, sizeof(mix_icon_selected_data) },
-};
-
-static ui_img_data_t mode_icon_unselected[MODE_MAX_COUNT] = {
-    { stimulate_icon_unselected_data, sizeof(stimulate_icon_unselected_data) },
-    { lactation_icon_unselected_data, sizeof(lactation_icon_unselected_data) },
-    { mix_icon_unselected_data, sizeof(mix_icon_unselected_data) },
+const static uint16_t mode_icon_unselected[MODE_MAX_COUNT] = {
+    RESOURCE_ID_MODE_STIMULATE_ICON_P,
+    RESOURCE_ID_MODE_LACTATION_ICON_P,
+    RESOURCE_ID_MODE_MIX_ICON_P,
 };
 
 const static mode_label_info_t mode_label_infos[MODE_MAX_COUNT] = {
@@ -121,15 +98,15 @@ const static mode_label_info_t mode_label_infos[MODE_MAX_COUNT] = {
     },
 };
 
-static lv_obj_t * mode_root;
-static lv_obj_t * mode_root_text;
 #if IS_SUPPORT_MODE_COMP_BG
 static lv_obj_t * mode_bg_img;
 #endif
+static lv_obj_t * mode_root;
+static lv_obj_t * mode_root_text;
 static lv_obj_t * mode_label[3];
 static lv_obj_t * mode_label_text[3];
 static lv_obj_t * mode_label_icon[3];
-
+static res_img_info_t mode_icon_infos[3];
 static uint32_t start_time = 0;
 
 /*
@@ -141,6 +118,25 @@ static uint32_t start_time = 0;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void pump_mode_img_init(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    int ret = thiz->priv.res->res_ui_img_data_load(id, info);
+    if (ret != 0) {
+        LOGE("===> load img data failed, id=%u ret=%d", (unsigned)id, ret);
+    }
+}
+
+static void pump_mode_img_deinit(ui_manager_context_t *thiz, res_img_info_t *info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    thiz->priv.res->res_ui_img_data_unload(info);
+}
+
 static void pump_mode_root_init(void)
 {
     if (mode_root == NULL || !lv_obj_is_valid(mode_root)) {
@@ -182,9 +178,8 @@ static void pump_home_bg_update(void)
 }
 #endif
 
-static void pump_mode_root_text_update(void)
+static void pump_mode_root_text_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(mode_root);
     if (mode_root_text == NULL || !lv_obj_is_valid(mode_root_text)) {
         mode_root_text = lv_label_create(mode_root);
         EXCEPTION_CHECK_VOID(mode_root_text);
@@ -195,9 +190,8 @@ static void pump_mode_root_text_update(void)
     lv_obj_align(mode_root_text, LV_ALIGN_TOP_LEFT, 150 + 3, 39 + 4); /// 设置文字位置
 }
 
-static void pump_mode_lable_update(bool is_selected, uint8_t mode_index)
+static void pump_mode_lable_update(ui_manager_context_t *thiz, bool is_selected, uint8_t mode_index)
 {
-    EXCEPTION_CHECK_VOID(mode_root);
     if (mode_index >= MODE_MAX_COUNT) {
         return;
     }
@@ -239,13 +233,18 @@ static void pump_mode_lable_update(bool is_selected, uint8_t mode_index)
         mode_label_icon[mode_index] = lv_image_create(mode_root);
         EXCEPTION_CHECK_VOID(mode_label_icon[mode_index]);
     }
+
     lv_fs_path_ex_t mode_icon_img_path;
     if (is_selected) {
-        lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, mode_icon_selected[mode_index].data,
-            mode_icon_selected[mode_index].size, "baj");
+        pump_mode_img_init(thiz, mode_icon_selected[mode_index], &mode_icon_infos[mode_index]);
+        EXCEPTION_CHECK_VOID(mode_icon_infos[mode_index].data);
+        lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, mode_icon_infos[mode_index].data,
+            mode_icon_infos[mode_index].size, "baj");
     } else {
-        lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, mode_icon_unselected[mode_index].data,
-            mode_icon_unselected[mode_index].size, "baj");
+        pump_mode_img_init(thiz, mode_icon_unselected[mode_index], &mode_icon_infos[mode_index]);
+        EXCEPTION_CHECK_VOID(mode_icon_infos[mode_index].data);
+        lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, mode_icon_infos[mode_index].data,
+            mode_icon_infos[mode_index].size, "baj");
     }
     lv_image_set_src(mode_label_icon[mode_index], (const void *)&mode_icon_img_path);
     lv_obj_align(mode_label_icon[mode_index], LV_ALIGN_TOP_LEFT,
@@ -267,19 +266,23 @@ void ui_display_pump_mode_prepare(ui_manager_context_t *thiz)
 void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_DELETE(mode_root);
+    for (uint8_t i = 0; i < MODE_MAX_COUNT; i++) {
+        pump_mode_img_deinit(thiz, &mode_icon_infos[i]);
+    }
 }
 
 int ui_display_pump_mode(ui_manager_context_t *thiz)
 {
     static uint8_t mode_index = 0;
-    EXCEPTION_CHECK_UINT(thiz);
+    EXCEPTION_CHECK_INT(thiz);
+    EXCEPTION_CHECK_INT(mode_root);
 #if IS_SUPPORT_MODE_COMP_BG
     pump_home_bg_update();
 #endif
-    pump_mode_root_text_update();
-    pump_mode_lable_update(mode_index == 0 ? true : false, 0);
-    pump_mode_lable_update(mode_index == 1 ? true : false, 1);
-    pump_mode_lable_update(mode_index == 2 ? true : false, 2);
+    pump_mode_root_text_update(thiz);
+    pump_mode_lable_update(thiz, mode_index == 0 ? true : false, 0);
+    pump_mode_lable_update(thiz, mode_index == 1 ? true : false, 1);
+    pump_mode_lable_update(thiz, mode_index == 2 ? true : false, 2);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();

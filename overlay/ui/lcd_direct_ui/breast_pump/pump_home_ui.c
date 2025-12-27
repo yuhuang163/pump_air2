@@ -13,6 +13,7 @@
 * DEFINES
 *****************************************************************************************
 */
+#define IS_SUPPORT_HOME_COMP_BG                    (0)
 #define IS_SUPPORT_HOME_DEBUG_OTHER_PAGE           (1)
 #define HOME_MODE_MAX_COUNT                        (7)
 #define HOME_SPEED_MAX_COUNT                       (3)
@@ -29,6 +30,7 @@
 #define PUMP_ARC_UNSEL_COLOR                       0xF7EFEF
 #define PUMP_MODE_SEL_START_COLOR                  0xB3686D
 #define PUMP_MODE_SEL_END_COLOR                    0xF1D9D6
+#define PUMP_LINE_COLOR                            0x1C1C20
 
 #define STIMULATE_MODE_ICON_X                      (109 + 4)
 #define STIMULATE_MODE_ICON_Y                      (116 + 1)
@@ -77,107 +79,11 @@ typedef struct {
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-#define HOME_IMG_COUNT  5
-static PSRAM_DATA_LOC uint8_t home_line_data[] = {
-    #include "../../../resources/img_baj_bin/ble_line_icon_2x16_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
-    #include "../../../resources/img_baj_bin/home_root_bg_360x360_a4_q99_422.txt"
-};
-
+#if IS_SUPPORT_HOME_COMP_BG
 static PSRAM_DATA_LOC uint8_t home_bg_1_data[] = {
     #include "../../../resources/img_png_bin/home_comp_360x360.txt"
 };
-
-static PSRAM_DATA_LOC uint8_t home_ble_connect_data[] = {
-    #include "../../../resources/img_baj_bin/ble_connect_14x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_ble_disconnect_data[] = {
-    #include "../../../resources/img_baj_bin/ble_disconnect_14x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_battery_empty_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_battery_0_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_battery_25_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_battery_50_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_battery_75_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_battery_100_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_battery_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_charge_battery_data[] = {
-    #include "../../../resources/img_baj_bin/home_uncharge_battery_50_37x21_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_stimulate_icon[] = {
-    #include "../../../resources/img_baj_bin/home_stimulate_icon_19x19_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_lactation_icon[] = {
-    #include "../../../resources/img_baj_bin/home_lactation_icon_15x17_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_mix_icon[] = {
-    #include "../../../resources/img_baj_bin/home_mix_icon_20x20_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_pp_icon[] = {
-    #include "../../../resources/img_baj_bin/home_pp_icon_14x13_a4_q99_422.txt"
-};
-
-
-static PSRAM_DATA_LOC uint8_t home_per_icon[] = {
-    #include "../../../resources/img_baj_bin/home_personalization_icon_14x13_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_milk_icon[] = {
-    #include "../../../resources/img_baj_bin/home_milk_icon_14x13_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t home_initial_icon[] = {
-    #include "../../../resources/img_baj_bin/home_initia_icon_20x20_a4_q99_422.txt"
-};
-
-static ui_img_data_t home_battery_icon[HOME_BLE_MAX_COUNT] = {
-    { home_ble_disconnect_data, sizeof(home_ble_disconnect_data)},
-    { home_ble_connect_data, sizeof(home_ble_connect_data)},
-};
-
-static ui_img_data_t home_ble_icon[HOME_BLE_MAX_COUNT] = {
-    { home_ble_disconnect_data, sizeof(home_ble_disconnect_data)},
-    { home_ble_connect_data, sizeof(home_ble_connect_data)},
-};
-
-static ui_img_data_t home_mode_icon[HOME_MODE_MAX_COUNT] = {
-    { home_stimulate_icon, sizeof(home_stimulate_icon)},
-    { home_lactation_icon, sizeof(home_lactation_icon)},
-    { home_mix_icon, sizeof(home_mix_icon)},
-    { home_per_icon, sizeof(home_per_icon)},
-    { home_pp_icon, sizeof(home_pp_icon)},
-    { home_milk_icon, sizeof(home_milk_icon)},
-    { home_initial_icon, sizeof(home_initial_icon)},
-};
+#endif
 
 const static home_mode_label_info_t home_mode_infos[HOME_MODE_MAX_COUNT] = {
     { "Stimulate", 
@@ -218,9 +124,15 @@ const static char *home_speed_names[HOME_SPEED_MAX_COUNT] = {
 
 static lv_obj_t * pump_root;
 static lv_obj_t * pump_bg_img;
+static res_img_info_t pump_home_bg_info;
+
 static lv_obj_t * battery_img;
+static res_img_info_t battery_info;
+
 static lv_obj_t * ble_img;
-static lv_obj_t * home_line_img;
+static res_img_info_t ble_info;
+
+static lv_obj_t * home_line_icon;
 static lv_obj_t * pump_time_colon;
 static lv_obj_t * pump_time_minute;
 static lv_obj_t * pump_time_second;
@@ -234,9 +146,9 @@ static lv_obj_t * pump_right_level_label;
 static lv_obj_t * pump_right_level_label_txt;
 static lv_obj_t * pump_mode_label;
 static lv_obj_t * pump_mode_icon;
+static res_img_info_t pump_mode_icon_info;
 static lv_obj_t * pump_mode_label_txt;
 
-static uint32_t start_time = 0;
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -246,6 +158,25 @@ static uint32_t start_time = 0;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void pump_home_img_init(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    int ret = thiz->priv.res->res_ui_img_data_load(id, info);
+    if (ret != 0) {
+        LOGE("===> load img data failed, id=%u ret=%d", (unsigned)id, ret);
+    }
+}
+
+static void pump_home_img_deinit(ui_manager_context_t *thiz, res_img_info_t *info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    thiz->priv.res->res_ui_img_data_unload(info);
+}
+
 static void pump_home_init(void)
 {
     if (pump_root == NULL || !lv_obj_is_valid(pump_root)) {
@@ -261,9 +192,11 @@ static void pump_home_init(void)
     }
 }
 
-static void pump_home_bg_update(void)
+static void pump_home_bg_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
+    pump_home_img_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &pump_home_bg_info);
+    EXCEPTION_CHECK_VOID(pump_home_bg_info.data);
+    static uint32_t start_time = 0;
     static uint8_t status = 0;
     if (pump_bg_img == NULL || !lv_obj_is_valid(pump_bg_img)) {
         pump_bg_img = lv_image_create(pump_root);
@@ -274,12 +207,12 @@ static void pump_home_bg_update(void)
         lv_obj_add_flag(pump_bg_img, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_clear_flag(pump_bg_img, LV_OBJ_FLAG_HIDDEN);
-#if 1
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, home_bg_data,
-         sizeof(home_bg_data), "baj");
-#else
+#if IS_SUPPORT_HOME_COMP_BG
         lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, home_bg_1_data,
             sizeof(home_bg_1_data), "png");
+#else
+        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, pump_home_bg_info.data,
+            pump_home_bg_info.size, "baj");
 #endif
         lv_image_set_src(pump_bg_img, (const void *)&bg_img_path);
         lv_obj_align(pump_bg_img, LV_ALIGN_CENTER, 0, 0);
@@ -291,52 +224,52 @@ static void pump_home_bg_update(void)
     }
 }
 
-static void pump_home_ble_update(void)
+static void pump_home_ble_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
+    pump_home_img_init(thiz, RESOURCE_ID_BLE_CONNECT, &ble_info);
+    EXCEPTION_CHECK_VOID(ble_info.data);
     if (ble_img == NULL || !lv_obj_is_valid(ble_img)) {
         ble_img = lv_image_create(pump_root);
         EXCEPTION_CHECK_VOID(ble_img);
     }
     lv_fs_path_ex_t ble_img_path;
-    lv_fs_make_path_from_buffer(&ble_img_path, LV_FS_MEMFS_LETTER, home_ble_connect_data,
-         sizeof(home_ble_connect_data), "baj");
+    lv_fs_make_path_from_buffer(&ble_img_path, LV_FS_MEMFS_LETTER, ble_info.data,
+        ble_info.size, "baj");
     lv_image_set_src(ble_img, (const void *)&ble_img_path);
     lv_obj_align(ble_img, LV_ALIGN_TOP_LEFT, 138 + 6 - 1, 40);
 }
 
-static void pump_home_battery_update(void)
+static void pump_home_battery_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
+    pump_home_img_init(thiz, RESOURCE_ID_HOME_UNCHARGE_LOW_POWER, &battery_info);
+    EXCEPTION_CHECK_VOID(battery_info.data);
     if (battery_img == NULL || !lv_obj_is_valid(battery_img)) {
         battery_img = lv_image_create(pump_root);
         EXCEPTION_CHECK_VOID(battery_img);
     }
     lv_fs_path_ex_t battery_img_path;
-    lv_fs_make_path_from_buffer(&battery_img_path, LV_FS_MEMFS_LETTER, home_battery_data,
-         sizeof(home_battery_data), "baj");
+    lv_fs_make_path_from_buffer(&battery_img_path, LV_FS_MEMFS_LETTER, battery_info.data,
+        battery_info.size, "baj");
     lv_image_set_src(battery_img, (const void *)&battery_img_path);
-    // lv_obj_align(battery_img, LV_ALIGN_TOP_LEFT, 185, 39);
-    lv_obj_align(battery_img, LV_ALIGN_TOP_LEFT, 185 + 6 -1, 40);
+    lv_obj_align(battery_img, LV_ALIGN_TOP_LEFT, 185 + 5, 40);
 }
 
-static void pump_home_line_update(void)
+static void pump_home_line_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
-    if (home_line_img == NULL || !lv_obj_is_valid(home_line_img)) {
-        home_line_img = lv_image_create(pump_root);
-        EXCEPTION_CHECK_VOID(home_line_img);
+    if (home_line_icon == NULL || !lv_obj_is_valid(home_line_icon)) {
+        home_line_icon = lv_line_create(pump_root);
+        EXCEPTION_CHECK_VOID(home_line_icon);
     }
-    lv_fs_path_ex_t home_line_img_path;
-    lv_fs_make_path_from_buffer(&home_line_img_path, LV_FS_MEMFS_LETTER, home_line_data,
-         sizeof(home_line_data), "baj");
-    lv_image_set_src(home_line_img, (const void *)&home_line_img_path);
-    lv_obj_align(home_line_img, LV_ALIGN_TOP_LEFT, 168 + 5, 42);
+    static lv_point_precise_t s_home_top_mid_sep_pts[] = { {0, 0}, {0, 15} };   /// 高度 12px 的竖线
+    lv_line_set_points(home_line_icon, s_home_top_mid_sep_pts, 2); 
+    lv_obj_align(home_line_icon, LV_ALIGN_TOP_LEFT, 168 + 5, 42 + 2); 
+    lv_obj_set_style_line_width(home_line_icon, 1, 0); /// 线宽
+    lv_obj_set_style_line_color(home_line_icon, lv_color_hex(PUMP_LINE_COLOR), 0); /// 颜色
+    lv_obj_set_style_line_rounded(home_line_icon, true, 0); /// 圆角端点(可选)
 }
 
-static void pump_home_time_update(void)
+static void pump_home_time_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
     if (pump_time_colon == NULL || !lv_obj_is_valid(pump_time_colon)) {
         pump_time_colon = lv_label_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_time_colon);
@@ -362,9 +295,8 @@ static void pump_home_time_update(void)
     lv_obj_align(pump_time_second, LV_ALIGN_TOP_LEFT, 196, 168);
 }
 
-static void pump_home_left_level_label_update(void)
+static void pump_home_left_level_label_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
     if (pump_left_level_label == NULL || !lv_obj_is_valid(pump_left_level_label)) {
         pump_left_level_label = lv_obj_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_left_level_label);
@@ -387,9 +319,8 @@ static void pump_home_left_level_label_update(void)
     lv_obj_align(pump_left_level_label, LV_ALIGN_TOP_LEFT, 66 + 4, 102);    /// 设置左档位标签位置
 }
 
-static void pump_home_left_level_arc_update(void)
+static void pump_home_left_level_arc_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
     if (pump_left_level_arc == NULL || !lv_obj_is_valid(pump_left_level_arc)) {
         pump_left_level_arc = lv_arc_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_left_level_arc);
@@ -412,9 +343,8 @@ static void pump_home_left_level_arc_update(void)
     lv_obj_remove_style(pump_left_level_arc, NULL, LV_PART_KNOB);
 }
 
-static void pump_home_right_level_label_update(void)
+static void pump_home_right_level_label_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
     if (pump_right_level_label == NULL || !lv_obj_is_valid(pump_right_level_label)) {
         pump_right_level_label = lv_obj_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_right_level_label);
@@ -439,9 +369,8 @@ static void pump_home_right_level_label_update(void)
     
 }
 
-static void pump_home_right_level_arc_update(void)
+static void pump_home_right_level_arc_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
     if (pump_right_level_arc == NULL || !lv_obj_is_valid(pump_right_level_arc)) {
         pump_right_level_arc = lv_arc_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_right_level_arc);
@@ -464,9 +393,8 @@ static void pump_home_right_level_arc_update(void)
     lv_obj_remove_style(pump_right_level_arc, NULL, LV_PART_KNOB);
 }
 
-static void pump_home_speed_label_update(void)
+static void pump_home_speed_label_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
     if (pump_speed_label == NULL || !lv_obj_is_valid(pump_speed_label)) {
         pump_speed_label = lv_obj_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_speed_label);
@@ -489,9 +417,22 @@ static void pump_home_speed_label_update(void)
     lv_obj_align(pump_speed_label, LV_ALIGN_TOP_LEFT, 131 + 2, 102);    /// 设置右档位标签位置
 }
 
-static void pump_home_mode_label_update(void)
+static void pump_home_mode_icon_img_init(uint16_t id, ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(pump_root);
+    int ret = thiz->priv.res->res_ui_img_data_load(id, &pump_mode_icon_info);
+    if (ret != 0) {
+        LOGE("===> load img data failed, id=%u ret=%d", (unsigned)id, ret);
+    }
+}
+
+static void pump_home_mode_icon_img_deinit(ui_manager_context_t *thiz)
+{
+    (void)thiz;
+    thiz->priv.res->res_ui_img_data_unload(&pump_mode_icon_info);
+}
+
+static void pump_home_mode_label_update(ui_manager_context_t *thiz)
+{
     if (pump_mode_label == NULL || !lv_obj_is_valid(pump_mode_label)) {
         pump_mode_label = lv_obj_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_mode_label);
@@ -515,13 +456,15 @@ static void pump_home_mode_label_update(void)
     lv_obj_set_style_text_font(pump_mode_label_txt, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_align(pump_mode_label_txt, LV_ALIGN_TOP_LEFT, 149 + 3, 294 + 4);
 
+    pump_home_mode_icon_img_init(RESOURCE_ID_HOME_STIMULATE_ICON, thiz);
+    EXCEPTION_CHECK_VOID(pump_mode_icon_info.data);
     if (pump_mode_icon == NULL || !lv_obj_is_valid(pump_mode_icon)) {
         pump_mode_icon = lv_image_create(pump_root);
         EXCEPTION_CHECK_VOID(pump_mode_icon);
     }
     lv_fs_path_ex_t mode_icon_img_path;
-    lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, home_stimulate_icon,
-        sizeof(home_stimulate_icon), "baj");
+    lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, pump_mode_icon_info.data,
+        pump_mode_icon_info.size, "baj");
     lv_image_set_src(pump_mode_icon, (const void *)&mode_icon_img_path);
     lv_obj_align(pump_mode_icon, LV_ALIGN_TOP_LEFT, 122 + 4, 283 + 15);
 }
@@ -533,55 +476,54 @@ static void pump_home_mode_label_update(void)
 void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
 {
 #if IS_SUPPORT_HOME_DEBUG_OTHER_PAGE
+    // ui_display_pump_left_level_prepare(thiz);
+    ui_display_pump_mode_prepare(thiz);
+#else
     EXCEPTION_CHECK_VOID(thiz);
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     pump_home_init();  
-#else
-    // ui_display_pump_left_level_prepare(thiz);
-    ui_display_pump_mode_prepare(thiz);
 #endif
 }
 
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 {
 #if IS_SUPPORT_HOME_DEBUG_OTHER_PAGE
-    LVGL_OBJ_DELETE(pump_root);
-#else
     // ui_display_pump_left_level_remove(thiz);
     ui_display_pump_mode_remove(thiz);
+#else
+    LVGL_OBJ_DELETE(pump_root);
+    pump_home_img_deinit(thiz, &pump_home_bg_info);
+    pump_home_img_deinit(thiz, &ble_info);
+    pump_home_img_deinit(thiz, &battery_info);
 #endif
 }
 
 int ui_display_pump_home_screen(ui_manager_context_t *thiz)
 {
 #if IS_SUPPORT_HOME_DEBUG_OTHER_PAGE
-    pump_home_bg_update();
-    static uint16_t status = 0;
-    status++;
-    if (status > 10){
-        goto UI_EXIT;
-    }
-    pump_home_ble_update();
-    pump_home_battery_update();
-    pump_home_line_update();
-    pump_home_time_update();
-    pump_home_left_level_label_update();
-    pump_home_left_level_arc_update();
-    pump_home_right_level_label_update();
-    pump_home_right_level_arc_update();
-    pump_home_speed_label_update();
-    pump_home_mode_label_update();   
-UI_EXIT:    
+    // ui_display_pump_left_level(thiz);
+    ui_display_pump_mode(thiz);
+#else
+    EXCEPTION_CHECK_INT(thiz);
+    EXCEPTION_CHECK_INT(pump_root);
+    // pump_home_bg_update(thiz);
+    pump_home_ble_update(thiz);
+    pump_home_battery_update(thiz);
+    pump_home_line_update(thiz);
+    pump_home_time_update(thiz);
+    pump_home_left_level_label_update(thiz);
+    pump_home_left_level_arc_update(thiz);
+    pump_home_right_level_label_update(thiz);
+    pump_home_right_level_arc_update(thiz);
+    pump_home_speed_label_update(thiz);
+    pump_home_mode_label_update(thiz);     
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOGI("===> pump home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
-#else
-    // ui_display_pump_left_level(thiz);
-    ui_display_pump_mode(thiz);
 #endif
     return 0;
 }

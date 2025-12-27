@@ -104,6 +104,11 @@ extern "C" {
 #define PANLE_DISPLAY_W                                (360)
 /// 屏幕高度
 #define PANLE_DISPLAY_H                                (360)
+/// 资源存储类型
+#define IMG_RES_STORAGE_INTERNAL_FLASH                 0
+#define IMG_RES_STORAGE_EXTERNAL_FLASH                 1
+#define V3_IMG_RES_STORAGE_TYPE                        0
+
 #ifdef __cplusplus
 }
 #endif

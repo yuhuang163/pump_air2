@@ -157,6 +157,7 @@ typedef struct {
 } led_onoff_info_t;
 
 struct rt_device_node;
+struct resource_manager_context;
 typedef struct ui_manager_context {
     /// private:
     struct __ui_manager_private {
@@ -174,11 +175,14 @@ typedef struct ui_manager_context {
         bool is_playing_ui_animation; /// 是否正在播放UI动画
         uint8_t ui_backlight_val; /// 背光亮度
         bool lv_tick_timer_running; /// LVGL定时器是否正在运行
-        #if IS_SUPPORT_LVGL
+    #if IS_SUPPORT_LVGL
         bool lvgl_initialized; /// LVGL是否已初始化完成
         uint16_t fps_count;    /// FPS计数器
         uint32_t fps_start_time;    /// FPS开始时间戳
-        #endif
+    #endif
+    #if IS_SUPPORT_MODULE_RES
+        struct resource_manager_context *res; /// 资源管理上下文
+    #endif
         ui_animation_play_t play_info; /// 当前播放的动画信息
     } priv;
 
