@@ -164,7 +164,8 @@ MASTER_SERVER_CLIENT_SRCS := $(call rwildcard,$(MASTER_SERVER_CLIENT_DIR))
 SDK_CORE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/include \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/os_base/include \
-	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/apps/main
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/apps/main \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/apps/factory
 
 # SDK RTOS 头文件
 SDK_RTOS_INC_FLAGS := \
@@ -568,6 +569,13 @@ CPPFLAGS += -DLUTE_RESERVED_SECTION_SIZE=$(LUTE_RESERVED_SECTION_SIZE)
 # 工厂数据相关宏定义
 CPPFLAGS += -DFACTORY_DATA_SECTION_SIZE=$(FACTORY_DATA_SECTION_SIZE)
 
+# 工厂模式相关宏定义（蓝牙测试功能需要）
+FACTORY_MODE ?= 0
+ifeq ($(FACTORY_MODE),1)
+export FACTORY_MODE
+CPPFLAGS += -D__FACTORY_MODE_SUPPORT__
+endif
+
 # BLE 相关宏定义
 CPPFLAGS += -DBLE_HOST_SUPPORT
 CPPFLAGS += -DNEW_NV_RECORD_ENABLED
@@ -954,7 +962,8 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		VHPPA_VOLT=$(VHPPA_VOLT) \
 		VCODEC_VOLT=$(VCODEC_VOLT) \
 		LUTE_PICTURE_RESOURCES_SECTION_SIZE=$(LUTE_PICTURE_RESOURCES_SECTION_SIZE) \
-		LUTE_RESERVED_SECTION_SIZE=$(LUTE_RESERVED_SECTION_SIZE)
+		LUTE_RESERVED_SECTION_SIZE=$(LUTE_RESERVED_SECTION_SIZE) \
+		FACTORY_MODE=$(FACTORY_MODE)
 
 	@set -e; \
 		out_dir="$(O)/$(T)"; \

@@ -30,6 +30,9 @@ typedef enum {
     TESTS_TLV_SUCTION_COMPENSATION = 0x000D,   /// 吸力补偿开关 (0x01:开, 0x00:关)
     TESTS_TLV_READ_SN = 0x000E,                /// 读取整机SN数据
     TESTS_TLV_WRITE_FACTORY_COMPLETE_FLAG = 0x000F, /// 产测完成标识写入 (0x00:未完成, 0x01:完成)
+    TESTS_TLV_BT_SIGNALING_TEST = 0x0011,      /// 进入或退出蓝牙信令测试 (0x01:进入, 0x00:退出)
+    TESTS_TLV_BT_NOSIGNALING_TEST = 0x0012,    /// 进入或退出蓝牙非信令测试 (0x01:进入, 0x00:退出)
+    TESTS_TLV_BT_XTAL_CALIB_TEST = 0x0013,     /// 进入或退出蓝牙校频测试 (0x01:进入, 0x00:退出)
     TESTS_TLV_ID_MAX,
 } tests_tlvs_id_e;
 
@@ -102,6 +105,14 @@ int tests_tlvs_suction_compensation(comm_protocol_builder_t *builder, comm_proto
 
 /// 产测完成标识
 int tests_tlvs_write_factory_complete_flag(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+
+/// 蓝牙测试
+int tests_tlvs_bt_signaling_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+int tests_tlvs_bt_nosignaling_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+int tests_tlvs_bt_xtal_calib_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 
 /// NOTIFY上报 (设备主动上报)
