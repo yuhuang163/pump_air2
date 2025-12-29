@@ -1,6 +1,7 @@
 #ifndef __BREAST_PUMP_UI_H__
 #define __BREAST_PUMP_UI_H__
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -10,6 +11,8 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 #include "ui_manager_api.h" // IWYU pragma: keep
+#include "ble_ui.h" // IWYU pragma: keep
+#include "battery_ui.h" // IWYU pragma: keep
 
 /*
 * GLOBAL FUNCTION DECLARATION

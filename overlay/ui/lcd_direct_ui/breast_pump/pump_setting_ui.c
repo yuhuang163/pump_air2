@@ -2,12 +2,11 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
-#include "pump_ui_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
+#include "breast_pump_ui.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -92,7 +91,6 @@ static void pump_level_root_init(void)
 #if IS_SUPPORT_LEVEL_COMP_BG
 static void pump_home_bg_update(void)
 {
-    EXCEPTION_CHECK_VOID(level_root);
     static uint8_t status = 0;
     if (level_bg_img == NULL || !lv_obj_is_valid(level_root)) {
         level_bg_img = lv_image_create(level_root);
@@ -275,6 +273,19 @@ void ui_display_pump_left_level_prepare(ui_manager_context_t *thiz)
 void ui_display_pump_left_level_remove(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_DELETE(level_root);
+#if IS_SUPPORT_LEVEL_COMP_BG
+    level_bg_img = NULL;
+#endif
+    level_arc = NULL;
+    level_arc_progress = NULL;
+    level_root_text = NULL;
+    level_root_value = NULL;
+    left_level_label = NULL;
+    left_level_label_text = NULL;
+    right_level_label = NULL;
+    right_level_label_text = NULL;
+    level_label = NULL;
+    level_label_text = NULL;
 }
 
 int ui_display_pump_left_level(ui_manager_context_t *thiz)
@@ -316,6 +327,19 @@ void ui_display_pump_right_level_prepare(ui_manager_context_t *thiz)
 void ui_display_pump_right_level_remove(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_DELETE(level_root);
+#if IS_SUPPORT_LEVEL_COMP_BG
+    level_bg_img = NULL;
+#endif
+    level_arc = NULL;
+    level_arc_progress = NULL;
+    level_root_text = NULL;
+    level_root_value = NULL;
+    left_level_label = NULL;
+    left_level_label_text = NULL;
+    right_level_label = NULL;
+    right_level_label_text = NULL;
+    level_label = NULL;
+    level_label_text = NULL;
 }
 
 int ui_display_pump_right_level(ui_manager_context_t *thiz)
