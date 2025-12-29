@@ -284,28 +284,9 @@ static int system_lcd_test_process(void)
 }
 #endif
 
-static void sys_logo_img_init(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(thiz->priv.res);
-    EXCEPTION_CHECK_VOID(info);
-    int ret = thiz->priv.res->res_ui_img_data_load(id, info);
-    if (ret != 0) {
-        LOGE("load img data failed, id=%u ret=%d", (unsigned)id, ret);
-    }
-}
-
-static void sys_logo_img_deinit(ui_manager_context_t *thiz, res_img_info_t *info)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(thiz->priv.res);
-    EXCEPTION_CHECK_VOID(info);
-    thiz->priv.res->res_ui_img_data_unload(info);
-}
-
 static void sys_logo_label_update(ui_manager_context_t *thiz)
 {
-    sys_logo_img_init(thiz, RESOURCE_ID_START_LOGO_ICON, &logo_img_info);
+    common_ui_img_resource_init(thiz, RESOURCE_ID_START_LOGO_ICON, &logo_img_info);
     EXCEPTION_CHECK_VOID(logo_img_info.data);
     if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
         logo_root = lv_image_create(lv_screen_active());
@@ -347,7 +328,7 @@ void ui_display_logo_prepare(ui_manager_context_t *thiz)
 void ui_display_logo_remove(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_DELETE(logo_root);
-    sys_logo_img_deinit(thiz, &logo_img_info);
+    common_ui_img_resource_deinit(thiz, &logo_img_info);
 }
 
 int ui_display_logo_process(ui_manager_context_t *thiz)

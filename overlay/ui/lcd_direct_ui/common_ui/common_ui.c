@@ -3,10 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include "ui_img_define.h"   // IWYU pragma: keep
-#include "ui_page_define.h" // IWYU pragma: keep
-#include "pump_ui_define.h" // IWYU pragma: keep
-#include "ui_manager.h"   // IWYU pragma: keep
+#include "ui_img_define.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -32,19 +29,21 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void ui_display_pump_complete_tip_prepare(ui_manager_context_t *thiz)
+void common_ui_img_resource_init(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info)
 {
-    // LOGI("ui_display_pump_complete_tip_prepare");
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    int ret = thiz->priv.res->res_ui_img_data_load(id, info);
+    if (ret != 0) {
+        LOGE("===> load img data failed, id=%u ret=%d", (unsigned)id, ret);
+    }
 }
 
-void ui_display_pump_complete_tip_remove(ui_manager_context_t *thiz)
+void common_ui_img_resource_deinit(ui_manager_context_t *thiz, res_img_info_t *info)
 {
-    // LOGI("ui_display_pump_complete_tip_remove");
-}
-
-int ui_display_pump_complete_tip(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_UINT(thiz);
-    ui_animation_play_t *ani = &thiz->priv.play_info;
-    return 0;
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    thiz->priv.res->res_ui_img_data_unload(info);
 }

@@ -5,9 +5,8 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
-#include "pump_ui_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
-#include <stdint.h>
+#include "breast_pump_ui.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -15,6 +14,7 @@
 */
 #define IS_SUPPORT_MODE_COMP_BG                  (0)
 #define MODE_MAX_COUNT                           (3)
+#define BREASTFEEDING_MODE_MAX_COUNT             (4)
 
 #define PUMP_MODE_SEL_START_COLOR                0xB3686D
 #define PUMP_MODE_SEL_END_COLOR                  0xF1D9D6
@@ -68,6 +68,31 @@ static PSRAM_DATA_LOC uint8_t mode_bg_data[] = {
 };
 #endif
 
+#if 0
+static PSRAM_DATA_LOC uint8_t mode_milk_data[] = {
+    #include "../../../resources/img_baj_bin/milk_mode_360x360_a4_q99_422.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t mode_pp_data[] = {
+    #include "../../../resources/img_baj_bin/pp_mode_360x360_a4_q99_422.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t mode_personalization_data[] = {
+    #include "../../../resources/img_baj_bin/personalization_mode_360x360_a4_q99_422.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t mode_initiating_data[] = {
+    #include "../../../resources/img_baj_bin/initiating_mode_360x360_a4_q99_422.txt"
+};
+
+static ui_img_data_t mode_images[BREASTFEEDING_MODE_MAX_COUNT] = {
+    { mode_milk_data, sizeof(mode_milk_data) },
+    { mode_pp_data, sizeof(mode_pp_data) },
+    { mode_personalization_data, sizeof(mode_personalization_data) },
+    { mode_initiating_data, sizeof(mode_initiating_data) },
+};
+#endif
+
 const static uint16_t mode_icon_selected[MODE_MAX_COUNT] = {
     RESOURCE_ID_MODE_STIMULATE_ICON_W,
     RESOURCE_ID_MODE_LACTATION_ICON_W,
@@ -109,6 +134,15 @@ static lv_obj_t * mode_label_icon[3];
 static res_img_info_t mode_icon_infos[3];
 static uint32_t start_time = 0;
 
+const static uint16_t breastfeeding_icon_ids[BREASTFEEDING_MODE_MAX_COUNT] = {
+    RESOURCE_ID_PERSONALIZATION_MODE,
+    RESOURCE_ID_PP_MODE,
+    RESOURCE_ID_MILK_MODE,
+    RESOURCE_ID_INITIATING_MODE,
+};
+
+static lv_obj_t * breastfeeding_root;
+static res_img_info_t breastfeeding_icon_info;
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -118,25 +152,6 @@ static uint32_t start_time = 0;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void pump_mode_img_init(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(thiz->priv.res);
-    EXCEPTION_CHECK_VOID(info);
-    int ret = thiz->priv.res->res_ui_img_data_load(id, info);
-    if (ret != 0) {
-        LOGE("===> load img data failed, id=%u ret=%d", (unsigned)id, ret);
-    }
-}
-
-static void pump_mode_img_deinit(ui_manager_context_t *thiz, res_img_info_t *info)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(thiz->priv.res);
-    EXCEPTION_CHECK_VOID(info);
-    thiz->priv.res->res_ui_img_data_unload(info);
-}
-
 static void pump_mode_root_init(void)
 {
     if (mode_root == NULL || !lv_obj_is_valid(mode_root)) {
@@ -155,7 +170,6 @@ static void pump_mode_root_init(void)
 #if IS_SUPPORT_MODE_COMP_BG
 static void pump_home_bg_update(void)
 {
-    EXCEPTION_CHECK_VOID(mode_root);
     static uint8_t status = 0;
     if (mode_bg_img == NULL || !lv_obj_is_valid(mode_root)) {
         mode_bg_img = lv_image_create(mode_root);
@@ -236,12 +250,12 @@ static void pump_mode_lable_update(ui_manager_context_t *thiz, bool is_selected,
 
     lv_fs_path_ex_t mode_icon_img_path;
     if (is_selected) {
-        pump_mode_img_init(thiz, mode_icon_selected[mode_index], &mode_icon_infos[mode_index]);
+        common_ui_img_resource_init(thiz, mode_icon_selected[mode_index], &mode_icon_infos[mode_index]);
         EXCEPTION_CHECK_VOID(mode_icon_infos[mode_index].data);
         lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, mode_icon_infos[mode_index].data,
             mode_icon_infos[mode_index].size, "baj");
     } else {
-        pump_mode_img_init(thiz, mode_icon_unselected[mode_index], &mode_icon_infos[mode_index]);
+        common_ui_img_resource_init(thiz, mode_icon_unselected[mode_index], &mode_icon_infos[mode_index]);
         EXCEPTION_CHECK_VOID(mode_icon_infos[mode_index].data);
         lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, mode_icon_infos[mode_index].data,
             mode_icon_infos[mode_index].size, "baj");
@@ -250,6 +264,43 @@ static void pump_mode_lable_update(ui_manager_context_t *thiz, bool is_selected,
     lv_obj_align(mode_label_icon[mode_index], LV_ALIGN_TOP_LEFT,
         mode_label_infos[mode_index].icon_x, mode_label_infos[mode_index].icon_y);    /// 设置icon位置
 }
+
+static void breastfeeding_mode_img_update(ui_manager_context_t *thiz, uint8_t mode_index)
+{
+    if (mode_index >= BREASTFEEDING_MODE_MAX_COUNT) {
+        return;
+    }
+
+    if (breastfeeding_root == NULL || !lv_obj_is_valid(breastfeeding_root)) {
+        breastfeeding_root = lv_image_create(lv_screen_active());
+    }
+
+#if 0
+    const uint16_t img_id = breastfeeding_icon_ids[mode_index];
+    if (s_breastfeeding_last_img_id == img_id && breastfeeding_icon_info.data && breastfeeding_icon_info.size) {
+        return;
+    }
+
+    /* Drop cache of previous image to avoid cache growth when switching. */
+    if (breastfeeding_root && lv_obj_is_valid(breastfeeding_root)) {
+        const void * old_src = lv_image_get_src(breastfeeding_root);
+        if (old_src) {
+            lv_image_cache_drop(old_src);
+        }
+    }
+    common_ui_img_resource_init(thiz, img_id, &breastfeeding_icon_info);
+#else
+    common_ui_img_resource_init(thiz, breastfeeding_icon_ids[mode_index], &breastfeeding_icon_info);
+#endif
+
+    EXCEPTION_CHECK_VOID(breastfeeding_icon_info.data);
+    lv_fs_path_ex_t breastfeeding_img_path;
+    lv_fs_make_path_from_buffer(&breastfeeding_img_path, LV_FS_MEMFS_LETTER, breastfeeding_icon_info.data,
+        breastfeeding_icon_info.size, "baj");
+    lv_image_set_src(breastfeeding_root, breastfeeding_img_path.path);
+    lv_obj_align(breastfeeding_root, LV_ALIGN_CENTER, 0, 0);
+}
+
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -265,9 +316,18 @@ void ui_display_pump_mode_prepare(ui_manager_context_t *thiz)
 
 void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 {
-    LVGL_OBJ_DELETE(mode_root);
     for (uint8_t i = 0; i < MODE_MAX_COUNT; i++) {
-        pump_mode_img_deinit(thiz, &mode_icon_infos[i]);
+        common_ui_img_resource_deinit(thiz, &mode_icon_infos[i]);
+    }
+    LVGL_OBJ_DELETE(mode_root);
+#if IS_SUPPORT_MODE_COMP_BG
+    mode_bg_img = NULL;
+#endif
+    mode_root_text = NULL;
+    for (uint8_t i = 0; i < MODE_MAX_COUNT; i++) {
+        mode_label[i] = NULL;
+        mode_label_text[i] = NULL;
+        mode_label_icon[i] = NULL;
     }
 }
 
@@ -286,7 +346,7 @@ int ui_display_pump_mode(ui_manager_context_t *thiz)
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOGI("===> pump left level fps: %d", thiz->priv.fps_count);
+        LOGI("===> pump mode fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
         mode_index ++;
         if (mode_index >= MODE_MAX_COUNT) {
@@ -296,20 +356,35 @@ int ui_display_pump_mode(ui_manager_context_t *thiz)
     return 0;
 }
 
-
 void ui_display_breastfeeding_mode_prepare(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_breastfeeding_mode_prepare");
+    EXCEPTION_CHECK_VOID(thiz);
+    thiz->priv.fps_count = 0;
+    thiz->priv.fps_start_time = get_timestamp();
 }
 
 void ui_display_breastfeeding_mode_remove(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_breastfeeding_mode_remove");
+    common_ui_img_resource_deinit(thiz, &breastfeeding_icon_info);
+    LVGL_OBJ_DELETE(breastfeeding_root);
+    // breastfeeding_root = NULL;
 }
 
 int ui_display_breastfeeding_mode(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_UINT(thiz);
-    ui_animation_play_t *ani = &thiz->priv.play_info;
+    static uint8_t mode_index = 0;
+    EXCEPTION_CHECK_INT(thiz);
+    breastfeeding_mode_img_update(thiz, mode_index);
+    thiz->priv.fps_count++;
+    mode_index ++;
+    if (mode_index >= BREASTFEEDING_MODE_MAX_COUNT) {
+        mode_index = 0;
+    }
+
+    if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
+        thiz->priv.fps_start_time = get_timestamp();
+        LOGI("===> breastfeeding mode fps: %d", thiz->priv.fps_count);
+        thiz->priv.fps_count = 0;
+    }
     return 0;
 }
