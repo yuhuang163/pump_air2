@@ -35,6 +35,10 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
     {TESTS_TLV_SUCTION_COMPENSATION, tests_tlvs_suction_compensation},
     /// 产测完成标识
     {TESTS_TLV_WRITE_FACTORY_COMPLETE_FLAG, tests_tlvs_write_factory_complete_flag},
+    /// 蓝牙测试
+    {TESTS_TLV_BT_SIGNALING_TEST, tests_tlvs_bt_signaling_test},
+    {TESTS_TLV_BT_NOSIGNALING_TEST, tests_tlvs_bt_nosignaling_test},
+    {TESTS_TLV_BT_XTAL_CALIB_TEST, tests_tlvs_bt_xtal_calib_test},
 };
 
 /*
