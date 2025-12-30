@@ -1,5 +1,5 @@
-#ifndef __FACTORY_HOME_UI_H__
-#define __FACTORY_HOME_UI_H__
+#ifndef __PRODUCT_TESTS_UI_H__
+#define __PRODUCT_TESTS_UI_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,9 +15,9 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void ui_display_factory_home_prepare(ui_manager_context_t *thiz);
-void ui_display_factory_home_remove(ui_manager_context_t *thiz);
-int ui_display_factory_home_process(ui_manager_context_t *thiz);
+void ui_display_product_tests_home_prepare(ui_manager_context_t *thiz);
+void ui_display_product_tests_home_remove(ui_manager_context_t *thiz);
+int ui_display_product_tests_home_process(ui_manager_context_t *thiz);
 
 #ifdef __cplusplus
 }

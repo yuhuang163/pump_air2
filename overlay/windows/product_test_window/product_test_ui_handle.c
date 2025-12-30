@@ -4,13 +4,14 @@
 */
 #include "window_screen_logo.h" // IWYU pragma: keep
 #include "ui_img_define.h"
+#include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_product_test.h"
 
 /*
 * DEFINES
 *****************************************************************************************
 */
-#define PRODUCT_TESTS_ANIMATION_FREQ                 (12)
+#define PRODUCT_TESTS_ANIMATION_FREQ                 (25)
 #define PRODUCT_TESTS_HDR_TASK_NAME                  "product_tests_display_cmp"
 
 /*
@@ -40,12 +41,16 @@ static void product_tests_display_completed_cb(hdr_post_args_t *args)
 
 static void product_tests_ui_finished_policy(ui_manager_context_t *ui)
 {
+#if IS_SUPPORT_LVGL
+    ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
+#else
     ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PRODUCT_TESTS_ANIMATION_DISPLAY_TIME) {
         POST_TASK_HANDLER_DELAYED_ARG1(product_tests_display_completed_cb, 10, proc,
             PRODUCT_TESTS_HDR_TASK_NAME);
     }
+#endif
 }
 
 static void product_tests_ui_before_policy(ui_manager_context_t *ui, int index)
@@ -55,7 +60,7 @@ static void product_tests_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void product_tests_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-
+    ui_display_product_tests_home_process(ui);
 }
 
 static void product_tests_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -86,14 +91,14 @@ static void product_tests_ui_display_prepare(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    // ui_display_product_tests_screen_prepare(ui);
+    ui_display_product_tests_home_prepare(ui);
 }
 
 static void product_tests_ui_display_remove(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    // ui_display_product_tests_screen_remove(ui);
+    ui_display_product_tests_home_remove(ui);
 }
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -107,7 +112,11 @@ void show_product_tests_ui(ui_proc_product_test_t *proc)
         .tag = "product_tests_screen",
         .fps = PRODUCT_TESTS_ANIMATION_FREQ,
         .res_array = (uint16_t *)s_product_tests_screen_res_array,
+        #if IS_SUPPORT_LVGL
+        .res_count = 100,
+        #else
         .res_count = LENGTH_OF_ARRAY(s_product_tests_screen_res_array),
+        #endif
         .progress_cb = product_tests_animation_progress_cb,
         .display_prepare_cb = product_tests_ui_display_prepare,
         .display_remove_cb = product_tests_ui_display_remove,
