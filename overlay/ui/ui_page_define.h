@@ -18,6 +18,9 @@ extern "C" {
 #include "dummy_ui.h" // IWYU pragma: keepin
 #include "home_ui.h" // IWYU pragma: keepin
 #include "logo_ui.h" // IWYU pragma: keepin
+#if IS_SUPPORT_LVGL
+#include "factory_home_ui.h" // IWYU pragma: keepin
+#endif
 
 /*
 * GLOBAL FUNCTION DECLARATION

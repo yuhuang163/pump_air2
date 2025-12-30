@@ -45,10 +45,10 @@ typedef enum {
     RESOURCE_ID_HOME_UNCHARGE_BATTERY_100,  /// 首页-未充电电量100%
     RESOURCE_ID_HOME_UNCHARGE_LOW_POWER,    /// 首页-低电量提示
 
-    RESOURCE_ID_GUIDE_BOTTLE = 101, /// 引导-奶瓶
-    RESOURCE_ID_GUIDE_KNOB,         /// 引导-旋钮
-    RESOURCE_ID_GUIDE_PHONE,        /// 引导-手机
-    RESOURCE_ID_GUIDE_PHONE_BOTTLE, /// 引导-手机+奶瓶
+    RESOURCE_ID_GUIDE_MILK_QUANTITY = 101, /// 引导-奶量
+    RESOURCE_ID_GUIDE_ADJUST_LEVEL,        /// 引导-档位调节
+    RESOURCE_ID_GUIDE_PHONE,               /// 引导-手机
+    RESOURCE_ID_GUIDE_CHASING_MILK,        /// 引导-追奶
 
     /* 模式组 [301..400]（大图 + 小图标） */
     RESOURCE_ID_INITIATING_MODE = 201,      /// 模式-启动界面
@@ -63,7 +63,6 @@ typedef enum {
     RESOURCE_ID_MODE_STIMULATE_ICON_P,      /// 模式-刺激图标(P)
     RESOURCE_ID_MODE_STIMULATE_ICON_W,      /// 模式-刺激图标(W)
 
-    /* 其它组 [401..500]（首页图标 + 其它杂项） */
     RESOURCE_ID_HOME_INITIA_ICON = 301,      /// 首页-启动图标
     RESOURCE_ID_HOME_LACTATION_ICON,        /// 首页-泌乳图标
     RESOURCE_ID_HOME_MILK_ICON,             /// 首页-奶量图标
@@ -75,7 +74,7 @@ typedef enum {
     RESOURCE_ID_PUMP_FINISH_ICON,           /// 泵奶完成图标
     RESOURCE_ID_START_LOGO_ICON,            /// 启动LOGO
     RESOURCE_ID_TRAVEL_LOCK,                /// 旅行锁图标
-    RESOURCE_ID_TRAVEL_LOCK_CONTENT,        /// 旅行锁提示文案
+    RESOURCE_ID_TRAVEL_UNLOCK_TIP,          /// 旅行锁解锁提示
     
     RESOURCE_ID_PUMP_HOME_BG,               /// 泵奶首页背景
 

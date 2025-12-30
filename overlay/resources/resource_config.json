@@ -135,16 +135,16 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_BOTTLE",
-      "description": "引导-奶瓶",
-      "file": "img_baj/guide_bottle_35x109_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_MILK_QUANTITY",
+      "description": "引导-奶量",
+      "file": "img_baj/guide_milk_quantity_269x159_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_KNOB",
-      "description": "引导-旋钮",
-      "file": "img_baj/guide_knob_165x153_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_ADJUST_LEVEL",
+      "description": "引导-档位调节",
+      "file": "img_baj/guide_adjust_165x153_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -156,9 +156,9 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_PHONE_BOTTLE",
-      "description": "引导-手机+奶瓶",
-      "file": "img_baj/guide_phone_bottle_135x137_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_CHASING_MILK",
+      "description": "引导-追奶",
+      "file": "img_baj/guide_chasing_milk_269x159_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -303,9 +303,9 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_TRAVEL_LOCK_CONTENT",
+      "resource_id": "RESOURCE_ID_TRAVEL_UNLOCK_TIP",
       "description": "旅行锁提示文案",
-      "file": "img_baj/travel_lock_content_122x48_a4_q99_422.baj",
+      "file": "img_baj/travel_unlock_tip_122x48_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     }
