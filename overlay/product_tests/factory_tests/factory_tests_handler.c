@@ -177,7 +177,7 @@ int factory_tests_aging_test_enter_mode1(void)
     pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
     pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
     msleep(100);
-    uint8_t time_index = motor_ctx->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    uint8_t time_index = pump_ctx->get_breast_pump_step_index();
     if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
         time_index = 0;
     }
@@ -312,7 +312,7 @@ int factory_tests_suction_test(tests_func_args_t args)
         pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
         pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
         msleep(100);
-        uint8_t time_index = motor_ctx->get_runtime_policy_index(MOTOR_TIME_POLICY);
+        uint8_t time_index = pump_ctx->get_breast_pump_step_index();
         if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
             time_index = 0;
         }
