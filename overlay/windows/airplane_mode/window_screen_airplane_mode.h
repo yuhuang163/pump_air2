@@ -13,7 +13,7 @@ extern "C" {
 #include "input_key_code.h" // IWYU pragma: keep
 
 /// 飞行模式动画频率
-#define AIRPLANE_MODE_ANIMATION_FREQ                    (12)
+#define AIRPLANE_MODE_ANIMATION_FREQ                    (25)
 /// 飞行模式动画更新间隔
 #define AIRPLANE_MODE_ANIMATION_UPDATE_INTERVAL         (1000)
 /// 飞行模式超时时间
@@ -33,6 +33,12 @@ typedef struct ui_proc_airplane_mode {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
+    misc_manager_context_t *misc;
+    power_manager_context_t *pm;
+    key_input_context_t *key;
+    breast_pump_manager_context_t *pump;
+    peripheral_bus_context_t *pbus;
+    storage_manager_context_t *st;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.

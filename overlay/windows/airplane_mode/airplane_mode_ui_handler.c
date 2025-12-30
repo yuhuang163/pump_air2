@@ -5,7 +5,7 @@
 
 #include "root_common.h"
 #include "ui_img_define.h" 
-#include "ui_page_define.h" 
+#include "ui_page_define.h"  // IWYU pragma: keep
 #include "breast_pump_manager_api.h"
 #include "window_screen_airplane_mode.h" // IWYU pragma: keep
 
@@ -13,7 +13,6 @@
 * DEFINES
 *****************************************************************************************
 */
-#define AIRPLANE_MODE_ANIMATION_FREQ                 (12)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -51,10 +50,11 @@ static const airplane_mode_led_status_t exit_airplane_mode_led_status[4] = {
 static void airplane_mode_ui_finished_policy(ui_manager_context_t *ui)
 {
     ui_proc_airplane_mode_t *proc = (ui_proc_airplane_mode_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc && proc->wm && proc->wm->priv.misc);
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->misc);
     /// 如果充电状态发生变化，则刷新UI.
-    if (proc->charging_status != proc->wm->priv.misc->is_charge_plug_in()) {
-        proc->charging_status = proc->wm->priv.misc->is_charge_plug_in();
+    if (proc->charging_status != proc->misc->is_charge_plug_in()) {
+        proc->charging_status = proc->misc->is_charge_plug_in();
         goto UI_DISPLAY_REFRESH;
     }
     
@@ -64,12 +64,12 @@ static void airplane_mode_ui_finished_policy(ui_manager_context_t *ui)
     }
 
     /// 如果电池电量百分比发生变化，则刷新UI.
-    if (proc->battery_percent == proc->wm->priv.misc->get_battery_percent()) {
+    if (proc->battery_percent == proc->misc->get_battery_percent()) {
         return;
     }
 
 UI_DISPLAY_REFRESH: 
-    proc->battery_percent = proc->wm->priv.misc->get_battery_percent();
+    proc->battery_percent = proc->misc->get_battery_percent();
     proc->last_progress_ani_time = get_timestamp();
     if (ui->priv.play_info.reset_play_count_cb) {
         ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
@@ -138,7 +138,11 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
         .display_remove_cb = airplane_mode_ui_display_remove,
         .user_data = proc,
     };
-    EXCEPTION_CHECK_VOID(proc->wm->priv.misc);
+
+    if (proc->misc) {
+        proc->charging_status = proc->misc->is_charge_plug_in();
+        proc->battery_percent = proc->misc->get_battery_percent();
+    }
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
 }
@@ -147,9 +151,9 @@ void stop_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
-    if (proc->wm && proc->wm->priv.misc) {
-        proc->charging_status = proc->wm->priv.misc->is_charge_plug_in();
-        proc->battery_percent = proc->wm->priv.misc->get_battery_percent();
+    if (proc->misc) {
+        proc->charging_status = proc->misc->is_charge_plug_in();
+        proc->battery_percent = proc->misc->get_battery_percent();
     }
     ui->hook->ui_animation_play_deinit(ui);
     ui->animation_play_status_update(ui, false);
@@ -160,9 +164,9 @@ void airplane_mode_led_policy(ui_proc_airplane_mode_t *proc, uint8_t status)
 {
     uint8_t control_type = 0;
     EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->wm && proc->wm->priv.pbus && proc->wm->priv.st);
-    struct storage_manager_context *st = proc->wm->priv.st;
-    rt_device_node_t *led_dev = proc->wm->priv.pbus->find_device(ID_DEVICE_LED);
+    EXCEPTION_CHECK_VOID(proc->pbus);
+    EXCEPTION_CHECK_VOID(proc->st);
+    rt_device_node_t *led_dev = proc->pbus->find_device(ID_DEVICE_LED);
     EXCEPTION_CHECK_VOID(led_dev);
     led_status_msg_t msg = {
         .led_index = PUMP_LED_ALL_ID,
@@ -171,7 +175,7 @@ void airplane_mode_led_policy(ui_proc_airplane_mode_t *proc, uint8_t status)
             .un.luminous.level = 0,
         },
     };
-    st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
     if (status) {
         for (uint8_t i = 0; i < LENGTH_OF_ARRAY(enter_airplane_mode_led_status); i++) {
             msg.led_index = enter_airplane_mode_led_status[i].id;
@@ -199,9 +203,8 @@ void airplane_mode_led_policy(ui_proc_airplane_mode_t *proc, uint8_t status)
 void airplane_mode_pump_policy(ui_proc_airplane_mode_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->wm && proc->wm->priv.pump);
-    breast_pump_manager_context_t *pump = proc->wm->priv.pump;
-    if (pump->is_on_working() > 0) {
-        pump->set_breast_pump_status(BREAST_PUMP_FINISH);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    if (proc->pump->is_on_working() > 0) {
+        proc->pump->set_breast_pump_status(BREAST_PUMP_FINISH);
     }
 }

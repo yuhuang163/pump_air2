@@ -77,6 +77,13 @@ typedef struct ui_proc_pump {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
+    breast_pump_manager_context_t *pump;
+    misc_manager_context_t *misc;
+    ble_manager_context_t *ble;
+    motor_manager_context_t *motor;
+    storage_manager_context_t *st;
+    power_manager_context_t *pm;
+    key_input_context_t *key;
     broadcast_obj_t receiver;
     uint32_t margic;
     breast_pump_result_t pump_result; /// 泵奶结果.

@@ -110,7 +110,9 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         case HDR_ACTION_PUMP_COMPLETE: {
             // REMOVE_ALL_HANDER_TASK();
             LOG_WM("pump complete, show progress time policy.");
-            show_pump_progress_time_policy(proc, proc->wm->priv.pump);
+            if (proc->pump) {
+                show_pump_progress_time_policy(proc, proc->pump);
+            }
         }
         break;
 
@@ -127,18 +129,17 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
     }
     ui_proc_pump_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc);
-    breast_pump_manager_context_t *pump = proc->wm->priv.pump;
-    EXCEPTION_CHECK_INT(pump);
-    key_input_context_t *key_ctx = proc->wm->priv.key;
-    EXCEPTION_CHECK_INT(key_ctx);
+    EXCEPTION_CHECK_INT(proc->pump);
+    EXCEPTION_CHECK_INT(proc->key);
+    EXCEPTION_CHECK_INT(proc->ui);
     breast_pump_info_t pump_info = {
-        .status = pump->get_breast_pump_status(),
-        .mode = pump->get_breast_pump_mode(),
-        .do_work = pump->is_on_working()
+        .status = proc->pump->get_breast_pump_status(),
+        .mode = proc->pump->get_breast_pump_mode(),
+        .do_work = proc->pump->is_on_working()
     };
     const char *key_name = NULL;
-    if (key_ctx && key_ctx->hook && key_ctx->hook->get_key_code_name) {
-        key_name = key_ctx->hook->get_key_code_name(keycode);
+    if (proc->key && proc->key->hook && proc->key->hook->get_key_code_name) {
+        key_name = proc->key->hook->get_key_code_name(keycode);
     } else {
         key_name = "@unknow";
     }
@@ -160,12 +161,12 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
 
     switch (keycode) {
         case KEY_CODE_POWER:
-            switch_pump_night_light_ui(proc, pump);
+            switch_pump_night_light_ui(proc, proc->pump);
             break;
         case KEY_CODE_START:
             blink_info.led_index = PUMP_START_BL;
             proc->ui->hook->set_led_blink(proc->ui, blink_info);
-            switch_pump_status_ui(proc, pump, pump_info.status);
+            switch_pump_status_ui(proc, proc->pump, pump_info.status);
             break;
         case KEY_CODE_MODE:
             blink_info.led_index = PUMP_MODE_BL;
@@ -177,7 +178,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
                 };
                 proc->ui->hook->set_led_onoff(proc->ui, onoff_info);
             }
-            switch_pump_common_mode_ui(proc, pump, &pump_info);
+            switch_pump_common_mode_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_FREQUENCY:
             blink_info.led_index = PUMP_FREQ_SET_BL;
@@ -186,7 +187,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
                 blink_info.finish_status = LED_STATUS_OFF;
             }
             proc->ui->hook->set_led_blink(proc->ui, blink_info);
-            switch_pump_frequency_ui(proc, pump, &pump_info);
+            switch_pump_frequency_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_BREASTFEEDING:
             if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode)) {
@@ -198,7 +199,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             }
             blink_info.led_index = PUMP_BREASTFEEDING_BL;
             proc->ui->hook->set_led_blink(proc->ui, blink_info);
-            switch_breastfeeding_mode_ui(proc, pump, &pump_info);
+            switch_breastfeeding_mode_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_LEFT_CONTROL:
             blink_info.led_index = PUMP_LEFT_CONTROL_BL;
@@ -210,7 +211,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
                 .level = LED_LEVEL_MAX / 2,
             };
             proc->ui->hook->set_led_level(proc->ui, left_level_info);
-            switch_pump_control_type_ui(proc, pump, 0);
+            switch_pump_control_type_ui(proc, proc->pump, 0);
             break;
         case KEY_CODE_RIGHT_CONTROL:
             blink_info.led_index = PUMP_RIGHT_CONTROL_BL;
@@ -222,13 +223,13 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
                 .level = LED_LEVEL_MAX / 2,
             };
             proc->ui->hook->set_led_level(proc->ui, right_level_info);
-            switch_pump_control_type_ui(proc, pump, 1);
+            switch_pump_control_type_ui(proc, proc->pump, 1);
             break;
         case KEY_CODE_KNOB_LEFT:
-            switch_pump_level_ui(proc, pump, &pump_info, 1);
+            switch_pump_level_ui(proc, proc->pump, &pump_info, 1);
             break;
         case KEY_CODE_KNOB_RIGHT:
-            switch_pump_level_ui(proc, pump, &pump_info, 0);
+            switch_pump_level_ui(proc, proc->pump, &pump_info, 0);
             break;
 
         default:
@@ -250,12 +251,11 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
 
     ui_proc_pump_t *proc = (ui_proc_pump_t *)context;
     EXCEPTION_CHECK_VOID(proc);
-    breast_pump_manager_context_t *pump = proc->wm->priv.pump;
-    EXCEPTION_CHECK_VOID(pump);
+    EXCEPTION_CHECK_VOID(proc->pump);
     /// 获取泵奶状态.
-    int pump_status = pump->get_breast_pump_status();
-    int pump_mode = pump->get_breast_pump_mode();
-    int pump_working = pump->is_on_working();
+    int pump_status = proc->pump->get_breast_pump_status();
+    int pump_mode = proc->pump->get_breast_pump_mode();
+    int pump_working = proc->pump->is_on_working();
     /// 如果用户暂停，忽略.
     if (proc->user_pause != 0) {
         LOG_WM("user_pause ignore.");
@@ -277,8 +277,9 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                 }
                 proc->ui_show_state = LOOP_SHOW_SWITCH_MODE;
                 proc->is_mode_changed_by_app = true;
-                /// 接收到APP事件之后仅刷新进入休眠时间
-                proc->wm->priv.pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ);
+                if (proc->pm) {
+                    proc->pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ); /// 接收到APP事件之后仅刷新进入休眠时间
+                }
             } else {
                 proc->is_mode_changed_by_device = false;
                 proc->is_mode_changed_by_app = false;
@@ -302,21 +303,16 @@ static int entry_event_cb(window_lift_cycle_e new_state,
 {
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
     EXCEPTION_CHECK_INT(proc);
-    window_manager_context_t *wm = proc->wm;
-    EXCEPTION_CHECK_INT(wm);
-    ui_manager_context_t *ui = proc->ui;
-    EXCEPTION_CHECK_INT(ui);
-    struct storage_manager_context *st = wm->priv.st;
-    EXCEPTION_CHECK_INT(st);
     /// 获取泵奶控制类型
-    if (st) {
-        st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
+    if (proc->st) {
+        proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
     }
+    
     /// 处理窗口进入事件.
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
-        if (wm->priv.key) {
-            wm->priv.key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
+        if (proc->key) {
+            proc->key->add_keyevent_handler("pump_wm", proc, PUMP_UI_KEY_CODE, PUMP_UI_KEY_TYPE,
                  on_pump_ui_keyevent_hdr);
         } else {
             LOG_WM("key not present, ignore.");
@@ -328,7 +324,9 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
-        ui->animation_play_status_update(ui, false); /// 清除动画播放标志
+        if (proc->ui) {
+            proc->ui->animation_play_status_update(proc->ui, false); /// 清除动画播放标志
+        }
         show_pump_home_ui(proc);
     }
     return 0;
@@ -351,8 +349,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
 {
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
     EXCEPTION_CHECK_INT(proc);
-    window_manager_context_t *wm = proc->wm;
-    EXCEPTION_CHECK_INT(wm);
+    EXCEPTION_CHECK_INT(proc->pump);
     switch (new_state) {
         case ID_SCR_STATE_ON_PAUSE: {
             proc->user_pause = 1;
@@ -360,9 +357,9 @@ static int exit_event_cb(window_lift_cycle_e new_state,
             stop_pump_ui_animation(proc); 
             unregister_broadcast_receiver(&proc->receiver);  // 注销广播接收器，防止use-after-free
             REMOVE_ALL_HANDER_TASK();
-            remove_breast_pump_result_cb(wm->priv.pump);
-            EXCEPTION_CHECK_INT(wm->priv.key);
-            wm->priv.key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
+            remove_breast_pump_result_cb(proc->pump);
+            EXCEPTION_CHECK_INT(proc->key);
+            proc->key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
         }
         break;
 
@@ -394,6 +391,13 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->margic = UI_WINDOW_MARGIC_CODE;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    proc->pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+    proc->motor = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "pump_screen";
@@ -403,9 +407,9 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->receiver.receiver_cb = on_pump_ui_broadcast_receive_cb;
     register_broadcast_receiver(&proc->receiver);
     /// 配置泵奶管理器.
-    if (wm->priv.pump) {
-        wm->priv.pump->set_breast_pump_status(BREAST_PUMP_IDLE);
-        wm->priv.pump->add_breast_pump_result_listener(proc, on_breast_pump_result_cb);
+    if (proc->pump) {
+        proc->pump->set_breast_pump_status(BREAST_PUMP_IDLE);
+        proc->pump->add_breast_pump_result_listener(proc, on_breast_pump_result_cb);
     }
     /// 设置窗口上下文.
     window_context_t *w_ctx = &proc->w_ctx;

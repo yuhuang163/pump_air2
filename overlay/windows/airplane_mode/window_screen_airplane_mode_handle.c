@@ -109,8 +109,8 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
     EXCEPTION_CHECK_INT(ui);
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
-        if (wm->priv.key) {
-            wm->priv.key->add_keyevent_handler("airplane_mode_wm", proc, AIRPLANE_MODE_UI_KEY_CODE, AIRPLANE_MODE_UI_KEY_TYPE,
+        if (proc->key) {
+            proc->key->add_keyevent_handler("airplane_mode_wm", proc, AIRPLANE_MODE_UI_KEY_CODE, AIRPLANE_MODE_UI_KEY_TYPE,
                  on_airplane_mode_keyevent_hdr);
         } else {
             LOG_WM("key not present, ignore.");
@@ -138,8 +138,9 @@ static int exit_event_cb(window_lift_cycle_e new_state, const struct window_cont
             stop_airplane_mode_ui(proc);
             unregister_broadcast_receiver(&proc->receiver);
             REMOVE_ALL_HANDER_TASK();
-            EXCEPTION_CHECK_INT(wm->priv.key);
-            wm->priv.key->remove_keyevent_handler(on_airplane_mode_keyevent_hdr);
+            if (proc->key) {
+                proc->key->remove_keyevent_handler(on_airplane_mode_keyevent_hdr);
+            }
             airplane_mode_led_policy(proc, 0);
         }
         break;
@@ -171,6 +172,12 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->margic = UI_WINDOW_MARGIC_CODE;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    proc->pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    proc->pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_CHARGE_STATE_CHANGE;

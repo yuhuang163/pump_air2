@@ -28,6 +28,10 @@ typedef struct ui_proc_dummy {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
+    power_manager_context_t *pm;
+    key_input_context_t *key;
+    peripheral_bus_context_t *pbus;
+    storage_manager_context_t *st;
     broadcast_obj_t receiver;
     uint32_t margic; /// 窗口标识.
     uint32_t enter_dummy_time; /// 进入dummy时间.
