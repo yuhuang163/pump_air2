@@ -35,6 +35,10 @@ typedef struct ui_proc_charge {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
+    misc_manager_context_t *misc;
+    key_input_context_t *key;
+    peripheral_bus_context_t *pbus;
+    storage_manager_context_t *st;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.

@@ -117,7 +117,7 @@ typedef struct
 typedef enum {
 
     BREAST_PUMP_STIMULATION_MODE,          /// 刺激模式
-    BREAST_PUMP_PUMP_MODE,        /// 吸乳模式
+    BREAST_PUMP_LACTATION_MODE,        /// 吸乳模式
     BREAST_PUMP_MIX_MODE,               /// 混合模式
     BREAST_PUMP_CUSTOM_MODE,         /// 个性化模式
     BREAST_PUMP_PP_MILK_TRACK_MODE,                   /// PP追奶模式

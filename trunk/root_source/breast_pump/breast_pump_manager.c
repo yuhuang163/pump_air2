@@ -499,7 +499,7 @@ static const char *get_breast_pump_mode_name(uint8_t mode)
             return "@unknow";
         case BREAST_PUMP_STIMULATION_MODE:
             return "@stimulation";
-        case BREAST_PUMP_PUMP_MODE:
+        case BREAST_PUMP_LACTATION_MODE:
             return "@pump";
         case BREAST_PUMP_MIX_MODE:
             return "@mix";

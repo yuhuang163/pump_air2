@@ -85,14 +85,6 @@ typedef struct window_manager_context {
     struct __window_manager_private {
         struct resource_manager_context *res; /// 资源管理器
         struct storage_manager_context *st; /// 存储管理器
-        struct misc_manager_context *misc; /// 杂项管理器
-        struct power_manager_context *pm; /// 电源管理器
-        struct key_input_context *key; /// 按键管理器
-        struct breast_pump_manager_context *pump; /// 泵奶管理器
-        struct peripheral_bus_context *pbus; /// 外设总线管理器
-        struct tests_manager_context *product_tst; /// 产品测试管理器
-        struct ble_manager_context *ble_ctx; /// 蓝牙处理管理器
-        // struct ui_manager_context *ui; /// UI管理器
         thread_context_t window_dispatch_thd; /// 窗口调度线程
         multi_func_msg_data_t new_msg; /// 新消息
         uint16_t go_back_history_flag; /// 回退历史标志

@@ -174,7 +174,7 @@ int factory_tests_aging_test_enter_mode1(void)
     EXCEPTION_CHECK_INT(pump_ctx);
     motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
     EXCEPTION_CHECK_INT(motor_ctx);
-    pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
+    pump_ctx->set_breast_pump_mode(BREAST_PUMP_LACTATION_MODE);
     pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
     msleep(100);
     uint8_t time_index = pump_ctx->get_breast_pump_step_index();
@@ -309,7 +309,7 @@ int factory_tests_suction_test(tests_func_args_t args)
     EXCEPTION_CHECK_INT(motor_ctx);
     if (args.arg1 == 1) {
         pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
-        pump_ctx->set_breast_pump_mode(BREAST_PUMP_PUMP_MODE);
+        pump_ctx->set_breast_pump_mode(BREAST_PUMP_LACTATION_MODE);
         pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
         msleep(100);
         uint8_t time_index = pump_ctx->get_breast_pump_step_index();

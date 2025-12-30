@@ -6,6 +6,7 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
+#include "window_screen_home.h" // IWYU pragma: keep
 #include "home_ui.h" // IWYU pragma: keep
 
 /*
@@ -262,12 +263,17 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(home_info);
     EXCEPTION_CHECK_INT(home_info->root);
+    ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
+    EXCEPTION_CHECK_INT(proc);
+    EXCEPTION_CHECK_INT(proc->ble);
+    EXCEPTION_CHECK_INT(proc->misc);
 #if IS_SUPPORT_HOME_COMP_BG
     home_bg_update(thiz);
 #endif
     static uint8_t page_index = HOME_PAGE_GUIDE_PHONE;
-    ble_ui_update(thiz, home_info->root, 1);
-    battery_icon_update(thiz, home_info->root, 1, 0);
+    ble_ui_update(thiz, home_info->root, proc->ble->ble_is_connected());
+    battery_icon_update(thiz, home_info->root, proc->misc->get_battery_percent(),
+        proc->misc->is_charge_plug_in());
     home_qrcode_update(thiz, page_index);
     home_icon_image_update(thiz, page_index);
     home_text_update(thiz, page_index);

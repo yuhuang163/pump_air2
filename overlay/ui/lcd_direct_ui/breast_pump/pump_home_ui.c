@@ -6,6 +6,7 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
+#include "window_screen_pump.h" // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
 
 /*
@@ -13,8 +14,8 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_HOME_COMP_BG                    (0)
-#define IS_SUPPORT_HOME_DEBUG_OTHER_PAGE           (1)
-#define IS_SUPPORT_HOME_PAGE_TEST                  (1)
+#define IS_SUPPORT_HOME_DEBUG_OTHER_PAGE           (0)
+#define IS_SUPPORT_HOME_PAGE_TEST                  (0)
 #define HOME_MODE_MAX_COUNT                        (7)
 #define HOME_SPEED_MAX_COUNT                       (3)
 
@@ -243,6 +244,7 @@ static void pump_home_left_level_label_update(ui_manager_context_t *thiz, uint8_
     lv_obj_set_style_radius(pump_info->left_level_label, 19, 0);  /// 高度 38 → 圆角设 19（或更大）
     char level_value[4] = {0};
     sprintf(level_value, "L%d", level);
+    // LOGI("left_level_label: %d/%s, is_selected: %d", level, level_value, is_selected);
     lv_label_set_text(pump_info->left_level_text, level_value);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_info->left_level_text,
          lv_color_hex(is_selected ? PUMP_TEXT_UNSEL_COLOR : PUMP_TEXT_SEL_COLOR), 0);
@@ -305,6 +307,7 @@ static void pump_home_right_level_label_update(ui_manager_context_t *thiz, uint8
     lv_obj_set_style_radius(pump_info->right_level_label, 19, 0);   /// 高度 38 → 圆角设 19（或更大）
     char level_value[4] = {0};
     sprintf(level_value, "R%d", level);
+    // LOGI("right_level_label: %d/%s, is_selected: %d", level, level_value, is_selected);
     lv_label_set_text(pump_info->right_level_text, level_value);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_info->right_level_text,
          lv_color_hex(is_selected ? PUMP_TEXT_UNSEL_COLOR : PUMP_TEXT_SEL_COLOR), 0);
@@ -462,9 +465,7 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     ui_display_product_tests_home_remove(thiz);
 #else
     EXCEPTION_CHECK_VOID(thiz);
-    if (pump_info == NULL) {
-        return;
-    }
+    EXCEPTION_CHECK_VOID(pump_info);
     ble_ui_deinit(thiz);
     battery_icon_deinit(thiz);
     common_ui_img_resource_deinit(thiz, &pump_info->background_info);
@@ -485,91 +486,37 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     // ui_display_airplane_mode_process(thiz);
     // ui_display_home_process(thiz);
     ui_display_product_tests_home_process(thiz);
-#elif IS_SUPPORT_HOME_PAGE_TEST
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(pump_info);
-    EXCEPTION_CHECK_INT(pump_info->root);
-    static uint8_t minutes = 0, seconds = 0;
-    static uint8_t level_left = 0, level_right = 0;
-    static uint8_t speed = 0;
-    static uint8_t mode_index = 0;
-    static uint8_t is_connected = 0;
-    static uint8_t battery_level = 0;
-    static uint8_t is_charging = 0;
-    static uint8_t is_left_level_selected = 0;
-    // pump_home_bg_update(thiz);
-    ble_ui_update(thiz, pump_info->root, is_connected);
-    battery_icon_update(thiz, pump_info->root, battery_level, is_charging);
-    pump_home_time_update(thiz, minutes, seconds);
-    pump_home_left_level_label_update(thiz, level_left, is_left_level_selected == 0 ? false : true);
-    pump_home_left_level_arc_update(thiz, level_left);
-    pump_home_right_level_label_update(thiz, level_right, is_left_level_selected == 0 ? true : false);
-    pump_home_right_level_arc_update(thiz, level_right);
-    pump_home_speed_label_update(thiz, speed);
-    pump_home_mode_label_update(thiz, mode_index);     
-    thiz->priv.fps_count++;
-    if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
-        thiz->priv.fps_start_time = get_timestamp();
-        LOGI("===> pump home fps: %d", thiz->priv.fps_count);
-        thiz->priv.fps_count = 0;
-        seconds++;
-        if (seconds >= 60) {
-            seconds = 0;
-            minutes++;
-            if (minutes >= 60) {
-                minutes = 0;
-            }
-        }
-        level_left++;
-        if (level_left > 15) {
-            level_left = 0;
-            is_left_level_selected = (is_left_level_selected == 0) ? 1 : 0;
-        }
-        level_right++;
-        if (level_right > 15) {
-            level_right = 0;
-        }
-        speed++;
-        if (speed >= 3) {
-            speed = 0;
-        }
-        mode_index++;
-        if (mode_index >= 7) {
-            mode_index = 0;
-        }
-        is_connected = (is_connected == 0) ? 1 : 0;
-        battery_level++;
-        if (battery_level >= 6) {
-            battery_level = 0;
-            is_charging = (is_charging == 0) ? 1 : 0;
-        }
-    }
 #else
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(pump_info);
     EXCEPTION_CHECK_INT(pump_info->root);
-    breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    EXCEPTION_CHECK_INT(pump);
-    const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
-    uint16_t hold_time = result->work_valid_time / 1000;
-    pump_setting_t setting;
-    motor_manager_context_t *motor = pump->priv.motor;
-    EXCEPTION_CHECK_INT(motor);
-    uint8_t time_index = motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
-    pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
-    ble_manager_context_t *ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
-    EXCEPTION_CHECK_INT(ble);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
+    EXCEPTION_CHECK_INT(proc);
+    EXCEPTION_CHECK_INT(proc->pump);
+    EXCEPTION_CHECK_INT(proc->motor);
+    EXCEPTION_CHECK_INT(proc->ble);
+    EXCEPTION_CHECK_INT(proc->misc);
+    const pump_result_info_t *result = proc->pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     // pump_home_bg_update(thiz);
-    ble_ui_update(thiz, pump_info->root, ble->ble_is_connected());
-    misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
-    // battery_icon_update(thiz, root, battery_level, is_charging);
-    // pump_home_time_update(thiz, hold_time / 60, hold_time % 60);
-    // pump_home_left_level_label_update(thiz, level_left, is_left_level_selected == 0 ? false : true);
-    // pump_home_left_level_arc_update(thiz, level_left);
-    // pump_home_right_level_label_update(thiz, level_right, is_left_level_selected == 0 ? true : false);
-    // pump_home_right_level_arc_update(thiz, level_right);
-    // pump_home_speed_label_update(thiz, speed);
-    // pump_home_mode_label_update(thiz, mode_index);     
+    ble_ui_update(thiz, pump_info->root, proc->ble->ble_is_connected());
+    battery_icon_update(thiz, pump_info->root, 
+        proc->misc->get_battery_percent(), proc->misc->is_charge_plug_in());
+    uint16_t hold_time = result->work_valid_time / 1000;
+    pump_home_time_update(thiz, hold_time / 60, hold_time % 60);
+    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    pump_setting_t setting;
+    uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
+    uint8_t mode = proc->pump->get_breast_pump_mode();
+    pump_home_left_level_label_update(thiz, setting.level[0], 
+        control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? true : false);
+    pump_home_left_level_arc_update(thiz, setting.level[0]);
+    pump_home_right_level_label_update(thiz, setting.level[1], 
+        control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT ? true : false);
+    pump_home_right_level_arc_update(thiz, setting.level[1]);
+    pump_home_speed_label_update(thiz, setting.speed);
+    pump_home_mode_label_update(thiz, mode);     
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();

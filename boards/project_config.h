@@ -21,7 +21,7 @@ extern "C" {
 #define BTH_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
 /// lvgl线程深度
 #if CFG_LVGL_ENABLE
-#define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 4 + 0)
+#define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 8 + 0)
 #else
 #define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 2 + 0)
 #endif
@@ -59,7 +59,6 @@ extern "C" {
 #define LED_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
 /// lcd线程深度
 #define LCD_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
-
 /// 中断消息队列数量定义
 #define INTERRUPT_MESQ_NUM                             (10)
 /// lcd spi 消息队列数量定义

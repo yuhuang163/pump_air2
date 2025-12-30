@@ -19,6 +19,9 @@ typedef struct ui_proc_logo {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
+    ble_manager_context_t *ble;
+    misc_manager_context_t *misc;
+    storage_manager_context_t *st;
     uint32_t margic; /// 窗口标识.
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
 } ui_proc_home_t;

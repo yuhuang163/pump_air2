@@ -25,8 +25,11 @@ typedef struct ui_proc_product_test {
     uint32_t ani_timer_cnt;
     window_context_t w_ctx;
     window_manager_context_t *wm;
-    ui_manager_context_t *ui;
-    // ui_page_handle_t bridge;
+    ui_manager_context_t *ui;  
+    key_input_context_t *key;
+    misc_manager_context_t *misc;
+    tests_manager_context_t *tests;
+    ble_manager_context_t *ble;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.

@@ -173,11 +173,11 @@ typedef struct ui_manager_context {
         struct rt_device_node *panel_dev; /// 显示设备
         struct rt_device_node *led_dev; /// LED设备
         bool is_playing_ui_animation; /// 是否正在播放UI动画
-        uint8_t ui_backlight_val; /// 背光亮度
-        bool lv_tick_timer_running; /// LVGL定时器是否正在运行
+        uint8_t ui_backlight_val;    /// 背光亮度
+        bool lv_tick_timer_running;  /// LVGL定时器是否正在运行
     #if IS_SUPPORT_LVGL
-        bool lvgl_initialized; /// LVGL是否已初始化完成
-        uint16_t fps_count;    /// FPS计数器
+        bool lvgl_initialized;      /// LVGL是否已初始化完成
+        uint16_t fps_count;         /// FPS计数器
         uint32_t fps_start_time;    /// FPS开始时间戳
     #endif
     #if IS_SUPPORT_MODULE_RES

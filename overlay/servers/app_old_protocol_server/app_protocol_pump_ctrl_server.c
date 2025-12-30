@@ -184,7 +184,7 @@ uint8_t app_old_comm_get_current_mode_pump_level(app_old_commd_l_r_ctrl_e lr_ct,
         /*
         storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
         EXCEPTION_CHECK_UINT(storage_ctx);
-        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_PUMP_MODE, 0, &setting);*/
+        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_LACTATION_MODE, 0, &setting);*/
         pump_ctx->get_breast_pump_setting(&setting, time_index);
         LOG_SRV("setting.level [%d] =%d", lr_ct, setting.level[lr_ct]);
         return (uint8_t)setting.level[lr_ct];
@@ -238,7 +238,7 @@ uint8_t app_old_comm_get_current_mode_pump_speed(servers_old_protocol_publish_da
     if (pump_ctx->get_breast_pump_mode() == BREAST_PUMP_CUSTOM_MODE) {
         storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
         EXCEPTION_CHECK_UINT(storage_ctx);
-        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_PUMP_MODE, 0, &setting);
+        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_LACTATION_MODE, 0, &setting);
         LOG_SRV("setting.speed =%d", setting.speed);
         return (uint8_t)setting.speed;
     } else {
@@ -446,7 +446,7 @@ uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old_comm_p
     //如果模式不变，说明只设置当前模式参数,
     if (app_old_comm_pump_ctrl_date->pump_mode == app_old_comm_get_current_pump_mode()) {
         switch (app_old_comm_get_current_pump_mode()) {
-            case BREAST_PUMP_PUMP_MODE:
+            case BREAST_PUMP_LACTATION_MODE:
             case BREAST_PUMP_STIMULATION_MODE: // 传统模式
             case BREAST_PUMP_MIX_MODE: {       /// 常规的吸乳模式允许调频率
                 LOG_SRV("app set normal pump speed");

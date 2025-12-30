@@ -672,13 +672,6 @@ static int on_perpare_wm_init(void *self)
     window_manager_context_t *wm = self;
     wm->priv.res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
     wm->priv.st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    wm->priv.misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
-    wm->priv.pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
-    wm->priv.key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
-    wm->priv.pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    wm->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    wm->priv.product_tst = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
-    wm->priv.ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     return 0;
 }
 

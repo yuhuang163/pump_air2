@@ -34,15 +34,26 @@ static void product_tests_display_completed_cb(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(proc);
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_VOID(wm);
-    if (wm->is_current_window(wm, ID_WINDOW_LOGO) == 0) {
+    if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE) == 0) {
         return;
     }
+    multi_func_msg_data_t msg = {0};
+    msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+    wm->dispatch_new_window_args(wm, &msg);
 }
 
 static void product_tests_ui_finished_policy(ui_manager_context_t *ui)
 {
 #if IS_SUPPORT_LVGL
+    #if 0
     ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
+    #else
+    // LOG_WM("product_tests_ui_finished_policy");
+    ui_proc_product_test_t *proc = (ui_proc_product_test_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);   
+    POST_TASK_HANDLER_NO_DELAY(product_tests_display_completed_cb, proc,
+        PRODUCT_TESTS_HDR_TASK_NAME);
+    #endif
 #else
     ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
@@ -113,7 +124,7 @@ void show_product_tests_ui(ui_proc_product_test_t *proc)
         .fps = PRODUCT_TESTS_ANIMATION_FREQ,
         .res_array = (uint16_t *)s_product_tests_screen_res_array,
         #if IS_SUPPORT_LVGL
-        .res_count = 100,
+        .res_count = 20,
         #else
         .res_count = LENGTH_OF_ARRAY(s_product_tests_screen_res_array),
         #endif

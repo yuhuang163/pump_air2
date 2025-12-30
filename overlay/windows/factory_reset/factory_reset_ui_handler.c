@@ -9,7 +9,6 @@
 * DEFINES
 *****************************************************************************************
 */
-#define FACTORY_RESET_ANIMATION_FREQ                 (12)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -102,10 +101,9 @@ static void show_factory_reset_ui(ui_proc_factory_reset_t *proc)
 */
 void start_factory_reset_ui_animation(ui_proc_factory_reset_t *proc)
 {
-    power_manager_context_t *pm = proc->wm->priv.pm;
-    EXCEPTION_CHECK_VOID(pm);
+    EXCEPTION_CHECK_VOID(proc->pm);
     while (get_timestamp_ms(0) < BOOT_LONG_PRESS_TIME) {
-        if (pm->is_system_power_on()) {
+        if (proc->pm->is_system_power_on()) {
             break;
         }
         msleep(10);
