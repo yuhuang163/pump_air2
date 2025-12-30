@@ -9,6 +9,8 @@
 #include "bsp_config.h"
 #include "bsp_motor_internal.h"
 #include "motor_pwm.h"
+#include "hal_gpio.h"
+#include "hal_sysfreq.h"
 
 // 前向声明，确保编译器识别函数
 int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq);
@@ -127,9 +129,16 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
         .inv = timer_info[pwm_id].pwm_cfg.inv,
         .sleep_on = timer_info[pwm_id].pwm_cfg.sleep_on,
     };
-    if (timer_info[pwm_id].current_duty != new_duty) {
+    if ((timer_info[pwm_id].current_duty != new_duty)&& (new_duty <= timer_info[pwm_id].target_duty)) {
         //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
         hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+        //BSP_LOG("bsp pwm time", "pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
+    }
+    //else if (new_duty == timer_info[pwm_id].target_duty) {
+   //     hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg); 
+    //}
+    else {
+        //LOGE("new_duty is out of range: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
     // 更新当前占空比
     timer_info[pwm_id].current_duty = new_duty;
@@ -138,7 +147,7 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
         if (timer_info[pwm_id].time_id != NULL) {
             enum E_HWTIMER_T ret = hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
             if (ret != E_HWTIMER_OK) {
-                LOGE("Failed to restart timer in callback: pwm_id=%d, ret=%d", pwm_id, ret);
+                //LOGE("Failed to restart timer in callback: pwm_id=%d, ret=%d", pwm_id, ret);
                 // 如果启动失败，清除运行标志，避免无限重试
                 timer_info[pwm_id].time_status = 0;
             }
@@ -146,6 +155,7 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
     } else if (new_duty >= timer_info[pwm_id].target_duty) {
         // 已达到目标占空比，清除运行标志
         timer_info[pwm_id].time_status = 0;
+        //LOGI("new_duty >= target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
 }
 
@@ -175,9 +185,15 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
         .sleep_on = timer_info[pwm_id].pwm_cfg.sleep_on,
     };
 
-    //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
-    if (timer_info[pwm_id].current_duty != new_duty) {
+    if ((timer_info[pwm_id].current_duty != new_duty)&& (new_duty <= timer_info[pwm_id].target_duty)) {
         hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+        //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
+    }
+    //else if (new_duty == timer_info[pwm_id].target_duty) {
+    //    hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg); 
+    //}
+    else {
+        //LOGE("new_duty is out of range: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
 
     // 更新当前占空比
@@ -187,7 +203,7 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
         if (timer_info[pwm_id].time_id != NULL) {
             enum E_HWTIMER_T ret = hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
             if (ret != E_HWTIMER_OK) {
-                LOGE("Failed to restart timer in callback: pwm_id=%d, ret=%d", pwm_id, ret);
+                //LOGE("Failed to restart timer in callback: pwm_id=%d, ret=%d", pwm_id, ret);
                 // 如果启动失败，清除运行标志，避免无限重试
                 timer_info[pwm_id].time_status = 0;
             }
@@ -195,6 +211,7 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
     } else if (new_duty >= timer_info[pwm_id].target_duty) {
         // 已达到目标占空比，清除运行标志
         timer_info[pwm_id].time_status = 0;
+        //LOGI("new_duty >= target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
 }
 
