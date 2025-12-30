@@ -6,6 +6,7 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
+#include "window_screen_pump.h" // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
 
 /*
@@ -353,26 +354,25 @@ void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 
 int ui_display_pump_mode(ui_manager_context_t *thiz)
 {
-    static uint8_t mode_index = 0;
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(mode_info);
     EXCEPTION_CHECK_INT(mode_info->root);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
+    EXCEPTION_CHECK_INT(proc);
+    EXCEPTION_CHECK_INT(proc->pump);
 #if IS_SUPPORT_MODE_COMP_BG
     pump_home_bg_update();
 #endif
+    uint8_t mode = proc->pump->get_breast_pump_mode();
     pump_mode_root_text_update(thiz);
-    pump_mode_lable_update(thiz, mode_index == 0 ? true : false, 0);
-    pump_mode_lable_update(thiz, mode_index == 1 ? true : false, 1);
-    pump_mode_lable_update(thiz, mode_index == 2 ? true : false, 2);
+    pump_mode_lable_update(thiz, mode == BREAST_PUMP_STIMULATION_MODE ? true : false, 0);
+    pump_mode_lable_update(thiz, mode == BREAST_PUMP_LACTATION_MODE ? true : false, 1);
+    pump_mode_lable_update(thiz, mode == BREAST_PUMP_MIX_MODE ? true : false, 2);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOGI("===> pump mode fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
-        mode_index ++;
-        if (mode_index >= MODE_MAX_COUNT) {
-            mode_index = 0;
-        }
     }
     return 0;
 }
@@ -402,15 +402,20 @@ void ui_display_breastfeeding_mode_remove(ui_manager_context_t *thiz)
 
 int ui_display_breastfeeding_mode(ui_manager_context_t *thiz)
 {
-    static uint8_t mode_index = 0;
     EXCEPTION_CHECK_INT(thiz);
-    breastfeeding_mode_img_update(thiz, mode_index);
-    thiz->priv.fps_count++;
-    mode_index ++;
-    if (mode_index >= BREASTFEEDING_MODE_MAX_COUNT) {
-        mode_index = 0;
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
+    EXCEPTION_CHECK_INT(proc->pump);
+    uint8_t mode = proc->pump->get_breast_pump_mode();
+    if (mode == BREAST_PUMP_CUSTOM_MODE) {
+        breastfeeding_mode_img_update(thiz, 0);
+    } else if (mode == BREAST_PUMP_PP_MILK_TRACK_MODE) {
+        breastfeeding_mode_img_update(thiz, 1);
+    } else if (mode == BREAST_PUMP_MILK_BOOST_MODE) {
+        breastfeeding_mode_img_update(thiz, 2);
+    } else {
+        breastfeeding_mode_img_update(thiz, 3);
     }
-
+    thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOGI("===> breastfeeding mode fps: %d", thiz->priv.fps_count);

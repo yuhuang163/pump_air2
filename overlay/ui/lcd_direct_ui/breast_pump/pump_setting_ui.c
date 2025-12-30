@@ -6,6 +6,7 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
+#include "window_screen_pump.h" // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
 
 /*
@@ -264,7 +265,7 @@ static void pump_right_level_lable_update(ui_manager_context_t *thiz, bool is_se
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void ui_display_pump_left_level_prepare(ui_manager_context_t *thiz)
+void ui_display_pump_level_prepare(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     if (level_info == NULL) {
@@ -276,7 +277,7 @@ void ui_display_pump_left_level_prepare(ui_manager_context_t *thiz)
     pump_level_root_init();
 }
 
-void ui_display_pump_left_level_remove(ui_manager_context_t *thiz)
+void ui_display_pump_level_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     if (level_info == NULL) {
@@ -287,81 +288,33 @@ void ui_display_pump_left_level_remove(ui_manager_context_t *thiz)
     level_info = NULL;
 }
 
-int ui_display_pump_left_level(ui_manager_context_t *thiz)
+int ui_display_pump_level(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(level_info->root);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
+    EXCEPTION_CHECK_INT(proc);
+    EXCEPTION_CHECK_INT(proc->pump);
 #if IS_SUPPORT_LEVEL_COMP_BG
     pump_home_bg_update();
 #endif
-    static uint8_t level = 0, status = 0;
+    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    pump_setting_t setting;
+    uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
+    uint8_t level = control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? setting.level[0] : setting.level[1];
     pump_level_arc_update(thiz);
     pump_level_arc_progress_update(thiz, level);
     pump_level_root_text_update(thiz);
     pump_level_root_value_update(thiz, level);
-    pump_left_level_lable_update(thiz, status == 0 ? true : false);
-    pump_right_level_lable_update(thiz, status == 0 ? false : true);
+    pump_left_level_lable_update(thiz, control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? true : false);
+    pump_right_level_lable_update(thiz, control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT ? true : false);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOGI("===> pump left level fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
-        level++;
-        if (level > 15) {
-            level = 0;
-        }
-        status = (status == 0) ? 1 : 0;
-    }
-    return 0;
-}
-
-void ui_display_pump_right_level_prepare(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    if (level_info == NULL) {
-        level_info = (level_display_info_t *)u_malloz(sizeof(level_display_info_t));
-        EXCEPTION_CHECK_VOID(level_info);
-    }
-    pump_level_root_init();
-    thiz->priv.fps_count = 0;
-    thiz->priv.fps_start_time = get_timestamp();
-}
-
-void ui_display_pump_right_level_remove(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    if (level_info == NULL) {
-        return;
-    }
-    LVGL_OBJ_DELETE(level_info->root);
-    u_free(level_info);
-    level_info = NULL;
-}
-
-int ui_display_pump_right_level(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(level_info->root);
-#if IS_SUPPORT_LEVEL_COMP_BG
-    pump_home_bg_update();
-#endif
-    static uint8_t level = 0, status = 0;
-    pump_level_arc_update(thiz);
-    pump_level_arc_progress_update(thiz, level);
-    pump_level_root_text_update(thiz);
-    pump_level_root_value_update(thiz, level);
-    pump_left_level_lable_update(thiz, status == 0 ? true : false);
-    pump_right_level_lable_update(thiz, status == 0 ? false : true);
-    thiz->priv.fps_count++;
-    if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
-        thiz->priv.fps_start_time = get_timestamp();
-        LOGI("===> pump right level fps: %d", thiz->priv.fps_count);
-        thiz->priv.fps_count = 0;
-        level++;
-        if (level > 15) {
-            level = 0;
-        }
-        status = (status == 0) ? 1 : 0;
     }
     return 0;
 }
@@ -375,7 +328,9 @@ void ui_display_pump_speed_prepare(ui_manager_context_t *thiz)
 
 void ui_display_pump_speed_remove(ui_manager_context_t *thiz)
 {
-    // LVGL_OBJ_DELETE(level_info->root);
+    LVGL_OBJ_DELETE(speed_info->root);
+    u_free(speed_info);
+    speed_info = NULL;
 }
 
 int ui_display_pump_speed(ui_manager_context_t *thiz)

@@ -36,7 +36,7 @@ const motor_policy_cfg_t *get_breast_pump_mode_para(int mode)
     switch (mode) {
         case BREAST_PUMP_STIMULATION_MODE:   
             return stimulation_default;
-        case BREAST_PUMP_PUMP_MODE:   
+        case BREAST_PUMP_LACTATION_MODE:   
             return pump_default;
         case BREAST_PUMP_MIX_MODE:   
             return mix_default;
@@ -58,7 +58,7 @@ int breast_pump_mode_time_step_number_get(int mode)
     switch (mode) {
         case BREAST_PUMP_STIMULATION_MODE:
             return STIMULATION_MODE_LEN;
-        case BREAST_PUMP_PUMP_MODE:
+        case BREAST_PUMP_LACTATION_MODE:
             return PUMP_MODE_LEN;
         case BREAST_PUMP_MIX_MODE:
             return MIX_MODE_LEN / 2; /// 混合模式步数为2，因为短吸和长吸各占一个步数.
@@ -96,7 +96,7 @@ void breast_pump_setting_reset(sys_pump_info_t *pump_info, int mode)
                 setting[i].level[1] = cfg[i].core.un.mapping.level;
             }
             break;
-        case BREAST_PUMP_PUMP_MODE:   
+        case BREAST_PUMP_LACTATION_MODE:   
             setting = pump_info->pump_setting;
             for (uint8_t i = 0; i < step_count; i++) {
                 setting[i].speed = cfg[i].core.un.mapping.speed;
@@ -210,7 +210,7 @@ int breast_pump_mode_work_time_get(int mode)
     switch (mode) {
         case BREAST_PUMP_STIMULATION_MODE:
             return NORMAL_MODE_DEFAULT_WORK_TIME;
-        case BREAST_PUMP_PUMP_MODE:
+        case BREAST_PUMP_LACTATION_MODE:
             return NORMAL_MODE_DEFAULT_WORK_TIME;
         case BREAST_PUMP_MIX_MODE:
             return NORMAL_MODE_DEFAULT_WORK_TIME;

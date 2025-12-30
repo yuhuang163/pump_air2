@@ -5,8 +5,9 @@
 #include "motor_manager_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"
-#include "battery_ui.h" 
-#include "ble_ui.h"
+#include "battery_ui.h"  // IWYU pragma: keep
+#include "ble_ui.h" // IWYU pragma: keep
+#include "window_screen_pump.h"
 /*
 * DEFINES
 *****************************************************************************************
@@ -107,17 +108,17 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     return 0;
 }
 
-void ui_display_pump_left_level_prepare(ui_manager_context_t *thiz)
+void ui_display_pump_level_prepare(ui_manager_context_t *thiz)
 {
     // LOGI("ui_display_pump_left_level_prepare");
 }
 
-void ui_display_pump_left_level_remove(ui_manager_context_t *thiz)
+void ui_display_pump_level_remove(ui_manager_context_t *thiz)
 {
     // LOGI("ui_display_pump_left_level_remove");
 }
 
-int ui_display_pump_left_level(ui_manager_context_t *thiz)
+int ui_display_pump_level(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -139,47 +140,12 @@ int ui_display_pump_left_level(ui_manager_context_t *thiz)
     pump_setting_t setting;
     pump->get_breast_pump_setting(&setting, time_index);
     lcd_tlvs_t *tlv = &msg.tlvs[0];
-    UI_FILL_IMG_ID(tlv, UI_IMG_ID_LEFT_LEVEL_ADJUST_DISPLAY);
-    ui_fill_pump_level(&msg.tlvs[1], setting.level[0], setting.level[1]);
-    ui_fill_pump_speed(&msg.tlvs[2], setting.speed);
-    thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
-    u_free(msg.tlvs);
-    return 0;
-}
-
-void ui_display_pump_right_level_prepare(ui_manager_context_t *thiz)
-{
-    // LOGI("ui_display_pump_right_level_prepare");
-}
-
-void ui_display_pump_right_level_remove(ui_manager_context_t *thiz)
-{
-    // LOGI("ui_display_pump_right_level_remove");
-}
-
-int ui_display_pump_right_level(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_UINT(thiz);
-    ui_animation_play_t *ani = &thiz->priv.play_info;
-    lcd_tlvs_msg_t msg = {
-        .srv_id = LCD_DISPLAY_EVENT_SRV,
-        .tlvs = u_malloz(sizeof(lcd_tlvs_t) * 3),
-        .tlvs_num = 3,
-    };
-    EXCEPTION_CHECK_UINT(msg.tlvs);
-    breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    EXCEPTION_CHECK_UINT(pump);
-    motor_manager_context_t *motor = pump->priv.motor;
-    EXCEPTION_CHECK_UINT(motor);
-    int time_index = motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
-    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-        time_index = 0;
-    }
-    const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
-    pump_setting_t setting;
-    pump->get_breast_pump_setting(&setting, time_index);
-    lcd_tlvs_t *tlv = &msg.tlvs[0];
-    UI_FILL_IMG_ID(tlv, UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
+    if (proc->current_ui_type == PUMP_UI_TYPE_LEFT_LEVEL) {
+        UI_FILL_IMG_ID(tlv, UI_IMG_ID_LEFT_LEVEL_ADJUST_DISPLAY);
+    } else {
+        UI_FILL_IMG_ID(tlv, UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY);
+    } 
     ui_fill_pump_level(&msg.tlvs[1], setting.level[0], setting.level[1]);
     ui_fill_pump_speed(&msg.tlvs[2], setting.speed);
     thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);

@@ -34,7 +34,7 @@ static int breast_pump_policy_register(struct motor_manager_context *thiz, add_b
 
     add_policy_cb(head, "stimulation", BREAST_PUMP_STIMULATION_MODE, NULL,
         stimulation_mode_parameter_init, stimulation_mode_policy_get);
-    add_policy_cb(head, "pump",  BREAST_PUMP_PUMP_MODE,  NULL,
+    add_policy_cb(head, "pump",  BREAST_PUMP_LACTATION_MODE,  NULL,
         pump_mode_parameter_init,  pump_mode_policy_get);
     add_policy_cb(head, "mix", BREAST_PUMP_MIX_MODE, NULL,
         mix_mode_parameter_init, mix_mode_policy_get);

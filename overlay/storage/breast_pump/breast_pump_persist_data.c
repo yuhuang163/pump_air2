@@ -399,7 +399,7 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
                 memcpy(&pump_info->stimulation_setting[mode_step], setting, sizeof(pump_setting_t));
             }
             break;
-        case BREAST_PUMP_PUMP_MODE:
+        case BREAST_PUMP_LACTATION_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->pump_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
@@ -466,7 +466,7 @@ int read_pump_setting_info_from_ram(store_func_args_t args)
                 memcpy(setting, &pump_info->stimulation_setting[mode_step], sizeof(pump_setting_t));
             }
             break;
-        case BREAST_PUMP_PUMP_MODE:
+        case BREAST_PUMP_LACTATION_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(setting, pump_info->pump_setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {

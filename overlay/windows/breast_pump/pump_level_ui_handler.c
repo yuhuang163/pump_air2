@@ -76,11 +76,7 @@ static void pump_level_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
-    if (proc->current_ui_type == PUMP_UI_TYPE_LEFT_LEVEL) {
-        ui_display_pump_left_level(ui);
-    } else if (proc->current_ui_type == PUMP_UI_TYPE_RIGHT_LEVEL) {
-        ui_display_pump_right_level(ui);
-    }
+    ui_display_pump_level(ui);
 }
 
 static void pump_level_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -101,32 +97,18 @@ static void pump_level_animation_progress_cb(void *user_data, int index, ui_ani_
     }
 }
 
-static void pump_left_level_ui_display_prepare(void *user_data)
+static void pump_level_ui_display_prepare(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    ui_display_pump_left_level_prepare(ui);
+    ui_display_pump_level_prepare(ui);
 }
 
-static void pump_left_level_ui_display_remove(void *user_data)
+static void pump_level_ui_display_remove(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    ui_display_pump_left_level_remove(ui);
-}
-
-static void pump_right_level_ui_display_prepare(void *user_data)
-{
-    ui_manager_context_t *ui = user_data;
-    EXCEPTION_CHECK_VOID(ui);
-    ui_display_pump_right_level_prepare(ui);
-}
-
-static void pump_right_level_ui_display_remove(void *user_data)
-{
-    ui_manager_context_t *ui = user_data;
-    EXCEPTION_CHECK_VOID(ui);
-    ui_display_pump_right_level_remove(ui);
+    ui_display_pump_level_remove(ui);
 }
 
 static void show_pump_level_ui(ui_proc_pump_t *proc, pump_ui_type_e ui_type)
@@ -146,15 +128,13 @@ static void show_pump_level_ui(ui_proc_pump_t *proc, pump_ui_type_e ui_type)
     /// 根据UI类型设置资源数组.
     if (ui_type == PUMP_UI_TYPE_LEFT_LEVEL) {
         play_info.res_array = (uint16_t *)s_pump_left_level_res_array;
-        play_info.display_prepare_cb = pump_left_level_ui_display_prepare;
-        play_info.display_remove_cb = pump_left_level_ui_display_remove;
     } else if (ui_type == PUMP_UI_TYPE_RIGHT_LEVEL) {
         play_info.res_array = (uint16_t *)s_pump_right_level_res_array;
-        play_info.display_prepare_cb = pump_right_level_ui_display_prepare;
-        play_info.display_remove_cb = pump_right_level_ui_display_remove;
     } else {
-        return;
+        play_info.res_array = NULL;
     }
+    play_info.display_prepare_cb = pump_level_ui_display_prepare;
+    play_info.display_remove_cb = pump_level_ui_display_remove;
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
     proc->current_ui_type = ui_type;
