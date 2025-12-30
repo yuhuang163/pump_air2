@@ -21,7 +21,7 @@ int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq);
 #define IS_SUPPORT_PUMP_RUN_TIME_TEST          (1)
 #define IS_SUPPORT_PUMP_DEBUG_LOG              (0)
 
-#define IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE     (0)
+#define IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE     (1)
 #define PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY      (10) /// 初始占空比
 #define PUMP_PWM_GRADUAL_CHANGE_PERIOD         (2) /// 变化周期 2ms
 #define PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE     (1) /// 变化时间比例系数：change_time = target_duty * SCALE (ms)
@@ -72,6 +72,7 @@ static motor_pwm_timer_cfg_t timer_info[MOTOR_PWM_PUMP_2 + 1] = {
             .target_duty = 0,
             .duty_step = 0,
             .current_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
+            .gpio_irq_update = 0,
         },
     [MOTOR_PWM_PUMP_2] = {
         .time_id = NULL,
@@ -88,6 +89,7 @@ static motor_pwm_timer_cfg_t timer_info[MOTOR_PWM_PUMP_2 + 1] = {
         .target_duty = 0,
         .duty_step = 0,
         .current_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
+        .gpio_irq_update = 0,
     }};
 #endif
 /*
@@ -131,7 +133,8 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
     };
     if ((timer_info[pwm_id].current_duty != new_duty)&& (new_duty <= timer_info[pwm_id].target_duty)) {
         //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
-        hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+        //hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+        timer_info[pwm_id].gpio_irq_update = 1;
         //BSP_LOG("bsp pwm time", "pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
     //else if (new_duty == timer_info[pwm_id].target_duty) {
@@ -186,7 +189,8 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
     };
 
     if ((timer_info[pwm_id].current_duty != new_duty)&& (new_duty <= timer_info[pwm_id].target_duty)) {
-        hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+        //hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+        timer_info[pwm_id].gpio_irq_update = 1;
         //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
     }
     //else if (new_duty == timer_info[pwm_id].target_duty) {
@@ -341,6 +345,7 @@ static int8_t bsp_motor_pwm_gradual_change_start(motor_para_t *motor_para, motor
         timer_info[pwm_id].current_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY; // 初始化当前占空比
         timer_info[pwm_id].duty_step = 0; // 初始化步长
         timer_info[pwm_id].time_period = PUMP_PWM_GRADUAL_CHANGE_PERIOD; // 初始化定时器周期
+        timer_info[pwm_id].gpio_irq_update = 0;
         
         // 计算步长和定时器周期
         // 变化时间与目标占空比成比例：change_time = target_duty * SCALE
@@ -397,6 +402,36 @@ static int8_t bsp_motor_pwm_gradual_change_start(motor_para_t *motor_para, motor
         return 0; // 成功
     }
 }
+
+static void pump_1_irq_callback(enum HAL_GPIO_PIN_T pin)
+{
+    //LOG_PBUS("power key pin[%d] irq triggered", pin);
+    if (timer_info[MOTOR_PWM_PUMP_1].gpio_irq_update == 1) {
+        timer_info[MOTOR_PWM_PUMP_1].gpio_irq_update = 0;
+        hal_pwm_update_duty_only(motor_pwm_cfg[MOTOR_PWM_PUMP_1].id, timer_info[MOTOR_PWM_PUMP_1].current_duty, timer_info[MOTOR_PWM_PUMP_1].pwm_cfg.freq);
+    }
+    
+}
+
+static void pump_2_irq_callback(enum HAL_GPIO_PIN_T pin)
+{
+    //LOG_PBUS("power key pin[%d] irq triggered", pin);
+    if (timer_info[MOTOR_PWM_PUMP_2].gpio_irq_update == 1) {
+        timer_info[MOTOR_PWM_PUMP_2].gpio_irq_update = 0;
+        hal_pwm_update_duty_only(motor_pwm_cfg[MOTOR_PWM_PUMP_2].id, timer_info[MOTOR_PWM_PUMP_2].current_duty, timer_info[MOTOR_PWM_PUMP_2].pwm_cfg.freq);
+    }
+}
+static int8_t bsp_motor_pwm_gradual_gpio_irq_init(int8_t enable)
+{
+        struct HAL_GPIO_IRQ_CFG_T gpio_irq_cfg = {enable, 0, HAL_GPIO_IRQ_TYPE_EDGE_SENSITIVE,
+                                                HAL_GPIO_IRQ_POLARITY_LOW_FALLING, pump_1_irq_callback};
+
+        hal_gpio_setup_irq(PWM_PUMP1_PIN, &gpio_irq_cfg);
+        gpio_irq_cfg.irq_handler = pump_2_irq_callback;
+        hal_gpio_setup_irq(PWM_PUMP2_PIN, &gpio_irq_cfg);
+        return 0;
+}
+
 #endif
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -413,6 +448,7 @@ int bsp_motor_init(void)
         LOGE("Failed to initialize timer system");
         return BSP_ERROR;
     }
+    bsp_motor_pwm_gradual_gpio_irq_init(1);
     // 直接运行PWM测试函数
     //bsp_motor_pwm_test_all_step_counts();
 #endif
@@ -426,6 +462,7 @@ int bsp_motor_deinit(void)
     }
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
     bsp_motor_deinit_timer_system();
+    bsp_motor_pwm_gradual_gpio_irq_init(0);
 #endif
     return BSP_OK;
 }
@@ -440,6 +477,7 @@ int bsp_motor_parameter_set(void *args)
     }
     int ret = 0;
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
+    hal_sysfreq_req(HAL_SYSFREQ_USER_ANC, HAL_CMU_FREQ_208M);
     ret = bsp_motor_pwm_gradual_change_start((motor_para_t *)tmp[1], pwm_id);
 #else
     motor_para_t *motor = (motor_para_t *)tmp[1];
