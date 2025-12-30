@@ -37,7 +37,7 @@ static lv_obj_t * ble_line_icon;
 */
 void ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t is_connected)
 {
-    common_ui_img_resource_init(thiz, is_connected == 0 ? RESOURCE_ID_BLE_CONNECT : RESOURCE_ID_BLE_DISCONNECT, &ble_info);
+    common_ui_img_resource_init(thiz, is_connected > 0 ? RESOURCE_ID_BLE_CONNECT : RESOURCE_ID_BLE_DISCONNECT, &ble_info);
     EXCEPTION_CHECK_VOID(ble_info.data);
     if (ble_img == NULL || !lv_obj_is_valid(ble_img)) {
         ble_img = lv_image_create(root);

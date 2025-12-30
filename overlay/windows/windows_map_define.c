@@ -103,6 +103,8 @@ const char *to_window_name(uint8_t window_id)
             return "airplane_mode";
         case ID_WINDOW_FACTORY_RESET:
             return "factory_reset";
+        case ID_WINDOW_PRODUCT_TEST_MODE:
+            return "product_test";
         default:
             return "unknow";
     }

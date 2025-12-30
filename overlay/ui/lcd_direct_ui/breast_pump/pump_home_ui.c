@@ -437,7 +437,7 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     // ui_display_pump_complete_tip_prepare(thiz);
     // ui_display_airplane_mode_prepare(thiz);
     // ui_display_home_prepare(thiz);
-    ui_display_factory_home_prepare(thiz);
+    ui_display_product_tests_home_prepare(thiz);
 #else
     EXCEPTION_CHECK_VOID(thiz);
     if (pump_info == NULL) {
@@ -459,7 +459,7 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     // ui_display_pump_complete_tip_remove(thiz);
     // ui_display_airplane_mode_remove(thiz);
     // ui_display_home_remove(thiz);
-    ui_display_factory_home_remove(thiz);
+    ui_display_product_tests_home_remove(thiz);
 #else
     EXCEPTION_CHECK_VOID(thiz);
     if (pump_info == NULL) {
@@ -484,7 +484,7 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     // ui_display_pump_complete_tip(thiz);
     // ui_display_airplane_mode_process(thiz);
     // ui_display_home_process(thiz);
-    ui_display_factory_home_process(thiz);
+    ui_display_product_tests_home_process(thiz);
 #elif IS_SUPPORT_HOME_PAGE_TEST
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(pump_info);
