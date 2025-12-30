@@ -20,8 +20,15 @@
 #else
 #define I2C_MASTER_COUNT                            3
 #endif
+
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
 #define I2C_MASTER_SPEED                            100000 // 400000
 #define IS_SUPPORT_I2C_MASTER_TASK                  1 
+#else
+#define I2C_MASTER_SPEED                            400000
+#define IS_SUPPORT_I2C_MASTER_TASK                  0
+#endif
+
 #define I2C_MASTER_ID_IS_INVALID(x) \
 do { \
     if ((x >= I2C_MASTER_ID_MAX) || (x < 0)) { \

@@ -65,9 +65,9 @@ extern "C" {
 #define CHARGE_POWER_PIN                HAL_GPIO_PIN_P0_2
 /// 马达PWM相关定义
 #define PWM_PUMP1_PIN                   HAL_GPIO_PIN_P3_7
-#define PWM_PUMP2_PIN                   HAL_GPIO_PIN_P4_0
+#define PWM_PUMP2_PIN                   HAL_GPIO_PIN_P4_1
 #define PWM_VALVE1_PIN                  HAL_GPIO_PIN_P3_6
-#define PWM_VALVE2_PIN                  HAL_GPIO_PIN_P4_1
+#define PWM_VALVE2_PIN                  HAL_GPIO_PIN_P4_0
 #define MOTOR_PUMP1_PWM_ID              HAL_PWM1_ID_3
 #define MOTOR_PUMP1_PWM_IMUX            hal_iomux_set_pwm7
 #define MOTOR_PUMP2_PWM_ID              HAL_PWM_ID_1

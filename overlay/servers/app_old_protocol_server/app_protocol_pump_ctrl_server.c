@@ -180,9 +180,12 @@ uint8_t app_old_comm_get_current_mode_pump_level(app_old_commd_l_r_ctrl_e lr_ct,
     ///当前系统在处于自定义模式步骤，应该上报什么，就默认上报吸乳第一步参数
     pump_setting_t setting;
     if (pump_ctx->get_breast_pump_mode() == BREAST_PUMP_CUSTOM_MODE) {
+        //app bug,在自定义模式下，常规level需要上报自定义模式运行的level
+        /*
         storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
         EXCEPTION_CHECK_UINT(storage_ctx);
-        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_LACTATION_MODE, 0, &setting);
+        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_LACTATION_MODE, 0, &setting);*/
+        pump_ctx->get_breast_pump_setting(&setting, time_index);
         LOG_SRV("setting.level [%d] =%d", lr_ct, setting.level[lr_ct]);
         return (uint8_t)setting.level[lr_ct];
     } else {

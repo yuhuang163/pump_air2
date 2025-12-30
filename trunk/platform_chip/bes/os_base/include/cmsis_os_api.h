@@ -211,6 +211,12 @@ int platform_flash_read(const char *partition, uint32_t addr, uint8_t *data, uin
 int platform_flash_write(const char *partition, uint32_t addr, uint8_t *data, uint32_t size);
 /// 平台提供的擦除闪存接口.
 int platform_flash_erase(const char *partition, uint32_t addr, uint32_t size);
+/// 平台提供的进入蓝牙信令测试模式接口（会重启设备）.
+void platform_bt_enter_signalingtest_mode(void);
+/// 平台提供的进入蓝牙非信令测试模式接口（会重启设备）.
+void platform_bt_enter_nosignalingtest_mode(void);
+/// 平台提供的蓝牙校频测试接口.
+int platform_bt_xtalcalib_proc(void);
 
 #ifdef __cplusplus
 }

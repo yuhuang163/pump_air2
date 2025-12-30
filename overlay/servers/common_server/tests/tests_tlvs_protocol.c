@@ -8,6 +8,7 @@
 #include "protocol_manager_api.h" // IWYU pragma: keep
 #include "ble_manager_api.h"      // IWYU pragma: keep
 #include "persist_storage.h"      // IWYU pragma: keep
+#include "cmsis_os_api.h"         // IWYU pragma: keep
 /*
 * DEFINES
 *****************************************************************************************
@@ -601,6 +602,106 @@ int tests_tlvs_write_factory_complete_flag(comm_protocol_builder_t *builder, com
 
     comm_protocol_tlv_node_t tlv_node = {
         .type = TESTS_TLV_WRITE_FACTORY_COMPLETE_FLAG,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+/// ======================== 蓝牙测试 ========================
+
+int tests_tlvs_bt_signaling_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                                 uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
+
+    LOG_SRV("tests_tlvs_bt_signaling_test: %s", mode ? "ENTER" : "EXIT");
+
+    uint8_t result = 0x00; // 默认失败
+
+    if (mode == 1) {
+        /* 进入蓝牙信令测试模式 */
+        platform_bt_enter_signalingtest_mode(); // 此函数会设置启动模式并重启
+        result = 0x01; // 成功（实际会在重启后生效）
+    } else {
+        /* 退出蓝牙信令测试模式 */
+        // 退出需要重启到正常模式，这里返回成功
+        result = 0x01; // 默认成功
+    }
+
+    // 应答格式: Length=1, Value=0x00失败/0x01成功
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_BT_SIGNALING_TEST,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_bt_nosignaling_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                                   uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
+
+    LOG_SRV("tests_tlvs_bt_nosignaling_test: %s", mode ? "ENTER" : "EXIT");
+
+    uint8_t result = 0x00; // 默认失败
+
+    if (mode == 1) {
+        /* 进入蓝牙非信令测试模式 */
+        platform_bt_enter_nosignalingtest_mode(); // 此函数会设置启动模式并重启
+        result = 0x01; // 成功（实际会在重启后生效）
+    } else {
+        /* 退出蓝牙非信令测试模式 */
+        // 退出需要重启到正常模式，这里返回成功
+        result = 0x01; // 默认成功
+    }
+
+    // 应答格式: Length=1, Value=0x00失败/0x01成功
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_BT_NOSIGNALING_TEST,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_bt_xtal_calib_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                                  uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
+
+    LOG_SRV("tests_tlvs_bt_xtal_calib_test: %s", mode ? "ENTER" : "EXIT");
+
+    uint8_t result = 0x00; // 默认失败
+
+    if (mode == 1) {
+        /* 进入蓝牙校频测试模式 */
+        // 调用校频测试函数
+        if (platform_bt_xtalcalib_proc() == 0) {
+            result = 0x01; // 成功
+        }
+    } else {
+        /* 退出蓝牙校频测试模式 */
+        // TODO: 实现退出逻辑
+        result = 0x01; // 默认成功
+    }
+
+    // 应答格式: Length=1, Value=0x00失败/0x01成功
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_BT_XTAL_CALIB_TEST,
         .length = 1,
         .value = &result,
     };

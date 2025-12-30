@@ -28,6 +28,7 @@ typedef struct {
     uint8_t target_duty;
     uint8_t duty_step;      // 步长（无符号，总是增加）
     uint8_t current_duty;   // 当前占空比
+    uint8_t gpio_irq_update;    // GPIO中断更新标志，0：不更新，1：更新    
 } motor_pwm_timer_cfg_t;
 /*
 * GLOBAL FUNCTION DECLARATION

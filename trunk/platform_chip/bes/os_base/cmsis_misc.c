@@ -7,6 +7,7 @@
 #include "norflash_api.h"
 #include "hal_bootmode.h"
 #include "root_common_api.h" // IWYU pragma: keep
+#include "apps.h"            // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -226,4 +227,36 @@ int platform_flash_erase(const char *partition, uint32_t addr, uint32_t size)
         return -1;
     }
     return -1;
+}
+
+/// ======================== 蓝牙测试相关函数封装 ========================
+
+/*
+* EXTERNAL FUNCTION DECLARATIONS (蓝牙测试相关)
+*****************************************************************************************
+*/
+// 前向声明，避免头文件依赖问题
+// app_enter_signalingtest_mode 和 app_enter_non_signalingtest_mode 已在 apps.h 中声明
+extern int app_factorymode_bt_xtalcalib_proc(void);
+
+void platform_bt_enter_signalingtest_mode(void)
+{
+    app_enter_signalingtest_mode();
+}
+
+void platform_bt_enter_nosignalingtest_mode(void)
+{
+    app_enter_non_signalingtest_mode();
+}
+
+int platform_bt_xtalcalib_proc(void)
+{
+    // 前向声明，函数在 app_factory_bt.cpp 中定义（需要 __FACTORY_MODE_SUPPORT__ 宏）
+    extern int app_factorymode_bt_xtalcalib_proc(void);
+#ifdef __FACTORY_MODE_SUPPORT__
+    return app_factorymode_bt_xtalcalib_proc();
+#else
+    // 如果 FACTORY_MODE 未启用，返回错误
+    return -1;
+#endif
 }

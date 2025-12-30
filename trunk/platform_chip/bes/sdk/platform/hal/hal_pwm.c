@@ -241,7 +241,6 @@ int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq)
     uint8_t ratio;
     uint8_t index;
     uint8_t offset;
-    uint32_t current_load;
 
     if (id >= HAL_PWM_ID_QTY) {
         return 1;
@@ -279,41 +278,32 @@ int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq)
         mod_freq = PWM_FAST_CLOCK;
     }
 
-    lock = int_lock();
-
-    // 读取当前的LOAD值，确保与硬件一致
-    // 这是关键：必须使用当前硬件中的LOAD值来计算toggle，而不是重新计算
-    if (offset == 0) {
-        current_load = GET_BITFIELD(pwm[index]->LOAD01, PWM_LOAD01_0);
-    } else if (offset == 1) {
-        current_load = GET_BITFIELD(pwm[index]->LOAD01, PWM_LOAD01_1);
-    } else if (offset == 2) {
-        current_load = GET_BITFIELD(pwm[index]->LOAD23, PWM_LOAD23_2);
-    } else {
-        current_load = GET_BITFIELD(pwm[index]->LOAD23, PWM_LOAD23_3);
-    }
-
-    // 基于当前的LOAD值计算toggle值，确保一致性
+    // 根据freq重新计算load值，确保与设置一致（不读取硬件寄存器）
     if (ratio == 100) {
         toggle = PWM_MAX_VALUE;
     } else if (ratio == 0) {
         toggle = 0;
     } else {
-        // 从LOAD值反推实际的load（LOAD = PWM_MAX_VALUE + 1 - load）
-        load = PWM_MAX_VALUE + 1 - current_load;
-        if (load == 0 || load > PWM_MAX_VALUE) {
-            // 如果LOAD值异常，说明PWM可能未正确配置，使用默认计算
-            load = mod_freq / freq;
-            if (load == 0) {
-                load = 1;
-            }
+        // 使用与hal_pwm_enable相同的计算方式，确保一致性
+        load = mod_freq / freq;
+        if (load == 0) {
+            load = 1;
         }
-        toggle = load * ratio / 100;
+        
+        // 使用四舍五入提高精度，避免整数除法截断导致的精度损失
+        // 公式：(load * ratio + 50) / 100 实现四舍五入
+        toggle = (load * ratio + 50) / 100;
         if (toggle == 0) {
             toggle = 1;
         }
+        // 确保toggle不超过load，避免占空比超过100%
+        if (toggle > load) {
+            toggle = load;
+        }
         toggle = PWM_MAX_VALUE - toggle;
     }
+
+    lock = int_lock();
 
     // 使用内存屏障确保寄存器写入顺序，减少不连续的可能性
     __DMB();
