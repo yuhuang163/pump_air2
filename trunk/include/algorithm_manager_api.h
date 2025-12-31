@@ -42,6 +42,7 @@ typedef struct algo_manager_context {
         void (*algo_sampling_start)(struct algo_manager_context *ctx);
         void (*algo_sampling_stop)(struct algo_manager_context *ctx);
         bool (*algo_sampling_is_sampling)(struct algo_manager_context *ctx);
+        bool (*algo_change_sampling_interval)(struct algo_manager_context *ctx, uint16_t interval);
     #endif
     #if IS_SUPPORT_DEVICE_IMU
         int (*add_static_calib_cmpl_cb)(void (*cb)(void));

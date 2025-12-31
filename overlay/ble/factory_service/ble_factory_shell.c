@@ -18,6 +18,7 @@
 #define BLE_FORBID_SLEEP_SHELL_CMD             "#forbidSlp"
 #define BLE_IMG_TEST_SHELL_CMD                 "#imgTest"
 #define BLE_ALGO_SAMPLING_DATA_SHELL_CMD       "#algoSmp"
+#define BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD   "#algoSmpIntvl"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -30,6 +31,7 @@ static void ble_shell_system_reset(const uint8_t *param, uint16_t len);
 static void ble_shell_forbid_sleep(const uint8_t *param, uint16_t len);
 static void ble_shell_img_test(const uint8_t *param, uint16_t len);
 static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len);
+static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len);
 static const ble_factory_shell_t shell_list[] = {
     {BLE_PUMP_POLICY_SHELL_CMD,   ble_shell_pump_policy},
     {BLE_PUMP_CTRL_SHELL_CMD,     ble_shell_pump_ctrl},
@@ -38,6 +40,7 @@ static const ble_factory_shell_t shell_list[] = {
     {BLE_FORBID_SLEEP_SHELL_CMD,  ble_shell_forbid_sleep},
     {BLE_IMG_TEST_SHELL_CMD,      ble_shell_img_test},
     {BLE_ALGO_SAMPLING_DATA_SHELL_CMD, ble_shell_algo_sampling_control},
+    {BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD, ble_shell_algo_sampling_interval},
 };
 
 /*
@@ -173,6 +176,15 @@ static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len)
     } else {
         algo->hook->algo_sampling_stop(algo);
     }
+}
+
+static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len)
+{
+    algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+    int interval = 0;
+    sscanf((const char *)param, "%d", &interval);
+    LOG_BLE("shell algo sampling interval %d", interval);
+    algo->hook->algo_change_sampling_interval(algo, interval);
 }
 
 /*

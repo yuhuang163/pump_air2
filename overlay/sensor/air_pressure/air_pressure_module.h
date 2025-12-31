@@ -16,6 +16,7 @@ struct rt_device_node;
 typedef struct _air_pressure_module_data {
     struct rt_device_node *dev;
     uint32_t polling_cnt;
+    uint16_t sampling_interval;
 } air_pressure_module_data_t;
 
 #ifdef __cplusplus
