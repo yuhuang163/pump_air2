@@ -21,7 +21,7 @@ extern "C" {
 #define BTH_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
 /// lvgl线程深度
 #if CFG_LVGL_ENABLE
-#define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 8 + 0)
+#define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 16 + 0)
 #else
 #define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 2 + 0)
 #endif
@@ -52,11 +52,11 @@ extern "C" {
 /// 工厂串口线程深度
 #define FACTORY_UART_THREAD_STACKSIZE                  (TASK_SIZE_DEFAULT * 2 + 0)
 /// 按键设备线程深度
-#define KEY_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
+#define KEY_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 2 + 0)
 /// 充电设备线程深度
 #define CHARGE_DEVICE_THREAD_STACKSIZE                 (TASK_SIZE_DEFAULT * 2 + 0)
 /// led设备线程深度
-#define LED_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 1 + 0)
+#define LED_DEVICE_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 2 + 0)
 /// lcd线程深度
 #define LCD_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0)
 /// 中断消息队列数量定义

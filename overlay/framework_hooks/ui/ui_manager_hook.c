@@ -42,7 +42,7 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
     MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id, &msg, OS_WAIT_FOREVER);
     thiz->play_animation_lock(NULL);
     ui_animation_play_t *ani = &thiz->priv.play_info;
-    if (ani->played_count >= ani->res_count) {
+    if (ani->is_play_finished) {
         thiz->priv.is_playing_ui_animation = false;
         if (ani->progress_cb) {
             ani->progress_cb(thiz, ani->played_count, ANI_TIMER_DRAW_FINISH);
@@ -75,7 +75,7 @@ static void change_images_cb(lv_timer_t *t)
     }
     ui_ctx->play_animation_lock(NULL);
     ui_animation_play_t *ani = &ui_ctx->priv.play_info;
-    if (ani->played_count >= ani->res_count) {
+    if (ani->is_play_finished) {
         ui_ctx->priv.is_playing_ui_animation = false;
         if (ani->progress_cb) {
             ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_FINISH);
@@ -110,13 +110,12 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     ui_animation_play_t *ani = &thiz->priv.play_info;
     ani->played_count = 0;
     ani->user_data = play_info.user_data;
-    ani->res_array = (uint16_t *)play_info.res_array;
-    ani->res_count = play_info.res_count;
     ani->progress_cb = play_info.progress_cb;
     ani->tag = (char *)play_info.tag;
     ani->reset_play_count_cb = reset_play_count_cb;
     ani->display_prepare_cb = play_info.display_prepare_cb;
     ani->display_remove_cb = play_info.display_remove_cb;
+    ani->is_play_finished = false;
     if (ani->display_prepare_cb) {
         ani->display_prepare_cb(thiz);
     }

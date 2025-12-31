@@ -190,6 +190,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     ui_proc_dummy_t *proc = u_malloz(sizeof(ui_proc_dummy_t));
     SET_WINDOW_CONTEXT(proc);
     proc->margic = UI_WINDOW_MARGIC_CODE;
+    proc->current_ui_type = DUMMY_UI_TYPE_NONE;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);

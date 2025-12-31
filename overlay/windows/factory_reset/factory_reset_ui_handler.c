@@ -2,8 +2,8 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "window_screen_factory_reset.h" // IWYU pragma: keep
 #include "ui_img_define.h" // IWYU pragma: keep
+#include "window_screen_factory_reset.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -14,10 +14,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶首页动画资源ID.
-static const uint16_t s_factory_reset_screen_res_array[1] = {
-    UI_IMG_ID_UNLOCK_TIP,
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -28,12 +24,6 @@ static const uint16_t s_factory_reset_screen_res_array[1] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
-static void factory_reset_ui_finished_policy(ui_manager_context_t *ui)
-{
-
-}
-
 static void factory_reset_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -50,7 +40,6 @@ static void factory_reset_animation_progress_cb(void *user_data, int index, ui_a
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            factory_reset_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             factory_reset_ui_before_policy(ui, index);
@@ -84,8 +73,6 @@ static void show_factory_reset_ui(ui_proc_factory_reset_t *proc)
     ui_play_info_t play_info = {
         .tag = "factory_reset_screen",
         .fps = FACTORY_RESET_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_factory_reset_screen_res_array,
-        .res_count = LENGTH_OF_ARRAY(s_factory_reset_screen_res_array),
         .progress_cb = factory_reset_animation_progress_cb,
         .display_prepare_cb = factory_reset_ui_display_prepare,
         .display_remove_cb = factory_reset_ui_display_remove,

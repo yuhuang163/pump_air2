@@ -15,16 +15,31 @@ extern "C" {
 #include "input_key_code.h" // IWYU pragma: keep
 
 /// dummy界面动画频率
-#define DUMMY_ANIMATION_FREQ                 (12)
+#if IS_SUPPORT_LVGL
+#define DUMMY_ANIMATION_FREQ                 (25)
+#else
+#define DUMMY_ANIMATION_FREQ                 (5)
+#endif
 
+/// dummy界面动画展示时间
+#define DUMMY_ANIMATION_DISPLAY_TIME         (2000) /// 2s
+
+/// dummy UI动作枚举
 typedef enum {
-    HDR_ACTION_NIGHT_LIGHT_ONOFF = 100,
-    HDR_ACTION_NIGHT_LIGHT_LEVEL,
-    HDR_ACTION_NIGHT_LIGHT_ADAPTIVE,
-    HDR_ACTION_MAX
+    DUMMY_HDR_NIGHT_LIGHT_ONOFF = 100,
+    DUMMY_HDR_NIGHT_LIGHT_LEVEL,
+    DUMMY_HDR_NIGHT_LIGHT_ADAPTIVE,
+    DUMMY_HDR_ACTION_MAX
 } dummy_ui_hdr_action_e;
 
-typedef struct ui_proc_dummy {
+/// dummy UI类型枚举
+typedef enum {
+    DUMMY_UI_TYPE_NONE = 0,
+    DUMMY_UI_TYPE_MAX
+} dummy_ui_type_e;
+
+/// dummy UI结构体
+typedef struct {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
@@ -36,10 +51,9 @@ typedef struct ui_proc_dummy {
     uint32_t margic; /// 窗口标识.
     uint32_t enter_dummy_time; /// 进入dummy时间.
     uint32_t last_progress_ani_time; /// 上次动画进度时间.
+    uint16_t current_ui_type; /// 当前UI类型. dummy_ui_type_e
 } ui_proc_dummy_t;
 
-/// dummy界面动画展示时间
-#define DUMMY_ANIMATION_DISPLAY_TIME      (2000) /// 2s
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

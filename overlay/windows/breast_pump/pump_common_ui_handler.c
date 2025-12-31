@@ -2,8 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common.h"
-#include "ui_img_define.h"
 #include "window_screen_pump.h"
 
 /*
@@ -15,10 +13,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶首页动画资源ID.
-static const uint16_t s_pump_home_res_array[1] = {
-    UI_IMG_ID_HOME_SCREEN,
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS

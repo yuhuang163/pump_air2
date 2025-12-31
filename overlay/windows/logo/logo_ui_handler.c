@@ -1,26 +1,20 @@
 /*
 * INCLUDE FILES
 *****************************************************************************************
-*/
-#include "ui_img_define.h"
-#include "ui_page_define.h" 
+*/ 
+#include "ui_page_define.h"  // IWYU pragma: keep
 #include "window_screen_logo.h" // IWYU pragma: keep
 
 /*
 * DEFINES
 *****************************************************************************************
 */
-#define LOGO_ANIMATION_FREQ                 (25)
 #define LOGO_DISPLAY_TASK_NAME              "logo_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶首页动画资源ID.
-static const uint16_t s_logo_screen_res_array[1] = {
-    UI_IMG_ID_LOGO,
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -63,29 +57,6 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
 #endif
 }
 
-static void logo_ui_finished_policy(ui_manager_context_t *ui)
-{
-#if IS_SUPPORT_LVGL
-    #if 1
-    ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(logo_display_completed_cb, 10, proc,
-            LOGO_DISPLAY_TASK_NAME);
-    }
-    #else
-    ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
-    #endif
-#else
-    ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(logo_display_completed_cb, 10, proc,
-            LOGO_DISPLAY_TASK_NAME);
-    }
-#endif
-}
-
 static void logo_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -94,6 +65,11 @@ static void logo_ui_before_policy(ui_manager_context_t *ui, int index)
 static void logo_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_logo_process(ui);
+    ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= LOGO_ANIMATION_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(logo_display_completed_cb, proc, LOGO_DISPLAY_TASK_NAME);
+    } 
 }
 
 static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -102,7 +78,6 @@ static void logo_animation_progress_cb(void *user_data, int index, ui_ani_progre
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            logo_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             logo_ui_before_policy(ui, index);
@@ -136,12 +111,6 @@ static void show_logo_ui(ui_proc_logo_t *proc)
     ui_play_info_t play_info = {
         .tag = "logo_screen",
         .fps = LOGO_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_logo_screen_res_array,
-    #if IS_SUPPORT_LVGL
-        .res_count = 60,
-    #else 
-        .res_count = LENGTH_OF_ARRAY(s_logo_screen_res_array),
-    #endif
         .progress_cb = logo_animation_progress_cb,
         .display_prepare_cb = logo_ui_display_prepare,
         .display_remove_cb = logo_ui_display_remove,

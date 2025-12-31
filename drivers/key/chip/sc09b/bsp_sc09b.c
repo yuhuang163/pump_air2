@@ -28,6 +28,7 @@ static bool s_touch_is_ready = false;
 static thread_context_t s_key_device_thd  = {0};
 static uint8_t s_touch_key[TOUCH_KEY_NUM] = {0};
 static uint16_t s_key_mask[TOUCH_KEY_NUM] = {
+#if V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION
     0x0002, /// 启动键
     0x0004, /// 模式键
     0x0008, /// 频段键
@@ -35,6 +36,21 @@ static uint16_t s_key_mask[TOUCH_KEY_NUM] = {
     0x0001, /// 左按键
     0x4000, /// 右按键
     // 0x8000, /// 双边控制键
+#elif V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION
+    0x0008, /// 启动键
+    0x0002, /// 模式键
+    0x0001, /// 频段键
+    0x8000, /// 追奶键
+    0x0004, /// 左按键
+    0x0010, /// 右按键
+#else
+    0x0002, /// 启动键
+    0x0004, /// 模式键
+    0x0008, /// 频段键
+    0x0010, /// 追奶键
+    0x0001, /// 左按键
+    0x4000, /// 右按键
+#endif
 };
 
 /*

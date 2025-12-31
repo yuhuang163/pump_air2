@@ -14,14 +14,31 @@ extern "C" {
 #include "windows_map_define.h" // IWYU pragma: keep
 #include "input_key_code.h" // IWYU pragma: keep
 
+/// 产品测试动画频率
+#if IS_SUPPORT_LVGL
+#define PRODUCT_TEST_ANIMATION_FREQ                 (25)
+#else
+#define PRODUCT_TEST_ANIMATION_FREQ                 (5)
+#endif
 
+/// 产品测试动画展示时间
+#define PRODUCT_TESTS_ANIMATION_DISPLAY_TIME        (2000) /// 2s
+
+/// 产品测试UI动作枚举
 typedef enum {
     PRODUCT_TEST_START = 100,
     PRODUCT_TEST_E10   = 101,
     PRODUCT_TEST_E11   = 102,
 } product_test_ui_action_e;
 
-typedef struct ui_proc_product_test {    
+/// 产品测试UI类型枚举
+typedef enum {
+    PRODUCT_TEST_UI_TYPE_NONE = 0,
+    PRODUCT_TEST_UI_TYPE_MAX
+} product_test_ui_type_e;
+
+/// 产品测试UI结构体
+typedef struct {    
     uint32_t ani_timer_cnt;
     window_context_t w_ctx;
     window_manager_context_t *wm;
@@ -33,9 +50,8 @@ typedef struct ui_proc_product_test {
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
+    uint16_t current_ui_type; /// 当前UI类型. product_test_ui_type_e
 } ui_proc_product_test_t;
-
-#define PRODUCT_TESTS_ANIMATION_DISPLAY_TIME      (2000) /// 2s
 
 /*
 * GLOBAL FUNCTION DECLARATION

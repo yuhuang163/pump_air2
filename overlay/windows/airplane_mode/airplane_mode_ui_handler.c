@@ -2,11 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-
-#include "root_common.h"
-#include "ui_img_define.h" 
 #include "ui_page_define.h"  // IWYU pragma: keep
-#include "breast_pump_manager_api.h"
 #include "window_screen_airplane_mode.h" // IWYU pragma: keep
 
 /*
@@ -18,9 +14,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-static const uint16_t s_airplane_mode_res_array[1] = {
-    UI_IMG_ID_UNLOCK_TIP,
-};
 
 static const airplane_mode_led_status_t enter_airplane_mode_led_status[6] = {
     {PUMP_START_BL, LED_LEVEL_MAX / 2},
@@ -47,35 +40,6 @@ static const airplane_mode_led_status_t exit_airplane_mode_led_status[4] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void airplane_mode_ui_finished_policy(ui_manager_context_t *ui)
-{
-    ui_proc_airplane_mode_t *proc = (ui_proc_airplane_mode_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->misc);
-    /// 如果充电状态发生变化，则刷新UI.
-    if (proc->charging_status != proc->misc->is_charge_plug_in()) {
-        proc->charging_status = proc->misc->is_charge_plug_in();
-        goto UI_DISPLAY_REFRESH;
-    }
-    
-    /// 如果上次动画时间小于更新间隔，则不刷新UI
-    if (get_timestamp_ms(proc->last_progress_ani_time) < AIRPLANE_MODE_ANIMATION_UPDATE_INTERVAL) {
-        return;
-    }
-
-    /// 如果电池电量百分比发生变化，则刷新UI.
-    if (proc->battery_percent == proc->misc->get_battery_percent()) {
-        return;
-    }
-
-UI_DISPLAY_REFRESH: 
-    proc->battery_percent = proc->misc->get_battery_percent();
-    proc->last_progress_ani_time = get_timestamp();
-    if (ui->priv.play_info.reset_play_count_cb) {
-        ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
-    }
-}
-
 static void airplane_mode_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -93,7 +57,6 @@ static void airplane_mode_animation_progress_cb(void *user_data, int index, ui_a
     ui_animation_play_t *ani = &ui->priv.play_info;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            airplane_mode_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             airplane_mode_ui_before_policy(ui, index);
@@ -129,20 +92,13 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     ui_play_info_t play_info = {
-        .tag = "pumping_screen",
+        .tag = "airplane_mode_screen",
         .fps = AIRPLANE_MODE_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_airplane_mode_res_array,
-        .res_count = 1,
         .progress_cb = airplane_mode_animation_progress_cb,
         .display_prepare_cb = airplane_mode_ui_display_prepare,
         .display_remove_cb = airplane_mode_ui_display_remove,
         .user_data = proc,
     };
-
-    if (proc->misc) {
-        proc->charging_status = proc->misc->is_charge_plug_in();
-        proc->battery_percent = proc->misc->get_battery_percent();
-    }
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
 }
@@ -151,10 +107,6 @@ void stop_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
-    if (proc->misc) {
-        proc->charging_status = proc->misc->is_charge_plug_in();
-        proc->battery_percent = proc->misc->get_battery_percent();
-    }
     ui->hook->ui_animation_play_deinit(ui);
     ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();

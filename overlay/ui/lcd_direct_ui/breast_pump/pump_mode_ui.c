@@ -126,7 +126,7 @@ const static mode_label_info_t mode_label_infos[MODE_MAX_COUNT] = {
 
 typedef struct {
 #if IS_SUPPORT_MODE_COMP_BG
-    lv_obj_t * mode_bg_img;
+    lv_obj_t * background;
 #endif
     lv_obj_t * root;
     lv_obj_t * root_text;
@@ -179,18 +179,18 @@ static void pump_mode_root_init(void)
 static void pump_home_bg_update(void)
 {
     static uint8_t status = 0;
-    if (mode_info->mode_bg_img == NULL || !lv_obj_is_valid(mode_info->root)) {
-        mode_info->mode_bg_img = lv_image_create(mode_info->root);
+    if (mode_info->background == NULL || !lv_obj_is_valid(mode_info->root)) {
+        mode_info->background = lv_image_create(mode_info->root);
     }
     lv_fs_path_ex_t bg_img_path;
     if (status == 0) {
-        lv_obj_add_flag(mode_info->mode_bg_img, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(mode_info->background, LV_OBJ_FLAG_HIDDEN);
     } else {
-        lv_obj_clear_flag(mode_info->mode_bg_img, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(mode_info->background, LV_OBJ_FLAG_HIDDEN);
         lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, mode_bg_data,
             sizeof(mode_bg_data), "png");
-        lv_image_set_src(mode_info->mode_bg_img, (const void *)&bg_img_path);
-        lv_obj_align(mode_info->mode_bg_img, LV_ALIGN_CENTER, 0, 0);
+        lv_image_set_src(mode_info->background, (const void *)&bg_img_path);
+        lv_obj_align(mode_info->background, LV_ALIGN_CENTER, 0, 0);
     }
 
     if (get_timestamp() - start_time > 1000) {

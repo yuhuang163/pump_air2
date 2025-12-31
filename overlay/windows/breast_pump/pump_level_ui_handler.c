@@ -2,9 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common.h"
-#include "ui_img_define.h"
-#include "ui_page_define.h" 
+#include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_pump.h"
 
 /*
@@ -17,14 +15,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶力度UI动画资源ID.
-static const uint16_t s_pump_left_level_res_array[1] = {
-    UI_IMG_ID_LEFT_LEVEL_ADJUST_DISPLAY,
-};
-
-static const uint16_t s_pump_right_level_res_array[1] = {
-    UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY,
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -45,25 +35,8 @@ static void pump_level_display_completed_cb(hdr_post_args_t *args)
         return;
     }
 
-    if (proc->current_ui_type == PUMP_UI_TYPE_LEFT_LEVEL || proc->current_ui_type == PUMP_UI_TYPE_RIGHT_LEVEL) {
+    if (proc->current_ui_type == PUMP_UI_TYPE_LEVEL) {
         show_pump_home_ui(proc);
-    }
-}
-
-static void pump_level_ui_finished_policy(ui_manager_context_t *ui)
-{
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(pump_level_display_completed_cb, 10, proc,
-            PUMP_LEVEL_DISPLAY_TASK_NAME);
-    } else {
-        if (proc->display_progress != proc->ui_progress) {
-            proc->display_progress++;
-            if (ui->priv.play_info.reset_play_count_cb) {
-                ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
-            }
-        }
     }
 }
 
@@ -77,6 +50,9 @@ static void pump_level_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     ui_display_pump_level(ui);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(pump_level_display_completed_cb, proc, PUMP_LEVEL_DISPLAY_TASK_NAME);
+    }
 }
 
 static void pump_level_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -84,7 +60,6 @@ static void pump_level_animation_progress_cb(void *user_data, int index, ui_ani_
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            pump_level_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             pump_level_ui_before_policy(ui, index);
@@ -111,33 +86,21 @@ static void pump_level_ui_display_remove(void *user_data)
     ui_display_pump_level_remove(ui);
 }
 
-static void show_pump_level_ui(ui_proc_pump_t *proc, pump_ui_type_e ui_type)
+static void show_pump_level_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     ui_play_info_t play_info = {
         .tag = "pump_level_screen",
-        .fps = PUMP_ANIMATION_FREQ,
-        .res_count = 1,
+        .fps = PUMP_LEVEL_ANIMATION_FREQ,
         .progress_cb = pump_level_animation_progress_cb,
-        .display_prepare_cb = NULL,
-        .display_remove_cb = NULL,
+        .display_prepare_cb = pump_level_ui_display_prepare,
+        .display_remove_cb = pump_level_ui_display_remove,
         .user_data = proc,
     };
-
-    /// 根据UI类型设置资源数组.
-    if (ui_type == PUMP_UI_TYPE_LEFT_LEVEL) {
-        play_info.res_array = (uint16_t *)s_pump_left_level_res_array;
-    } else if (ui_type == PUMP_UI_TYPE_RIGHT_LEVEL) {
-        play_info.res_array = (uint16_t *)s_pump_right_level_res_array;
-    } else {
-        play_info.res_array = NULL;
-    }
-    play_info.display_prepare_cb = pump_level_ui_display_prepare;
-    play_info.display_remove_cb = pump_level_ui_display_remove;
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
-    proc->current_ui_type = ui_type;
+    proc->current_ui_type = PUMP_UI_TYPE_LEVEL;
 }
 
 /*
@@ -157,13 +120,9 @@ int switch_pump_control_type_ui(ui_proc_pump_t *proc, breast_pump_manager_contex
         proc->info.control_type = control_type;
         st->put_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
     }
-
-    if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
-        show_pump_level_ui(proc, PUMP_UI_TYPE_LEFT_LEVEL);
-    } else if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
-        show_pump_level_ui(proc, PUMP_UI_TYPE_RIGHT_LEVEL);
-    }
+    show_pump_level_ui(proc);
     LOG_UI("switch pump control type: %d", control_type);
+
     return 0;
 }
 
@@ -172,7 +131,6 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
 {
     storage_manager_context_t *st = pump->priv.st;
     EXCEPTION_CHECK_INT(st);
-    uint32_t ui_type = 0;
     EXCEPTION_CHECK_INT(pump->priv.motor);
     int time_index = pump->priv.motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
     if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
@@ -189,7 +147,6 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
                 proc->setting.level[0]++;
             }
         }
-        ui_type = PUMP_UI_TYPE_LEFT_LEVEL;
     } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
         if (is_left) {
             if (proc->setting.level[1] > 0) {
@@ -200,7 +157,6 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
                 proc->setting.level[1]++;
             }
         }
-        ui_type = PUMP_UI_TYPE_RIGHT_LEVEL;
     } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
         for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
             if (is_left) {
@@ -213,20 +169,10 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
                 }
             }
         }
-        ui_type = PUMP_UI_TYPE_BILATERAL_LEVEL;
     }
     pump->set_breast_pump_setting(&proc->setting, time_index);
     st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, pump_info->mode, time_index, &proc->setting);
-    if (proc->current_ui_type != ui_type) {
-        show_pump_level_ui(proc, ui_type);
-        proc->ui_progress = 0;
-        proc->display_progress = 0;
-    } else {
-        proc->ui_progress++;
-        proc->last_progress_ani_time = get_timestamp();
-        LOG_UI("pump level ui progress: %d", proc->ui_progress);
-    }
-
+    show_pump_level_ui(proc);
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         LOG_UI("switch pump %d level: %d, mode: %s", i, proc->setting.level[i],
              pump->get_breast_pump_mode_name(pump_info->mode));

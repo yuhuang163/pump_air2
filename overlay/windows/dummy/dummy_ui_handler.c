@@ -2,10 +2,8 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "ui_img_define.h"
 #include "ui_page_define.h"  // IWYU pragma: keep
 #include "window_screen_dummy.h" // IWYU pragma: keep
-#include "windows_manager_api.h"
 
 /*
 * DEFINES
@@ -17,9 +15,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-static const uint16_t s_dummy_screen_res_array[1] = {
-    UI_IMG_ID_LOGO,
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -49,16 +44,6 @@ static void dummy_display_completed_cb(hdr_post_args_t *args)
     return;
 }
 
-static void dummy_ui_finished_policy(ui_manager_context_t *ui)
-{
-    ui_proc_dummy_t *proc = (ui_proc_dummy_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= DUMMY_ANIMATION_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(dummy_display_completed_cb, 10, proc,
-            DUMMY_DISPLAY_TASK_NAME);
-    }
-}
-
 static void dummy_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -67,6 +52,11 @@ static void dummy_ui_before_policy(ui_manager_context_t *ui, int index)
 static void dummy_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_dummy_process(ui);
+    ui_proc_dummy_t *proc = (ui_proc_dummy_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= DUMMY_ANIMATION_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(dummy_display_completed_cb, proc, DUMMY_DISPLAY_TASK_NAME);
+    }
 }
 
 static void dummy_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -75,7 +65,6 @@ static void dummy_animation_progress_cb(void *user_data, int index, ui_ani_progr
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            dummy_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             dummy_ui_before_policy(ui, index);
@@ -148,12 +137,6 @@ void start_dummy_ui_animation(ui_proc_dummy_t *proc)
     ui_play_info_t play_info = {
         .tag = "dummy_screen",
         .fps = DUMMY_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_dummy_screen_res_array,
-    #if IS_SUPPORT_LVGL
-        .res_count = 100,
-    #else 
-        .res_count = LENGTH_OF_ARRAY(s_dummy_screen_res_array),
-    #endif
         .progress_cb = dummy_animation_progress_cb,
         .display_prepare_cb = dummy_ui_display_prepare,
         .display_remove_cb = dummy_ui_display_remove,
