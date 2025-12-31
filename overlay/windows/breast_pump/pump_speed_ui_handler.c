@@ -2,11 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common.h"
-#include "ui_img_define.h"
 #include "ui_page_define.h" // IWYU pragma: keep
-#include "window_screen_pump.h"
 #include "breast_pump_manager.h" 
+#include "window_screen_pump.h"
 
 /*
 * DEFINES
@@ -18,10 +16,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶速度UI动画资源ID.
-static const uint16_t s_pump_speed_res_array[1] = {
-    UI_IMG_ID_PUMP_SPEED,
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -47,16 +41,6 @@ static void pump_speed_display_completed_cb(hdr_post_args_t *args)
     }
 }
 
-static void pump_speed_ui_finished_policy(ui_manager_context_t *ui)
-{
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(pump_speed_display_completed_cb, 10, proc,
-            PUMP_SPEED_DISPLAY_TASK_NAME);
-    } 
-}
-
 static void pump_speed_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -65,6 +49,11 @@ static void pump_speed_ui_before_policy(ui_manager_context_t *ui, int index)
 static void pump_speed_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_pump_speed(ui);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(pump_speed_display_completed_cb, proc, PUMP_SPEED_DISPLAY_TASK_NAME);
+    } 
 }
 
 static void pump_speed_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -74,7 +63,6 @@ static void pump_speed_animation_progress_cb(void *user_data, int index, ui_ani_
     ui_animation_play_t *ani = &ui->priv.play_info;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            pump_speed_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             pump_speed_ui_before_policy(ui, index);
@@ -107,11 +95,12 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     ui_play_info_t play_info = {
         .tag = "pump_speed_screen",
-        .fps = PUMP_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_pump_speed_res_array,
-        .res_count = LENGTH_OF_ARRAY(s_pump_speed_res_array),
+        .fps = PUMP_SPEED_ANIMATION_FREQ,
         .progress_cb = pump_speed_animation_progress_cb,
+        .display_prepare_cb = pump_speed_ui_display_prepare,
+        .display_remove_cb = pump_speed_ui_display_remove,
         .user_data = proc,
+
     };
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();

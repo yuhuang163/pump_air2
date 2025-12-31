@@ -440,15 +440,16 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     // ui_display_pump_complete_tip_prepare(thiz);
     // ui_display_airplane_mode_prepare(thiz);
     // ui_display_home_prepare(thiz);
-    ui_display_product_tests_home_prepare(thiz);
+    // ui_display_product_tests_home_prepare(thiz);
+    ui_display_pump_speed_prepare(thiz);
 #else
     EXCEPTION_CHECK_VOID(thiz);
     if (pump_info == NULL) {
         pump_info = (pump_home_display_info_t *)u_malloz(sizeof(pump_home_display_info_t));
         EXCEPTION_CHECK_VOID(pump_info);
     }
-    thiz->priv.fps_count = 0;
-    thiz->priv.fps_start_time = get_timestamp();
+    // thiz->priv.fps_count = 0;
+    // thiz->priv.fps_start_time = get_timestamp();
     pump_home_init();  
 #endif
 }
@@ -462,7 +463,8 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     // ui_display_pump_complete_tip_remove(thiz);
     // ui_display_airplane_mode_remove(thiz);
     // ui_display_home_remove(thiz);
-    ui_display_product_tests_home_remove(thiz);
+    // ui_display_product_tests_home_remove(thiz);
+    ui_display_pump_speed_remove(thiz);
 #else
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
@@ -485,7 +487,8 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     // ui_display_pump_complete_tip(thiz);
     // ui_display_airplane_mode_process(thiz);
     // ui_display_home_process(thiz);
-    ui_display_product_tests_home_process(thiz);
+    // ui_display_product_tests_home_process(thiz);
+    ui_display_pump_speed(thiz);
 #else
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(pump_info);
@@ -496,12 +499,16 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc->motor);
     EXCEPTION_CHECK_INT(proc->ble);
     EXCEPTION_CHECK_INT(proc->misc);
+    EXCEPTION_CHECK_INT(proc->st);
     const pump_result_info_t *result = proc->pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     // pump_home_bg_update(thiz);
     ble_ui_update(thiz, pump_info->root, proc->ble->ble_is_connected());
     battery_icon_update(thiz, pump_info->root, 
         proc->misc->get_battery_percent(), proc->misc->is_charge_plug_in());
-    uint16_t hold_time = result->work_valid_time / 1000;
+    uint16_t hold_time = 0;
+    if (result != NULL) {
+        hold_time = result->work_valid_time / 1000;
+    }
     pump_home_time_update(thiz, hold_time / 60, hold_time % 60);
     uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
     proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);

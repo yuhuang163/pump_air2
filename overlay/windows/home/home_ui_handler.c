@@ -2,26 +2,19 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "ui_img_define.h"
 #include "ui_page_define.h"  // IWYU pragma: keep
 #include "window_screen_home.h" // IWYU pragma: keep
-#include "windows_manager_api.h"
 
 /*
 * DEFINES
 *****************************************************************************************
 */
-#define HOME_ANIMATION_FREQ                 (12)
 #define HOME_DISPLAY_TASK_NAME              "home_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶首页动画资源ID.
-static const uint16_t s_home_screen_res_array[1] = {
-    UI_IMG_ID_BOOT_QRCODE
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -51,20 +44,6 @@ static void home_display_completed_cb(hdr_post_args_t *args)
     return;
 }
 
-static void home_ui_finished_policy(ui_manager_context_t *ui)
-{
-#if 1
-    ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= HOME_ANIMATION_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(home_display_completed_cb, 10, proc,
-            HOME_DISPLAY_TASK_NAME);
-    }
-#else
-    ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
-#endif
-}
-
 static void home_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -73,6 +52,11 @@ static void home_ui_before_policy(ui_manager_context_t *ui, int index)
 static void home_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_home_process(ui);
+    ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= HOME_ANIMATION_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(home_display_completed_cb, proc, HOME_DISPLAY_TASK_NAME);
+    }
 }
 
 static void home_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -81,7 +65,6 @@ static void home_animation_progress_cb(void *user_data, int index, ui_ani_progre
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            home_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             home_ui_before_policy(ui, index);
@@ -124,12 +107,6 @@ void start_home_ui_animation(ui_proc_home_t *proc)
     ui_play_info_t play_info = {
         .tag = "home_screen",
         .fps = HOME_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_home_screen_res_array,
-    #if IS_SUPPORT_LVGL
-        .res_count = 100,
-    #else 
-        .res_count = LENGTH_OF_ARRAY(s_home_screen_res_array),
-    #endif
         .progress_cb = home_animation_progress_cb,
         .display_prepare_cb = home_ui_display_prepare,
         .display_remove_cb = home_ui_display_remove,

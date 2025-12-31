@@ -2,8 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "window_screen_logo.h" // IWYU pragma: keep
-#include "ui_img_define.h"
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_product_test.h"
 
@@ -11,26 +9,20 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PRODUCT_TESTS_ANIMATION_FREQ                 (25)
 #define PRODUCT_TESTS_HDR_TASK_NAME                  "product_tests_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-///产测动画资源ID.
-static const uint16_t s_product_tests_screen_res_array[1] = {
-    UI_IMG_ID_PRODUCT_TESTS_RESOUCE,
-};
 
 /*
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
 static void product_tests_display_completed_cb(hdr_post_args_t *args)
 {
-    ui_proc_logo_t *proc = (ui_proc_logo_t *)args->user_data;
+    ui_proc_product_test_t *proc = (ui_proc_product_test_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_VOID(wm);
@@ -42,28 +34,6 @@ static void product_tests_display_completed_cb(hdr_post_args_t *args)
     wm->dispatch_new_window_args(wm, &msg);
 }
 
-static void product_tests_ui_finished_policy(ui_manager_context_t *ui)
-{
-#if IS_SUPPORT_LVGL
-    #if 0
-    ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
-    #else
-    // LOG_WM("product_tests_ui_finished_policy");
-    ui_proc_product_test_t *proc = (ui_proc_product_test_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);   
-    POST_TASK_HANDLER_NO_DELAY(product_tests_display_completed_cb, proc,
-        PRODUCT_TESTS_HDR_TASK_NAME);
-    #endif
-#else
-    ui_proc_logo_t *proc = (ui_proc_logo_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PRODUCT_TESTS_ANIMATION_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(product_tests_display_completed_cb, 10, proc,
-            PRODUCT_TESTS_HDR_TASK_NAME);
-    }
-#endif
-}
-
 static void product_tests_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -72,6 +42,14 @@ static void product_tests_ui_before_policy(ui_manager_context_t *ui, int index)
 static void product_tests_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_product_tests_home_process(ui);
+#if 1
+    ui_proc_product_test_t *proc = (ui_proc_product_test_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= PRODUCT_TESTS_ANIMATION_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(product_tests_display_completed_cb, proc,
+            PRODUCT_TESTS_HDR_TASK_NAME);
+    }
+#endif
 }
 
 static void product_tests_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -80,7 +58,6 @@ static void product_tests_animation_progress_cb(void *user_data, int index, ui_a
     ui_manager_context_t *ui = user_data;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            product_tests_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             product_tests_ui_before_policy(ui, index);
@@ -121,13 +98,7 @@ void show_product_tests_ui(ui_proc_product_test_t *proc)
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     ui_play_info_t play_info = {
         .tag = "product_tests_screen",
-        .fps = PRODUCT_TESTS_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_product_tests_screen_res_array,
-        #if IS_SUPPORT_LVGL
-        .res_count = 20,
-        #else
-        .res_count = LENGTH_OF_ARRAY(s_product_tests_screen_res_array),
-        #endif
+        .fps = PRODUCT_TEST_ANIMATION_FREQ,
         .progress_cb = product_tests_animation_progress_cb,
         .display_prepare_cb = product_tests_ui_display_prepare,
         .display_remove_cb = product_tests_ui_display_remove,

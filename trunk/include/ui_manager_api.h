@@ -1,6 +1,7 @@
 #ifndef __UI_MANAGER_API_H__
 #define __UI_MANAGER_API_H__
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,59 +14,15 @@ extern "C" {
 #include "broadcast_manager_api.h" // IWYU pragma: keep
 #include "root_message.h" // IWYU pragma: keep
 #if IS_SUPPORT_LVGL
-#include "lvgl.h"
-#include "lv_hal_disp.h"
-#include "lv_hal_indev.h"
+#include "lvgl.h" // IWYU pragma: keep
+#include "lv_hal_disp.h" // IWYU pragma: keep
+#include "lv_hal_indev.h" // IWYU pragma: keep
 #endif
 
 #ifndef LVGL_TIME_TICK_PERIOD
 #define LVGL_TIME_TICK_PERIOD (10)
 #endif
 #define LVGL_HDR_TASK_PERIOD (16)
-
-#if !CUST_LVGL_SUPPORT
-typedef uint16_t ui_color_t;
-typedef void * ui_obj_t;
-typedef struct {
-
-    uint32_t cf : 5;          /*Color format: See `lv_img_color_format_t`*/
-    uint32_t always_zero : 3; /*It the upper bits of the first byte. Always zero to look like a
-                                 non-printable character*/
-
-    uint32_t reserved : 2; /*Reserved to be used later*/
-
-    uint32_t w : 11; /*Width of the image map*/
-    uint32_t h : 11; /*Height of the image map*/
-} ui_img_header_t;
-
-typedef struct {
-    ui_img_header_t header; /**< A header describing the basics of the image*/
-    uint32_t data_size;     /**< Size of the image in bytes*/
-    const uint8_t * data;   /**< Pointer to the data of the image*/
-} ui_img_dsc_t;
-#endif
-
-/// 获取图片资源回调.
-typedef void *(*ui_get_img_res_loop_fptr)(void *user_data, int args1, int args2);
-typedef struct {
-    ui_get_img_res_loop_fptr get_img_res_cb;
-    const char *(*get_dest_text_show)(int args1, int args2);
-    void (*show_ui_text)(int *argv, int argc, const char *text);
-    void (*set_bg_img_color)(int args, ui_color_t color);
-    void *(*draw_qrcode_view)(void *user_data, int qr_size, int x, int y, const char *text);
-    int (*animation_progress_hook)(void *user_data, int index, int total);
-    uint16_t ani_loop_play;
-    int16_t x;
-    int16_t y;
-    int16_t w;
-    int16_t h;
-    void *bg_img_obj;
-#if IS_SUPPORT_OVERLAY_IMG
-    uint8_t overlay_img_num;
-    void *overlay_img_bg_img_obj[OVERLAY_IMG_NUM_MAX];
-    ui_obj_t *overlay_img_layer[OVERLAY_IMG_NUM_MAX];
-#endif
-} ui_process_cb_parms_t;
 
 typedef enum {
     ANI_TIMER_DRAW_BEFORE = 0, /// 背景合并之前
@@ -86,22 +43,10 @@ typedef struct ui_play_info {
     const uint16_t *res_array;
     uint16_t res_count;
     int fps;
-    ui_process_cb_parms_t *parms;
     progress_cb_fptr progress_cb;
     display_prepare_cb_fptr display_prepare_cb;
     display_remove_cb_fptr display_remove_cb;
 } ui_play_info_t;
-
-/// 图片数据包装.
-typedef struct {
-    int exit_flag;
-    int res_index;
-    int lang_index;
-    int mode_index;
-    uint16_t x;
-    uint16_t y;
-    ui_img_dsc_t img_dsc;
-} ui_img_dsc_wrapper_t;
 
 /// 动画绘制定时器.
 struct _ui_timer_t;
@@ -120,13 +65,9 @@ typedef struct ui_animation_play {
     /// private:
     char *tag;
     void *user_data;
-    uint16_t *res_array;
-    uint16_t res_count;
+    uint8_t is_play_finished;
+    uint8_t reserved[3];
     uint16_t played_count;
-    ui_img_dsc_wrapper_t img_wrap;
-    #if IS_SUPPORT_OVERLAY_IMG
-    ui_img_dsc_wrapper_t img_wrap_overlay[OVERLAY_IMG_NUM_MAX];
-    #endif
     ui_timer_t *update_timer;
     /// public:
     progress_cb_fptr progress_cb;
@@ -162,12 +103,12 @@ typedef struct ui_manager_context {
     /// private:
     struct __ui_manager_private {
         thread_context_t ui_hdr_thd; /// UI显示调度线程
-        #if IS_SUPPORT_LVGL
+    #if IS_SUPPORT_LVGL
             lv_timer_t *lv_timer; /// LVGL定时器
             uint8_t need_stop_timer; /// 是否需要停止定时器
-        #else
+    #else
             os_timer_id lv_timer; /// LVGL定时器
-        #endif
+    #endif
         os_mutex_id ui_draw_lock; /// 显示刷新锁
         broadcast_obj_t m_bcd; /// 广播监听对象
         struct rt_device_node *panel_dev; /// 显示设备
@@ -190,9 +131,9 @@ typedef struct ui_manager_context {
     void (*animation_play_status_update)(struct ui_manager_context *thiz, bool flag);
     void (*play_animation_lock)(const char *tag);
     void (*play_animation_unlock)(const char *tag);
-    #if IS_SUPPORT_LVGL
+#if IS_SUPPORT_LVGL
     bool (*is_lvgl_initialized)(struct ui_manager_context *thiz);
-    #endif
+#endif
     /// 外部hook点.
     struct __ui_manager_hook {
         int (*on_post_init_route)(struct ui_manager_context *thiz);

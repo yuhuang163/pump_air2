@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "breast_pump_manager_api.h"
 #include "breast_pump_manager.h"
 #include "window_screen_pump.h"// IWYU pragma: keep
 
@@ -62,12 +61,12 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
     LOG_WM("pump_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
     int action = args->arg1;
     switch (action) {
-        case HDR_ACTION_START_PUMP: {
+        case PUMP_HDR_ACTION_START_PUMP: {
             LOG_WM("%s", args->name);
         }
         break;
         
-        case HDR_ACTION_CHANGE_PUMP_STATUS: {
+        case PUMP_HDR_ACTION_CHANGE_PUMP_STATUS: {
             int new_state = args->arg2;
             LOG_WM("%s, new_state: %d", args->name, new_state);
             if (proc->ui_show_state != new_state) {
@@ -76,12 +75,12 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         }
         break;
         
-        case HDR_ACTION_LOOP_SHOW: {
+        case PUMP_HDR_ACTION_LOOP_SHOW: {
             /// TODO: 轮播显示
         }
         break;
         
-        case HDR_ACTION_SHOW_ONCE: {
+        case PUMP_HDR_ACTION_SHOW_ONCE: {
             int new_state = args->arg2;
             LOG_WM("%s, new_state: %d", args->name, new_state);
             if (proc->ui_show_state != new_state) {
@@ -90,24 +89,24 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         }
         break;
 
-        case HDR_ACTION_SHOW_THEMES_ANI: {
+        case PUMP_HDR_ACTION_SHOW_THEMES_ANI: {
             LOG_WM("%s", args->name);
             /// TODO: 播放主题动画
         }
         break;
 
-        case HDR_ACTION_RECOVER_DEFAULT_ANI: {
+        case PUMP_HDR_ACTION_RECOVER_DEFAULT_ANI: {
             LOG_WM("%s: recovery-play..", args->name);
             show_pump_home_ui(proc);
         }
         break;
 
-        case HDR_ACTION_PROGRESS_STOP: {
+        case PUMP_HDR_ACTION_PROGRESS_STOP: {
             /// TODO: 停止进度条
         }
         break;
 
-        case HDR_ACTION_PUMP_COMPLETE: {
+        case PUMP_HDR_ACTION_PUMP_COMPLETE: {
             // REMOVE_ALL_HANDER_TASK();
             LOG_WM("pump complete, show progress time policy.");
             if (proc->pump) {
@@ -273,7 +272,7 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                     REMOVE_ALL_HANDER_TASK();
                     LOG_WM("start pump state change task after %ds", PUMP_MODE_CHANGE_TIMEOUT);
                     POST_TASK_HANDLER_DELAYED_ARG5(pump_ui_common_cb, PUMP_MODE_CHANGE_TIMEOUT,
-                            HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_TASK_NAME);
+                            PUMP_HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_TASK_NAME);
                 }
                 proc->ui_show_state = LOOP_SHOW_SWITCH_MODE;
                 proc->is_mode_changed_by_app = true;
@@ -287,7 +286,7 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
             break;
         }
         case ID_BROADCAST_BREAST_PUMP_FINISH: {
-            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_PUMP_COMPLETE, 
+            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, PUMP_HDR_ACTION_PUMP_COMPLETE, 
                 proc, PUMP_COMPLETE_TASK_NAME);
             LOG_WM("pump finish, post pump complete task.");
         }
@@ -319,7 +318,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
         if (proc->need_start_pump) {
             proc->need_start_pump = 0;
-            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, HDR_ACTION_START_PUMP, proc,
+            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, PUMP_HDR_ACTION_START_PUMP, proc,
                  PUMP_START_TASK_NAME);
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
@@ -389,6 +388,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     SET_WINDOW_CONTEXT(proc);
     /// 设置窗口标识.
     proc->margic = UI_WINDOW_MARGIC_CODE;
+    proc->current_ui_type = PUMP_UI_TYPE_NONE;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     proc->pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);

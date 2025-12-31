@@ -141,11 +141,16 @@ int ui_display_pump_level(ui_manager_context_t *thiz)
     pump->get_breast_pump_setting(&setting, time_index);
     lcd_tlvs_t *tlv = &msg.tlvs[0];
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    if (proc->current_ui_type == PUMP_UI_TYPE_LEFT_LEVEL) {
+    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    if (proc->st) {
+        proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    }
+    
+    if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
         UI_FILL_IMG_ID(tlv, UI_IMG_ID_LEFT_LEVEL_ADJUST_DISPLAY);
     } else {
         UI_FILL_IMG_ID(tlv, UI_IMG_ID_RIGHT_LEVEL_ADJUST_DISPLAY);
-    } 
+    }
     ui_fill_pump_level(&msg.tlvs[1], setting.level[0], setting.level[1]);
     ui_fill_pump_speed(&msg.tlvs[2], setting.speed);
     thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);

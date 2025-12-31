@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "ui_img_define.h"
 #include "ui_page_define.h"  // IWYU pragma: keep
 #include "window_screen_charge.h" // IWYU pragma: keep
 
@@ -15,11 +14,7 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 充电UI动画资源ID.
-static const uint16_t s_charging_res_array[1] = {
-    UI_IMG_ID_CHARGE,
-};
-
+ 
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -29,22 +24,6 @@ static const uint16_t s_charging_res_array[1] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void charging_ui_finished_policy(ui_manager_context_t *ui)
-{
-    ui_proc_charge_t *proc = (ui_proc_charge_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    /// 如果上次动画时间小于更新间隔，则不刷新UI.
-    if (get_timestamp_ms(proc->last_progress_ani_time) < CHARGE_ANIMATION_UPDATE_INTERVAL) {
-        return;
-    }
-    /// 更新动画时间戳.
-    proc->last_progress_ani_time = get_timestamp();
-    /// 重置动画播放计数.
-    if (ui->priv.play_info.reset_play_count_cb) {
-        ui->priv.play_info.reset_play_count_cb(&ui->priv.play_info);
-    }
-}
-
 static void charging_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -61,7 +40,6 @@ static void charging_animation_progress_cb(void *user_data, int index, ui_ani_pr
     EXCEPTION_CHECK_VOID(ui);
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            charging_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             charging_ui_before_policy(ui, index);
@@ -99,8 +77,6 @@ void show_charging_ui(ui_proc_charge_t *proc)
     ui_play_info_t play_info = {
         .tag = "charge_screen",
         .fps = CHARGE_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_charging_res_array,
-        .res_count = 1,
         .progress_cb = charging_animation_progress_cb,
         .display_prepare_cb = charging_ui_display_prepare,
         .display_remove_cb = charging_ui_display_remove,

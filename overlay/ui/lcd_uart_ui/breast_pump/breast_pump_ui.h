@@ -20,13 +20,9 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz);
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz);
 int ui_display_pump_home_screen(ui_manager_context_t *thiz);
 /// 泵奶左档位调节界面
-void ui_display_pump_left_level_prepare(ui_manager_context_t *thiz);
-void ui_display_pump_left_level_remove(ui_manager_context_t *thiz);
-int ui_display_pump_left_level(ui_manager_context_t *thiz);
-/// 泵奶右档位调节界面
-void ui_display_pump_right_level_prepare(ui_manager_context_t *thiz);
-void ui_display_pump_right_level_remove(ui_manager_context_t *thiz);
-int ui_display_pump_right_level(ui_manager_context_t *thiz);
+void ui_display_pump_level_prepare(ui_manager_context_t *thiz);
+void ui_display_pump_level_remove(ui_manager_context_t *thiz);
+int ui_display_pump_level(ui_manager_context_t *thiz);
 /// 泵奶完成提示界面
 void ui_display_pump_complete_tip_prepare(ui_manager_context_t *thiz);
 void ui_display_pump_complete_tip_remove(ui_manager_context_t *thiz);

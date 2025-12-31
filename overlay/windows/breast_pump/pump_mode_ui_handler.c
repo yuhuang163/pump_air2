@@ -2,8 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common.h"
-#include "ui_img_define.h"
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_pump.h"
 
@@ -17,10 +15,7 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶模式UI动画资源ID.
-static const uint16_t s_pump_mode_res_array[1] = {
-    UI_ID_PUMP_MODE_TIP
-};
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -45,16 +40,6 @@ static void pump_mode_display_completed_cb(hdr_post_args_t *args)
     }
 }
 
-static void pump_mode_ui_finished_policy(ui_manager_context_t *ui)
-{
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(pump_mode_display_completed_cb, 10, proc,
-            PUMP_MODE_DISPLAY_TASK_NAME);
-    } 
-}
-
 static void pump_mode_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -63,6 +48,11 @@ static void pump_mode_ui_before_policy(ui_manager_context_t *ui, int index)
 static void pump_mode_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_pump_mode(ui);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(pump_mode_display_completed_cb, proc, PUMP_MODE_DISPLAY_TASK_NAME);
+    }
 }
 
 static void pump_mode_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -72,7 +62,6 @@ static void pump_mode_animation_progress_cb(void *user_data, int index, ui_ani_p
     ui_animation_play_t *ani = &ui->priv.play_info;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            pump_mode_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             pump_mode_ui_before_policy(ui, index);
@@ -106,8 +95,6 @@ static void show_pump_mode_ui(ui_proc_pump_t *proc)
     ui_play_info_t play_info = {
         .tag = "pump_mode_screen",
         .fps = PUMP_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_pump_mode_res_array,
-        .res_count = 1,
         .progress_cb = pump_mode_animation_progress_cb,
         .display_prepare_cb = pump_mode_ui_display_prepare,
         .display_remove_cb = pump_mode_ui_display_remove,

@@ -2,9 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "cmsis_os_api.h"
-#include "root_common.h"
-#include "ui_img_define.h"
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_pump.h"
 
@@ -18,10 +15,6 @@
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// 泵奶结果UI动画资源ID.
-static const uint16_t s_pump_result_res_array[1] = {
-    UI_IMG_ID_PUMP_COMPLETE_TIP,
-};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -47,16 +40,6 @@ static void pump_result_display_completed_cb(hdr_post_args_t *args)
     }
 }
 
-static void pump_result_ui_finished_policy(ui_manager_context_t *ui)
-{
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
-        POST_TASK_HANDLER_DELAYED_ARG1(pump_result_display_completed_cb, 10, proc,
-            PUMP_COMPLETE_DISPLAY_TASK_NAME);
-    }
-}
-
 static void pump_result_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -65,6 +48,11 @@ static void pump_result_ui_before_policy(ui_manager_context_t *ui, int index)
 static void pump_result_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_pump_complete_tip(ui);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
+        POST_TASK_HANDLER_NO_DELAY(pump_result_display_completed_cb, proc, PUMP_COMPLETE_DISPLAY_TASK_NAME);
+    }
 }
 
 static void pump_result_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -74,7 +62,6 @@ static void pump_result_animation_progress_cb(void *user_data, int index, ui_ani
     ui_animation_play_t *ani = &ui->priv.play_info;
     switch (state) {
         case ANI_TIMER_DRAW_FINISH:
-            pump_result_ui_finished_policy(ui);
             break;
         case ANI_TIMER_DRAW_BEFORE:
             pump_result_ui_before_policy(ui, index);
@@ -107,9 +94,7 @@ static void show_pump_result_loop(ui_proc_pump_t *proc)
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     ui_play_info_t play_info = {
         .tag = "pump_result_screen",
-        .fps = PUMP_ANIMATION_FREQ,
-        .res_array = (uint16_t *)s_pump_result_res_array,
-        .res_count = LENGTH_OF_ARRAY(s_pump_result_res_array),
+        .fps = PUMP_RESULT_ANIMATION_FREQ,
         .progress_cb = pump_result_animation_progress_cb,
         .user_data = proc,
     };
