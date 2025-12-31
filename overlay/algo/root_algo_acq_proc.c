@@ -112,3 +112,15 @@ bool algo_sampling_is_sampling(algo_manager_context_t *ctx)
     EXCEPTION_CHECK_BOOL(ctx);
     return ctx->priv.is_sampling;
 }
+
+bool algo_change_sampling_interval(algo_manager_context_t *ctx, uint16_t interval)
+{
+    EXCEPTION_CHECK_BOOL(ctx);
+    algo_sampling_stop(ctx);
+    sensor_manager_context_t *sensor_ctx = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
+    EXCEPTION_CHECK_BOOL(sensor_ctx);
+    sensor_ctx->priv.air_pressure.sampling_interval = interval - 5; //sensor线程为10ms触发，重设间隔，减去固定值，过滤线程执行时间抖动
+    algo_sampling_start(ctx);
+    return true;
+}
+

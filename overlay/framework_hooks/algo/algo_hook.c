@@ -90,5 +90,6 @@ void register_algo_hook(algo_manager_context_t *ctx)
     ctx->hook->algo_sampling_start = algo_sampling_start;
     ctx->hook->algo_sampling_stop = algo_sampling_stop;
     ctx->hook->algo_sampling_is_sampling = algo_sampling_is_sampling;
+    ctx->hook->algo_change_sampling_interval = algo_change_sampling_interval;
 #endif
 }
