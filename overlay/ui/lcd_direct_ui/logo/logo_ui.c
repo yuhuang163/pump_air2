@@ -81,29 +81,51 @@ static ui_img_data_t jpeg_images[JPEG_IMG_COUNT] = {
 #endif
 
 #if IS_SUPPORT_BAJ_TEST
-#define BAJ_IMG_COUNT  1
+
+#define IS_SUPPORT_BAJ_RES       1
+#define BAJ_IMG_COUNT            6
 static PSRAM_DATA_LOC uint8_t baj_data0[] = {
-    // #include "../../../resources/img_baj_bin/home22_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/home32_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/logo_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/pp_mode_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/user_qrcode_360x360_a4_q99_422.txt"
-    #include "../../../resources/img_baj_bin/logo_221x29_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/home_com_bg_360x360_a4_q99_422.txt"
+ #include "overlay/resources/img_baj_bin/home22_360x360_a4_q99_422.txt"
 };
 
 static PSRAM_DATA_LOC uint8_t baj_data1[] = {
-    // #include "../../../resources/img_baj_bin/home22_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/home32_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/logo_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/pp_mode_360x360_a4_q99_422.txt"
-    // #include "../../../resources/img_baj_bin/user_qrcode_360x360_a4_q99_422.txt"
+ #include "overlay/resources/img_baj_bin/home32_360x360_a4_q99_422.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t baj_data2[] = {
+ #include "overlay/resources/img_baj_bin/left_level_comp_360x360_a4_q99_422.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t baj_data3[] = {
+ #include "overlay/resources/img_baj_bin/mode_comp_3_360x360_a4_q99_422.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t baj_data4[] = {
+ #include "overlay/resources/img_baj_bin/mode_comp_2_360x360_a4_q99_422.txt"
+};
+
+static PSRAM_DATA_LOC uint8_t baj_data5[] = {
+ #include "overlay/resources/img_baj_bin/mode_comp_1_360x360_a4_q99_422.txt"
 };
 
 static ui_img_data_t baj_images[BAJ_IMG_COUNT] = {
     { baj_data0, sizeof(baj_data0) },
-    // { baj_data1, sizeof(baj_data1) },
+    { baj_data1, sizeof(baj_data1) },
+    { baj_data2, sizeof(baj_data2) },
+    { baj_data3, sizeof(baj_data3) },
+    { baj_data4, sizeof(baj_data4) },
+    { baj_data5, sizeof(baj_data5) },
 };
+
+const static uint16_t baj_images_ids[BAJ_IMG_COUNT] = {
+    RESOURCE_ID_PERSONALIZATION_MODE,
+    RESOURCE_ID_PP_MODE,
+    RESOURCE_ID_MILK_MODE,
+    RESOURCE_ID_INITIATING_MODE,
+    RESOURCE_ID_PERSONALIZATION_MODE,
+    RESOURCE_ID_PP_MODE,
+};
+res_img_info_t baj_infos;
 #endif
 
 static lv_obj_t *logo_root;
@@ -187,14 +209,19 @@ static int system_test_jpeg_process(void)
 #endif
 
 #if IS_SUPPORT_BAJ_TEST
-static int system_test_baj_init(void)
+static int system_test_baj_init(ui_manager_context_t *thiz)
 {
     if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
         logo_root = lv_image_create(lv_screen_active());
     }
     lv_obj_set_style_bg_color(logo_root, lv_color_white(), 0);     /// 设置背景颜色为白色
     lv_fs_path_ex_t baj_path;
+#if IS_SUPPORT_BAJ_RES
+    common_ui_img_resource_init(thiz, baj_images_ids[0], &baj_infos);
+    lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_infos.data, baj_infos.size, "baj");
+#else
     lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data0, sizeof(baj_data0), "baj");
+#endif
     lv_image_set_src(logo_root, (const void *)&baj_path);
     lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);
 #if 0
@@ -219,20 +246,22 @@ static int system_test_baj_init(void)
     return 0;
 }
 
-static int system_test_baj_process(void)
+static int system_test_baj_process(ui_manager_context_t *thiz)
 {
     static uint32_t index = 0;
     lv_fs_path_ex_t baj_path;
+#if IS_SUPPORT_BAJ_RES
+    common_ui_img_resource_init(thiz, baj_images_ids[index % BAJ_IMG_COUNT], &baj_infos);
+    lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_infos.data, baj_infos.size, "baj");
+#else
     const uint8_t *baj_data = baj_images[index % BAJ_IMG_COUNT].data;
     uint32_t baj_size = baj_images[index % BAJ_IMG_COUNT].size;
-    lv_obj_set_style_bg_color(logo_root, lv_color_white(), 0);     /// 设置背景颜色为白色
     lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data, baj_size, "baj");
+#endif
+    // lv_obj_set_style_bg_color(logo_root, lv_color_white(), 0);     /// 设置背景颜色为白色
     lv_image_set_src(logo_root, (const void *)&baj_path);
-    LOGI("===> test 5 baj: %d", index);
-    if (get_timestamp() - start_time > 1000) {
-        start_time = get_timestamp();
-        index++;
-    }
+    index++;
+
     return 0;
 }
 #endif
@@ -319,7 +348,7 @@ void ui_display_logo_prepare(ui_manager_context_t *thiz)
 #elif IS_SUPPORT_JPEG_TEST
     system_test_jpeg_init();
 #elif IS_SUPPORT_BAJ_TEST
-    system_test_baj_init();
+    system_test_baj_init(thiz);
 #endif
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
@@ -328,7 +357,11 @@ void ui_display_logo_prepare(ui_manager_context_t *thiz)
 void ui_display_logo_remove(ui_manager_context_t *thiz)
 {
     LVGL_OBJ_DELETE(logo_root);
+#if IS_SUPPORT_PNG_TEST || IS_SUPPORT_BG_TEST || IS_SUPPORT_JPEG_TEST || IS_SUPPORT_BAJ_TEST
+#else
     common_ui_img_resource_deinit(thiz, &logo_img_info);
+#endif
+
 }
 
 int ui_display_logo_process(ui_manager_context_t *thiz)
@@ -341,7 +374,7 @@ int ui_display_logo_process(ui_manager_context_t *thiz)
 #elif IS_SUPPORT_JPEG_TEST
     system_test_jpeg_process();
 #elif IS_SUPPORT_BAJ_TEST
-    system_test_baj_process();
+    system_test_baj_process(thiz);
 #else
     sys_logo_label_update(thiz);
 #endif
