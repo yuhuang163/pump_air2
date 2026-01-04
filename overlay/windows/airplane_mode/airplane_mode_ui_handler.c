@@ -91,6 +91,10 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == AIRPLANE_MODE_UI_TYPE_HOME) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "airplane_mode_screen",
         .fps = AIRPLANE_MODE_ANIMATION_FREQ,
@@ -101,6 +105,7 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
     };
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
+    proc->current_ui_type = AIRPLANE_MODE_UI_TYPE_HOME;
 }
 
 void stop_airplane_mode_ui(ui_proc_airplane_mode_t *proc)

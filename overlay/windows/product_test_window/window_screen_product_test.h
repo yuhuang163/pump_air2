@@ -34,6 +34,7 @@ typedef enum {
 /// 产品测试UI类型枚举
 typedef enum {
     PRODUCT_TEST_UI_TYPE_NONE = 0,
+    PRODUCT_TEST_UI_TYPE_HOME,
     PRODUCT_TEST_UI_TYPE_MAX
 } product_test_ui_type_e;
 

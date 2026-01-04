@@ -134,6 +134,10 @@ void start_dummy_ui_animation(ui_proc_dummy_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == DUMMY_UI_TYPE_HOME) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "dummy_screen",
         .fps = DUMMY_ANIMATION_FREQ,
@@ -144,6 +148,7 @@ void start_dummy_ui_animation(ui_proc_dummy_t *proc)
     };
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
+    proc->current_ui_type = DUMMY_UI_TYPE_HOME;
 }
 
 void stop_dummy_ui_animation(ui_proc_dummy_t *proc)

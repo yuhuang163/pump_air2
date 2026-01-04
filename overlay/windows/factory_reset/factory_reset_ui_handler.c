@@ -70,6 +70,10 @@ static void show_factory_reset_ui(ui_proc_factory_reset_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == FACTORY_RESET_UI_TYPE_HOME) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "factory_reset_screen",
         .fps = FACTORY_RESET_ANIMATION_FREQ,
@@ -80,6 +84,7 @@ static void show_factory_reset_ui(ui_proc_factory_reset_t *proc)
     };
     ui->hook->ui_animation_play_init(ui, play_info);
     // proc->last_progress_ani_time = get_timestamp();
+    proc->current_ui_type = FACTORY_RESET_UI_TYPE_HOME;
 }
 
 /*

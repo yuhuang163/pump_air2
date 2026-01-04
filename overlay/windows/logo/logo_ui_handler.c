@@ -108,6 +108,10 @@ static void show_logo_ui(ui_proc_logo_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == LOGO_UI_TYPE_HOME) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "logo_screen",
         .fps = LOGO_ANIMATION_FREQ,
@@ -118,6 +122,7 @@ static void show_logo_ui(ui_proc_logo_t *proc)
     };
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
+    proc->current_ui_type = LOGO_UI_TYPE_HOME;
 }
 
 static void logo_ui_hdr_remove(void)

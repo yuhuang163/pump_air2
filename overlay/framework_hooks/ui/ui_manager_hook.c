@@ -11,6 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
+#define UI_ANIMATION_STOP_TIMEOUT               (1000)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -65,6 +66,8 @@ static void change_images_cb(lv_timer_t *t)
     static uint32_t time_stamp = 0;
     // LOGI("==>enter, %d, count: %d", get_timestamp_ms(time_stamp), ui_ctx->priv.play_info.played_count);
     time_stamp = get_timestamp();
+    
+    /// 优先检查停止标志，避免在停止时还尝试获取锁
     if (ui_ctx->priv.need_stop_timer) {
         lv_timer_delete(t);
         LOGI("==>timer stopped, lvgl timer deleted %d", ui_ctx->priv.need_stop_timer);
@@ -73,6 +76,9 @@ static void change_images_cb(lv_timer_t *t)
         MSG_QUEUE_SEND(ui_hdr_msg_id, &msg, 0);
         return;
     }
+    
+    /// 快速获取锁，执行动画更新，然后立即释放锁
+    /// 避免在回调中长时间持有锁，防止与其他线程死锁
     ui_ctx->play_animation_lock(NULL);
     ui_animation_play_t *ani = &ui_ctx->priv.play_info;
     if (ani->is_play_finished) {
@@ -86,7 +92,6 @@ static void change_images_cb(lv_timer_t *t)
     ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_BEFORE);
     ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
     ani->played_count++;
-HANDLER_EXIT:
     ui_ctx->play_animation_unlock(NULL);
 }
 #else
@@ -105,9 +110,40 @@ static void reset_play_count_cb(ui_animation_play_t *play)
 
 static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info_t play_info)
 {
+    uint8_t msg = 0;
     EXCEPTION_CHECK_VOID(thiz);
+#if IS_SUPPORT_LVGL
+    uint32_t period = 1000 / play_info.fps;
+    LOGI("%s, period: %d", play_info.tag, period);
+    lv_lock();
+    if (thiz->priv.lv_timer != NULL) {
+        thiz->priv.need_stop_timer = 1;
+        lv_unlock();
+        if (MSG_QUEUE_RECV(ui_hdr_msg_id, &msg, UI_ANIMATION_STOP_TIMEOUT) != 0) {
+            LOGW("==>timer stop timeout, force delete");
+            lv_lock();
+            if (thiz->priv.lv_timer != NULL) {
+                lv_timer_delete(thiz->priv.lv_timer);
+                thiz->priv.lv_timer = NULL;
+            }
+            thiz->priv.need_stop_timer = 0;
+            lv_unlock();
+        } else {
+            lv_lock();
+            thiz->priv.lv_timer = NULL;
+            thiz->priv.need_stop_timer = 0;
+            lv_unlock();
+        }
+    } else {
+        thiz->priv.need_stop_timer = 0;
+        lv_unlock();
+    }
+    
     thiz->play_animation_lock(play_info.tag);
     ui_animation_play_t *ani = &thiz->priv.play_info;
+    if (ani->display_remove_cb) {
+        ani->display_remove_cb(thiz);
+    }
     ani->played_count = 0;
     ani->user_data = play_info.user_data;
     ani->progress_cb = play_info.progress_cb;
@@ -119,20 +155,28 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     if (ani->display_prepare_cb) {
         ani->display_prepare_cb(thiz);
     }
-#if IS_SUPPORT_LVGL
-    uint32_t period = 1000 / play_info.fps;
-    LOGI("%s, period: %d", play_info.tag, period);
-    lv_lock();
-    if (thiz->priv.lv_timer == NULL) {
-        thiz->priv.lv_timer = lv_timer_create(change_images_cb, period < 30 ? 30 : period , NULL);
-        lv_timer_ready(thiz->priv.lv_timer);
-    } else {
-        LOGW("==>timer already created");
-        lv_timer_set_period(thiz->priv.lv_timer, period < 30 ? 30 : period);
-    }
-    lv_unlock();
-#endif
     thiz->play_animation_unlock(play_info.tag);
+    thiz->priv.lv_timer = lv_timer_create(change_images_cb, period < 30 ? 30 : period, NULL);
+    lv_timer_ready(thiz->priv.lv_timer);
+#else
+    thiz->play_animation_lock(play_info.tag);
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    if (ani->display_remove_cb) {
+        ani->display_remove_cb(thiz);
+    }
+    ani->played_count = 0;
+    ani->user_data = play_info.user_data;
+    ani->progress_cb = play_info.progress_cb;
+    ani->tag = (char *)play_info.tag;
+    ani->reset_play_count_cb = reset_play_count_cb;
+    ani->display_prepare_cb = play_info.display_prepare_cb;
+    ani->display_remove_cb = play_info.display_remove_cb;
+    ani->is_play_finished = false;
+    if (ani->display_prepare_cb) {
+        ani->display_prepare_cb(thiz);
+    }
+    thiz->play_animation_unlock(play_info.tag);
+#endif
 }
 
 static void ui_animation_play_deinit(struct ui_manager_context *thiz)
@@ -142,8 +186,7 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
 #if IS_SUPPORT_LVGL
     uint8_t msg = 0;
     ui_ctx->priv.need_stop_timer = 1;
-    int ret = MSG_QUEUE_RECV(ui_hdr_msg_id, &msg, 1000);
-    if (ret != 0) {
+    if (MSG_QUEUE_RECV(ui_hdr_msg_id, &msg, UI_ANIMATION_STOP_TIMEOUT) != 0) {
         LOGE("==>stop lvgl timer timeout!!!!!!");
     }
 #endif
