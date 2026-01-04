@@ -35,6 +35,7 @@ typedef enum {
 /// dummy UI类型枚举
 typedef enum {
     DUMMY_UI_TYPE_NONE = 0,
+    DUMMY_UI_TYPE_HOME,
     DUMMY_UI_TYPE_MAX
 } dummy_ui_type_e;
 

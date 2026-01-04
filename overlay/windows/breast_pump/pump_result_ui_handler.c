@@ -92,6 +92,10 @@ static void show_pump_result_loop(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == PUMP_UI_TYPE_RESULT) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "pump_result_screen",
         .fps = PUMP_RESULT_ANIMATION_FREQ,

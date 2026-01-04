@@ -26,6 +26,7 @@ extern "C" {
 /// logo UI类型枚举
 typedef enum {
     LOGO_UI_TYPE_NONE = 0,
+    LOGO_UI_TYPE_HOME,
     LOGO_UI_TYPE_MAX
 } logo_ui_type_e;
 

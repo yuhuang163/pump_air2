@@ -92,6 +92,10 @@ static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "bf_mode_screen",
         .fps = PUMP_MODE_ANIMATION_FREQ,

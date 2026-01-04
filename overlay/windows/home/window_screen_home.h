@@ -31,6 +31,7 @@ typedef enum {
 /// 主界面UI类型枚举
 typedef enum {
     HOME_UI_TYPE_NONE = 0,
+    HOME_UI_TYPE_HOME,
     HOME_UI_TYPE_MAX
 } home_ui_type_e;
 

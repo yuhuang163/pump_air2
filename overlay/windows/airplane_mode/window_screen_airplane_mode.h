@@ -32,6 +32,7 @@ typedef enum {
 /// 飞行模式UI类型枚举
 typedef enum {
     AIRPLANE_MODE_UI_TYPE_NONE = 0,
+    AIRPLANE_MODE_UI_TYPE_HOME,
     AIRPLANE_MODE_UI_TYPE_MAX
 } airplane_mode_ui_type_e;
 

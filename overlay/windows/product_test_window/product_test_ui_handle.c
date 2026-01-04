@@ -96,6 +96,11 @@ void show_product_tests_ui(ui_proc_product_test_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == PRODUCT_TEST_UI_TYPE_HOME) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
+
     ui_play_info_t play_info = {
         .tag = "product_tests_screen",
         .fps = PRODUCT_TEST_ANIMATION_FREQ,
@@ -106,6 +111,7 @@ void show_product_tests_ui(ui_proc_product_test_t *proc)
     };
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
+    proc->current_ui_type = PRODUCT_TEST_UI_TYPE_HOME;
 }
 
 void stop_product_tests_ui_animation(ui_proc_product_test_t *proc)

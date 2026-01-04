@@ -26,6 +26,7 @@ extern "C" {
 /// 工厂重置UI类型枚举
 typedef enum {
     FACTORY_RESET_UI_TYPE_NONE = 0,
+    FACTORY_RESET_UI_TYPE_HOME,
     FACTORY_RESET_UI_TYPE_MAX
 } factory_reset_ui_type_e;
 

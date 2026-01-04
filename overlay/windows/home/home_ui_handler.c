@@ -104,6 +104,10 @@ void start_home_ui_animation(ui_proc_home_t *proc)
 {    
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == HOME_UI_TYPE_HOME) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "home_screen",
         .fps = HOME_ANIMATION_FREQ,
@@ -114,7 +118,7 @@ void start_home_ui_animation(ui_proc_home_t *proc)
     };
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
-
+    proc->current_ui_type = HOME_UI_TYPE_HOME;
 }
 
 void stop_home_ui_animation(ui_proc_home_t *proc)

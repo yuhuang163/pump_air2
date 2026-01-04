@@ -74,6 +74,10 @@ void show_charging_ui(ui_proc_charge_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    if (proc->current_ui_type == CHARGE_UI_TYPE_CHARGING) {
+        proc->last_progress_ani_time = get_timestamp();
+        return;
+    }
     ui_play_info_t play_info = {
         .tag = "charge_screen",
         .fps = CHARGE_ANIMATION_FREQ,
