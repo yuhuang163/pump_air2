@@ -778,6 +778,119 @@ int tests_tlvs_get_trim_value(comm_protocol_builder_t *builder, comm_protocol_se
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
 }
 
+/// ======================== 待机和传感器状态 ========================
+
+int tests_tlvs_standby_mode(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                            uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    uint8_t mode = (data && data_len >= 1) ? data[0] : 0;
+    uint8_t result = 0x00; // 默认失败
+
+    LOG_SRV("tests_tlvs_standby_mode: %s", mode ? "ENTER" : "EXIT");
+
+    if (mode == 1) {
+        /* 进入待机模式 */
+        SEND_BROADCAST_ARGS0(ID_BROADCAST_REQ_PM_SUSPEND_BY_USER);
+        result = 0x01; // 成功
+    } else {
+        /* 退出待机模式 */
+        power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+        if (pm) {
+            pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ);
+            result = 0x01; // 成功
+        }
+    }
+
+    // 应答格式: Length=1, Value=0x00失败/0x01成功
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_STANDBY_MODE,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_query_sensor_status(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                                   uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    LOG_SRV("tests_tlvs_query_sensor_status");
+
+    // 查询各个传感器的通信状态
+    // 应答格式: Length=N+1, byte0-N=各设备状态(0x00=通信失败, 0x01=通信成功)
+    // 传感器顺序：IMU, 力传感器, 气压传感器, 光传感器(如果支持)
+    uint8_t response[16] = {0}; // 最多支持16个传感器
+    uint8_t sensor_count = 0;
+
+    // 通过 peripheral_bus 查询各个传感器的通信状态
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    
+    // 查询IMU传感器状态
+    #if IS_SUPPORT_DEVICE_IMU
+    {
+        rt_device_node_t *dev = NULL;
+        if (pbus) {
+            dev = pbus->find_device(ID_DEVICE_IMU);
+        }
+        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
+        sensor_count++;
+    }
+    #endif
+
+    // 查询力传感器状态
+    #if IS_SUPPORT_DEVICE_FSENSOR
+    {
+        rt_device_node_t *dev = NULL;
+        if (pbus) {
+            dev = pbus->find_device(ID_DEVICE_FSENSOR);
+        }
+        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
+        sensor_count++;
+    }
+    #endif
+
+    // 查询气压传感器状态
+    #if IS_SUPPORT_DEVICE_AIR_PRESSURE
+    {
+        rt_device_node_t *dev = NULL;
+        if (pbus) {
+            dev = pbus->find_device(ID_DEVICE_AIR_PRESSURE);
+        }
+        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
+        sensor_count++;
+    }
+    #endif
+
+    // 查询光传感器状态（如果支持）
+    #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
+    {
+        rt_device_node_t *dev = NULL;
+        if (pbus) {
+            dev = pbus->find_device(ID_DEVICE_LIGHT_SENSOR);
+        }
+        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
+        sensor_count++;
+    }
+    #endif
+
+    LOG_SRV("tests_tlvs_query_sensor_status: sensor_count=%d", sensor_count);
+    LOG_HEX("sensor_status_response", response, sensor_count);
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_QUERY_SENSOR_STATUS,
+        .length = sensor_count,
+        .value = response,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
 /// ======================== NOTIFY上报 ========================
 
 int tests_key_status_publish(servers_publish_data_args_t *args)
