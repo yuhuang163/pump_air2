@@ -42,6 +42,9 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
     /// Trim值操作
     {TESTS_TLV_SET_TRIM_VALUE, tests_tlvs_set_trim_value},
     {TESTS_TLV_GET_TRIM_VALUE, tests_tlvs_get_trim_value},
+    /// 待机和传感器状态
+    {TESTS_TLV_STANDBY_MODE, tests_tlvs_standby_mode},
+    {TESTS_TLV_QUERY_SENSOR_STATUS, tests_tlvs_query_sensor_status},
 };
 
 /*
