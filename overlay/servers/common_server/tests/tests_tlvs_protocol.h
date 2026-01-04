@@ -33,6 +33,8 @@ typedef enum {
     TESTS_TLV_BT_SIGNALING_TEST = 0x0011,      /// 进入或退出蓝牙信令测试 (0x01:进入, 0x00:退出)
     TESTS_TLV_BT_NOSIGNALING_TEST = 0x0012,    /// 进入或退出蓝牙非信令测试 (0x01:进入, 0x00:退出)
     TESTS_TLV_BT_XTAL_CALIB_TEST = 0x0013,     /// 进入或退出蓝牙校频测试 (0x01:进入, 0x00:退出)
+    TESTS_TLV_SET_TRIM_VALUE = 0x0014,         /// 设置设备trim值 (Length=4: byte0-3=trim值, 小端序)
+    TESTS_TLV_GET_TRIM_VALUE = 0x0015,         /// 获取设备trim值 (Length=0)
     TESTS_TLV_ID_MAX,
 } tests_tlvs_id_e;
 
@@ -113,6 +115,12 @@ int tests_tlvs_bt_signaling_test(comm_protocol_builder_t *builder, comm_protocol
 int tests_tlvs_bt_nosignaling_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 int tests_tlvs_bt_xtal_calib_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+
+/// Trim值操作
+int tests_tlvs_set_trim_value(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+int tests_tlvs_get_trim_value(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 
 /// NOTIFY上报 (设备主动上报)

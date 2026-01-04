@@ -39,6 +39,9 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
     {TESTS_TLV_BT_SIGNALING_TEST, tests_tlvs_bt_signaling_test},
     {TESTS_TLV_BT_NOSIGNALING_TEST, tests_tlvs_bt_nosignaling_test},
     {TESTS_TLV_BT_XTAL_CALIB_TEST, tests_tlvs_bt_xtal_calib_test},
+    /// Trim值操作
+    {TESTS_TLV_SET_TRIM_VALUE, tests_tlvs_set_trim_value},
+    {TESTS_TLV_GET_TRIM_VALUE, tests_tlvs_get_trim_value},
 };
 
 /*
