@@ -423,13 +423,15 @@ static void pump_2_irq_callback(enum HAL_GPIO_PIN_T pin)
 }
 static int8_t bsp_motor_pwm_gradual_gpio_irq_init(int8_t enable)
 {
-        struct HAL_GPIO_IRQ_CFG_T gpio_irq_cfg = {enable, 0, HAL_GPIO_IRQ_TYPE_EDGE_SENSITIVE,
-                                                HAL_GPIO_IRQ_POLARITY_LOW_FALLING, pump_1_irq_callback};
+    struct HAL_GPIO_IRQ_CFG_T gpio_irq_cfg = {
+      enable, 0, HAL_GPIO_IRQ_TYPE_EDGE_SENSITIVE,
+      HAL_GPIO_IRQ_POLARITY_LOW_FALLING, pump_1_irq_callback};
 
-        hal_gpio_setup_irq(PWM_PUMP1_PIN, &gpio_irq_cfg);
-        gpio_irq_cfg.irq_handler = pump_2_irq_callback;
-        hal_gpio_setup_irq(PWM_PUMP2_PIN, &gpio_irq_cfg);
-        return 0;
+    hal_gpio_setup_irq(PWM_PUMP1_PIN, &gpio_irq_cfg);
+    gpio_irq_cfg.irq_handler = pump_2_irq_callback;
+    hal_gpio_setup_irq(PWM_PUMP2_PIN, &gpio_irq_cfg);
+    gpio_irq_cfg.irq_handler = pump_2_irq_callback;
+  return 0;
 }
 
 #endif

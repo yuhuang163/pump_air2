@@ -8,6 +8,8 @@
 #include "hal_bootmode.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "apps.h"            // IWYU pragma: keep
+#include "bt_drv_interface.h"
+#include "nvrecord_dev.h"
 
 /*
 * DEFINES
@@ -249,7 +251,7 @@ void platform_bt_enter_nosignalingtest_mode(void)
     app_enter_non_signalingtest_mode();
 }
 
-int platform_bt_xtalcalib_proc(void)
+int platform_bt_xtal_calib_proc_start(void)
 {
     // 前向声明，函数在 app_factory_bt.cpp 中定义（需要 __FACTORY_MODE_SUPPORT__ 宏）
     extern int app_factorymode_bt_xtalcalib_proc(void);
@@ -259,4 +261,30 @@ int platform_bt_xtalcalib_proc(void)
     // 如果 FACTORY_MODE 未启用，返回错误
     return -1;
 #endif
+}
+
+unsigned char platform_bt_xtal_calib_set(uint32_t fcap)
+{
+    btdrv_vco_test_start(0);
+    osDelay(200);
+    //btdrv_rf_set_xtal_fcap(fcap, 1);//todo
+    osDelay(200);
+    return 0;
+}
+
+unsigned char platform_bt_xtal_calib_get(uint32_t *fcap)
+{
+    nvrec_dev_get_xtal_fcap(fcap);
+    osDelay(200);
+
+    return 0;
+}
+
+unsigned char platform_bt_xtal_calib_end(void)
+{
+    nvrec_dev_set_xtal_fcap(btdrv_rf_get_xtal_fcap());
+    osDelay(200);
+    btdrv_vco_test_stop();
+    osDelay(200);
+    return 0;
 }

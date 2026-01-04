@@ -18,6 +18,7 @@
 #define TESTS_DEVICE_ID_LENGTH 16   /// 设备ID长度
 #define TESTS_SECRET_KEY_LENGTH 16  /// 密钥长度
 #define TESTS_TRIPLE_DATA_LENGTH 38 /// 三元组数据长度 (6+16+16)
+#define TESTS_TRIM_VALUE_LENGTH 4   /// Trim值长度 (4字节)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -690,12 +691,13 @@ int tests_tlvs_bt_xtal_calib_test(comm_protocol_builder_t *builder, comm_protoco
     if (mode == 1) {
         /* 进入蓝牙校频测试模式 */
         // 调用校频测试函数
-        if (platform_bt_xtalcalib_proc() == 0) {
+        if (platform_bt_xtal_calib_proc_start() == 0) {
             result = 0x01; // 成功
         }
     } else {
         /* 退出蓝牙校频测试模式 */
         // TODO: 实现退出逻辑
+        platform_bt_xtal_calib_end();
         result = 0x01; // 默认成功
     }
 
@@ -704,6 +706,74 @@ int tests_tlvs_bt_xtal_calib_test(comm_protocol_builder_t *builder, comm_protoco
         .type = TESTS_TLV_BT_XTAL_CALIB_TEST,
         .length = 1,
         .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+/// ======================== Trim值操作 ========================
+
+int tests_tlvs_set_trim_value(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                               uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    LOG_SRV("tests_tlvs_set_trim_value, data_len: %d", data_len);
+    LOG_HEX("set_trim_value", data, data_len);
+
+    uint8_t result = 0x00; // 默认失败
+
+    // 协议格式: Length=4, byte0-3=trim值(小端序)
+    if (data && data_len == TESTS_TRIM_VALUE_LENGTH) {
+        // 解析小端序的trim值
+        uint32_t trim_value = (uint32_t)data[0] | ((uint32_t)data[1] << 8) | 
+                              ((uint32_t)data[2] << 16) | ((uint32_t)data[3] << 24);
+        
+        LOG_SRV("tests_tlvs_set_trim_value: trim_value=0x%08X (%u)", trim_value, trim_value);
+        
+        platform_bt_xtal_calib_set(trim_value);
+        result = 0x01; // 成功
+    } else {
+        LOGE("tests_tlvs_set_trim_value: invalid data_len=%d, expected=%d", data_len, TESTS_TRIM_VALUE_LENGTH);
+    }
+
+    // 应答格式: Length=1, Value=0x00失败/0x01成功
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_SET_TRIM_VALUE,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_get_trim_value(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                               uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    LOG_SRV("tests_tlvs_get_trim_value");
+
+    // 应答格式: Length=4, byte0-3=trim值(小端序)
+    uint8_t response[TESTS_TRIM_VALUE_LENGTH] = {0};
+    /// Trim值存储
+    uint32_t trim_value = 0;
+    platform_bt_xtal_calib_get(&trim_value);
+    // 将trim值转换为小端序字节数组
+    response[0] = (uint8_t)(trim_value & 0xFF);
+    response[1] = (uint8_t)((trim_value >> 8) & 0xFF);
+    response[2] = (uint8_t)((trim_value >> 16) & 0xFF);
+    response[3] = (uint8_t)((trim_value >> 24) & 0xFF);
+
+    LOG_SRV("tests_tlvs_get_trim_value: trim_value=0x%08X (%u)", trim_value);
+    LOG_HEX("get_trim_value_response", response, TESTS_TRIM_VALUE_LENGTH);
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_GET_TRIM_VALUE,
+        .length = TESTS_TRIM_VALUE_LENGTH,
+        .value = response,
     };
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
 }
