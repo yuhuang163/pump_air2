@@ -295,7 +295,21 @@ int factory_tests_aging_test_exit(tests_func_args_t args)
     });
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_INT(pump_ctx);
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_INT(st);
+    pump_result_info_t *pumping_info = pump_ctx->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
+    factory_flag_info_t flag_info = {0};
+    st->get_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
+    flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_time += pumping_info->current_mode_work_time/1000;
+    if (flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_time >= thiz->priv.factory_ctx.aging_target_info.total_target_time) {
+        flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_flag = AGING_TEST_STATUS_SUCCESS;
+    } else {
+        flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_flag = AGING_TEST_STATUS_FAILED;
+    }
+    st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
+    LOGI("factory test aging test exit: age_flag = %d, age_time = %d", flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_flag, flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_time);
     pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+
     return 0;
 }
 

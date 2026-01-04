@@ -285,6 +285,11 @@ int tests_tlvs_aging_status_query(comm_protocol_builder_t *builder, comm_protoco
     // 根据aging_mode_type从存储中读取对应模式的老化状态
     // 模式类型0x01对应age_info[0], 0x02对应age_info[1]
     storage_manager_context_t *st = get_storage_ctx();
+    EXCEPTION_CHECK_INT(st);
+    tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
+    EXCEPTION_CHECK_INT(tests_ctx);
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_INT(pump_ctx);
     if (st) {
         factory_flag_info_t flag_info = {0};
         st->get_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
@@ -309,14 +314,20 @@ int tests_tlvs_aging_status_query(comm_protocol_builder_t *builder, comm_protoco
             response[2] = (uint8_t)((cycle_count >> 8) & 0xFF);  // 小端序高字节
             
             // 单位s，小端序
-            uint32_t age_time = age_info->age_time;
-            response[3] = (uint8_t)(age_time & 0xFF);
-            response[4] = (uint8_t)((age_time >> 8) & 0xFF);
-            response[5] = (uint8_t)((age_time >> 16) & 0xFF);
-            response[6] = (uint8_t)((age_time >> 24) & 0xFF);
-            
+            // 如果当前模式正在老化模式运行中，则加上模式正在运行的时间
+            uint32_t age_time = 0;
+            if( tests_ctx->tests_manager_get_current_mode() == TST_AGING_TEST_TYPE ) {
+                pump_result_info_t *pumping_info = pump_ctx->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
+                age_time = age_info->age_time + pumping_info->current_mode_work_time/1000;
+            } else {
+                age_time =  age_info->age_time;
+            }            
+            response[3] = (uint8_t)(age_time & 0xFF);        // 小端序低字节
+            response[4] = (uint8_t)((age_time >> 8) & 0xFF);  // 小端序高字节
+            response[5] = (uint8_t)((age_time >> 16) & 0xFF); // 小端序高字节
+            response[6] = (uint8_t)((age_time >> 24) & 0xFF); // 小端序高字节
             LOG_SRV("age_info[%d]: age_flag=%d, age_cycle=%d, age_time=%d, mode_type=0x%02X", 
-                    age_info_index, age_info->age_flag, age_info->age_cycle, age_info->age_time, aging_mode_type);
+                    age_info_index, age_info->age_flag, age_info->age_cycle, age_time, aging_mode_type);
         } else {
             LOG_SRV("Invalid age_info_index=%d, max=%d", age_info_index, FACTORY_AGE_INFO_MAX);
         }

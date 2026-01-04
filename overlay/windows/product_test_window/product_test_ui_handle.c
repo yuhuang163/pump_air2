@@ -42,7 +42,7 @@ static void product_tests_ui_before_policy(ui_manager_context_t *ui, int index)
 static void product_tests_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_product_tests_home_process(ui);
-#if 1
+#if 0
     ui_proc_product_test_t *proc = (ui_proc_product_test_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PRODUCT_TESTS_ANIMATION_DISPLAY_TIME) {
