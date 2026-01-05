@@ -82,32 +82,604 @@ static ui_img_data_t jpeg_images[JPEG_IMG_COUNT] = {
 
 #if IS_SUPPORT_BAJ_TEST
 
-#define IS_SUPPORT_BAJ_RES       1
-#define BAJ_IMG_COUNT            6
-static PSRAM_DATA_LOC uint8_t baj_data0[] = {
- #include "overlay/resources/img_baj_bin/home22_360x360_a4_q99_422.txt"
+#define IS_SUPPORT_BAJ_RES       0
+#define BAJ_IMG_COUNT            150
+static const uint8_t baj_data0[] = {
+//  #include "overlay/resources/img_baj_bin/home22_360x360_a4_q99_422.txt"
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00000_360x360_a4_q99_422.txt"
 };
 
-static PSRAM_DATA_LOC uint8_t baj_data1[] = {
- #include "overlay/resources/img_baj_bin/home32_360x360_a4_q99_422.txt"
+static const uint8_t baj_data1[] = {
+//  #include "overlay/resources/img_baj_bin/home32_360x360_a4_q99_422.txt"
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00001_360x360_a4_q99_422.txt"
 };
 
-static PSRAM_DATA_LOC uint8_t baj_data2[] = {
- #include "overlay/resources/img_baj_bin/left_level_comp_360x360_a4_q99_422.txt"
+static const uint8_t baj_data2[] = {
+//  #include "overlay/resources/img_baj_bin/left_level_comp_360x360_a4_q99_422.txt"
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00002_360x360_a4_q99_422.txt"
 };
 
-static PSRAM_DATA_LOC uint8_t baj_data3[] = {
- #include "overlay/resources/img_baj_bin/mode_comp_3_360x360_a4_q99_422.txt"
+static const uint8_t baj_data3[] = {
+//  #include "overlay/resources/img_baj_bin/mode_comp_3_360x360_a4_q99_422.txt"
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00003_360x360_a4_q99_422.txt"
 };
 
-static PSRAM_DATA_LOC uint8_t baj_data4[] = {
- #include "overlay/resources/img_baj_bin/mode_comp_2_360x360_a4_q99_422.txt"
+static const uint8_t baj_data4[] = {
+//  #include "overlay/resources/img_baj_bin/mode_comp_2_360x360_a4_q99_422.txt"
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00004_360x360_a4_q99_422.txt"
 };
 
-static PSRAM_DATA_LOC uint8_t baj_data5[] = {
- #include "overlay/resources/img_baj_bin/mode_comp_1_360x360_a4_q99_422.txt"
+static const uint8_t baj_data5[] = {
+//  #include "overlay/resources/img_baj_bin/mode_comp_1_360x360_a4_q99_422.txt"
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00005_360x360_a4_q99_422.txt"
 };
 
+static const uint8_t baj_data6[] = {
+//  #include "overlay/resources/img_baj_bin/mode_comp_1_360x360_a4_q99_422.txt"
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00006_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data7[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00007_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data8[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00008_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data9[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00009_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data10[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00010_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data11[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00011_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data12[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00012_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data13[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00013_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data14[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00014_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data15[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00015_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data16[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00016_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data17[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00017_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data18[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00018_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data19[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00019_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data20[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00020_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data21[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00021_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data22[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00022_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data23[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00023_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data24[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00024_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data25[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00025_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data26[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00026_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data27[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00027_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data28[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00028_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data29[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00029_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data30[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00030_360x360_a4_q99_422.txt"
+};
+ 
+static const uint8_t baj_data31[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00031_360x360_a4_q99_422.txt"
+};
+    
+static const uint8_t baj_data32[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00032_360x360_a4_q99_422.txt"
+};
+    
+static const uint8_t baj_data33[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00033_360x360_a4_q99_422.txt"
+};
+    
+static const uint8_t baj_data34[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00034_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data35[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00035_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data36[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00036_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data37[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00037_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data38[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00038_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data39[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00039_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data40[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00040_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data41[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00041_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data42[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00042_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data43[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00043_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data44[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00044_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data45[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00045_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data46[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00046_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data47[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00047_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data48[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00048_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data49[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00049_360x360_a4_q99_422.txt"
+};
+#if 1
+static const uint8_t baj_data50[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00050_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data51[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00051_360x360_a4_q99_422.txt"
+};  
+
+static const uint8_t baj_data52[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00052_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data53[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00053_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data54[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00054_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data55[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00055_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data56[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00056_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data57[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00057_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data58[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00058_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data59[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00059_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data60[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00060_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data61[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00061_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data62[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00062_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data63[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00063_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data64[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00064_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data65[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00065_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data66[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00066_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data67[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00067_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data68[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00068_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data69[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00069_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data70[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00070_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data71[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00071_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data72[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00072_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data73[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00073_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data74[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00074_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data75[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00075_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data76[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00076_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data77[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00077_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data78[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00078_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data79[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00079_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data80[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00080_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data81[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00081_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data82[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00082_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data83[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00083_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data84[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00084_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data85[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00085_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data86[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00086_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data87[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00087_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data88[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00088_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data89[] = {  
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00089_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data90[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00090_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data91[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00091_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data92[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00092_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data93[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00093_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data94[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00094_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data95[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00095_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data96[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00096_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data97[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00097_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data98[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00098_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data99[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00099_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data100[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00100_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data101[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00101_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data102[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00102_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data103[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00103_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data104[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00104_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data105[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00105_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data106[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00106_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data107[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00107_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data108[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00108_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data109[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00109_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data110[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00110_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data111[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00111_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data112[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00112_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data113[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00113_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data114[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00114_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data115[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00115_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data116[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00116_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data117[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00117_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data118[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00118_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data119[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00119_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data120[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00120_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data121[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00121_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data122[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00122_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data123[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00123_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data124[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00124_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data125[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00125_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data126[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00126_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data127[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00127_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data128[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00128_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data129[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00129_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data130[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00130_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data131[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00131_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data132[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00132_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data133[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00133_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data134[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00134_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data135[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00135_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data136[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00136_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data137[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00137_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data138[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00138_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data139[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00139_360x360_a4_q99_422.txt"
+};
+
+static const uint8_t baj_data140[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00140_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data141   [] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00141_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data142[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00142_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data143[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00143_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data144[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00144_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data145[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00145_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data146[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00146_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data147[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00147_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data148[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00148_360x360_a4_q99_422.txt"
+};
+static const uint8_t baj_data149[] = {
+#include "overlay/resources/boost_lactation_bin_30/boost_lactation_00149_360x360_a4_q99_422.txt"
+};
+#endif
 static ui_img_data_t baj_images[BAJ_IMG_COUNT] = {
     { baj_data0, sizeof(baj_data0) },
     { baj_data1, sizeof(baj_data1) },
@@ -115,6 +687,153 @@ static ui_img_data_t baj_images[BAJ_IMG_COUNT] = {
     { baj_data3, sizeof(baj_data3) },
     { baj_data4, sizeof(baj_data4) },
     { baj_data5, sizeof(baj_data5) },
+    { baj_data6, sizeof(baj_data6) },
+    { baj_data7, sizeof(baj_data7) },
+    { baj_data8, sizeof(baj_data8) },
+    { baj_data9, sizeof(baj_data9) },
+    { baj_data10, sizeof(baj_data10) },
+    { baj_data11, sizeof(baj_data11) },
+    { baj_data12, sizeof(baj_data12) },
+    { baj_data13, sizeof(baj_data13) },
+    { baj_data14, sizeof(baj_data14) },
+    { baj_data15, sizeof(baj_data15) },
+    { baj_data16, sizeof(baj_data16) },
+    { baj_data17, sizeof(baj_data17) },
+    { baj_data18, sizeof(baj_data18) },
+    { baj_data19, sizeof(baj_data19) },
+    { baj_data20, sizeof(baj_data20) },
+    { baj_data21, sizeof(baj_data21) },
+    { baj_data22, sizeof(baj_data22) },
+    { baj_data23, sizeof(baj_data23) },
+    { baj_data24, sizeof(baj_data24) },
+    { baj_data25, sizeof(baj_data25) },
+    { baj_data26, sizeof(baj_data26) },
+    { baj_data27, sizeof(baj_data27) },
+    { baj_data28, sizeof(baj_data28) },
+    { baj_data29, sizeof(baj_data29) },
+    { baj_data30, sizeof(baj_data30) },
+    { baj_data31, sizeof(baj_data31) },
+    { baj_data32, sizeof(baj_data32) },
+    { baj_data33, sizeof(baj_data33) },
+    { baj_data34, sizeof(baj_data34) },
+    { baj_data35, sizeof(baj_data35) },
+    { baj_data36, sizeof(baj_data36) },
+    { baj_data37, sizeof(baj_data37) },
+    { baj_data38, sizeof(baj_data38) },
+    { baj_data39, sizeof(baj_data39) },
+    { baj_data40, sizeof(baj_data40) },
+    { baj_data41, sizeof(baj_data41) },
+    { baj_data42, sizeof(baj_data42) },
+    { baj_data43, sizeof(baj_data43) },
+    { baj_data44, sizeof(baj_data44) },
+    { baj_data45, sizeof(baj_data45) },
+    { baj_data46, sizeof(baj_data46) },
+    { baj_data47, sizeof(baj_data47) },
+    { baj_data48, sizeof(baj_data48) },
+    { baj_data49, sizeof(baj_data49) },
+#if 1
+    { baj_data50, sizeof(baj_data50) },
+    { baj_data51, sizeof(baj_data51) },
+    { baj_data52, sizeof(baj_data52) },
+    { baj_data53, sizeof(baj_data53) },
+    { baj_data54, sizeof(baj_data54) },
+    { baj_data55, sizeof(baj_data55) },
+    { baj_data56, sizeof(baj_data56) },
+    { baj_data57, sizeof(baj_data57) },
+    { baj_data58, sizeof(baj_data58) },
+    { baj_data59, sizeof(baj_data59) },
+    { baj_data60, sizeof(baj_data60) },
+    { baj_data61, sizeof(baj_data61) },
+    { baj_data62, sizeof(baj_data62) },
+    { baj_data63, sizeof(baj_data63) },
+    { baj_data64, sizeof(baj_data64) },
+    { baj_data65, sizeof(baj_data65) },
+    { baj_data66, sizeof(baj_data66) },
+    { baj_data67, sizeof(baj_data67) },
+    { baj_data68, sizeof(baj_data68) },
+    { baj_data69, sizeof(baj_data69) },
+    { baj_data70, sizeof(baj_data70) },
+    { baj_data71, sizeof(baj_data71) },
+    { baj_data72, sizeof(baj_data72) },
+    { baj_data73, sizeof(baj_data73) },
+    { baj_data74, sizeof(baj_data74) },
+    { baj_data75, sizeof(baj_data75) },
+    { baj_data76, sizeof(baj_data76) },
+    { baj_data77, sizeof(baj_data77) },
+    { baj_data78, sizeof(baj_data78) },
+    { baj_data79, sizeof(baj_data79) },
+    { baj_data80, sizeof(baj_data80) },
+    { baj_data81, sizeof(baj_data81) },
+    { baj_data82, sizeof(baj_data82) },
+    { baj_data83, sizeof(baj_data83) },
+    { baj_data84, sizeof(baj_data84) },
+    { baj_data85, sizeof(baj_data85) },
+    { baj_data86, sizeof(baj_data86) },
+    { baj_data87, sizeof(baj_data87) },
+
+    { baj_data88, sizeof(baj_data88) },
+    { baj_data89, sizeof(baj_data89) },
+    { baj_data90, sizeof(baj_data90) },
+    { baj_data91, sizeof(baj_data91) },
+    { baj_data92, sizeof(baj_data92) },
+    { baj_data93, sizeof(baj_data93) },
+    { baj_data94, sizeof(baj_data94) },
+    { baj_data95, sizeof(baj_data95) },
+    { baj_data96, sizeof(baj_data96) },
+    { baj_data97, sizeof(baj_data97) },
+    { baj_data98, sizeof(baj_data98) },
+    { baj_data99, sizeof(baj_data99) },
+    { baj_data100, sizeof(baj_data100) },
+    { baj_data101, sizeof(baj_data101) },
+    { baj_data102, sizeof(baj_data102) },
+    { baj_data103, sizeof(baj_data103) },   
+    { baj_data104, sizeof(baj_data104) },
+    { baj_data105, sizeof(baj_data105) },
+    { baj_data106, sizeof(baj_data106) },
+    { baj_data107, sizeof(baj_data107) },
+    { baj_data108, sizeof(baj_data108) },
+    { baj_data109, sizeof(baj_data109) },
+    { baj_data110, sizeof(baj_data110) },
+    { baj_data111, sizeof(baj_data111) },
+    { baj_data112, sizeof(baj_data112) },
+    { baj_data113, sizeof(baj_data113) },
+    { baj_data114, sizeof(baj_data114) },
+    { baj_data115, sizeof(baj_data115) },
+    { baj_data116, sizeof(baj_data116) },
+    { baj_data117, sizeof(baj_data117) },
+    { baj_data118, sizeof(baj_data118) },
+    { baj_data119, sizeof(baj_data119) },
+    { baj_data120, sizeof(baj_data120) },
+    { baj_data121, sizeof(baj_data121) },
+    { baj_data122, sizeof(baj_data122) },
+    { baj_data123, sizeof(baj_data123) },
+    { baj_data124, sizeof(baj_data124) },
+    { baj_data125, sizeof(baj_data125) },
+    { baj_data126, sizeof(baj_data126) },
+    { baj_data127, sizeof(baj_data127) },
+    { baj_data128, sizeof(baj_data128) },
+    { baj_data129, sizeof(baj_data129) },
+    { baj_data130, sizeof(baj_data130) },
+    { baj_data131, sizeof(baj_data131) },
+    { baj_data132, sizeof(baj_data132) },
+    { baj_data133, sizeof(baj_data133) },
+    { baj_data134, sizeof(baj_data134) },
+    { baj_data135, sizeof(baj_data135) },
+    { baj_data136, sizeof(baj_data136) },
+    { baj_data137, sizeof(baj_data137) },
+    { baj_data138, sizeof(baj_data138) },
+    { baj_data139, sizeof(baj_data139) },
+    { baj_data140, sizeof(baj_data140) },
+    { baj_data141, sizeof(baj_data141) },
+    { baj_data142, sizeof(baj_data142) },
+    { baj_data143, sizeof(baj_data143) },
+    { baj_data144, sizeof(baj_data144) },
+    { baj_data145, sizeof(baj_data145) },
+    { baj_data146, sizeof(baj_data146) },
+    { baj_data147, sizeof(baj_data147) },
+    { baj_data148, sizeof(baj_data148) },
+    { baj_data149, sizeof(baj_data149) },
+ #endif
 };
 
 const static uint16_t baj_images_ids[BAJ_IMG_COUNT] = {
@@ -224,25 +943,6 @@ static int system_test_baj_init(ui_manager_context_t *thiz)
 #endif
     lv_image_set_src(logo_root, (const void *)&baj_path);
     lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);
-#if 0
-    lv_obj_t * arc = lv_arc_create(lv_scr_act());
-    lv_obj_set_size(arc, 200, 200);
-    lv_obj_center(arc);
-    
-    lv_arc_set_bg_angles(arc, 135, 405);
-    lv_arc_set_angles(arc, 135, 300);
-    
-    /* 背景圆弧 */
-    lv_obj_set_style_arc_color(arc, lv_color_hex(0xEFEFEF), LV_PART_MAIN);
-    lv_obj_set_style_arc_width(arc, 14, LV_PART_MAIN);
-    
-    /* 深色前景圆弧 */
-    lv_obj_set_style_arc_color(arc, lv_color_hex(0xB86A6A), LV_PART_INDICATOR);
-    lv_obj_set_style_arc_width(arc, 14, LV_PART_INDICATOR);
-    
-    /* 去掉旋钮 */
-    lv_obj_remove_style(arc, NULL, LV_PART_KNOB);
-#endif
     return 0;
 }
 
