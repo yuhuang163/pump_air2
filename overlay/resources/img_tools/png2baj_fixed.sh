@@ -79,13 +79,14 @@ traverse_directory() {
                 cp "$FILE" "$temp_file"
                 
                 # 获取图片尺寸（用于文件名）
-                local width=$(magick identify -format "%w" "$temp_file" 2>/dev/null)
-                local height=$(magick identify -format "%h" "$temp_file" 2>/dev/null)
+                # 优先使用 identify 命令（ImageMagick 6），fallback 到 magick identify（ImageMagick 7）
+                local width=$(identify -format "%w" "$temp_file" 2>/dev/null)
+                local height=$(identify -format "%h" "$temp_file" 2>/dev/null)
                 
                 if [ -z "$width" ] || [ -z "$height" ]; then
-                    echo "警告: 无法获取图片尺寸，使用identify命令"
-                    width=$(identify -format "%w" "$temp_file" 2>/dev/null)
-                    height=$(identify -format "%h" "$temp_file" 2>/dev/null)
+                    echo "警告: 无法使用identify获取图片尺寸，尝试magick命令"
+                    width=$(magick identify -format "%w" "$temp_file" 2>/dev/null)
+                    height=$(magick identify -format "%h" "$temp_file" 2>/dev/null)
                 fi
                 
                 if [ ! -z "$width" ] && [ ! -z "$height" ]; then
