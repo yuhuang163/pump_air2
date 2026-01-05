@@ -352,3 +352,10 @@ int bsp_key_sensitivity_set(uint8_t key_index, uint8_t sensitivity)
     return BSP_OK;
 #endif
 }
+
+int bsp_touch_is_ready(void *args)
+{
+    uint8_t *touch_is_ready_status = (uint8_t *)args;
+    *touch_is_ready_status = s_touch_is_ready;
+    return BSP_OK;
+}

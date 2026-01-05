@@ -37,6 +37,8 @@ static int air_pressure_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, 
     switch (op_code) {
         case OP_CODE_AIR_PRESSURE_GET_STATUS:
             return bsp_read_air_pressure_status(args);
+        case OP_CODE_AIR_PRESSURE_IS_READY:
+            return bsp_air_pressure_is_ready(args);
         default:
             return -1;
     }

@@ -285,3 +285,12 @@ int bsp_read_air_pressure_status(void *args)
     s_log_count++;
     return BSP_OK;
 }
+
+int bsp_air_pressure_is_ready(void *args)
+{
+    uint8_t *pressure_is_ready_status = (uint8_t *)args;
+    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
+        pressure_is_ready_status[i] = s_dev_is_ready[i];
+    }
+    return BSP_OK;
+}   

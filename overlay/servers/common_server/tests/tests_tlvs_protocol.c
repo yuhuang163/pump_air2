@@ -842,53 +842,85 @@ int tests_tlvs_query_sensor_status(comm_protocol_builder_t *builder, comm_protoc
 
     // 通过 peripheral_bus 查询各个传感器的通信状态
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    
-    // 查询IMU传感器状态
-    #if IS_SUPPORT_DEVICE_IMU
-    {
-        rt_device_node_t *dev = NULL;
-        if (pbus) {
-            dev = pbus->find_device(ID_DEVICE_IMU);
-        }
-        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
-        sensor_count++;
-    }
-    #endif
-
-    // 查询力传感器状态
-    #if IS_SUPPORT_DEVICE_FSENSOR
-    {
-        rt_device_node_t *dev = NULL;
-        if (pbus) {
-            dev = pbus->find_device(ID_DEVICE_FSENSOR);
-        }
-        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
-        sensor_count++;
-    }
-    #endif
 
     // 查询气压传感器状态
     #if IS_SUPPORT_DEVICE_AIR_PRESSURE
     {
-        rt_device_node_t *dev = NULL;
-        if (pbus) {
-            dev = pbus->find_device(ID_DEVICE_AIR_PRESSURE);
+        uint8_t pressure_is_ready_status[AIR_PRESSURE_NUM] = {0};
+        rt_device_node_t *air_pressure_dev = pbus->find_device(ID_DEVICE_AIR_PRESSURE);
+        if (air_pressure_dev) {
+            DEVICE_IOCTL_ARGS_NO_RET(air_pressure_dev, OP_CODE_AIR_PRESSURE_IS_READY, pressure_is_ready_status);
+            for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
+                response[sensor_count] = pressure_is_ready_status[i];
+                sensor_count++;
+            }
         }
-        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
-        sensor_count++;
     }
+    #else
+        response[sensor_count] = 0x00;
+        sensor_count++;
     #endif
 
-    // 查询光传感器状态（如果支持）
-    #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
+    // 查询电池状态
+    #if IS_SUPPORT_DEVICE_BATTERY
     {
-        rt_device_node_t *dev = NULL;
-        if (pbus) {
-            dev = pbus->find_device(ID_DEVICE_LIGHT_SENSOR);
+        uint8_t charge_is_ready_status = 0;
+        rt_device_node_t *battery_dev = pbus->find_device(ID_DEVICE_BATTERY);
+        if (battery_dev) {
+            DEVICE_IOCTL_ARGS_NO_RET(battery_dev, OP_CODE_BAT_IS_READY, &charge_is_ready_status);
+            response[sensor_count] = charge_is_ready_status;
+            sensor_count++;
         }
-        response[sensor_count] = (dev && dev->status == DEVICE_BUS_INIT) ? 0x01 : 0x00;
+    }   
+    #else
+        response[sensor_count] = 0x00;
         sensor_count++;
+    #endif
+    // 查询触摸按键状态
+    #if IS_SUPPORT_DEVICE_TOUCH_KEY
+    {
+        uint8_t touch_is_ready_status = 0;
+        rt_device_node_t *input_key_dev = pbus->find_device(ID_DEVICE_INPUT_KEY);
+        if (input_key_dev) {
+            DEVICE_IOCTL_ARGS_NO_RET(input_key_dev, OP_CODE_INPUT_TOUCH_IS_READY, &touch_is_ready_status);
+            response[sensor_count] = touch_is_ready_status;
+            sensor_count++;
+        }
     }
+    #else
+        response[sensor_count] = 0x00;
+        sensor_count++;
+    #endif
+
+    // 查询LED状态
+    #if IS_SUPPORT_DEVICE_LED
+    {
+        uint8_t led_is_ready_status = 0;
+        rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
+        if (led_dev) {
+            DEVICE_IOCTL_ARGS_NO_RET(led_dev, OP_CODE_LED_IS_READY, &led_is_ready_status);
+            response[sensor_count] = led_is_ready_status;
+            sensor_count++;
+        }
+    }
+    #else
+        response[sensor_count] = 0x00;
+        sensor_count++;
+    #endif
+    // 查询PD充电状态
+    #if IS_SUPPORT_PD_CHARGE
+    {
+        uint8_t charge_pd_is_ready_status = 0;
+        rt_device_node_t *battery_dev = pbus->find_device(ID_DEVICE_BATTERY);
+        if (battery_dev) {
+            DEVICE_IOCTL_ARGS_NO_RET(battery_dev, OP_CODE_BAT_PD_IS_READY, &charge_pd_is_ready_status);
+            response[sensor_count] = charge_pd_is_ready_status;
+            sensor_count++;
+        }
+    }
+    #else
+        response[sensor_count] = 0x00;
+        sensor_count++;
     #endif
 
     LOG_SRV("tests_tlvs_query_sensor_status: sensor_count=%d", sensor_count);

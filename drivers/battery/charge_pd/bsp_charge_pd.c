@@ -197,3 +197,10 @@ int bsp_charge_pd_suspend(void)
     // s_charge_pd_abnormal_count = 0;
     return BSP_OK;
 }
+
+int bsp_charge_pd_is_ready(void *args)
+{
+    uint8_t *pd_is_ready_status = (uint8_t *)args;
+    *pd_is_ready_status = s_charge_pd_is_ready;
+    return BSP_OK;
+}
