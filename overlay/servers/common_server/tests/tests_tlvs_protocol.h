@@ -37,6 +37,7 @@ typedef enum {
     TESTS_TLV_GET_TRIM_VALUE = 0x0015,         /// 获取设备trim值 (Length=0)
     TESTS_TLV_STANDBY_MODE = 0x0016,           /// 进入或退出待机 (0x01:进入, 0x00:退出)
     TESTS_TLV_QUERY_SENSOR_STATUS = 0x0017,    /// 查询外设sensor状态 (Length=0)
+    TESTS_TLV_READ_FACTORY_COMPLETE_FLAG = 0x0018, /// 产测完成标识读取 (Length=0)
     TESTS_TLV_ID_MAX,
 } tests_tlvs_id_e;
 
@@ -109,6 +110,8 @@ int tests_tlvs_suction_compensation(comm_protocol_builder_t *builder, comm_proto
 
 /// 产测完成标识
 int tests_tlvs_write_factory_complete_flag(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+int tests_tlvs_read_factory_complete_flag(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 
 /// 蓝牙测试
