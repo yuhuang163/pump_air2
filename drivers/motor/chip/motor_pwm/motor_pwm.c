@@ -430,7 +430,6 @@ static int8_t bsp_motor_pwm_gradual_gpio_irq_init(int8_t enable)
     hal_gpio_setup_irq(PWM_PUMP1_PIN, &gpio_irq_cfg);
     gpio_irq_cfg.irq_handler = pump_2_irq_callback;
     hal_gpio_setup_irq(PWM_PUMP2_PIN, &gpio_irq_cfg);
-    gpio_irq_cfg.irq_handler = pump_2_irq_callback;
   return 0;
 }
 
