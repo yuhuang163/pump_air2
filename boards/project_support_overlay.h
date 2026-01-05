@@ -77,8 +77,12 @@ extern "C" {
 #endif
 
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#if IS_SUPPORT_DEVICE_BATTERY
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (1)
+#else
+#define IS_SUPPORT_PD_CHARGE                             (0)
+#endif
 /// 支持旋钮
 #define IS_SUPPORT_DEVICE_KNOB                           (1)
 /// 支持电池直采

@@ -19,6 +19,7 @@ typedef enum {
     OP_CODE_LED_STATUS_GET = 2,
     OP_CODE_NIGHT_LIGHT_STATUS_SET  = 3,
     OP_CODE_NIGHT_LIGHT_STATUS_GET  = 4,
+    OP_CODE_LED_IS_READY = 5,
 } led_dev_op_code_e;
 
 /**

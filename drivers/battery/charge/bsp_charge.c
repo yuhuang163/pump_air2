@@ -531,3 +531,10 @@ int bsp_charge_suspend(void)
 #endif
     return BSP_OK;
 }
+
+int bsp_charge_is_ready(void *args)
+{
+    uint8_t *charge_is_ready_status = (uint8_t *)args;
+    *charge_is_ready_status = s_charge_is_ready;
+    return BSP_OK;
+}

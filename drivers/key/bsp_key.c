@@ -118,6 +118,10 @@ static int key_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
             return platform_read_key_value(0, tmp[0]);
         case OP_CODE_INPUT_SET_KEY_SENSITIVITY:
             return bsp_key_sensitivity_set(tmp[0], tmp[1]);
+        case OP_CODE_INPUT_IS_READY:
+            return 0;
+        case OP_CODE_INPUT_TOUCH_IS_READY:
+            return bsp_touch_is_ready(args);
         default:
             return -1;
     }
