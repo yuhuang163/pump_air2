@@ -287,3 +287,10 @@ int bsp_led_status_set(void *args)
 
     return BSP_OK;
 }
+
+int bsp_led_is_ready(void *args)
+{
+    uint8_t *led_is_ready_status = (uint8_t *)args;
+    *led_is_ready_status = 1;
+    return BSP_OK;
+}
