@@ -505,9 +505,9 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
         case OP_CODE_BAT_GET_CHARGE_TEMPERATURE:
             return get_charging_temperature();
         case OP_CODE_BAT_IS_READY:
-            return battery_is_ready(args);
+            return bsp_charge_is_ready(args);
         case OP_CODE_BAT_PD_IS_READY:
-            return battery_pd_is_ready(args);
+            return bsp_charge_pd_is_ready(args);
         
         default:
             LOGE("bat err op_code: %lx", op_code);

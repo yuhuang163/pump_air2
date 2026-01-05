@@ -224,6 +224,7 @@ _exit:
     return 0;
 }
 
+#if CFG_CUSTOM_APP
 /**
  * @brief 更新PWM占空比（不停止PWM）
  * @param id PWM ID
@@ -325,6 +326,7 @@ int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq)
 
     return 0;
 }
+#endif
 
 int hal_pwm_breathing_led_enable(enum HAL_PWM_ID_T id, const struct HAL_PWM_BR_CFG_T *cfg)
 {
