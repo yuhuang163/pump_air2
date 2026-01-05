@@ -620,6 +620,35 @@ int tests_tlvs_write_factory_complete_flag(comm_protocol_builder_t *builder, com
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
 }
 
+int tests_tlvs_read_factory_complete_flag(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                                         uint8_t *data, uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    LOG_SRV("tests_tlvs_read_factory_complete_flag, data_len: %d", data_len);
+
+    uint8_t complete_flag = 0x00; // 默认产测未完成
+
+    storage_manager_context_t *st = get_storage_ctx();
+    if (st) {
+        factory_flag_info_t flag_info = {0};
+        if (st->get_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info) == 0) {
+            // 读取 deploy_flag 字段作为产测完成标识
+            complete_flag = flag_info.deploy_flag;
+            LOG_SRV("tests_tlvs_read_factory_complete_flag: %s", complete_flag ? "COMPLETE" : "NOT_COMPLETE");
+        }
+    }
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_READ_FACTORY_COMPLETE_FLAG,
+        .length = 1,
+        .value = &complete_flag,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
 /// ======================== 蓝牙测试 ========================
 
 int tests_tlvs_bt_signaling_test(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
