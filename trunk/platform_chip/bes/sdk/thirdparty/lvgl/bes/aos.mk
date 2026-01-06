@@ -185,6 +185,10 @@ subdir-ccflags-y += -Ithirdparty/svg/inc
 obj-y += svg/
 endif
 
+ifeq ($(LVGL_SNAPSHOT),1)
+subdir-ccflags-y += -DLVGL_SNAPSHOT
+endif
+
 obj-y += ports/
 obj-y += disp/
 obj-y += vglite/
