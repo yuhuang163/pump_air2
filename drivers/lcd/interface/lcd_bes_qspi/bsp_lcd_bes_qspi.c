@@ -33,6 +33,16 @@ static bool lcd_qspi_ready = false;
 */
 int bsp_lcd_init(void) 
 {
+    lv_init();
+    lv_tick_set_cb(get_timestamp);
+    lv_delay_set_cb(msleep);
+    lv_hal_disp_init();
+    return BSP_OK;
+}
+
+int bsp_lcd_deinit(void) 
+{
+    lv_deinit();
     return BSP_OK;
 }
 

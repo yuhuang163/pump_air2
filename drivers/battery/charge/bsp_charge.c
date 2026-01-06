@@ -524,8 +524,9 @@ int bsp_charge_resume(void)
 
 int bsp_charge_suspend(void)
 {
-    // s_charge_is_ready = false;
-    // s_charge_abnormal_count = 0;
+    s_charge_is_ready = false;
+    s_charge_abnormal_count = 0;
+    STOP_TIMER(s_charge_timer_id);
 #if IS_SUPPORT_PD_CHARGE
     bsp_charge_pd_suspend();
 #endif
