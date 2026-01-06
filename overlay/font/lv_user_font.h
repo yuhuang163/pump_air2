@@ -19,6 +19,9 @@ extern "C" {
 #include "lv_font_roboto_79.h" // IWYU pragma: keep
 #include "lv_font_roboto_81.h" // IWYU pragma: keep
 
+#include "lv_font_oppo_sans_14.h" // IWYU pragma: keep
+#include "lv_font_quicksand_96.h" // IWYU pragma: keep
+
 #ifdef __cplusplus
 }
 #endif
