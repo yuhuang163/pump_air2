@@ -65,6 +65,12 @@
 #define LV_USE_BESSVG                       0
 #endif
 
+#ifdef LVGL_SNAPSHOT
+#define LV_USE_SNAPSHOT                     1
+#else
+#define LV_USE_SNAPSHOT                     0
+#endif
+
 /* memory configs */
 #define LV_MEM_SIZE                         (5 * 1024U * 1024U)
 // #define LV_CACHE_DEF_SIZE                   (2 * 1024U * 1024U)

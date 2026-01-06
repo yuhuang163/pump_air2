@@ -26,7 +26,11 @@ extern "C" {
 #define LVGL_RENDER_THREAD_STACKSIZE                   (TASK_SIZE_DEFAULT * 2 + 0)
 #endif
 /// 窗口线程深度
+#if CFG_LVGL_ENABLE
+#define WM_THREAD_STACKSIZE                            (TASK_SIZE_DEFAULT * 4 + 0)
+#else
 #define WM_THREAD_STACKSIZE                            (TASK_SIZE_DEFAULT * 2 + 0)
+#endif
 /// ota线程深度
 #define OTA_THREAD_STACKSIZE                           (TASK_SIZE_DEFAULT * 2 + 0) 
 /// 按键线程深度
