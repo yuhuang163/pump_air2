@@ -89,6 +89,11 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
         /* 进入产测模式 */
         tests_ctx->tests_manager_set_current_mode(TST_FACTORY_TYPE);
         tests_ctx->set_factory_tests_event_process(FAC_TST_ENTER_EVENT, 0, 0, NULL);
+        //唤醒电源管理模块
+        power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+        if (pm && pm->is_pm_suspend()) {
+            pm->pm_wakeup(PM_WAKEUP_REASON_FACTORY_RESUME);
+        }
         /* 打开测试窗口 */
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
         EXCEPTION_CHECK_INT(wm);
@@ -152,6 +157,11 @@ int tests_tlvs_aging_test_mode(comm_protocol_builder_t *builder, comm_protocol_s
             multi_func_msg_data_t msg = {0};
             msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
             wm->dispatch_new_window_args(wm, &msg);
+        }
+        //唤醒电源管理模块
+        power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+        if (pm && pm->is_pm_suspend()) {
+            pm->pm_wakeup(PM_WAKEUP_REASON_FACTORY_RESUME);
         }
         //启动产测模块 老化测试 吸乳模式→L15档→双边工作
         POST_TASK_HANDLER_DELAYED_ARG4(test_factory_aging_test_enter_post_task_handler, 1000, aging_mode_type, target_duration, "aging_test_cb");
@@ -229,6 +239,11 @@ int tests_tlvs_suction_test_mode(comm_protocol_builder_t *builder, comm_protocol
             multi_func_msg_data_t msg = {0};
             msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
             wm->dispatch_new_window_args(wm, &msg);
+        }
+        //唤醒电源管理模块
+        power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+        if (pm && pm->is_pm_suspend()) {
+            pm->pm_wakeup(PM_WAKEUP_REASON_FACTORY_RESUME);
         }
         //启动产测模块 吸力测试 吸乳模式→L15档→双边工作
         POST_TASK_HANDLER_DELAYED_ARG0(test_factory_suction_test_post_task_handler, 1000, "suction_test_cb");
@@ -834,13 +849,14 @@ int tests_tlvs_standby_mode(comm_protocol_builder_t *builder, comm_protocol_serv
 
     if (mode == 1) {
         /* 进入待机模式 */
-        SEND_BROADCAST_ARGS0(ID_BROADCAST_REQ_PM_SUSPEND_BY_USER);
+        SEND_BROADCAST_ARGS2(ID_BROADCAST_REQ_PM_SUSPEND_BY_USER, 0,
+                             SUSPEND_BY_FAC);
         result = 0x01; // 成功
     } else {
         /* 退出待机模式 */
         power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
         if (pm) {
-            pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ);
+            pm->pm_wakeup(PM_WAKEUP_REASON_FACTORY_RESUME);
             result = 0x01; // 成功
         }
     }

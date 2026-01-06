@@ -66,11 +66,18 @@ static void system_power_off_cb(hdr_post_args_t *args)
 static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reason)
 {
     window_manager_context_t *wm = proc->wm;
+    tests_manager_context_t *tests = proc->tests;
+    EXCEPTION_CHECK_INT(tests);
     EXCEPTION_CHECK_INT(wm);
     EXCEPTION_CHECK_INT(proc->pm);
     multi_func_msg_data_t msg = {0};
-    LOG_WM("goto pump window.");
-    msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+    if (tests->tests_manager_get_current_mode() != TST_NONE_TYPE) {
+        msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
+        LOG_WM("goto product test mode window.");
+    } else {
+        msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+        LOG_WM("goto pump window.");
+    }
     wm->dispatch_new_window_args(wm, &msg);
     return 0;
 }
@@ -197,6 +204,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    proc->tests = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_CHARGE_STATE_CHANGE;
