@@ -444,6 +444,8 @@ FONT_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_68 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_79 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_81 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_14 \
+	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_96 \
 
 # 窗口模块头文件
 WINDOWS_INC_FLAGS := \
@@ -921,6 +923,8 @@ FONT_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_68/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_79/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_81/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_14/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_96/*.c) \
 
 # 窗口模块源码
 WINDOWS_MODULE_SRCS := \
