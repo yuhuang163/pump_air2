@@ -139,9 +139,6 @@ static int entry_event_cb(window_lift_cycle_e new_state,
             ui->hook->set_ui_backlight(ui, 0);
             LOG_WM("%s window set backlight off", PAGE_NAME_STR);
         }
-        #if IS_SUPPORT_LVGL
-            start_dummy_ui_animation(proc);
-        #endif
     }
     return 0;
 }
@@ -155,9 +152,6 @@ static int exit_event_cb(window_lift_cycle_e new_state,
     EXCEPTION_CHECK_INT(wm);
     switch (new_state) {
         case ID_SCR_STATE_ON_PAUSE:
-            #if IS_SUPPORT_LVGL
-                stop_dummy_ui_animation(proc);
-            #endif
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             unregister_broadcast_receiver(&proc->receiver);
             REMOVE_ALL_HANDER_TASK();
