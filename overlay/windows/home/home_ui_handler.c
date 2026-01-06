@@ -126,7 +126,7 @@ void stop_home_ui_animation(ui_proc_home_t *proc)
 void home_start_key_event_handler(ui_proc_home_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc);
-    if (proc->page_index >= HOME_PAGE_GUIDE_QRCODE) {
+    if (proc->page_index >= HOME_PAGE_MAX - 1) {
         POST_TASK_HANDLER_NO_DELAY(home_display_completed_cb, proc, HOME_DISPLAY_TASK_NAME);
         return;
     }

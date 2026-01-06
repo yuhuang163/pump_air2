@@ -36,11 +36,11 @@ typedef enum {
 } home_ui_type_e;
 
 typedef enum {
-    HOME_PAGE_GUIDE_PHONE,
+    HOME_PAGE_GUIDE_QRCODE,
+    // HOME_PAGE_GUIDE_PHONE,
     HOME_PAGE_GUIDE_CHASING_MILK,
     HOME_PAGE_GUIDE_ADJUST_LEVEL,
     HOME_PAGE_GUIDE_MILK_QUANTITY,
-    HOME_PAGE_GUIDE_QRCODE,
     HOME_PAGE_MAX,
 } home_page_index_t;
 

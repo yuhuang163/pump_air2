@@ -138,7 +138,7 @@ static void home_icon_image_update(ui_manager_context_t *thiz, uint8_t page_inde
         EXCEPTION_CHECK_VOID(home_info->icon);
     }
 
-    if (page_index >= HOME_CONTENT_COUNT) {
+    if (page_index == HOME_PAGE_GUIDE_QRCODE) {
         lv_obj_add_flag(home_info->icon, LV_OBJ_FLAG_HIDDEN);
         return;
     } else {
