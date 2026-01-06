@@ -332,8 +332,8 @@ void disp_lcdc_send_frame(const void *buf)
     uint32_t lock;
 
 #ifdef RTOS
-    hal_sys_timer_delay(MS_TO_TICKS(1));
-    lcdc_vsync_cb();
+    // hal_sys_timer_delay(MS_TO_TICKS(1));
+    // lcdc_vsync_cb();
     if (framedone_sem)
         osSemaphoreAcquire(framedone_sem, -1);
 #else
@@ -349,6 +349,7 @@ void disp_lcdc_send_frame(const void *buf)
     int_unlock(lock);
 
     DISP_DBG("switch to framebuffer %p", new_framebuf);
+    lcdc_vsync_cb(); /// software vsync
 #ifdef SIMU
     lcdc_vsync_cb();
 #endif

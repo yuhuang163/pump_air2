@@ -81,9 +81,10 @@ static ui_img_data_t jpeg_images[JPEG_IMG_COUNT] = {
 #endif
 
 #if IS_SUPPORT_BAJ_TEST
+#define IS_SUPPORT_BAJ_TEST_BG       1
+#define IS_SUPPORT_BAJ_RES           0
 
-#define IS_SUPPORT_BAJ_RES       0
-#define BAJ_IMG_COUNT            150
+#define BAJ_IMG_COUNT            50
 static const uint8_t baj_data0[] = {
 //  #include "overlay/resources/img_baj_bin/home22_360x360_a4_q99_422.txt"
 #include "overlay/resources/boost_lactation_bin_30/boost_lactation_00000_360x360_a4_q99_422.txt"
@@ -289,7 +290,7 @@ static const uint8_t baj_data48[] = {
 static const uint8_t baj_data49[] = {
 #include "overlay/resources/boost_lactation_bin_30/boost_lactation_00049_360x360_a4_q99_422.txt"
 };
-#if 1
+#if 0
 static const uint8_t baj_data50[] = {
 #include "overlay/resources/boost_lactation_bin_30/boost_lactation_00050_360x360_a4_q99_422.txt"
 };
@@ -680,6 +681,12 @@ static const uint8_t baj_data149[] = {
 #include "overlay/resources/boost_lactation_bin_30/boost_lactation_00149_360x360_a4_q99_422.txt"
 };
 #endif
+#if IS_SUPPORT_BAJ_TEST_BG
+static const uint8_t baj_data_bg[] = {
+// #include "overlay/resources/img_png_bin/bg_360x360.txt"
+#include "overlay/resources/img_baj_bin/bg_360x360_a4_q99_422.txt"
+};
+#endif
 static ui_img_data_t baj_images[BAJ_IMG_COUNT] = {
     { baj_data0, sizeof(baj_data0) },
     { baj_data1, sizeof(baj_data1) },
@@ -731,7 +738,7 @@ static ui_img_data_t baj_images[BAJ_IMG_COUNT] = {
     { baj_data47, sizeof(baj_data47) },
     { baj_data48, sizeof(baj_data48) },
     { baj_data49, sizeof(baj_data49) },
-#if 1
+#if 0
     { baj_data50, sizeof(baj_data50) },
     { baj_data51, sizeof(baj_data51) },
     { baj_data52, sizeof(baj_data52) },
@@ -845,6 +852,11 @@ const static uint16_t baj_images_ids[BAJ_IMG_COUNT] = {
     RESOURCE_ID_PP_MODE,
 };
 res_img_info_t baj_infos;
+
+#if IS_SUPPORT_BAJ_TEST_BG
+static lv_obj_t *logo_bg;
+#endif
+
 #endif
 
 static lv_obj_t *logo_root;
@@ -930,10 +942,24 @@ static int system_test_jpeg_process(void)
 #if IS_SUPPORT_BAJ_TEST
 static int system_test_baj_init(ui_manager_context_t *thiz)
 {
+#if IS_SUPPORT_BAJ_TEST_BG
+    if (logo_bg == NULL || !lv_obj_is_valid(logo_bg)) {
+        logo_bg = lv_image_create(lv_screen_active());
+    }
+    lv_fs_path_ex_t bg_path;
+    lv_fs_make_path_from_buffer(&bg_path, LV_FS_MEMFS_LETTER, baj_data_bg, sizeof(baj_data_bg), "baj");
+    lv_image_set_src(logo_bg, (const void *)&bg_path);
+    lv_obj_align(logo_bg, LV_ALIGN_CENTER, 0, 0);
+    if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
+        logo_root = lv_image_create(logo_bg);
+    }
+#else
     if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
         logo_root = lv_image_create(lv_screen_active());
     }
     lv_obj_set_style_bg_color(logo_root, lv_color_white(), 0);     /// 设置背景颜色为白色
+#endif
+
     lv_fs_path_ex_t baj_path;
 #if IS_SUPPORT_BAJ_RES
     common_ui_img_resource_init(thiz, baj_images_ids[0], &baj_infos);
@@ -943,12 +969,20 @@ static int system_test_baj_init(ui_manager_context_t *thiz)
 #endif
     lv_image_set_src(logo_root, (const void *)&baj_path);
     lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);
+
     return 0;
 }
 
 static int system_test_baj_process(ui_manager_context_t *thiz)
 {
     static uint32_t index = 0;
+
+#if IS_SUPPORT_BAJ_TEST_BG
+    // lv_fs_path_ex_t bg_path;
+    // lv_fs_make_path_from_buffer(&bg_path, LV_FS_MEMFS_LETTER, baj_data_bg, sizeof(baj_data_bg), "baj");
+    // lv_image_set_src(logo_bg, (const void *)&bg_path);
+#endif
+
     lv_fs_path_ex_t baj_path;
 #if IS_SUPPORT_BAJ_RES
     common_ui_img_resource_init(thiz, baj_images_ids[index % BAJ_IMG_COUNT], &baj_infos);
@@ -958,7 +992,6 @@ static int system_test_baj_process(ui_manager_context_t *thiz)
     uint32_t baj_size = baj_images[index % BAJ_IMG_COUNT].size;
     lv_fs_make_path_from_buffer(&baj_path, LV_FS_MEMFS_LETTER, baj_data, baj_size, "baj");
 #endif
-    // lv_obj_set_style_bg_color(logo_root, lv_color_white(), 0);     /// 设置背景颜色为白色
     lv_image_set_src(logo_root, (const void *)&baj_path);
     index++;
 
