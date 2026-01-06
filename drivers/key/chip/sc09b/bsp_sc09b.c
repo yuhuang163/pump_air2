@@ -150,7 +150,7 @@ POSSIBLY_UNUSED static void sc09b_irq_init(void)
 
 POSSIBLY_UNUSED static void sc09b_touch_key_scan(void)
 {
-    uint16_t key_value = 0, key_idle_count = 0, error_count = 0;
+    uint16_t key_value[2] = {0}, key_idle_count = 0, error_count = 0;
     i2c_master_data_t key_data = {
         .dev_address = TOUCH_I2C_ADDR,
         .data = (uint8_t *)&key_value,
@@ -161,14 +161,14 @@ POSSIBLY_UNUSED static void sc09b_touch_key_scan(void)
     while(1) {
         if (sc09b_read_nbyte(&key_data) == BSP_OK) {
             for (uint8_t i = 0; i < TOUCH_KEY_NUM; i++) {
-                s_touch_key[i] = (key_value & s_key_mask[i]) ? 1 : 0;
+                s_touch_key[i] = (key_value[0] & s_key_mask[i]) ? 1 : 0;
             }
             // LOG_PBUS("key value: %x, %x, %x, %x, %x, %x", s_touch_key[0], s_touch_key[1], 
             //     s_touch_key[2], s_touch_key[3], s_touch_key[4], s_touch_key[5]);
-            if (key_value == 0) {
+            // PRINT_LOG("key value: %x, %x\r\n", key_value[0], key_value[1]);
+            if (key_value[0] == 0) {
                 key_idle_count++;
                 if (key_idle_count > TOUCH_KEY_IDLE_COUNT) {
-                    // LOG_PBUS("key idle count: %d", key_idle_count);
                     break;
                 }
             } else {
@@ -238,8 +238,8 @@ POSSIBLY_UNUSED static int sc09b_chip_init(void)
         LOGE("touch key is not ready");
         return BSP_NOT_READY;
     }
-    // bsp_key_sensitivity_set(0, SC09B_SEN_DEFAULT);
-    // bsp_key_sensitivity_set(1, SC09B_SEN_DEFAULT);
+    bsp_key_sensitivity_set(0, SC09B_SEN_6);
+    bsp_key_sensitivity_set(1, SC09B_SEN_6);
     // sc09b_reference_cap_config();
     return BSP_OK;
 }
