@@ -14,6 +14,8 @@
 */
 #define PAGE_STATIC_NAME                            home
 #define PAGE_NAME_STR                               "home"
+#define HOME_UI_KEY_CODE                            KEY_CODE_START
+#define HOME_UI_KEY_TYPE                            KEY_EVENT_CLICK
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -30,6 +32,24 @@ INIT_WINDOW_CONTEXT();
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
+{
+    if (!GET_WINDOW_CONTEXT()) {
+        LOG_WM("window context not present, ignore.");
+        return 0;
+    }
+    ui_proc_home_t *proc = user_data;
+    EXCEPTION_CHECK_INT(proc);
+    switch (keycode) {
+        case KEY_CODE_START:
+            home_start_key_event_handler(proc);
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
 static int entry_event_cb(window_lift_cycle_e new_state,
     const struct window_context *thiz, const struct window_context *old_scr)
 {
@@ -37,7 +57,12 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     window_manager_context_t *wm = proc->wm;
     ui_manager_context_t *ui = proc->ui;
     if (new_state == ID_SCR_STATE_ON_RESUME) {
-
+        if (proc->key) {
+            proc->key->add_keyevent_handler("home_wm", proc, HOME_UI_KEY_CODE, HOME_UI_KEY_TYPE,
+                on_home_ui_keyevent_hdr);
+        } else {
+            LOG_WM("key not present, ignore.");
+        }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
         ui->animation_play_status_update(ui, false); /// 清除动画播放标志
@@ -54,6 +79,9 @@ static int exit_event_cb(window_lift_cycle_e new_state,
         case ID_SCR_STATE_ON_PAUSE:
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             stop_home_ui_animation(proc);
+            if (proc->key) {
+                proc->key->remove_keyevent_handler(on_home_ui_keyevent_hdr);
+            }
             break;
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("%s window exit: u_free: %p", PAGE_NAME_STR, proc);
@@ -85,6 +113,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     window_context_t *w_ctx = &proc->w_ctx;
     w_ctx->new_window_id = window_id;
     w_ctx->evt_cb_entry = entry_event_cb;

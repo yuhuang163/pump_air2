@@ -894,7 +894,7 @@ static int system_test_png_process(void)
     lv_fs_make_path_from_buffer(&png_path, LV_FS_MEMFS_LETTER, png_data, png_size, "png");
     lv_image_set_src(logo_root, (const void *)&png_path);
 #if 1
-    LOGI("===> test 7 png: %d", index);
+    LOG_UI("===> test 7 png: %d", index);
     if (get_timestamp() - start_time > 5000) {
         start_time = get_timestamp();
         index++;
@@ -930,7 +930,7 @@ static int system_test_jpeg_process(void)
     uint32_t jpeg_size = jpeg_images[index % JPEG_IMG_COUNT].size;
     lv_fs_make_path_from_buffer(&jpg_path, LV_FS_MEMFS_LETTER, jpeg_data, jpeg_size, "jpg");
     lv_image_set_src(logo_root, (const void *)&jpg_path);
-    LOGI("===> system_test_jpeg_process: %d", index);
+    LOG_UI("===> system_test_jpeg_process: %d", index);
     if (get_timestamp() - start_time > 1000) {
         start_time = get_timestamp();
         index++;
@@ -1037,7 +1037,7 @@ static int system_lcd_test_process(void)
             lv_refr_now(NULL);
             lv_unlock();
             
-            LOGI("===> lcd test color: %d", color_index);
+            LOG_UI("===> lcd test color: %d", color_index);
         } else {
             LOGE("===> lcd test: invalid screen object");
         }
@@ -1114,7 +1114,7 @@ int ui_display_logo_process(ui_manager_context_t *thiz)
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOGI("===> logo fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> logo fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
     return 0;

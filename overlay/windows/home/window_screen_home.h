@@ -35,6 +35,15 @@ typedef enum {
     HOME_UI_TYPE_MAX
 } home_ui_type_e;
 
+typedef enum {
+    HOME_PAGE_GUIDE_PHONE,
+    HOME_PAGE_GUIDE_CHASING_MILK,
+    HOME_PAGE_GUIDE_ADJUST_LEVEL,
+    HOME_PAGE_GUIDE_MILK_QUANTITY,
+    HOME_PAGE_GUIDE_QRCODE,
+    HOME_PAGE_MAX,
+} home_page_index_t;
+
 /// 主界面UI结构体
 typedef struct {
     uint32_t ani_timer_cnt;
@@ -44,9 +53,11 @@ typedef struct {
     ble_manager_context_t *ble;
     misc_manager_context_t *misc;
     storage_manager_context_t *st;
+    key_input_context_t *key;
     uint32_t margic; /// 窗口标识.
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     uint16_t current_ui_type; /// 当前UI类型. home_ui_type_e
+    uint16_t page_index; /// 当前页面索引.
 } ui_proc_home_t;
 
 /*
@@ -55,6 +66,7 @@ typedef struct {
 */
 void start_home_ui_animation(ui_proc_home_t *proc);
 void stop_home_ui_animation(ui_proc_home_t *proc);
+void home_start_key_event_handler(ui_proc_home_t *proc);
 
 #ifdef __cplusplus
 }
