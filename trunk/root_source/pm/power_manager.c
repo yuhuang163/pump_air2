@@ -286,6 +286,14 @@ static void pm_goto_suspend_by_user(void)
     pm_suspend_check_handler(thiz);
 }
 
+static void pm_goto_suspend_by_factory(void)
+{
+    LOG_PM("goto suspend by factory");
+    set_suspend_counter("PM_SUSPEND_BY_FAC", 0, true);
+    clear_all_wakelock(thiz);
+    pm_suspend_check_handler(thiz);
+}
+
 static void on_pm_broadcast_receive(broadcast_mask_id_t id,
             void *context, int reason, int arg2, broadcast_priv_data_t *pdata)
 {
@@ -299,6 +307,8 @@ static void on_pm_broadcast_receive(broadcast_mask_id_t id,
     switch (id.code) {
         case ID_BROADCAST_REQ_PM_SUSPEND_BY_USER: {
             if (arg2 == SUSPEND_BY_BLE) {
+            } else if (arg2 == SUSPEND_BY_FAC) {
+                pm_goto_suspend_by_factory();
             } else {
                 pm_goto_suspend_by_user();
             }
@@ -630,6 +640,8 @@ static const char *wake_up_reason_name(pm_wakeup_reason_e reason)
             return "wakeup:CHARGE_PLUG_OUI";
         case PM_WAKEUP_REASON_BACKGROUND_TASK:
             return "wakeup:BACKGROUND_TASK";
+        case PM_WAKEUP_REASON_FACTORY_RESUME:
+            return "wakeup:FACTORY_RESUME";
         default:
             return "unknow reason";
     }
