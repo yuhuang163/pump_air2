@@ -142,6 +142,8 @@ typedef struct {
 */
 bool vbus_is_plug_in(void);
 int bsp_charge_init(void);
+int bsp_charge_resume(void);
+int bsp_charge_suspend(void);
 int get_charge_state(void);
 int get_charging_temperature(void);
 int get_charge_battery_voltage(void);

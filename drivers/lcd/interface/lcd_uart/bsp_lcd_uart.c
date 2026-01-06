@@ -276,6 +276,11 @@ int bsp_lcd_init(void)
     return bsp_lcd_uart_init();
 }
 
+int bsp_lcd_deinit(void) 
+{
+    return BSP_OK;
+}
+
 int bsp_lcd_uart_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *args)
 {
     uint32_t *tmp = NULL;

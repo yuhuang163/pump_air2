@@ -326,7 +326,6 @@ static void pm_suspend_prepare_enter(power_manager_context_t *ctx)
 {
     int counter = 0;
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    SEND_BROADCAST_SYNC_ARGS1(ID_BROADCAST_PM_STATE_CHANGE, ctx->priv.pm_state);
     /// 当成前台跳转,确保任何界面都可以允许进入休眠.
     if (wm && wm->dispatch_new_window_args) {
         multi_func_msg_data_t msg = {0};
@@ -342,6 +341,7 @@ static void pm_suspend_prepare_enter(power_manager_context_t *ctx)
         }
         msleep(100);
     } while (++counter < 50);
+    SEND_BROADCAST_SYNC_ARGS1(ID_BROADCAST_PM_STATE_CHANGE, ctx->priv.pm_state);
 }
 
 static void pm_resume_post_enter(power_manager_context_t *ctx)

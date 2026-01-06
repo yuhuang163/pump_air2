@@ -523,6 +523,7 @@ static int battery_dev_suspend(struct rt_device_node *dev)
 #if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     battery_adc_suspend();
 #endif
+    bsp_charge_suspend();
     if (node) {
         node->status = DEVICE_BUS_SUSPEND;
     }
@@ -534,6 +535,7 @@ static int battery_dev_resume(struct rt_device_node *dev)
 #if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     battery_adc_resume();
 #endif
+    bsp_charge_resume();
     battery_health_update();
     s_batt_poll_time = 0;
     if (node) {
