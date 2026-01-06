@@ -426,24 +426,8 @@ static void window_boot_completed_cb(hdr_post_args_t *args)
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     multi_func_msg_data_t __msg = {0};
     if (pm->is_system_power_on()) {
-#if IS_SUPPORT_LVGL
-        int factory_deploy_flag = 0;
-        if(wm->priv.st) {
-            wm->priv.st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, &factory_deploy_flag);
-            // LOG_WM("deploy_flag: %d", factory_deploy_flag);
-        }
-
-        if(factory_deploy_flag == 0) {
-            __msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
-            LOG_WM("goto factory mode screen");
-        } else {
-            __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
-            LOG_WM("goto home screen");
-        }
-#else
         __msg.union_body.extra.window_id = ID_WINDOW_LOGO;
         LOG_WM("goto logo screen");
-#endif
     } else {
         __msg.union_body.extra.window_id = ID_WINDOW_DUMMY;
         LOG_WM("goto dummy screen");

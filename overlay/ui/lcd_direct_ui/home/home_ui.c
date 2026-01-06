@@ -20,15 +20,6 @@
 #define HOME_QRCODE_FG_COLOR                                   0x000000
 #define HOME_QRCODE_BORDER_COLOR                               0xA6A6A6
 
-typedef enum {  
-    HOME_PAGE_GUIDE_PHONE,
-    HOME_PAGE_GUIDE_CHASING_MILK,
-    HOME_PAGE_GUIDE_ADJUST_LEVEL,
-    HOME_PAGE_GUIDE_MILK_QUANTITY,
-    HOME_PAGE_GUIDE_QRCODE,
-    HOME_PAGE_MAX,
-} home_page_index_t;
-
 typedef struct {
     uint16_t img_id;
     uint16_t icon_x;
@@ -178,7 +169,7 @@ static void home_text_update(ui_manager_context_t *thiz, uint8_t page_index)
         lv_obj_set_style_text_align(home_info->text, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
         lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, 
             home_content_infos[0].text_x, home_content_infos[0].text_y);
-        LOGI("===> home text: %s", home_content_infos[0].name);
+        LOG_UI("===> home text: %s", home_content_infos[0].name);
     } else {
         lv_label_set_text(home_info->text, home_content_infos[page_index].name);
         lv_obj_set_style_text_color(home_info->text, lv_color_hex(HOME_CONTENT_COLOR), 0);
@@ -270,7 +261,7 @@ int ui_display_home_process(ui_manager_context_t *thiz)
 #if IS_SUPPORT_HOME_COMP_BG
     home_bg_update(thiz);
 #endif
-    static uint8_t page_index = HOME_PAGE_GUIDE_PHONE;
+    uint8_t page_index = proc->page_index;
     ble_ui_update(thiz, home_info->root, proc->ble->ble_is_connected());
     battery_icon_update(thiz, home_info->root, proc->misc->get_battery_percent(),
         proc->misc->is_charge_plug_in());
@@ -280,12 +271,8 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOGI("===> home fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
-        page_index++;
-        if (page_index >= HOME_PAGE_MAX) {
-            page_index = HOME_PAGE_GUIDE_PHONE;
-        }
     }
     return 0;
 }

@@ -189,7 +189,7 @@ int ui_display_product_tests_home_process(ui_manager_context_t *thiz)
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOGI("===> product_tests home fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> product_tests home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
     return 0;

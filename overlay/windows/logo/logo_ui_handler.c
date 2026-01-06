@@ -29,29 +29,54 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_logo_t *proc = (ui_proc_logo_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    LOG_UI("logo play finish.\n");
+    LOG_UI("logo play finished");
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_VOID(wm);
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_VOID(st);
-    uint8_t airplane_mode_state = 0;
     if (wm->is_current_window(wm, ID_WINDOW_LOGO) == 0) {
         return;
     }
     multi_func_msg_data_t msg = {0};
 #if IS_SUPPORT_LVGL
-    // msg.union_body.extra.window_id = ID_WINDOW_HOME;
+    uint8_t factory_deploy_flag = 0, guide_deploy_flag = 0, airplane_mode_state = 0;
+    if(proc->st) {
+        proc->st->get_store_ram_val(STORE_ID_SYS_AIRPLANE_MODE_STATE, 0, 0, &airplane_mode_state);
+        if (airplane_mode_state == 1) {
+            LOG_WM("goto airplane mode screen");
+            msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
+            wm->dispatch_new_window_args(wm, &msg);
+            return;
+        }
+
+        proc->st->get_store_ram_val(STORE_ID_FACTORY_DEPLOY_FLAG, 0, 0, &factory_deploy_flag);
+        if(factory_deploy_flag == 0) {
+            LOG_WM("goto factory mode screen");
+            msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
+            wm->dispatch_new_window_args(wm, &msg);
+            return;
+        } 
+        proc->st->get_store_ram_val(STORE_ID_SYS_GUIDE_DEPLOYED, 0, 0, &guide_deploy_flag);
+        if(guide_deploy_flag == 0) {
+            LOG_WM("goto guide screen");
+            msg.union_body.extra.window_id = ID_WINDOW_HOME;
+            wm->dispatch_new_window_args(wm, &msg);
+            return;
+        }
+    }
+    LOG_WM("goto pump screen");
     msg.union_body.extra.window_id = ID_WINDOW_PUMP;
     wm->dispatch_new_window_args(wm, &msg);
 #else
-    st->get_store_ram_val(STORE_ID_SYS_AIRPLANE_MODE_STATE, 0, 0, &airplane_mode_state);
-    LOG_UI("airplane_mode_state: %d", airplane_mode_state);
-    if (airplane_mode_state == 1) {
-
-        msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
-        wm->dispatch_new_window_args(wm, &msg);
-        return;
+    uint8_t airplane_mode_state = 0;
+    if(proc->st) {
+        proc->st->get_store_ram_val(STORE_ID_SYS_AIRPLANE_MODE_STATE, 0, 0, &airplane_mode_state);
+        if (airplane_mode_state == 1) {
+            LOG_WM("goto airplane mode screen");
+            msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
+            wm->dispatch_new_window_args(wm, &msg);
+            return;
+        }
     }
+    LOG_WM("goto pump screen");
     msg.union_body.extra.window_id = ID_WINDOW_PUMP;
     wm->dispatch_new_window_args(wm, &msg);
 #endif

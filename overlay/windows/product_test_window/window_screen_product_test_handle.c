@@ -110,6 +110,7 @@ static int product_test_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint1
         case KEY_CODE_POWER:
             break;
         case KEY_CODE_START:
+            product_tests_start_key_event_handler(proc);
             break;
         case KEY_CODE_MODE:
             break;
@@ -234,6 +235,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     proc->tests = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+    proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "product_test_brc";

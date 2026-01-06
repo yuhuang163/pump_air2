@@ -48,6 +48,7 @@ typedef struct {
     misc_manager_context_t *misc;
     tests_manager_context_t *tests;
     ble_manager_context_t *ble;
+    storage_manager_context_t *st;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
@@ -60,6 +61,7 @@ typedef struct {
 */
 void show_product_tests_ui(ui_proc_product_test_t *proc);
 void stop_product_tests_ui_animation(ui_proc_product_test_t *proc);
+void product_tests_start_key_event_handler(ui_proc_product_test_t *proc);
 
 #ifdef __cplusplus
 }

@@ -136,6 +136,8 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         .mode = proc->pump->get_breast_pump_mode(),
         .do_work = proc->pump->is_on_working()
     };
+
+#if 0
     const char *key_name = NULL;
     if (proc->key && proc->key->hook && proc->key->hook->get_key_code_name) {
         key_name = proc->key->hook->get_key_code_name(keycode);
@@ -143,6 +145,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         key_name = "@unknow";
     }
     LOG_WM("%s, keyevent:%d/%d, pump working: %d.", key_name, keycode, keytype, pump_info.do_work);
+#endif
 
     if (proc->goto_charge_ui_flag != 0) {
         LOG_WM("goto charge ui, ignore key event.");
@@ -232,10 +235,10 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             break;
 
         default:
-            LOG_WM("unknow keycode: %d, ignore.", keycode);
+            // LOG_WM("unknow keycode: %d, ignore.", keycode);
             break;
     }
-    LOG_WM("keyevent#EXIT: %d: %d", keycode, keytype);
+    // LOG_WM("keyevent#EXIT: %d: %d", keycode, keytype);
 
     return 0;
 }

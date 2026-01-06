@@ -244,7 +244,7 @@ static void pump_home_left_level_label_update(ui_manager_context_t *thiz, uint8_
     lv_obj_set_style_radius(pump_info->left_level_label, 19, 0);  /// 高度 38 → 圆角设 19（或更大）
     char level_value[4] = {0};
     sprintf(level_value, "L%d", level);
-    // LOGI("left_level_label: %d/%s, is_selected: %d", level, level_value, is_selected);
+    // LOG_UI("left_level_label: %d/%s, is_selected: %d", level, level_value, is_selected);
     lv_label_set_text(pump_info->left_level_text, level_value);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_info->left_level_text,
          lv_color_hex(is_selected ? PUMP_TEXT_UNSEL_COLOR : PUMP_TEXT_SEL_COLOR), 0);
@@ -307,7 +307,7 @@ static void pump_home_right_level_label_update(ui_manager_context_t *thiz, uint8
     lv_obj_set_style_radius(pump_info->right_level_label, 19, 0);   /// 高度 38 → 圆角设 19（或更大）
     char level_value[4] = {0};
     sprintf(level_value, "R%d", level);
-    // LOGI("right_level_label: %d/%s, is_selected: %d", level, level_value, is_selected);
+    // LOG_UI("right_level_label: %d/%s, is_selected: %d", level, level_value, is_selected);
     lv_label_set_text(pump_info->right_level_text, level_value);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_info->right_level_text,
          lv_color_hex(is_selected ? PUMP_TEXT_UNSEL_COLOR : PUMP_TEXT_SEL_COLOR), 0);
@@ -527,7 +527,7 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOGI("===> pump home fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> pump home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
         
     }
