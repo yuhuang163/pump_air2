@@ -10,7 +10,9 @@ extern "C" {
 * Include files
 ******************************************************************************/
 #include "resource_img_define.h" // IWYU pragma: keep
+#if IS_SUPPORT_LVGL
 #include "resource_id_define.h" // IWYU pragma: keep
+#endif
 
 /*
 * GLOBAL FUNCTION DECLARATION
