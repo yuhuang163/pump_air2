@@ -256,7 +256,7 @@ int platform_bt_xtal_calib_proc_start(void)
     // 前向声明，函数在 app_factory_bt.cpp 中定义（需要 __FACTORY_MODE_SUPPORT__ 宏）
     extern int app_factorymode_bt_xtalcalib_proc(void);
 #ifdef __FACTORY_MODE_SUPPORT__
-    return app_factorymode_bt_xtalcalib_proc();
+    //return app_factorymode_bt_xtalcalib_proc();
 #else
     // 如果 FACTORY_MODE 未启用，返回错误
     return -1;
@@ -265,10 +265,11 @@ int platform_bt_xtal_calib_proc_start(void)
 
 unsigned char platform_bt_xtal_calib_set(uint32_t fcap)
 {
-    btdrv_vco_test_start(0);
+/*   btdrv_vco_test_start(0);
     osDelay(200);
-    //btdrv_rf_set_xtal_fcap(fcap, 1);//todo
-    osDelay(200);
+    btdrv_rf_set_xtal_fcap(fcap, 1);//todo
+    osDelay(200);*/ 
+    nvrec_dev_set_xtal_fcap(fcap);
     return 0;
 }
 
@@ -282,9 +283,9 @@ unsigned char platform_bt_xtal_calib_get(uint32_t *fcap)
 
 unsigned char platform_bt_xtal_calib_end(void)
 {
-    nvrec_dev_set_xtal_fcap(btdrv_rf_get_xtal_fcap());
+    /*nvrec_dev_set_xtal_fcap(btdrv_rf_get_xtal_fcap());
     osDelay(200);
     btdrv_vco_test_stop();
-    osDelay(200);
+    osDelay(200);*/
     return 0;
 }
