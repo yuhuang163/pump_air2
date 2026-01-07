@@ -204,7 +204,7 @@ def parse_resource_header(header_file: str) -> Tuple[Dict[str, int], Optional[in
 
 def parse_img_res_define_header(header_file: str) -> Tuple[Optional[int], Optional[int], Optional[str]]:
     """
-    解析 resource_img_define.h：
+    解析资源定义头文件（resource_info.h 或 resource_img_define.h）：
     - IMG_RES_HEADER_FIXED_SIZE
     - IMG_RES_VERSION_CURRENT
     - IMG_RES_NAME_PREFIX
@@ -310,12 +310,42 @@ class ResourcePacker:
         else:
             print("⚠️  未提供/未找到 resource_id_define.h，使用默认头部大小与顺序分配ID（不推荐）")
 
-        # 从 resource_img_define.h 读取头部分区大小/版本/命名前缀（迁移后的单一来源）
-        img_define_rel = "trunk/root_source/resource/resource_img_define.h"
-        img_define_path = find_file_upwards(self.base_dir, img_define_rel)
-        if img_define_path and os.path.exists(img_define_path):
-            print(f"📎 解析图片资源定义: {img_define_path}")
-            header_size2, version_current2, name_prefix2 = parse_img_res_define_header(img_define_path)
+        # 从 resource_info.h 读取头部分区大小/版本/命名前缀（优先从版本目录查找）
+        # 1. 优先从版本目录下的 resource_info.h 查找（V1/V2）
+        resource_info_path = None
+        base_dir_abs = os.path.abspath(self.base_dir)
+        
+        # 检测版本目录（V1 或 V2）
+        version_dir = None
+        if "/V1/" in base_dir_abs or base_dir_abs.endswith("/V1"):
+            version_dir = "V1"
+        elif "/V2/" in base_dir_abs or base_dir_abs.endswith("/V2"):
+            version_dir = "V2"
+        
+        # 如果检测到版本目录，优先查找版本目录下的 resource_info.h
+        if version_dir:
+            candidate_path = os.path.join(self.base_dir, "resource_info.h")
+            if os.path.exists(candidate_path):
+                resource_info_path = candidate_path
+                print(f"📎 检测到版本目录: {version_dir}")
+        
+        # 2. 如果版本目录下没找到，尝试从 base_dir 直接查找
+        if not resource_info_path:
+            candidate_path = os.path.join(self.base_dir, "resource_info.h")
+            if os.path.exists(candidate_path):
+                resource_info_path = candidate_path
+        
+        # 3. 如果还是没找到，回退到旧的路径（保持兼容性）
+        if not resource_info_path:
+            img_define_rel = "trunk/root_source/resource/resource_img_define.h"
+            resource_info_path = find_file_upwards(self.base_dir, img_define_rel)
+            if resource_info_path:
+                print(f"📎 回退到旧路径查找资源定义")
+        
+        # 解析资源定义文件
+        if resource_info_path and os.path.exists(resource_info_path):
+            print(f"📎 解析资源定义文件: {resource_info_path}")
+            header_size2, version_current2, name_prefix2 = parse_img_res_define_header(resource_info_path)
             if header_size2 is not None:
                 self.header_fixed_size = int(header_size2)
             if version_current2 is not None:
@@ -326,7 +356,7 @@ class ResourcePacker:
             print(f"✅ 资源版本: {hex(self.version_current)}")
             print(f"✅ 文件名前缀: {self.name_prefix}")
         else:
-            print(f"⚠️  未找到 {img_define_rel}，将使用默认头部大小/版本/前缀")
+            print(f"⚠️  未找到 resource_info.h 或 resource_img_define.h，将使用默认头部大小/版本/前缀")
 
         # 关键：按 img_id 数值对 JSON 资源列表排序，确保“配置顺序=打包顺序=打印顺序”
         def _resolve_id_for_sort(res: Dict) -> int:
