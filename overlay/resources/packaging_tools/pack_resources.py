@@ -378,6 +378,79 @@ class ResourcePacker:
         """加载所有资源文件"""
         print("\n📦 开始加载资源文件...")
         
+        # 处理 resource_ranges 配置，展开为单个资源
+        if 'resource_ranges' in self.config and isinstance(self.config['resource_ranges'], list):
+            print(f"📋 处理资源范围配置，共 {len(self.config['resource_ranges'])} 个范围...")
+            for range_cfg in self.config['resource_ranges']:
+                start_id_str = range_cfg.get('start_resource_id', '').strip()
+                end_id_str = range_cfg.get('end_resource_id', '').strip()
+                file_template = range_cfg.get('file_template', '')
+                
+                if not self.id_map or start_id_str not in self.id_map or end_id_str not in self.id_map:
+                    print(f"⚠️  警告: 无法解析资源范围 {start_id_str} - {end_id_str}，跳过")
+                    continue
+                
+                start_id = self.id_map[start_id_str]
+                end_id = self.id_map[end_id_str]
+                start_file_index = range_cfg.get('start_file_index', 0)
+                id_to_file_offset = range_cfg.get('id_to_file_offset', 0)
+                
+                print(f"  📐 展开范围: {start_id_str}({start_id}) - {end_id_str}({end_id}), 共 {end_id - start_id + 1} 个资源")
+                
+                # 展开范围，为每个资源ID创建配置
+                for resource_id in range(start_id, end_id + 1):
+                    file_index = resource_id + id_to_file_offset
+                    
+                    # 替换模板中的 {file_index:05d} 或 {file_index}
+                    file_path_template = file_template
+                    if '{file_index:05d}' in file_path_template:
+                        file_path_template = file_path_template.replace('{file_index:05d}', f'{file_index:05d}')
+                    elif '{file_index}' in file_path_template:
+                        file_path_template = file_path_template.replace('{file_index}', str(file_index))
+                    
+                    # 创建资源配置对象
+                    range_res = {
+                        'resource_id': resource_id,
+                        'description': f"{range_cfg.get('description', '动画帧')} (ID:{resource_id})",
+                        'file': file_path_template,
+                        'x_offset': range_cfg.get('x_offset', 0),
+                        'y_offset': range_cfg.get('y_offset', 0)
+                    }
+                    
+                    # 使用与普通资源相同的处理逻辑
+                    file_path = os.path.join(self.base_dir, range_res['file'])
+                    
+                    if not os.path.exists(file_path):
+                        print(f"⚠️  警告: 资源文件不存在: {file_path}")
+                        continue
+                    
+                    with open(file_path, 'rb') as f:
+                        data = f.read()
+                    
+                    width, height = parse_image_size_from_filename(range_res['file'])
+                    if width == 0 or height == 0:
+                        width, height = 200, 200  # 动画帧默认尺寸
+                    
+                    crc16 = calc_crc16(data)
+                    
+                    resource_info = {
+                        'img_id': resource_id,
+                        'crc16': crc16,
+                        'width': width,
+                        'height': height,
+                        'x_offset': range_res.get('x_offset', 0),
+                        'y_offset': range_res.get('y_offset', 0),
+                        'data': data,
+                        'data_size': len(data),
+                        'offset_addr': 0,
+                        'name': f'ANIMATION_{resource_id}',
+                        'description': range_res['description']
+                    }
+                    
+                    self.resources.append(resource_info)
+                    if resource_id % 10 == 0 or resource_id == end_id:  # 每10个或最后一个打印
+                        print(f"  ✓ [{resource_id:03d}] ANIMATION_{resource_id}: {width}x{height}, {len(data)} bytes")
+        
         for res in self.config['resources']:
             res_id_raw = res['resource_id']
             
