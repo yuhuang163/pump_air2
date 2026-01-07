@@ -216,16 +216,9 @@ static void set_black_background_cb(hdr_post_args_t *args)
 static void ui_thread_init_route(struct ui_manager_context *thiz)
 {
 #if IS_SUPPORT_LVGL
-    lv_init();
-    lv_tick_set_cb(get_timestamp);
-    lv_delay_set_cb(msleep);
-    lv_hal_disp_init();
     CREATE_MSG_TYPE_QUEUE(&ui_hdr_msg_id, 1, sizeof(uint8_t));
-    
-    /// 标记LVGL初始化完成，防止其他线程在初始化未完成时使用LVGL
     thiz->priv.lvgl_initialized = true;
     LOGI("==>lvgl init done, initialized flag set to true");
-    
     POST_TASK_HANDLER_DELAYED_ARG1(set_black_background_cb, 100, thiz, "set_black_background_cb");
 #else
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, DISP_DISPATCH_EVT_MESQ_NUM, sizeof(uint8_t));
