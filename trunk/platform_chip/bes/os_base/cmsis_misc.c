@@ -243,11 +243,13 @@ extern int app_factorymode_bt_xtalcalib_proc(void);
 
 void platform_bt_enter_signalingtest_mode(void)
 {
+    hal_sw_bootmode_set(HAL_SW_BOOTMODE_ENTER_HIDE_BOOT);
     app_enter_signalingtest_mode();
 }
 
 void platform_bt_enter_nosignalingtest_mode(void)
 {
+    hal_sw_bootmode_set(HAL_SW_BOOTMODE_ENTER_HIDE_BOOT);
     app_enter_non_signalingtest_mode();
 }
 
