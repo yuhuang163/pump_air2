@@ -40,7 +40,7 @@ typedef struct {
 */
 #if IS_SUPPORT_COMPLETE_TIP_COMP_BG
 static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
-    #include "../../../resources/img_png_bin/pump_finish_comp_360x360.txt"
+    #include "comparison_png2txt/pump_finish_comp_360x360.txt"
 };
 #endif
 

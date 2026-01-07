@@ -100,7 +100,7 @@ typedef struct {
 */
 #if IS_SUPPORT_HOME_COMP_BG
 static PSRAM_DATA_LOC uint8_t home_bg_1_data[] = {
-    #include "../../../resources/img_png_bin/home_comp_360x360.txt"
+    #include "comparison_png2txt/home_comp_360x360.txt"
 };
 #endif
 

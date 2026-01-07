@@ -74,34 +74,9 @@ typedef struct {
 */
 #if IS_SUPPORT_MODE_COMP_BG
 static PSRAM_DATA_LOC uint8_t mode_bg_data[] = {
-    #include "../../../resources/img_png_bin/mode_comp_1_360x360.txt"
-    // #include "../../../resources/img_png_bin/mode_comp_2_360x360.txt"
-    // #include "../../../resources/img_png_bin/mode_comp_3_360x360.txt"
-};
-#endif
-
-#if 0
-static PSRAM_DATA_LOC uint8_t mode_milk_data[] = {
-    #include "../../../resources/img_baj_bin/milk_mode_360x360_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t mode_pp_data[] = {
-    #include "../../../resources/img_baj_bin/pp_mode_360x360_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t mode_personalization_data[] = {
-    #include "../../../resources/img_baj_bin/personalization_mode_360x360_a4_q99_422.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t mode_initiating_data[] = {
-    #include "../../../resources/img_baj_bin/initiating_mode_360x360_a4_q99_422.txt"
-};
-
-static ui_img_data_t mode_images[BREASTFEEDING_MODE_MAX_COUNT] = {
-    { mode_milk_data, sizeof(mode_milk_data) },
-    { mode_pp_data, sizeof(mode_pp_data) },
-    { mode_personalization_data, sizeof(mode_personalization_data) },
-    { mode_initiating_data, sizeof(mode_initiating_data) },
+    #include "comparison_png2txt/mode_comp_1_360x360.txt"
+    // #include "comparison_png2txt/mode_comp_2_360x360.txt"
+    // #include "comparison_png2txt/mode_comp_3_360x360.txt"
 };
 #endif
 

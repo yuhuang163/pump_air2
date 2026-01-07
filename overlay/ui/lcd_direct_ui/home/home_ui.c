@@ -47,11 +47,11 @@ typedef struct {
 */
 #if IS_SUPPORT_HOME_COMP_BG
 static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
-    // #include "../../../resources/img_png_bin/guide_phone_cmp_360x360.txt"
-    // #include "../../../resources/img_png_bin/guide_chasing_milk_cmp_360x360.txt"
-    // #include "../../../resources/img_png_bin/guide_adjust_comp_360x360.txt"
-    // #include "../../../resources/img_png_bin/guide_milk_quantity_cmp_360x360.txt"
-    #include "../../../resources/img_png_bin/guide_qrcode_cmp_360x360.txt"
+    // #include "comparison_png2txt/guide_phone_cmp_360x360.txt"
+    // #include "comparison_png2txt/guide_chasing_milk_cmp_360x360.txt"
+    // #include "comparison_png2txt/guide_adjust_comp_360x360.txt"
+    // #include "comparison_png2txt/guide_milk_quantity_cmp_360x360.txt"
+    #include "comparison_png2txt/guide_qrcode_cmp_360x360.txt"
 };
 #endif
 

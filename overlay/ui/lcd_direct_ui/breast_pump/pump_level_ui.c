@@ -46,9 +46,9 @@ typedef struct {
 */
 #if IS_SUPPORT_LEVEL_COMP_BG
 static PSRAM_DATA_LOC uint8_t setting_bg_data[] = {
-    // #include "../../../resources/img_png_bin/left_level_comp_360x360.txt"
-    #include "../../../resources/img_png_bin/right_level_comp_360x360.txt"
-    // #include "../../../resources/img_png_bin/speed_comp_360x360.txt"
+    // #include "comparison_png2txt/left_level_comp_360x360.txt"
+    #include "comparison_png2txt/right_level_comp_360x360.txt"
+    // #include "comparison_png2txt/speed_comp_360x360.txt"
 };
 #endif
 
