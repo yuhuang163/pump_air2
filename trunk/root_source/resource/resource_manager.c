@@ -28,6 +28,7 @@ static resource_manager_context_t *thiz = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_LVGL
 /// 检查资源包版本是否兼容
 static bool img_res_version_compatible(uint16_t ver)
 {
@@ -502,9 +503,11 @@ static void hdr_async_init_cb(hdr_post_args_t *args)
         thiz->priv.res_init_completed = true;
     }
 }
+#endif
  
 static int wait_init_completed(void *res)
 {
+#if IS_SUPPORT_LVGL
     resource_manager_context_t *ctx = res;    
     uint32_t timeout = 0;
     while (timeout < 200) {
@@ -516,13 +519,18 @@ static int wait_init_completed(void *res)
     }
     LOGE("wait res init timeout (timeout=%u)", timeout);
     return -1;
+#else
+    return 0;
+#endif
 }
 
 static int on_post_res_init(void *ptr) 
 {
+#if IS_SUPPORT_LVGL
     resource_manager_context_t *ctx = ptr;
     ctx->priv.res_init_completed = false;
     POST_TASK_HANDLER_NO_DELAY(hdr_async_init_cb, ptr, "async_init:res");
+#endif
     return 0;
 }
 
@@ -546,8 +554,10 @@ void *register_module_for_res_manager_new(list_head_t *list_head)
 
     ptr->uninstall_resource = uninstall_resource;
     ptr->wait_init_completed = wait_init_completed;
+#if IS_SUPPORT_LVGL
     ptr->res_ui_img_data_load = res_ui_img_data_load_impl;
     ptr->res_ui_img_data_unload = res_ui_img_data_unload_impl;
+#endif
     MUTEX_INIT(&ptr->priv.m_fs_rw_lock, fs_rw_lock);
     thiz = ptr;
 
