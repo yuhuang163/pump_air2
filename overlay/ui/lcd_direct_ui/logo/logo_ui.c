@@ -12,7 +12,6 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_PNG_TEST                0
-#define IS_SUPPORT_JPEG_TEST               0
 #define IS_SUPPORT_BAJ_TEST                0
 #define IS_SUPPORT_BG_TEST                 0
 
@@ -29,32 +28,12 @@
 #if IS_SUPPORT_PNG_TEST
 #define PNG_IMG_COUNT  6
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data0[] = {
-    // #include "../../thirdparty/lvgl/bes/examples/res/png_200x200_icon.txt"
-    // #include "../../../resources/img_baj_bin/18_296x296.txt"
-    // #include "../../../resources/img_png_bin/home22.txt"
-    #include "../../../resources/img_png_bin/ver_img_360x360.txt"
-    // #include "../../../resources/img_baj_bin/home21_270x270.txt"
-    // #include "../../../resources/img_baj_bin/home31.txt"
+    #include "comparison_png2txt/ver_img_360x360.txt"
+
 };
 static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data1[] = {
-    // #include "../../../resources/img_baj_bin/18.txt"
-    // #include "../../../resources/img_png_bin/home32.txt"
-    #include "../../../resources/img_png_bin/ver_img_360x360.txt"
+    #include "comparison_png2txt/ver_img_360x360.txt"
 };
-
-static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data2[] = {
-    // #include "../../thirdparty/lvgl/bes/examples/res/png_128x128_mario.txt"
-    #include "../../../resources/img_png_bin/charge_1.txt"
-};
-// static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data3[] = {
-//     #include "../../thirdparty/lvgl/bes/examples/res/png_200x100_30fps.txt"
-// };
-// static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data4[] = {
-//     #include "../../thirdparty/lvgl/bes/examples/res/png_80x40_battery.txt"
-// };
-// static PSRAM_DATA_LOC ALIGNED(64) uint8_t png_data5[] = {
-//     #include "../../thirdparty/lvgl/bes/examples/res/png_128x128_lena.txt"
-// };
 
 static ui_img_data_t png_images[PNG_IMG_COUNT] = {
     { png_data0, sizeof(png_data0) },
@@ -66,617 +45,597 @@ static ui_img_data_t png_images[PNG_IMG_COUNT] = {
 };
 #endif
 
-#if IS_SUPPORT_JPEG_TEST
-#define JPEG_IMG_COUNT  2
-
-static PSRAM_DATA_LOC uint8_t jpeg_data0[] = {
-    // #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv422_128x128.txt"
-    #include "../../tests/hwtest/jpegdec/jpeg_yuv444_128x128.txt"
-    // #include "../../tests/hwtest/jpegdec/jpeg_yuv422_128x128.txt"
-    // #include "../../tests/hwtest/jpegdec/jpeg_yuv444_480x480.txt"
-};
-
-static PSRAM_DATA_LOC uint8_t jpeg_data1[] = {
-    #include "../../thirdparty/lvgl/bes/examples/res/jpeg_yuv444_100x68.txt"
-};
-
-static ui_img_data_t jpeg_images[JPEG_IMG_COUNT] = {
-    { jpeg_data0, sizeof(jpeg_data0) },
-    { jpeg_data1, sizeof(jpeg_data1) },
-};
-#endif
-
 #if IS_SUPPORT_BAJ_TEST
 #define IS_SUPPORT_BAJ_RES           0
 #define BAJ_IMG_COUNT                150
 
 static const uint8_t baj_data0[] = {
-#include "overlay/resources/home_img_bin/IP_00000_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00000_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data1[] = {
-#include "overlay/resources/home_img_bin/IP_00001_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00001_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data2[] = {
-#include "overlay/resources/home_img_bin/IP_00002_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00002_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data3[] = {
-#include "overlay/resources/home_img_bin/IP_00003_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00003_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data4[] = {
-#include "overlay/resources/home_img_bin/IP_00004_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00004_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data5[] = {
-#include "overlay/resources/home_img_bin/IP_00005_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00005_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data6[] = {
-#include "overlay/resources/home_img_bin/IP_00006_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00006_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data7[] = {
-#include "overlay/resources/home_img_bin/IP_00007_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00007_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data8[] = {
-#include "overlay/resources/home_img_bin/IP_00008_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00008_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data9[] = {
-#include "overlay/resources/home_img_bin/IP_00009_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00009_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data10[] = {
-#include "overlay/resources/home_img_bin/IP_00010_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00010_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data11[] = {
-#include "overlay/resources/home_img_bin/IP_00011_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00011_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data12[] = {
-#include "overlay/resources/home_img_bin/IP_00012_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00012_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data13[] = {
-#include "overlay/resources/home_img_bin/IP_00013_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00013_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data14[] = {
-#include "overlay/resources/home_img_bin/IP_00014_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00014_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data15[] = {
-#include "overlay/resources/home_img_bin/IP_00015_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00015_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data16[] = {
-#include "overlay/resources/home_img_bin/IP_00016_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00016_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data17[] = {
-#include "overlay/resources/home_img_bin/IP_00017_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00017_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data18[] = {
-#include "overlay/resources/home_img_bin/IP_00018_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00018_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data19[] = {
-#include "overlay/resources/home_img_bin/IP_00019_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00019_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data20[] = {
-#include "overlay/resources/home_img_bin/IP_00020_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00020_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data21[] = {
-#include "overlay/resources/home_img_bin/IP_00021_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00021_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data22[] = {
-#include "overlay/resources/home_img_bin/IP_00022_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00022_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data23[] = {
-#include "overlay/resources/home_img_bin/IP_00023_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00023_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data24[] = {
-#include "overlay/resources/home_img_bin/IP_00024_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00024_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data25[] = {
-#include "overlay/resources/home_img_bin/IP_00025_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00025_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data26[] = {
-#include "overlay/resources/home_img_bin/IP_00026_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00026_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data27[] = {
-#include "overlay/resources/home_img_bin/IP_00027_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00027_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data28[] = {
-#include "overlay/resources/home_img_bin/IP_00028_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00028_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data29[] = {
-#include "overlay/resources/home_img_bin/IP_00029_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00029_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data30[] = {
-#include "overlay/resources/home_img_bin/IP_00030_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00030_200x200_a4_q99_422.txt"
 };
  
 static const uint8_t baj_data31[] = {
-#include "overlay/resources/home_img_bin/IP_00031_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00031_200x200_a4_q99_422.txt"
 };
     
 static const uint8_t baj_data32[] = {
-#include "overlay/resources/home_img_bin/IP_00032_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00032_200x200_a4_q99_422.txt"
 };
     
 static const uint8_t baj_data33[] = {
-#include "overlay/resources/home_img_bin/IP_00033_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00033_200x200_a4_q99_422.txt"
 };
     
 static const uint8_t baj_data34[] = {
-#include "overlay/resources/home_img_bin/IP_00034_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00034_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data35[] = {
-#include "overlay/resources/home_img_bin/IP_00035_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00035_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data36[] = {
-#include "overlay/resources/home_img_bin/IP_00036_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00036_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data37[] = {
-#include "overlay/resources/home_img_bin/IP_00037_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00037_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data38[] = {
-#include "overlay/resources/home_img_bin/IP_00038_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00038_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data39[] = {
-#include "overlay/resources/home_img_bin/IP_00039_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00039_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data40[] = {
-#include "overlay/resources/home_img_bin/IP_00040_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00040_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data41[] = {
-#include "overlay/resources/home_img_bin/IP_00041_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00041_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data42[] = {
-#include "overlay/resources/home_img_bin/IP_00042_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00042_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data43[] = {
-#include "overlay/resources/home_img_bin/IP_00043_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00043_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data44[] = {
-#include "overlay/resources/home_img_bin/IP_00044_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00044_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data45[] = {
-#include "overlay/resources/home_img_bin/IP_00045_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00045_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data46[] = {
-#include "overlay/resources/home_img_bin/IP_00046_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00046_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data47[] = {
-#include "overlay/resources/home_img_bin/IP_00047_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00047_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data48[] = {
-#include "overlay/resources/home_img_bin/IP_00048_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00048_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data49[] = {
-#include "overlay/resources/home_img_bin/IP_00049_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00049_200x200_a4_q99_422.txt"
 };
 #if 1
 static const uint8_t baj_data50[] = {
-#include "overlay/resources/home_img_bin/IP_00050_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00050_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data51[] = {
-#include "overlay/resources/home_img_bin/IP_00051_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00051_200x200_a4_q99_422.txt"
 };  
 
 static const uint8_t baj_data52[] = {
-#include "overlay/resources/home_img_bin/IP_00052_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00052_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data53[] = {
-#include "overlay/resources/home_img_bin/IP_00053_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00053_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data54[] = {
-#include "overlay/resources/home_img_bin/IP_00054_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00054_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data55[] = {
-#include "overlay/resources/home_img_bin/IP_00055_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00055_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data56[] = {
-#include "overlay/resources/home_img_bin/IP_00056_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00056_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data57[] = {
-#include "overlay/resources/home_img_bin/IP_00057_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00057_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data58[] = {
-#include "overlay/resources/home_img_bin/IP_00058_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00058_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data59[] = {
-#include "overlay/resources/home_img_bin/IP_00059_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00059_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data60[] = {
-#include "overlay/resources/home_img_bin/IP_00060_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00060_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data61[] = {
-#include "overlay/resources/home_img_bin/IP_00061_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00061_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data62[] = {
-#include "overlay/resources/home_img_bin/IP_00062_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00062_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data63[] = {
-#include "overlay/resources/home_img_bin/IP_00063_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00063_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data64[] = {
-#include "overlay/resources/home_img_bin/IP_00064_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00064_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data65[] = {
-#include "overlay/resources/home_img_bin/IP_00065_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00065_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data66[] = {
-#include "overlay/resources/home_img_bin/IP_00066_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00066_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data67[] = {
-#include "overlay/resources/home_img_bin/IP_00067_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00067_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data68[] = {
-#include "overlay/resources/home_img_bin/IP_00068_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00068_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data69[] = {
-#include "overlay/resources/home_img_bin/IP_00069_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00069_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data70[] = {
-#include "overlay/resources/home_img_bin/IP_00070_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00070_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data71[] = {
-#include "overlay/resources/home_img_bin/IP_00071_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00071_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data72[] = {
-#include "overlay/resources/home_img_bin/IP_00072_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00072_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data73[] = {
-#include "overlay/resources/home_img_bin/IP_00073_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00073_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data74[] = {
-#include "overlay/resources/home_img_bin/IP_00074_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00074_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data75[] = {
-#include "overlay/resources/home_img_bin/IP_00075_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00075_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data76[] = {
-#include "overlay/resources/home_img_bin/IP_00076_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00076_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data77[] = {
-#include "overlay/resources/home_img_bin/IP_00077_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00077_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data78[] = {
-#include "overlay/resources/home_img_bin/IP_00078_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00078_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data79[] = {
-#include "overlay/resources/home_img_bin/IP_00079_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00079_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data80[] = {
-#include "overlay/resources/home_img_bin/IP_00080_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00080_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data81[] = {
-#include "overlay/resources/home_img_bin/IP_00081_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00081_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data82[] = {
-#include "overlay/resources/home_img_bin/IP_00082_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00082_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data83[] = {
-#include "overlay/resources/home_img_bin/IP_00083_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00083_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data84[] = {
-#include "overlay/resources/home_img_bin/IP_00084_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00084_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data85[] = {
-#include "overlay/resources/home_img_bin/IP_00085_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00085_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data86[] = {
-#include "overlay/resources/home_img_bin/IP_00086_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00086_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data87[] = {
-#include "overlay/resources/home_img_bin/IP_00087_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00087_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data88[] = {
-#include "overlay/resources/home_img_bin/IP_00088_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00088_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data89[] = {  
-#include "overlay/resources/home_img_bin/IP_00089_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00089_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data90[] = {
-#include "overlay/resources/home_img_bin/IP_00090_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00090_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data91[] = {
-#include "overlay/resources/home_img_bin/IP_00091_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00091_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data92[] = {
-#include "overlay/resources/home_img_bin/IP_00092_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00092_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data93[] = {
-#include "overlay/resources/home_img_bin/IP_00093_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00093_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data94[] = {
-#include "overlay/resources/home_img_bin/IP_00094_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00094_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data95[] = {
-#include "overlay/resources/home_img_bin/IP_00095_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00095_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data96[] = {
-#include "overlay/resources/home_img_bin/IP_00096_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00096_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data97[] = {
-#include "overlay/resources/home_img_bin/IP_00097_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00097_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data98[] = {
-#include "overlay/resources/home_img_bin/IP_00098_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00098_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data99[] = {
-#include "overlay/resources/home_img_bin/IP_00099_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00099_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data100[] = {
-#include "overlay/resources/home_img_bin/IP_00100_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00100_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data101[] = {
-#include "overlay/resources/home_img_bin/IP_00101_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00101_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data102[] = {
-#include "overlay/resources/home_img_bin/IP_00102_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00102_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data103[] = {
-#include "overlay/resources/home_img_bin/IP_00103_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00103_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data104[] = {
-#include "overlay/resources/home_img_bin/IP_00104_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00104_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data105[] = {
-#include "overlay/resources/home_img_bin/IP_00105_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00105_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data106[] = {
-#include "overlay/resources/home_img_bin/IP_00106_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00106_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data107[] = {
-#include "overlay/resources/home_img_bin/IP_00107_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00107_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data108[] = {
-#include "overlay/resources/home_img_bin/IP_00108_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00108_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data109[] = {
-#include "overlay/resources/home_img_bin/IP_00109_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00109_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data110[] = {
-#include "overlay/resources/home_img_bin/IP_00110_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00110_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data111[] = {
-#include "overlay/resources/home_img_bin/IP_00111_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00111_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data112[] = {
-#include "overlay/resources/home_img_bin/IP_00112_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00112_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data113[] = {
-#include "overlay/resources/home_img_bin/IP_00113_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00113_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data114[] = {
-#include "overlay/resources/home_img_bin/IP_00114_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00114_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data115[] = {
-#include "overlay/resources/home_img_bin/IP_00115_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00115_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data116[] = {
-#include "overlay/resources/home_img_bin/IP_00116_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00116_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data117[] = {
-#include "overlay/resources/home_img_bin/IP_00117_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00117_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data118[] = {
-#include "overlay/resources/home_img_bin/IP_00118_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00118_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data119[] = {
-#include "overlay/resources/home_img_bin/IP_00119_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00119_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data120[] = {
-#include "overlay/resources/home_img_bin/IP_00120_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00120_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data121[] = {
-#include "overlay/resources/home_img_bin/IP_00121_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00121_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data122[] = {
-#include "overlay/resources/home_img_bin/IP_00122_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00122_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data123[] = {
-#include "overlay/resources/home_img_bin/IP_00123_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00123_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data124[] = {
-#include "overlay/resources/home_img_bin/IP_00124_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00124_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data125[] = {
-#include "overlay/resources/home_img_bin/IP_00125_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00125_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data126[] = {
-#include "overlay/resources/home_img_bin/IP_00126_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00126_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data127[] = {
-#include "overlay/resources/home_img_bin/IP_00127_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00127_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data128[] = {
-#include "overlay/resources/home_img_bin/IP_00128_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00128_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data129[] = {
-#include "overlay/resources/home_img_bin/IP_00129_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00129_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data130[] = {
-#include "overlay/resources/home_img_bin/IP_00130_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00130_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data131[] = {
-#include "overlay/resources/home_img_bin/IP_00131_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00131_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data132[] = {
-#include "overlay/resources/home_img_bin/IP_00132_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00132_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data133[] = {
-#include "overlay/resources/home_img_bin/IP_00133_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00133_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data134[] = {
-#include "overlay/resources/home_img_bin/IP_00134_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00134_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data135[] = {
-#include "overlay/resources/home_img_bin/IP_00135_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00135_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data136[] = {
-#include "overlay/resources/home_img_bin/IP_00136_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00136_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data137[] = {
-#include "overlay/resources/home_img_bin/IP_00137_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00137_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data138[] = {
-#include "overlay/resources/home_img_bin/IP_00138_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00138_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data139[] = {
-#include "overlay/resources/home_img_bin/IP_00139_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00139_200x200_a4_q99_422.txt"
 };
 
 static const uint8_t baj_data140[] = {
-#include "overlay/resources/home_img_bin/IP_00140_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00140_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data141   [] = {
-#include "overlay/resources/home_img_bin/IP_00141_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00141_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data142[] = {
-#include "overlay/resources/home_img_bin/IP_00142_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00142_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data143[] = {
-#include "overlay/resources/home_img_bin/IP_00143_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00143_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data144[] = {
-#include "overlay/resources/home_img_bin/IP_00144_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00144_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data145[] = {
-#include "overlay/resources/home_img_bin/IP_00145_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00145_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data146[] = {
-#include "overlay/resources/home_img_bin/IP_00146_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00146_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data147[] = {
-#include "overlay/resources/home_img_bin/IP_00147_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00147_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data148[] = {
-#include "overlay/resources/home_img_bin/IP_00148_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00148_200x200_a4_q99_422.txt"
 };
 static const uint8_t baj_data149[] = {
-#include "overlay/resources/home_img_bin/IP_00149_200x200_a4_q99_422.txt"
+#include "baj2txt/IP_00149_200x200_a4_q99_422.txt"
 };
 #endif
 #if IS_SUPPORT_BAJ_TEST_BG
@@ -908,36 +867,6 @@ static int system_test_png_process(void)
 }
 #endif
 
-#if IS_SUPPORT_JPEG_TEST
-static int system_test_jpeg_init(void)
-{
-    if (logo_root == NULL || !lv_obj_is_valid(logo_root)) {
-        logo_root = lv_image_create(lv_screen_active());
-    }
-    lv_fs_path_ex_t jpg_path;
-    lv_fs_make_path_from_buffer(&jpg_path, LV_FS_MEMFS_LETTER, jpeg_data0, sizeof(jpeg_data0), "jpg");
-    lv_image_set_src(logo_root, (const void *)&jpg_path);
-    lv_obj_align(logo_root, LV_ALIGN_CENTER, 0, 0);
-    return 0;
-}
-
-static int system_test_jpeg_process(void)
-{
-    static uint32_t index = 0;
-    lv_fs_path_ex_t jpg_path;
-    uint8_t *jpeg_data = jpeg_images[index % JPEG_IMG_COUNT].data;
-    uint32_t jpeg_size = jpeg_images[index % JPEG_IMG_COUNT].size;
-    lv_fs_make_path_from_buffer(&jpg_path, LV_FS_MEMFS_LETTER, jpeg_data, jpeg_size, "jpg");
-    lv_image_set_src(logo_root, (const void *)&jpg_path);
-    LOG_UI("===> system_test_jpeg_process: %d", index);
-    if (get_timestamp() - start_time > 1000) {
-        start_time = get_timestamp();
-        index++;
-    }
-    return 0;
-}
-#endif
-
 #if IS_SUPPORT_BAJ_TEST
 static int system_test_baj_init(ui_manager_context_t *thiz)
 {
@@ -1101,8 +1030,6 @@ void ui_display_logo_prepare(ui_manager_context_t *thiz)
     system_test_png_init();
 #elif IS_SUPPORT_BG_TEST
     system_lcd_test_init();
-#elif IS_SUPPORT_JPEG_TEST
-    system_test_jpeg_init();
 #elif IS_SUPPORT_BAJ_TEST
     system_test_baj_init(thiz);
 #endif
@@ -1120,7 +1047,7 @@ void ui_display_logo_remove(ui_manager_context_t *thiz)
     }
     LVGL_OBJ_DELETE(logo_bg);
 #endif
-#if IS_SUPPORT_PNG_TEST || IS_SUPPORT_BG_TEST || IS_SUPPORT_JPEG_TEST || IS_SUPPORT_BAJ_TEST
+#if IS_SUPPORT_PNG_TEST || IS_SUPPORT_BG_TEST || IS_SUPPORT_BAJ_TEST
 #else
     common_ui_img_resource_deinit(thiz, &logo_img_info);
 #endif
@@ -1134,8 +1061,6 @@ int ui_display_logo_process(ui_manager_context_t *thiz)
     system_test_png_process();
 #elif IS_SUPPORT_BG_TEST
     system_lcd_test_process();
-#elif IS_SUPPORT_JPEG_TEST
-    system_test_jpeg_process();
 #elif IS_SUPPORT_BAJ_TEST
     system_test_baj_process(thiz);
 #else
