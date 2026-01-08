@@ -119,6 +119,7 @@ static void algo_light_handle(algo_manager_context_t *ctx, algo_light_sensor_dat
     //         lux_level, filtered_avg, lux_level_buffer_count, output->pwm_duty, output->setting_level);
 }
 
+#if IS_SUPPORT_DEVICE_LIGHT_SENSOR
 static void on_light_sensor_data_algo_cb(void *user_data, uint8_t *data, int data_len)
 {
     algo_manager_context_t *ctx = user_data;
@@ -131,6 +132,7 @@ static void on_light_sensor_data_algo_cb(void *user_data, uint8_t *data, int dat
     algo_light_handle(ctx, &data_input, &ctx->priv.light_algo_data);
     //LOG_ALGO("on_light_sensor_data_algo_cb: lux_level: %d", data_input.lux_level);
 }
+#endif
 
 static void  hdr_broadcast_sys_boot_completed(hdr_post_args_t *args)
 {
@@ -138,7 +140,9 @@ static void  hdr_broadcast_sys_boot_completed(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(ctx);
     sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     sensor->add_sensor_evt_lisenser(ctx, AIR_PRESSURE_EVT_POLLING, 1, on_sensor_data_algo_cb);
+    #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
     sensor->add_sensor_evt_lisenser(ctx, LIGHT_SENSOR_EVT_POLLING, 1, on_light_sensor_data_algo_cb);
+    #endif
     ctx->priv.algo_inited = 1;
     LOG_ALGO("algo_inited ok, get_version: %d", ctx->get_algo_version());
 }
