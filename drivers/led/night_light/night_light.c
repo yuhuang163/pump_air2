@@ -34,6 +34,8 @@ static led_status_t led_status[NIGHT_LIGHT_SIZE];
 static const night_light_cfg_t night_light_cfg[NIGHT_LIGHT_SIZE] = {
     {NIGHT_LIGHT_PIN, HAL_PWM_ID_2,  hal_iomux_set_pwm2, 1000},
 };
+uint8_t night_light_pwm_duty[LED_LEVEL_MAX + 1] = {0,  10, 20, 30, 40, 50,
+    60, 70, 80, 90, 100};
 #endif
 
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
@@ -60,7 +62,8 @@ static void night_light_level_set(uint8_t index, led_luminous_t luminous)
         return;
     }
     
-    uint8_t duty = luminous.level >= LED_LEVEL_MAX ? 100 : (luminous.level * 100 / LED_LEVEL_MAX);
+    //uint8_t duty = luminous.level >= LED_LEVEL_MAX ? 100 : (luminous.level * 100 / LED_LEVEL_MAX);
+    uint8_t duty = night_light_pwm_duty[luminous.level];
     struct HAL_PWM_CFG_T pwm_cfg = {
         .freq = night_light_cfg[index].freq,
         .ratio = duty,
@@ -200,6 +203,42 @@ int bsp_night_light_status_set(void *args)
     }
 
     return 0;
+}
+
+int bsp_night_light_pwm_duty_set(void *args)
+{
+    night_light_pwm_duty_set_msg_t *msg = (night_light_pwm_duty_set_msg_t *)args;
+    if (msg == NULL) {
+        LOGE("msg is NULL");
+        return BSP_ERROR;
+    }
+    
+    if (msg->led_index >= NIGHT_LIGHT_SIZE) {
+        LOGE("index is out of range: %d", msg->led_index);
+        return BSP_ERROR;
+    }
+    #if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+    if (msg->pwm_duty == 0) {
+        hal_pwm_disable(night_light_cfg[index].id);
+        return BSP_OK;
+    }
+    
+    //uint8_t duty = luminous.level >= LED_LEVEL_MAX ? 100 : (luminous.level * 100 / LED_LEVEL_MAX);
+    uint8_t duty = pwm_duty;
+    struct HAL_PWM_CFG_T pwm_cfg = {
+        .freq = night_light_cfg[index].freq,
+        .ratio = duty,
+        .inv = false,
+        .sleep_on = false,
+    };
+    led_status[index].mode = LED_MODE_LEVEL;
+    hal_pwm_enable(night_light_cfg[index].id, &pwm_cfg);
+    LOG_PBUS("index: %d, duty: %d", index, duty);
+    return BSP_OK;
+    #else
+    LOG_PBUS("index: %d, pwm_duty: %d", msg->led_index, msg->pwm_duty);
+    return BSP_OK;
+    #endif
 }
 
 int bsp_night_light_test(void)

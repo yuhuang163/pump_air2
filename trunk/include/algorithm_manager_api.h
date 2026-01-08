@@ -31,10 +31,12 @@ typedef struct algo_manager_context {
         broadcast_obj_t m_bcd;
         int algo_inited;
         uint8_t is_sampling;          /// 是否正在采集
+        algo_light_data_output_t light_algo_data;
     } priv;
 
 /// public
     int (*get_algo_version)(void);
+    uint16_t (*get_algo_output_light_data)(algo_light_data_output_t *output);
     struct __algo_manager_hook {
         int (*on_post_init_route)(struct algo_manager_context *ctx);
         int (*on_algo_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);

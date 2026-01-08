@@ -206,6 +206,17 @@ static void misc_work_polling_thread(const void *args)
         EXECUTE_EVERY_X_DELAY(SYSINFO_PRINT_PERIOD, {
             platform_sysinfo_print(ctx); 
         });
+
+        /// 光适应状态轮询
+        if (ctx->priv.light_adapt_state) {
+            algo_light_data_output_t light_data = {0};
+            ctx->priv.algo_ctx->get_algo_output_light_data(&light_data);
+            night_light_pwm_duty_set_msg_t msg = {
+                .led_index = NIGHT_LIGHT_LED_ID_0,
+                .pwm_duty = light_data.pwm_duty,
+            };
+            DEVICE_IOCTL_ARGS(ctx->priv.led_dev, OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET, (void *)&msg);
+        }
     }
 }
 
@@ -262,6 +273,8 @@ static int on_perpare_misc_init(void *self)
     misc_manager_context_t *ptr = self;
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     ptr->priv.battery = pbus->find_device(ID_DEVICE_BATTERY);
+    ptr->priv.led_dev = pbus->find_device(ID_DEVICE_LED);
+    ptr->priv.algo_ctx = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
 
     return 0;
 }
@@ -356,6 +369,16 @@ static uint8_t local_battery_show_ui_if_need(void *wm, int is_fg)
     return 0;
 }
 
+static uint8_t local_get_light_adapt_state(void)
+{
+    return thiz->priv.light_adapt_state;
+}
+
+static void local_set_light_adapt_state(uint8_t state)
+{
+    thiz->priv.light_adapt_state = state;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -365,6 +388,7 @@ void *register_module_for_misc_manager_new(list_head_t *list_head)
     MALLOC_FOR_PTR(ptr, misc_manager_context_t);
 
     ptr->priv.battery_percent = 5;
+    ptr->priv.light_adapt_state = 0; /// 0:关闭 1:开启
     ptr->is_charge_plug_in = local_is_charge_plug_in;
     ptr->get_charge_status = local_get_charge_status;
     ptr->set_charge_ui_show_flag = local_set_charge_ui_show_flag;
@@ -377,6 +401,9 @@ void *register_module_for_misc_manager_new(list_head_t *list_head)
     ptr->set_battery_ui_show_flag = local_set_battery_ui_show_flag;
     ptr->show_battery_ui_if_need = local_battery_show_ui_if_need;
     ptr->set_state_battery_listener = local_state_battery_listener;
+
+    ptr->get_light_adapt_state = local_get_light_adapt_state;
+    ptr->set_light_adapt_state = local_set_light_adapt_state;
 
     thiz = ptr;
     return ADD_MODULE("misc", ID_MODULE_MISC, on_perpare_misc_init, on_post_misc_init, 
