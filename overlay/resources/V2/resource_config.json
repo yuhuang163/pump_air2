@@ -108,7 +108,7 @@
     {
       "resource_id": "RESOURCE_ID_HOME_SPEED_ICON",
       "description": "首页-速度图标",
-      "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
+      "file": "baj/icon_Middle_25x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -129,7 +129,7 @@
     {
       "resource_id": "RESOURCE_ID_HOME_MIX_ICON",
       "description": "首页-混合图标",
-      "file": "baj/icon_Middle_25x24_a4_q99_422.baj",
+      "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
