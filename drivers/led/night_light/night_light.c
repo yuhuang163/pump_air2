@@ -219,21 +219,21 @@ int bsp_night_light_pwm_duty_set(void *args)
     }
     #if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
     if (msg->pwm_duty == 0) {
-        hal_pwm_disable(night_light_cfg[index].id);
+        hal_pwm_disable(night_light_cfg[msg->led_index].id);
         return BSP_OK;
     }
     
     //uint8_t duty = luminous.level >= LED_LEVEL_MAX ? 100 : (luminous.level * 100 / LED_LEVEL_MAX);
-    uint8_t duty = pwm_duty;
+    uint8_t duty = msg->pwm_duty;
     struct HAL_PWM_CFG_T pwm_cfg = {
-        .freq = night_light_cfg[index].freq,
+        .freq = night_light_cfg[msg->led_index].freq,
         .ratio = duty,
         .inv = false,
         .sleep_on = false,
     };
-    led_status[index].mode = LED_MODE_LEVEL;
-    hal_pwm_enable(night_light_cfg[index].id, &pwm_cfg);
-    LOG_PBUS("index: %d, duty: %d", index, duty);
+    led_status[msg->led_index].mode = LED_MODE_LEVEL;
+    hal_pwm_enable(night_light_cfg[msg->led_index].id, &pwm_cfg);
+    LOG_PBUS("index: %d, duty: %d", msg->led_index, duty);
     return BSP_OK;
     #else
     LOG_PBUS("index: %d, pwm_duty: %d", msg->led_index, msg->pwm_duty);
