@@ -386,14 +386,15 @@ INPUT_KEY_INC_FLAGS := \
 
 # UI 模块头文件
 UI_MODULE_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/overlay/framework_hooks/ui \
 	-I$(PROJECT_ROOT)/overlay/ui \
 	-I$(PROJECT_ROOT)/trunk/root_source/ui
 
 ifeq ($(CFG_LVGL_ENABLE),1)
 UI_MODULE_INC_FLAGS += $(UI_INC_DIRECT_FLAGS)
+UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui
 else
 UI_MODULE_INC_FLAGS += $(UI_INC_UART_FLAGS)
+UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_uart_ui
 endif
 
 # 窗口模块头文件
@@ -813,14 +814,15 @@ INPUT_KEY_MODULE_SRCS := \
 
 # UI 模块源码
 UI_MODULE_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ui/*.c) 
 	
 ifeq ($(CFG_LVGL_ENABLE), 1)
 UI_MODULE_SRCS += $(UI_LCD_DIRECT_SRCS)
+UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui/*.c) 
 else
 UI_MODULE_SRCS += $(UI_LCD_UART_SRCS)
+UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_uart_ui/*.c) 
 endif
 
 # 窗口模块源码
