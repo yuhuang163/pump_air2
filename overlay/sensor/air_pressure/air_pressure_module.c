@@ -42,7 +42,7 @@ void dispatch_air_pressure_client(sensor_wrapper_data_t *sensor_data, sensor_evt
 
 void air_pressure_polling_handler(sensor_wrapper_data_t *sensor_data)
 {        
-    EXECUTE_EVERY_X_DELAY(AIR_PRESSURE_POLLING_PERIOD, {
+    EXECUTE_EVERY_X_DELAY(thiz->priv.air_pressure.sampling_interval, {
         if (thiz->priv.air_pressure.dev) {
             thiz->priv.air_pressure.polling_cnt++;
             DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.air_pressure.dev, OP_CODE_AIR_PRESSURE_GET_STATUS,

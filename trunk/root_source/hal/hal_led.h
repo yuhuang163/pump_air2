@@ -20,6 +20,7 @@ typedef enum {
     OP_CODE_NIGHT_LIGHT_STATUS_SET  = 3,
     OP_CODE_NIGHT_LIGHT_STATUS_GET  = 4,
     OP_CODE_LED_IS_READY = 5,
+    OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET = 6,
 } led_dev_op_code_e;
 
 /**
@@ -128,6 +129,11 @@ typedef struct {
     uint8_t led_index;
     led_status_t led_status;
 } led_status_msg_t;
+
+typedef struct {
+    uint8_t led_index;
+    uint8_t pwm_duty;
+} night_light_pwm_duty_set_msg_t;
 
 #ifdef __cplusplus
 }

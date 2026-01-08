@@ -62,6 +62,12 @@ static int on_post_algo_init(void *ptr)
     return 0;
 }
 
+static uint16_t algo_get_output_light_data(algo_light_data_output_t *output)
+{
+    memcpy(output, &algo_obj->priv.light_algo_data, sizeof(algo_light_data_output_t));
+    return 0;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -70,6 +76,7 @@ void *register_module_for_algo_fusion_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, algo_manager_context_t);
     ptr->get_algo_version = algo_version_get;
+    ptr->get_algo_output_light_data = algo_get_output_light_data;
     ptr->priv.algo_inited = 0;
     algo_obj = ptr;
 
