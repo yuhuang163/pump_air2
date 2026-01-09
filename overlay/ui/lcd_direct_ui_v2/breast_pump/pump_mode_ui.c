@@ -141,7 +141,7 @@ int ui_display_pump_mode(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(mode_info);
-    EXCEPTION_CHECK_INT(mode_info->root);
+    // EXCEPTION_CHECK_INT(mode_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->pump);

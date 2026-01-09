@@ -18,7 +18,7 @@ extern "C" {
 */
 void common_ui_img_resource_init(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info);
 void common_ui_img_resource_deinit(ui_manager_context_t *thiz, res_img_info_t *info);
-
+void common_ui_text_place_in_circle(lv_obj_t * lab, uint16_t angle, uint16_t ring_r, uint8_t is_reverse);
 #ifdef __cplusplus
 }
 #endif
