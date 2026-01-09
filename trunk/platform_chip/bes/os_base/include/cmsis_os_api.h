@@ -137,6 +137,7 @@ typedef struct __utc_time {
     uint8_t second;
 } utc_time_t;
 
+typedef unsigned int (*PLATFORM_BT_TRACE_RX_CALLBACK_T)(unsigned char *rx_buff, unsigned int len);
 /*
  * GLOBAL FUNCTION DECLARATION
  *****************************************************************************************
@@ -223,6 +224,10 @@ unsigned char platform_bt_xtal_calib_set(uint32_t fcap);
 unsigned char platform_bt_xtal_calib_get(uint32_t *fcap);
 /// 平台提供的蓝牙校频测试结束接口.
 unsigned char platform_bt_xtal_calib_end(void);
+/// 平台提供的蓝牙trace RX注册接口.
+void platform_bt_trace_rx_register(unsigned char *rx_buff, unsigned int len, PLATFORM_BT_TRACE_RX_CALLBACK_T rx_callback);
+/// 平台提供的蓝牙trace TX接口.
+void platform_bt_trace_tx(unsigned char *tx_buff, unsigned int len);    
 #ifdef __cplusplus
 }
 #endif
