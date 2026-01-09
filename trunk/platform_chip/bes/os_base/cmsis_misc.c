@@ -261,7 +261,7 @@ int platform_bt_xtal_calib_proc_start(void)
     //return app_factorymode_bt_xtalcalib_proc();
 #else
     // 如果 FACTORY_MODE 未启用，返回错误
-    return -1;
+    return 0;
 #endif
 }
 
