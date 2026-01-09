@@ -106,7 +106,7 @@ static void ble_custom_mac_sync(void)
 {
     /// TODO: 需要从storage中读取mac地址
     uint8_t *ble_addr = factory_section_get_ble_address();
-    LOGI("factory mac address: %02x:%02x:%02x:%02x:%02x:%02x", 
+    LOG_PBUS("factory mac address: %02x:%02x:%02x:%02x:%02x:%02x", 
         ble_addr[0], ble_addr[1], ble_addr[2], ble_addr[3], ble_addr[4], ble_addr[5]);
     memcpy(s_mac_addr, ble_addr, 6);
 }
@@ -119,7 +119,7 @@ static void ble_custom_adv_data_update(void)
     // memcpy(&s_adv_rsp_data_set[5], s_mac_addr, sizeof(s_mac_addr));
 #else
     char ascii_mac[8] = {0};
-    LOGI("local mac address: %02x:%02x:%02x:%02x:%02x:%02x", 
+    LOG_PBUS("local mac address: %02x:%02x:%02x:%02x:%02x:%02x", 
         s_mac_addr[0], s_mac_addr[1], s_mac_addr[2], s_mac_addr[3], s_mac_addr[4], s_mac_addr[5]);
     HEX_TO_ASCII(s_mac_addr, 2, ascii_mac);
     s_adv_data_set[ADV_MAC_OFFSET]     = ascii_mac[0];
@@ -174,7 +174,7 @@ void ble_custom_gap_advs_start(void)
 {
     ble_global_t *g = ble_get_global();
     if (g->ble_stub_adv_enable) {
-        LOGE("stub adv is already enabled");
+        LOG_PBUS("stub adv is already enabled");
         return;
     }
     ble_core_enable_stub_adv();
@@ -185,7 +185,7 @@ void ble_custom_gap_advs_stop(void)
 {
     ble_global_t *g = ble_get_global();
     if (!g->ble_stub_adv_enable) {
-        LOGE("stub adv is already disabled");
+        LOG_PBUS("stub adv is already disabled");
         return; 
     }
     ble_core_disable_stub_adv();

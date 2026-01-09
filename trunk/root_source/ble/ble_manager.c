@@ -350,7 +350,7 @@ static void add_ble_evt_lisenser(void *user_data, int msg_channel, on_ble_evt_da
     LIST_FOR_EACH(pos, (head)) { 
         ble_evt_client_node_t *node = CONTAINER_OF(pos, ble_evt_client_node_t, list);
         if (node->cb == cb && node->user_data == user_data) {
-            LOGE("ignore dumplicate add.");
+            LOGW("ignore dumplicate add.");
             MUTEX_UNLOCK(obj->priv.m_lock);
             return;
         }
@@ -380,19 +380,19 @@ static void *list_del_ble_condition_cb(void *data, list_head_t *pos)
 static void dispatch_ble_client(ble_manager_context_t *obj, int msg_channel, uint8_t *data, uint16_t size)
 {
     list_head_t *head = &obj->priv.client_list;
-    LOGE("==> dispatch_ble_client: msg_channel=%d, data=%p, size=%d", msg_channel, data, size);
+    LOG_BLE("==> dispatch_ble_client: msg_channel=%d, data=%p, size=%d", msg_channel, data, size);
     MUTEX_LOCK(obj->priv.m_lock);
     LIST_FOR_EACH(pos, (head)) { 
         ble_evt_client_node_t *node = CONTAINER_OF(pos, ble_evt_client_node_t, list);
-        LOGE("==> dispatch_ble_client: checking node, node->msg_channel=%d", node->msg_channel);
+        LOG_BLE("==> dispatch_ble_client: checking node, node->msg_channel=%d", node->msg_channel);
         if (node->msg_channel == msg_channel) {
-            LOGE("==> dispatch_ble_client: calling callback, node->cb=%p", node->cb);
+            LOG_BLE("==> dispatch_ble_client: calling callback, node->cb=%p", node->cb);
             node->cb(node->user_data, data, size);
-            LOGE("==> dispatch_ble_client: callback returned");
+            LOG_BLE("==> dispatch_ble_client: callback returned");
         }
     }
     MUTEX_UNLOCK(obj->priv.m_lock);
-    LOGE("==> dispatch_ble_client: done");
+    LOG_BLE("==> dispatch_ble_client: done");
 }
 
 static void remove_ble_evt_lisenser(on_ble_evt_data_cb_fptr cb)

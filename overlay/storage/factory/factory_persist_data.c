@@ -189,7 +189,7 @@ int write_factory_flag_info_to_flash(store_func_args_t args)
         factory_flag_info_t *flag_info_ram = &args.ctx->priv.factory_data.flag_info;
         EXCEPTION_CHECK_INT(flag_info_ram);
         memcpy(flag_info_ram, flag_info, sizeof(factory_flag_info_t));
-        LOGI("write factory flag info to ram success");
+        LOG_STORE("write factory flag info to ram success");
     }
     u_free(store_flag);
     return ret;

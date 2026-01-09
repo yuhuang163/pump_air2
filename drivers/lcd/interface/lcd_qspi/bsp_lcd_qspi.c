@@ -103,7 +103,7 @@ static void lcdc_isr(void)
     if (hal_lcdc_irq_is_framedone(irq_stat)) {
         hal_lcdc_framedone_irqstat_clr();
         hal_lcdc_qspi_cs_sel(false);
-        LOGI("framedone irq");
+        LOG_PBUS("framedone irq");
         MSG_QUEUE_SEND(lcd_framedone_irq_msg_id, &msg, 0);
     }
 }
@@ -250,7 +250,7 @@ int bsp_lcd_qspi_init(void)
         return BSP_ERROR;
     }
     lcd_qspi_ready = true;
-    LOGI("lcd qspi init success");
+    LOG_PBUS("lcd qspi init success");
     return BSP_OK;
 }
 
@@ -299,7 +299,7 @@ int bsp_lcd_qspi_write_img_param(uint8_t cmd, const uint8_t *p_data, uint32_t da
     msleep(1000);
 #if IS_SUPPORT_LCD_DEBUG
     uint32_t end_time = get_timestamp();
-    LOGI("write param time = %dms, data_size = %d", get_timestamp_ms(start_time), data_size);
+    LOG_PBUS("write param time = %dms, data_size = %d", get_timestamp_ms(start_time), data_size);
 #endif
     return BSP_OK;
 }

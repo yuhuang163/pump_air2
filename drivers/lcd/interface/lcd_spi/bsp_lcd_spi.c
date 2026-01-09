@@ -354,7 +354,7 @@ int bsp_lcd_spi_write_cmd_param(uint8_t cmd, const uint8_t *p_data, uint32_t dat
 
 #if IS_SUPPORT_LCD_DEBUG
     uint32_t end_time = get_timestamp();
-    LOGI("write param time = %dms, data_size = %d", get_timestamp_ms(start_time), data_size);
+    LOG_PBUS("write param time = %dms, data_size = %d", get_timestamp_ms(start_time), data_size);
 #endif
 
     return BSP_OK;
@@ -388,7 +388,7 @@ int bsp_lcd_spi_write_img_param(uint8_t cmd, const uint8_t *p_data, uint32_t dat
     }
 #if IS_SUPPORT_LCD_DEBUG
     uint32_t end_time = get_timestamp();
-    LOGI("write param time = %dms, data_size = %d", get_timestamp_ms(start_time), data_size);
+    LOG_PBUS("write param time = %dms, data_size = %d", get_timestamp_ms(start_time), data_size);
 #endif
 
     return BSP_OK;

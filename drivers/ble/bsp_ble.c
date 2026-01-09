@@ -216,7 +216,7 @@ static int ble_dev_resume(struct rt_device_node *dev)
 */
 int ble_custom_event_callback(uintptr_t connhdl, gap_adv_event_t event, gap_adv_callback_param_t param)
 {
-    LOGI("ble conn index: %d, event: %d", connhdl, event);
+    LOG_PBUS("ble conn index: %d, event: %d", connhdl, event);
     if (!s_ble_event_callback) {
         return 0;
     }

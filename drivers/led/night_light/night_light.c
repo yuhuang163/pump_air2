@@ -126,7 +126,7 @@ static void night_light_timer_init(void)
     if (night_light_hwt == NULL) {
         night_light_hwt = hwtimer_alloc(night_light_timeout_handler, 0);
     }
-    LOGI("night_light_timer_init done");
+    LOG_PBUS("night_light_timer_init done");
 }
 
 static void led_timer_deinit(void)

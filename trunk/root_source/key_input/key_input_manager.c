@@ -101,7 +101,7 @@ static const char *to_event_name(uint32_t keytype)
         case KEY_EVENT_LONG_AFTER_CLICK:
             return ":long_press_after_click";
         default:
-            LOGE("keytype: %ld", keytype);
+            LOGW("keytype: %ld", keytype);
             return "unknow";
     }
 }
@@ -211,7 +211,7 @@ static void key_input_internal_dispatch_thread(const void *args)
         keytype = msg.union_body.parms_16[1];
 
         if (wm->is_on_window_dispatch(wm)) {
-            LOGE("on_window_dispatch, ignore: key_event(%d, %d)", keycode, keytype);
+            LOGW("on_window_dispatch, ignore: key_event(%d, %d)", keycode, keytype);
             continue;
         }
 
@@ -241,7 +241,7 @@ static void add_keyevent_handler_extra(const char *caller, void *user_data, uint
             && node->handler.cb == cb
             && node->handler.keycode == keycode
             && node->handler.keytype == keytype) {
-            LOGE("ignore dumplicate add.");
+            LOGW("ignore dumplicate add.");
             MUTEX_UNLOCK_KEY(thiz->priv.key_evt_lock);
             return;
         }

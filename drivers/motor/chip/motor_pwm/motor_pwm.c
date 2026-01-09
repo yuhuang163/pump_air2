@@ -182,7 +182,7 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
         // 已达到目标占空比（向上渐变），清除运行标志
         timer_info[pwm_id].time_status = 0;
 #endif
-        //LOGI("Reached target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
+        //LOG_PBUS("Reached target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
 }
 
@@ -257,7 +257,7 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
         // 已达到目标占空比（向上渐变），清除运行标志
         timer_info[pwm_id].time_status = 0;
 #endif
-        //LOGI("Reached target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
+        //LOG_PBUS("Reached target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
 }
 
@@ -278,7 +278,7 @@ static void bsp_motor_start_periodic_task(motor_pwm_control_id_e pwm_id)
         LOGE("Failed to start periodic task");
         return;
     }
-    LOGI("Start periodic task: %d", pwm_id);
+    LOG_PBUS("Start periodic task: %d", pwm_id);
     // 将毫秒转换为tick
     uint32_t ticks = MS_TO_HWTICKS(timer_info[pwm_id].time_period);
     
@@ -304,7 +304,7 @@ static void bsp_motor_start_periodic_task(motor_pwm_control_id_e pwm_id)
 static void bsp_motor_stop_periodic_task(motor_pwm_control_id_e pwm_id)
 {
     if (timer_info[pwm_id].time_id != NULL && timer_info[pwm_id].time_status == 1) {
-        LOGI("Stop periodic task: %d", pwm_id);
+        LOG_PBUS("Stop periodic task: %d", pwm_id);
         // 先清除运行标志，防止回调中重新启动
         timer_info[pwm_id].time_status = 0;
         enum E_HWTIMER_T ret = hwtimer_stop(timer_info[pwm_id].time_id);
@@ -439,10 +439,10 @@ static int8_t bsp_motor_pwm_gradual_change_start(motor_para_t *motor_para, motor
         }
         uint16_t total_time_estimated = actual_steps_needed * time_period;
         
-        LOGI("PWM gradual change: init=%d, target=%d, diff=%d, change_time=%dms, step_count=%d, step=%d, period=%dms",
+        LOG_PBUS("PWM gradual change: init=%d, target=%d, diff=%d, change_time=%dms, step_count=%d, step=%d, period=%dms",
              timer_info[pwm_id].init_duty, timer_info[pwm_id].target_duty, duty_diff,
              change_time, step_count, timer_info[pwm_id].duty_step, timer_info[pwm_id].time_period);
-        LOGI("  Time estimate: max=%dms, estimated=%dms (actual_steps_needed=%d)",
+        LOG_PBUS("  Time estimate: max=%dms, estimated=%dms (actual_steps_needed=%d)",
              total_time_max, total_time_estimated, actual_steps_needed);
         
         bsp_motor_start_periodic_task(pwm_id);
@@ -670,17 +670,17 @@ int bsp_motor_is_running(void *args)
  */
 void bsp_motor_pwm_test_all_step_counts(void)
 {
-    LOGI("========== PWM Step Count Comprehensive Test ==========");
-    LOGI("Config: INIT_DUTY=%d, PERIOD=%dms, SCALE=%d", 
+    LOG_PBUS("========== PWM Step Count Comprehensive Test ==========");
+    LOG_PBUS("Config: INIT_DUTY=%d, PERIOD=%dms, SCALE=%d", 
          PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY, 
          PUMP_PWM_GRADUAL_CHANGE_PERIOD,
          PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE);
 #if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
-    LOGI("Testing DOWNWARD gradient: target_duty from 0 to %d", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
+    LOG_PBUS("Testing DOWNWARD gradient: target_duty from 0 to %d", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
 #else
-    LOGI("Testing UPWARD gradient: target_duty from %d to 100", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
+    LOG_PBUS("Testing UPWARD gradient: target_duty from %d to 100", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
 #endif
-    LOGI("------------------------------------------------------");
+    LOG_PBUS("------------------------------------------------------");
     
     uint8_t init_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY;
     uint16_t time_period = PUMP_PWM_GRADUAL_CHANGE_PERIOD;
@@ -757,27 +757,27 @@ void bsp_motor_pwm_test_all_step_counts(void)
         if (can_reach_target) {
             pass_count++;
             // 输出测试数据（单行格式，避免日志过多）
-            LOGI("target_duty=%3d: change_time=%3dms, step_count=%3d, diff=%3d, step=%2d, final=%3d, actual_steps=%3d, total_time=%3dms (max=%3dms) [PASS]",
+            LOG_PBUS("target_duty=%3d: change_time=%3dms, step_count=%3d, diff=%3d, step=%2d, final=%3d, actual_steps=%3d, total_time=%3dms (max=%3dms) [PASS]",
                  target_duty, change_time, calculated_step_count, duty_diff, duty_step, final_duty, 
                  actual_steps, total_time, total_time_max);
         } else {
             fail_count++;
-            LOGI("target_duty=%3d: change_time=%3dms, step_count=%3d, diff=%3d, step=%2d, final=%3d [FAIL]",
+            LOG_PBUS("target_duty=%3d: change_time=%3dms, step_count=%3d, diff=%3d, step=%2d, final=%3d [FAIL]",
                  target_duty, change_time, calculated_step_count, duty_diff, duty_step, final_duty);
         }
     }
     
-    LOGI("------------------------------------------------------");
-    LOGI("========== Test Summary ==========");
+    LOG_PBUS("------------------------------------------------------");
+    LOG_PBUS("========== Test Summary ==========");
 #if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
-    LOGI("Total tested: %d (target_duty from 0 to %d)", init_duty + 1, init_duty);
-    LOGI("Success rate: %.2f%%", (float)pass_count * 100.0f / (init_duty + 1));
+    LOG_PBUS("Total tested: %d (target_duty from 0 to %d)", init_duty + 1, init_duty);
+    LOG_PBUS("Success rate: %.2f%%", (float)pass_count * 100.0f / (init_duty + 1));
 #else
-    LOGI("Total tested: %d (target_duty from %d to 100)", 100 - init_duty + 1, init_duty);
-    LOGI("Success rate: %.2f%%", (float)pass_count * 100.0f / (100 - init_duty + 1));
+    LOG_PBUS("Total tested: %d (target_duty from %d to 100)", 100 - init_duty + 1, init_duty);
+    LOG_PBUS("Success rate: %.2f%%", (float)pass_count * 100.0f / (100 - init_duty + 1));
 #endif
-    LOGI("Passed: %d", pass_count);
-    LOGI("Failed: %d", fail_count);
-    LOGI("==================================");
+    LOG_PBUS("Passed: %d", pass_count);
+    LOG_PBUS("Failed: %d", fail_count);
+    LOG_PBUS("==================================");
 }
 #endif

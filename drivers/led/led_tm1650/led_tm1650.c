@@ -232,7 +232,7 @@ static void led_device_thread(void *arg)
         .len = 0,
     };
     msleep(20);
-    LOGI("led extension init, reg_addr: %d", i2c_data.reg_addr);
+    LOG_PBUS("led extension init, reg_addr: %d", i2c_data.reg_addr);
     if (led_extension_write_nbyte(&i2c_data) != BSP_OK) {
         LOGE("led extension init failed");
     }

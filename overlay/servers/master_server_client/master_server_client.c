@@ -30,7 +30,7 @@ static ble_manager_context_t *ble_ctx = NULL;
 */
 static void app_old_protocol_frame_callback(uint8_t *frame_data, uint16_t frame_len)
 {
-    LOGI("app_old_protocol_frame_callback");
+    LOG_PROTOCOL("app_old_protocol_frame_callback");
     LOG_HEX("data", frame_data, frame_len);
     old_protocol_frame_node_t frame_full = {0};
     protocol_ctx->app_old_protocol_frame_deserialize(frame_data, frame_len, &frame_full);
@@ -39,7 +39,7 @@ static void app_old_protocol_frame_callback(uint8_t *frame_data, uint16_t frame_
 
 static void on_master_server_event_cb(void *user_data, uint8_t *data, uint16_t data_len)
 {
-    LOGE("==> on_master_server_event_cb: data=%p, len=%d", data, data_len);
+    LOG_PROTOCOL("==> on_master_server_event_cb: data=%p, len=%d", data, data_len);
     protocol_ctx->app_old_protocol_assemble_packet(data, data_len, app_old_protocol_frame_callback);
 }
 

@@ -71,7 +71,7 @@ static int on_post_servers_init(void *ptr)
     ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.bcd->receiver_cb = on_servers_manager_receiver;
     register_broadcast_receiver(ctx->priv.bcd);
-    LOGI("on_post_servers_init");
+    LOG_SRV("on_post_servers_init");
     return 0;
 }
 

@@ -567,7 +567,7 @@ static int pm_acquire_wakelock(const char *caller, int timeout_s)
     LIST_FOR_EACH(pos, &ctx->priv.wake_lock_list) {
         pm_wake_lock_node_t *node = CONTAINER_OF(pos, pm_wake_lock_node_t, list);
         if ((strncmp(node->caller, caller, sizeof(node->caller) -1) == 0) && (node->timeout_s == timeout_s)) {
-            LOGE("LOG_PM dumplicate add, ignore(%s)", node->caller);
+            LOGW("LOG_PM dumplicate add, ignore(%s)", node->caller);
             MUTEX_UNLOCK(ctx->priv.m_wake_lock);
             return -1;
         }

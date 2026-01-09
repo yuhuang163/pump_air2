@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_LIGHT_SENSOR_DBG_PRINT          (1)
+#define IS_SUPPORT_LIGHT_SENSOR_DBG_PRINT          (0)
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -35,7 +35,7 @@ static int light_sensor_single_conversion(uint32_t *light_voltage)
 #if IS_SUPPORT_LIGHT_SENSOR_DBG_PRINT
     light_sensor_log_count++;
     if (light_sensor_log_count % 20 == 0) {
-        LOGE("voltage:%d, %d", *light_voltage, voltage);
+        LOG_PBUS("voltage:%d, %d", *light_voltage, voltage);
     }
 #endif
     return BSP_OK;

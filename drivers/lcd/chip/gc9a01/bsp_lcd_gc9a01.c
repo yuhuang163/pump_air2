@@ -146,7 +146,6 @@ int lcd_draw_bitmap(int x_start, int y_start, int x_end, int y_end, const void *
     // BSP_LOG_HEX("y", buff, 4);
 
     uint32_t data_size = (x_end - x_start + 1) * (y_end - y_start + 1) * (LCD_RGB565_PIXEL / 8);
-    // LOGE("data_size:%d", data_size);
     return LCD_WRITE_IMG_PARAM(0x2c, (uint8_t *)color_data, data_size);
 }
 
@@ -155,5 +154,5 @@ void lcd_chip_sleep(void)
     LCD_WRITE_CMD_PARAM(0x28, NULL, 0);
     LCD_WRITE_CMD_PARAM(0x10, NULL, 0);
     msleep(40);
-    LOGI("lcd_chip_sleep");
+    LOG_PBUS("lcd_chip_sleep");
 }

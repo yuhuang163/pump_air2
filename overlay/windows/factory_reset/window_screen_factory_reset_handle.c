@@ -58,7 +58,7 @@ static void factory_reset_cb(hdr_post_args_t *args)
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     pm->acquire_wakelock("reboot", 10);
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    LOGE("==========RESET_AND_REBOOT==========");
+    LOGW("==========RESET_AND_REBOOT==========");
     st->factory_reset(RESET_AND_REBOOT);
 }
 
