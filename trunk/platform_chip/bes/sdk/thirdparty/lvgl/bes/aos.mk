@@ -189,6 +189,15 @@ ifeq ($(LVGL_SNAPSHOT),1)
 subdir-ccflags-y += -DLVGL_SNAPSHOT
 endif
 
+# LVGL configuration
+ifneq ($(CONFIG_LV_LOG_LEVEL),)
+subdir-ccflags-y += -DCONFIG_LV_LOG_LEVEL=$(CONFIG_LV_LOG_LEVEL)
+endif
+
+ifneq ($(CONFIG_LV_THEME_DEFAULT_DARK),)
+subdir-ccflags-y += -DCONFIG_LV_THEME_DEFAULT_DARK=$(CONFIG_LV_THEME_DEFAULT_DARK)
+endif
+
 obj-y += ports/
 obj-y += disp/
 obj-y += vglite/

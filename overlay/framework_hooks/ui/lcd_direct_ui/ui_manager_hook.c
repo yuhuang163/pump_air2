@@ -12,12 +12,14 @@
 *****************************************************************************************
 */
 #define UI_ANIMATION_STOP_TIMEOUT               (1000)
+#define IS_PRINT_LVGL_MEM_MONITOR               1
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
 static ui_manager_context_t *ui_ctx = NULL;
+
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -28,6 +30,26 @@ static ui_manager_context_t *ui_ctx = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+#if IS_PRINT_LVGL_MEM_MONITOR
+static void lvgl_mem_monitor_cb(void)
+{
+    lv_mem_monitor_t mon;
+    lv_mem_monitor(&mon);
+
+    uint32_t used_kb = (mon.total_size - mon.free_size) / 1024;
+    uint32_t free_kb = mon.free_size / 1024;
+    uint32_t total_kb = mon.total_size / 1024;
+    uint32_t max_used_kb = mon.max_used / 1024;
+    // uint32_t biggest_free_kb = mon.free_biggest_size / 1024;
+    LOG_UI("lvgl mem total:%lu KB, used:%lu KB (%d%%), free:%lu KB, max_used:%lu KB",
+           (unsigned long)total_kb,
+           (unsigned long)used_kb,
+           mon.used_pct,
+           (unsigned long)free_kb,
+           (unsigned long)max_used_kb);
+}
+#endif
+
 static void lvgl_display_handler(struct ui_manager_context *thiz)
 {
     uint8_t msg = 0;
@@ -36,10 +58,16 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
     MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id, &msg, OS_WAIT_FOREVER);
     LOG_UI("==>lvgl scheduler start");
     while(1) {
-        if (ui_ctx->priv.need_stop_timer) {
-            LOG_UI("==>lvgl scheduler stop");
+        if (ui_ctx->priv.lv_timer == NULL) {
+            LOG_UI("==>lv_timer is NULL");
             break;
         }
+      
+        if (lv_timer_get_paused(ui_ctx->priv.lv_timer) == true) {
+            LOG_UI("==>lv_timer is paused");
+            break;
+        }
+
         ms_till_next = lv_timer_handler();
         if (ms_till_next > 10000) {
             LOGE("time error!!!!!!!: %d", ms_till_next);
@@ -49,6 +77,9 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
         log_count++;
         if (log_count % 200 == 0) {
             LOG_UI("lvgl scheduler:%d", log_count);
+#if IS_PRINT_LVGL_MEM_MONITOR
+            lvgl_mem_monitor_cb();
+#endif
         }
     }
 }
@@ -88,12 +119,20 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     uint8_t msg = 0;
     uint32_t period = 1000 / play_info.fps;
     LOG_UI("==>%s, period: %d", play_info.tag, period);    
-    thiz->play_animation_lock(play_info.tag);
+    
+    if (thiz->priv.lv_timer != NULL && lv_timer_get_paused(thiz->priv.lv_timer) == false) {
+        lv_timer_pause(thiz->priv.lv_timer);
+    }
+
     ui_animation_play_t *ani = &thiz->priv.play_info;
     if (ani->display_remove_cb) {
+        lv_lock();
         ani->display_remove_cb(thiz);
+        lv_unlock();
         LOG_UI("==> ui remove tag: %s", ani->tag);
+        lv_refr_now(NULL);
     } 
+    thiz->play_animation_lock(play_info.tag);
     ani->played_count = 0;
     ani->user_data = play_info.user_data;
     ani->progress_cb = play_info.progress_cb;
@@ -102,21 +141,23 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     ani->display_prepare_cb = play_info.display_prepare_cb;
     ani->display_remove_cb = play_info.display_remove_cb;
     ani->is_play_finished = false;
-    if (ani->display_prepare_cb) {
-        ani->display_prepare_cb(thiz);
-    }
     thiz->play_animation_unlock(play_info.tag);
+    
+    if (ani->display_prepare_cb) {
+        lv_lock();
+        ani->display_prepare_cb(thiz);
+        lv_unlock();
+    }
+
     if (thiz->priv.lv_timer == NULL) {
         thiz->priv.lv_timer = lv_timer_create(change_images_cb, period < 30 ? 30 : period, NULL);
         if (thiz->priv.lv_timer != NULL) {
             lv_timer_ready(thiz->priv.lv_timer);
-        } else {
-            LOGE("Failed to create lv_timer for %s", play_info.tag);
         }
     } else {
         lv_timer_set_period(thiz->priv.lv_timer, period < 30 ? 30 : period);
+        lv_timer_resume(thiz->priv.lv_timer);
     }
-    thiz->priv.need_stop_timer = 0;
     MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
     LOG_UI("==>%s, lv_timer created, period: %d", play_info.tag, period < 30 ? 30 : period);
 }
@@ -125,12 +166,19 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     LOG_UI("==> ui deinit tag: %s", thiz->priv.play_info.tag);
+    if (thiz->priv.lv_timer != NULL && lv_timer_get_paused(thiz->priv.lv_timer) == false) {
+        lv_timer_pause(thiz->priv.lv_timer);
+    }
     thiz->play_animation_lock(NULL);
-    thiz->priv.need_stop_timer = 1;
+    thiz->play_animation_unlock(NULL);
     ui_animation_play_t *ani = &thiz->priv.play_info;
     if (ani->display_remove_cb) {
+        lv_lock();
         ani->display_remove_cb(thiz);
+        lv_unlock();
+        lv_refr_now(NULL);
     }
+    thiz->play_animation_lock(NULL);
     memset(ani, 0, sizeof(ui_animation_play_t));
     thiz->play_animation_unlock(NULL);
 }

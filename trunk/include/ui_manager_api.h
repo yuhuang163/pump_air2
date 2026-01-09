@@ -105,7 +105,6 @@ typedef struct ui_manager_context {
         thread_context_t ui_hdr_thd; /// UI显示调度线程
     #if IS_SUPPORT_LVGL
             lv_timer_t *lv_timer; /// LVGL定时器
-            uint8_t need_stop_timer; /// 是否需要停止定时器
     #else
             os_timer_id lv_timer; /// LVGL定时器
     #endif
