@@ -11,6 +11,7 @@
 #include "motor_pwm.h"
 #include "hal_gpio.h"
 #include "hal_sysfreq.h"
+#include <stdint.h>
 
 // 前向声明，确保编译器识别函数
 int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq);
@@ -21,10 +22,15 @@ int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq);
 #define IS_SUPPORT_PUMP_RUN_TIME_TEST          (1)
 #define IS_SUPPORT_PUMP_DEBUG_LOG              (0)
 
+#define IS_SUPPORT_PUMP_PWM_IDLE_HIGH     (0)
 #define IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE     (1)
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+#define PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY      (90) /// 初始占空比
+#else
 #define PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY      (10) /// 初始占空比
+#endif
 #define PUMP_PWM_GRADUAL_CHANGE_PERIOD         (2) /// 变化周期 2ms
-#define PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE     (1) /// 变化时间比例系数：change_time = target_duty * SCALE (ms)
+#define PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE     (1) /// 变化时间比例系数：change_time = duty_diff * SCALE (ms)
 
 typedef struct {
     enum HAL_PWM_ID_T id;
@@ -115,14 +121,21 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
     
     // 保存当前占空比（用于日志）
     uint8_t old_duty = timer_info[pwm_id].current_duty;
-    
-    // 计算新的占空比
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    // 计算新的占空比（从90向下渐变到目标值）
+    uint8_t new_duty = timer_info[pwm_id].current_duty - timer_info[pwm_id].duty_step;
+    // 防止低于目标值（向下渐变时，new_duty应该 >= target_duty）
+    if (new_duty < timer_info[pwm_id].target_duty) {
+        new_duty = timer_info[pwm_id].target_duty;
+    }
+#else
+    // 计算新的占空比（从10向上渐变到目标值）
     uint8_t new_duty = timer_info[pwm_id].current_duty + timer_info[pwm_id].duty_step;
-    
-    // 防止超过目标值
+    // 防止超过目标值（向上渐变时，new_duty应该 <= target_duty）
     if (new_duty > timer_info[pwm_id].target_duty) {
         new_duty = timer_info[pwm_id].target_duty;
     }
+#endif
     
     // 更新PWM配置
     struct HAL_PWM_CFG_T pwm_cfg = {
@@ -131,22 +144,27 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
         .inv = timer_info[pwm_id].pwm_cfg.inv,
         .sleep_on = timer_info[pwm_id].pwm_cfg.sleep_on,
     };
-    if ((timer_info[pwm_id].current_duty != new_duty)&& (new_duty <= timer_info[pwm_id].target_duty)) {
-        //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
-        //hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    // 向下渐变：new_duty应该 >= target_duty
+    if ((timer_info[pwm_id].current_duty != new_duty) && (new_duty >= timer_info[pwm_id].target_duty)) {
         timer_info[pwm_id].gpio_irq_update = 1;
-        //BSP_LOG("bsp pwm time", "pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
-    //else if (new_duty == timer_info[pwm_id].target_duty) {
-   //     hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg); 
-    //}
-    else {
-        //LOGE("new_duty is out of range: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
+#else
+    // 向上渐变：new_duty应该 <= target_duty
+    if ((timer_info[pwm_id].current_duty != new_duty) && (new_duty <= timer_info[pwm_id].target_duty)) {
+        timer_info[pwm_id].gpio_irq_update = 1;
     }
+#endif
     // 更新当前占空比
     timer_info[pwm_id].current_duty = new_duty;
     // 如果还没达到目标占空比，且定时器应该运行，则重新启动定时器
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    // 向下渐变：继续条件 new_duty > target_duty
+    if (new_duty > timer_info[pwm_id].target_duty && timer_info[pwm_id].time_status == 1) {
+#else
+    // 向上渐变：继续条件 new_duty < target_duty
     if (new_duty < timer_info[pwm_id].target_duty && timer_info[pwm_id].time_status == 1) {
+#endif
         if (timer_info[pwm_id].time_id != NULL) {
             enum E_HWTIMER_T ret = hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
             if (ret != E_HWTIMER_OK) {
@@ -155,10 +173,16 @@ static void bsp_motor_pwm_step_update_pump1(motor_pwm_control_id_e pwm_id)
                 timer_info[pwm_id].time_status = 0;
             }
         }
-    } else if (new_duty >= timer_info[pwm_id].target_duty) {
-        // 已达到目标占空比，清除运行标志
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    } else if (new_duty <= timer_info[pwm_id].target_duty) {
+        // 已达到目标占空比（向下渐变），清除运行标志
         timer_info[pwm_id].time_status = 0;
-        //LOGI("new_duty >= target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
+#else
+    } else if (new_duty >= timer_info[pwm_id].target_duty) {
+        // 已达到目标占空比（向上渐变），清除运行标志
+        timer_info[pwm_id].time_status = 0;
+#endif
+        //LOGI("Reached target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
 }
 
@@ -171,14 +195,21 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
     
     // 保存当前占空比（用于日志）
     uint8_t old_duty = timer_info[pwm_id].current_duty;
-    
-    // 计算新的占空比
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    // 计算新的占空比（从90向下渐变到目标值）
+    uint8_t new_duty = timer_info[pwm_id].current_duty - timer_info[pwm_id].duty_step;
+    // 防止低于目标值（向下渐变时，new_duty应该 >= target_duty）
+    if (new_duty < timer_info[pwm_id].target_duty) {
+        new_duty = timer_info[pwm_id].target_duty;
+    }
+#else
+    // 计算新的占空比（从10向上渐变到目标值）
     uint8_t new_duty = timer_info[pwm_id].current_duty + timer_info[pwm_id].duty_step;
-    
-    // 防止超过目标值
+    // 防止超过目标值（向上渐变时，new_duty应该 <= target_duty）
     if (new_duty > timer_info[pwm_id].target_duty) {
         new_duty = timer_info[pwm_id].target_duty;
     }
+#endif
     
     // 更新PWM配置
     struct HAL_PWM_CFG_T pwm_cfg = {
@@ -187,23 +218,28 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
         .inv = timer_info[pwm_id].pwm_cfg.inv,
         .sleep_on = timer_info[pwm_id].pwm_cfg.sleep_on,
     };
-
-    if ((timer_info[pwm_id].current_duty != new_duty)&& (new_duty <= timer_info[pwm_id].target_duty)) {
-        //hal_pwm_update_duty_only(motor_pwm_cfg[pwm_id].id, new_duty, timer_info[pwm_id].pwm_cfg.freq);
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    // 向下渐变：new_duty应该 >= target_duty
+    if ((timer_info[pwm_id].current_duty != new_duty) && (new_duty >= timer_info[pwm_id].target_duty)) {
         timer_info[pwm_id].gpio_irq_update = 1;
-        //hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg);
     }
-    //else if (new_duty == timer_info[pwm_id].target_duty) {
-    //    hal_pwm_enable(motor_pwm_cfg[pwm_id].id, &pwm_cfg); 
-    //}
-    else {
-        //LOGE("new_duty is out of range: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
+#else
+    // 向上渐变：new_duty应该 <= target_duty
+    if ((timer_info[pwm_id].current_duty != new_duty) && (new_duty <= timer_info[pwm_id].target_duty)) {
+        timer_info[pwm_id].gpio_irq_update = 1;
     }
+#endif
 
     // 更新当前占空比
     timer_info[pwm_id].current_duty = new_duty;
     // 如果还没达到目标占空比，且定时器应该运行，则重新启动定时器
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    // 向下渐变：继续条件 new_duty > target_duty
+    if (new_duty > timer_info[pwm_id].target_duty && timer_info[pwm_id].time_status == 1) {
+#else
+    // 向上渐变：继续条件 new_duty < target_duty
     if (new_duty < timer_info[pwm_id].target_duty && timer_info[pwm_id].time_status == 1) {
+#endif
         if (timer_info[pwm_id].time_id != NULL) {
             enum E_HWTIMER_T ret = hwtimer_start(timer_info[pwm_id].time_id, MS_TO_HWTICKS(timer_info[pwm_id].time_period));
             if (ret != E_HWTIMER_OK) {
@@ -212,10 +248,16 @@ static void bsp_motor_pwm_step_update_pump2(motor_pwm_control_id_e pwm_id)
                 timer_info[pwm_id].time_status = 0;
             }
         }
-    } else if (new_duty >= timer_info[pwm_id].target_duty) {
-        // 已达到目标占空比，清除运行标志
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    } else if (new_duty <= timer_info[pwm_id].target_duty) {
+        // 已达到目标占空比（向下渐变），清除运行标志
         timer_info[pwm_id].time_status = 0;
-        //LOGI("new_duty >= target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
+#else
+    } else if (new_duty >= timer_info[pwm_id].target_duty) {
+        // 已达到目标占空比（向上渐变），清除运行标志
+        timer_info[pwm_id].time_status = 0;
+#endif
+        //LOGI("Reached target_duty: pwm_id=%d, new_duty=%d, target_duty=%d", pwm_id, new_duty, timer_info[pwm_id].target_duty);
     }
 }
 
@@ -348,11 +390,16 @@ static int8_t bsp_motor_pwm_gradual_change_start(motor_para_t *motor_para, motor
         timer_info[pwm_id].gpio_irq_update = 0;
         
         // 计算步长和定时器周期
-        // 变化时间与目标占空比成比例：change_time = target_duty * SCALE
-        // 步数 = 总变化时间 / 定时器周期
-        uint16_t change_time = timer_info[pwm_id].target_duty * PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE; // 总变化时间（ms），与占空比成正比
-        uint16_t time_period = PUMP_PWM_GRADUAL_CHANGE_PERIOD; // 定时器周期（ms）
+        // 先计算需要变化的占空比差值
+        #if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+        int16_t duty_diff = (int16_t)timer_info[pwm_id].init_duty - (int16_t)timer_info[pwm_id].target_duty;
+        #else
         int16_t duty_diff = (int16_t)timer_info[pwm_id].target_duty - (int16_t)timer_info[pwm_id].init_duty;
+        #endif
+        // 变化时间与占空比差值成比例：change_time = duty_diff * SCALE
+        // 步数 = 总变化时间 / 定时器周期
+        uint16_t change_time = (duty_diff > 0 ? duty_diff : 0) * PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE; // 总变化时间（ms），与占空比差值成正比
+        uint16_t time_period = PUMP_PWM_GRADUAL_CHANGE_PERIOD; // 定时器周期（ms）
         
         // 计算步数（向上取整，确保能覆盖整个变化范围）
         uint16_t step_count = (change_time + time_period - 1) / time_period; // 向上取整
@@ -432,7 +479,23 @@ static int8_t bsp_motor_pwm_gradual_gpio_irq_init(int8_t enable)
     hal_gpio_setup_irq(PWM_PUMP2_PIN, &gpio_irq_cfg);
   return 0;
 }
+#endif
 
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+ int bsp_motor_pwm_idle_high(motor_pwm_control_id_e id)
+ {
+    if (id >= MOTOR_PWM_VALVE_1) {
+        LOGE("pwm_id is out of MOTOR_PWM_PUMP_2 range: %d", id);
+        return -1;
+    }
+    struct HAL_PWM_CFG_T pwm_cfg = {
+        .freq = BREAST_PUMP_PUMP_FREQ,
+        .ratio = 100,
+        .inv = false,
+        .sleep_on = false,
+    };
+    return hal_pwm_enable(motor_pwm_cfg[id].id, &pwm_cfg);
+ }
 #endif
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -451,16 +514,29 @@ int bsp_motor_init(void)
     }
     bsp_motor_pwm_gradual_gpio_irq_init(1);
     // 直接运行PWM测试函数
-    //bsp_motor_pwm_test_all_step_counts();
+    bsp_motor_pwm_test_all_step_counts();
+#endif
+
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_1);
+    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_2);
 #endif
     return BSP_OK;
 }
 
 int bsp_motor_deinit(void)
 {
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_1);
+    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_2);
+    hal_pwm_disable(motor_pwm_cfg[MOTOR_PWM_VALVE_1].id);
+    hal_pwm_disable(motor_pwm_cfg[MOTOR_PWM_VALVE_2].id);
+#else
     for (int i = 0; i < ARRAY_SIZE(motor_pwm_cfg); i++) {
         hal_pwm_disable(motor_pwm_cfg[i].id);
     }
+#endif
+
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
     bsp_motor_deinit_timer_system();
     bsp_motor_pwm_gradual_gpio_irq_init(0);
@@ -477,14 +553,23 @@ int bsp_motor_parameter_set(void *args)
         return -1;
     }
     int ret = 0;
+    motor_para_t motor_para = {0};
+    // tmp[1] 存储的是 motor_para_t* 指针值（地址），需要转换为指针类型
+    motor_para_t *motor_ptr = (motor_para_t *)(uintptr_t)tmp[1];
+    memcpy(&motor_para, motor_ptr, sizeof(motor_para_t));
+    motor_para.un.pwm.duty = motor_para.un.pwm.duty > 100 ? 100 : motor_para.un.pwm.duty;
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    if (pwm_id == MOTOR_PWM_PUMP_1 || pwm_id == MOTOR_PWM_PUMP_2) {
+        motor_para.un.pwm.duty = 100 - motor_para.un.pwm.duty;
+    }
+#endif
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
     hal_sysfreq_req(HAL_SYSFREQ_USER_ANC, HAL_CMU_FREQ_208M);
-    ret = bsp_motor_pwm_gradual_change_start((motor_para_t *)tmp[1], pwm_id);
+    ret = bsp_motor_pwm_gradual_change_start(&motor_para, pwm_id);
 #else
-    motor_para_t *motor = (motor_para_t *)tmp[1];
     struct HAL_PWM_CFG_T pwm_cfg = {
-        .freq = motor->un.pwm.freq,
-        .ratio = motor->un.pwm.duty,
+        .freq = motor_para.un.pwm.freq,
+        .ratio = motor_para.un.pwm.duty,
         .inv = false,
         .sleep_on = false,
     };
@@ -498,7 +583,7 @@ int bsp_motor_parameter_set(void *args)
     motor_pwm_status[pwm_id] = 1;
 #if IS_SUPPORT_PUMP_DEBUG_LOG
     BSP_LOG("parameter", "pwm_id: %d, duty: %d, freq: %d, ret: %d", pwm_id, 
-                motor->un.pwm.duty, motor->un.pwm.freq, ret);
+                motor_para.un.pwm.duty, motor_para.un.pwm.freq, ret);
 #endif
     return ret;
 }
@@ -516,10 +601,17 @@ int bsp_motor_stop(void *args)
         bsp_motor_stop_periodic_task(MOTOR_PWM_PUMP_1);
         bsp_motor_stop_periodic_task(MOTOR_PWM_PUMP_2);
 #endif
-        for (uint8_t i = 0; i < MOTOR_PWM_ID_MAX; i++) {
-            ret |= hal_pwm_disable(motor_pwm_cfg[i].id);
-            motor_pwm_status[i] = 0;
-        }
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+        ret |= bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_1);
+        ret |= bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_2);
+        ret |= hal_pwm_disable(motor_pwm_cfg[MOTOR_PWM_VALVE_1].id);
+        ret |= hal_pwm_disable(motor_pwm_cfg[MOTOR_PWM_VALVE_2].id);
+#else
+      for (uint8_t i = 0; i < MOTOR_PWM_ID_MAX; i++) {
+        ret |= hal_pwm_disable(motor_pwm_cfg[i].id);
+        motor_pwm_status[i] = 0;
+      }
+#endif
         return ret;
     }
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
@@ -527,7 +619,16 @@ int bsp_motor_stop(void *args)
         bsp_motor_stop_periodic_task(pwm_id);
     }
 #endif
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    if (pwm_id == MOTOR_PWM_PUMP_1 || pwm_id == MOTOR_PWM_PUMP_2) {
+        ret = bsp_motor_pwm_idle_high(pwm_id);
+    }
+    if (pwm_id == MOTOR_PWM_VALVE_1 || pwm_id == MOTOR_PWM_VALVE_2) {
+        ret = hal_pwm_disable(motor_pwm_cfg[pwm_id].id);
+    }
+#else
     ret = hal_pwm_disable(motor_pwm_cfg[pwm_id].id);
+#endif
 #if IS_SUPPORT_PUMP_RUN_TIME_TEST
     if (pwm_id == MOTOR_PWM_PUMP_1) {
         if (count < 20) {
@@ -574,7 +675,11 @@ void bsp_motor_pwm_test_all_step_counts(void)
          PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY, 
          PUMP_PWM_GRADUAL_CHANGE_PERIOD,
          PUMP_PWM_GRADUAL_CHANGE_TIME_SCALE);
-    LOGI("Testing all target_duty values from %d to 100", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    LOGI("Testing DOWNWARD gradient: target_duty from 0 to %d", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
+#else
+    LOGI("Testing UPWARD gradient: target_duty from %d to 100", PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY);
+#endif
     LOGI("------------------------------------------------------");
     
     uint8_t init_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY;
@@ -584,18 +689,29 @@ void bsp_motor_pwm_test_all_step_counts(void)
     int pass_count = 0;
     int fail_count = 0;
     
-    // 直接测试所有 target_duty 从 init_duty 到 100
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    // 向下渐变：测试从 init_duty (90) 向下到 0
+    for (uint8_t target_duty = 0; target_duty <= init_duty; target_duty++) {
+#else
+    // 向上渐变：测试从 init_duty (10) 向上到 100
     for (uint8_t target_duty = init_duty; target_duty <= 100; target_duty++) {
-        // 计算变化时间
-        uint16_t change_time = target_duty * scale;
+#endif
+        // 先计算需要变化的占空比差值
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+        // 向下渐变：duty_diff = init_duty - target_duty
+        int16_t duty_diff = (int16_t)init_duty - (int16_t)target_duty;
+#else
+        // 向上渐变：duty_diff = target_duty - init_duty
+        int16_t duty_diff = (int16_t)target_duty - (int16_t)init_duty;
+#endif
+        // 计算变化时间：基于占空比差值，而不是目标值
+        uint16_t change_time = (duty_diff > 0 ? duty_diff : 0) * scale;
         
         // 计算步数
         uint16_t calculated_step_count = (change_time + time_period - 1) / time_period;
         if (calculated_step_count == 0) {
             calculated_step_count = 1;
         }
-        
-        int16_t duty_diff = (int16_t)target_duty - (int16_t)init_duty;
         uint8_t duty_step = 0;
         if (duty_diff > 0) {
             duty_step = (duty_diff + calculated_step_count - 1) / calculated_step_count;
@@ -604,6 +720,22 @@ void bsp_motor_pwm_test_all_step_counts(void)
         // 模拟执行验证
         uint8_t final_duty = init_duty;
         uint16_t actual_steps = 0;
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+        // 向下渐变：从 init_duty 向下到 target_duty
+        for (uint16_t j = 0; j < calculated_step_count && final_duty > target_duty; j++) {
+            uint8_t new_duty = final_duty - duty_step;
+            if (new_duty < target_duty) {
+                new_duty = target_duty;
+            }
+            final_duty = new_duty;
+            actual_steps++;
+            if (final_duty <= target_duty) {
+                break; // 达到目标，提前停止（模拟定时器行为）
+            }
+        }
+        bool can_reach_target = (final_duty <= target_duty);
+#else
+        // 向上渐变：从 init_duty 向上到 target_duty
         for (uint16_t j = 0; j < calculated_step_count && final_duty < target_duty; j++) {
             uint8_t new_duty = final_duty + duty_step;
             if (new_duty > target_duty) {
@@ -615,16 +747,16 @@ void bsp_motor_pwm_test_all_step_counts(void)
                 break; // 达到目标，提前停止（模拟定时器行为）
             }
         }
+        bool can_reach_target = (final_duty >= target_duty);
+#endif
         
         // 计算实际运行时间（定时器会在达到目标时提前停止）
         uint16_t total_time = actual_steps * time_period;
         uint16_t total_time_max = calculated_step_count * time_period;
         
-        bool can_reach_target = (final_duty >= target_duty);
-        
         if (can_reach_target) {
             pass_count++;
-            // 输出所有 target_duty <= 100 的测试数据（单行格式，避免日志过多）
+            // 输出测试数据（单行格式，避免日志过多）
             LOGI("target_duty=%3d: change_time=%3dms, step_count=%3d, diff=%3d, step=%2d, final=%3d, actual_steps=%3d, total_time=%3dms (max=%3dms) [PASS]",
                  target_duty, change_time, calculated_step_count, duty_diff, duty_step, final_duty, 
                  actual_steps, total_time, total_time_max);
@@ -637,10 +769,15 @@ void bsp_motor_pwm_test_all_step_counts(void)
     
     LOGI("------------------------------------------------------");
     LOGI("========== Test Summary ==========");
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    LOGI("Total tested: %d (target_duty from 0 to %d)", init_duty + 1, init_duty);
+    LOGI("Success rate: %.2f%%", (float)pass_count * 100.0f / (init_duty + 1));
+#else
     LOGI("Total tested: %d (target_duty from %d to 100)", 100 - init_duty + 1, init_duty);
+    LOGI("Success rate: %.2f%%", (float)pass_count * 100.0f / (100 - init_duty + 1));
+#endif
     LOGI("Passed: %d", pass_count);
     LOGI("Failed: %d", fail_count);
-    LOGI("Success rate: %.2f%%", (float)pass_count * 100.0f / (100 - init_duty + 1));
     LOGI("==================================");
 }
 #endif
