@@ -95,7 +95,7 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
         ani->display_remove_cb(thiz);
     }
     memset(ani, 0, sizeof(ui_animation_play_t));
-    LOGI("ui_animation_play_deinit");
+    LOG_UI("ui_animation_play_deinit");
     thiz->play_animation_unlock(NULL);
 }
 
@@ -160,7 +160,7 @@ static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
     EXCEPTION_CHECK_VOID(pm);
 
     if (pm->is_system_power_on() == 0) {
-        LOGE("system power off, ignore set ui backlight.");
+        LOGW("system power off, ignore set ui backlight.");
         return;
     }
     /// 设置面板背光

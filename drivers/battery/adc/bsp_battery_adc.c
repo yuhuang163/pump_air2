@@ -73,9 +73,9 @@ int battery_adc_single_conversion(uint16_t *batt_voltage)
     uint16_t voltage = 0;
     bsp_adc_single_conversion(BATT_ADC_CHANNEL, 10, &voltage);
     *batt_voltage = voltage * sg_batt_adc.coeff;
-    // LOGE("voltage:%d, %d", *batt_voltage, voltage);
+    // LOG_PBUS("voltage:%d, %d", *batt_voltage, voltage);
     if (*batt_voltage < sg_batt_adc.voltage_min || *batt_voltage > sg_batt_adc.voltage_max) {
-        LOGE("voltage out of range:%d, %d", *batt_voltage, voltage);
+        LOG_PBUS("voltage out of range:%d, %d", *batt_voltage, voltage);
         return BSP_ERROR;
     }
     return BSP_OK;

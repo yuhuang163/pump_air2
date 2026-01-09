@@ -6,6 +6,7 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "factory_server_client.h" // IWYU pragma: keep
 #include "common_service.h"
+#include "root_log_define.h"
 /*
 * DEFINES
 *****************************************************************************************
@@ -28,7 +29,7 @@ static unsigned char rx_buff[RX_BUFF_LEN];
 */
 static void on_packet_subscribe_callback(int err_code, uint8_t *data, uint16_t len)
 {
-    LOGI("on_packet_subscribe_callback111, err_code: %d", err_code);
+    LOG_SRV("on_packet_subscribe_callback111, err_code: %d", err_code);
     LOG_HEX("data", data, len);
     ble_manager_context_t *ble_ctx = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     EXCEPTION_CHECK_VOID(ble_ctx);

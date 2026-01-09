@@ -38,7 +38,7 @@ static int hw_self_event_printf(self_hardware_tst_event_type_e event)
         default:
             return -1;
     }
-    LOGI("product tst event-- %s = %d", str, event);
+    LOG_TEST("product tst event-- %s = %d", str, event);
     return 0;
 }
 /*

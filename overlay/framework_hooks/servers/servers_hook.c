@@ -18,9 +18,9 @@
 static int on_post_servers_init_route(struct servers_manager_context *ctx)
 {
     factory_server_client_init();
-    LOGI("factory_server_client_init");
+    LOG_SRV("factory_server_client_init");
     master_server_client_init();
-    LOGI("master_server_client_init");
+    LOG_SRV("master_server_client_init");
     return 0;
 }
 

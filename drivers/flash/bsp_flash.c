@@ -30,7 +30,7 @@ static void flash_callback(void* param)
 {
     NORFLASH_API_OPERA_RESULT *opera_result;
     opera_result = (NORFLASH_API_OPERA_RESULT*)param;
-    LOGI("flash callback: type = %d, addr = 0x%x,len = 0x%x,result = %d,suspend_num=%d.",
+    LOG_PBUS("flash callback: type = %d, addr = 0x%x,len = 0x%x,result = %d,suspend_num=%d.",
                 opera_result->type, opera_result->addr, opera_result->len, opera_result->result,
                 opera_result->suspend_num);
 }
@@ -65,7 +65,7 @@ static int flash_dev_open(struct rt_device_node *dev)
 {
     int ret = 0;
 
-    LOGI("flash dev open: %p, %p", FACTORY_DATA_START_ADDR, FACTORY_DATA_END_ADDR);
+    LOG_PBUS("flash dev open: %p, %p", FACTORY_DATA_START_ADDR, FACTORY_DATA_END_ADDR);
     ret = flash_section_init();
     if (ret != BSP_OK) {
         LOGE("flash section init failure! result = %d.",ret);

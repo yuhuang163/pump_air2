@@ -89,6 +89,7 @@ typedef enum{
     FILTER_HG = 1 << 22,
     FILTER_SRV = 1 << 23,
     FILTER_STEP = 1 << 24,
+    FILTER_TEST = 1 << 25,
     FILTER_FULL = -1,
 } log_filter_enum_t;
 
@@ -147,6 +148,7 @@ typedef enum{
 #define LOG_STORE(...)      do { IS_FILTER(FILTER_STORE)    { LOGW_TAG("LOG_STORE", __VA_ARGS__); } } while(0)
 #define LOG_HG(...)         do { IS_FILTER(FILTER_HG)       { LOGW_TAG("LOG_HG", __VA_ARGS__); } } while(0)
 #define LOG_SRV(...)        do { IS_FILTER(FILTER_SRV)      { LOGI_TAG("LOG_SRV", __VA_ARGS__); } } while(0)
+#define LOG_TEST(...)      do { IS_FILTER(FILTER_TEST)      { LOGI_TAG("LOG_TEST", __VA_ARGS__); } } while(0)
 /*
 * 进度日志输出.
 */

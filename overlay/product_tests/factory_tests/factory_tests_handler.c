@@ -52,13 +52,13 @@ static int factory_event_printf(factory_tst_event_type_e event)
         default:
             return -1;
     }
-    LOGI("product tst event-- %s = %d", str, event);
+    LOG_TEST("product tst event-- %s = %d", str, event);
     return 0;
 }
 
 static int on_tests_click_event_handler(void *context, uint16_t keycode, uint16_t keytype)
 {
-    LOGI("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
+    LOG_TEST("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_INT(servers_ctx);
     servers_publish_data_args_t args = {
@@ -73,7 +73,7 @@ static int on_tests_click_event_handler(void *context, uint16_t keycode, uint16_
 
 static int on_tests_long_press_event_handler(void *context, uint16_t keycode, uint16_t keytype)
 {
-    LOGI("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
+    LOG_TEST("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_INT(servers_ctx);
     servers_publish_data_args_t args = {
@@ -88,7 +88,7 @@ static int on_tests_long_press_event_handler(void *context, uint16_t keycode, ui
 
  static int on_tests_knob_event_handler(void *context, uint16_t keycode, uint16_t keytype)
 {
-    LOGI("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
+    LOG_TEST("factory test keyevent handler: keycode = %d, keytype = %d", keycode, keytype);
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_INT(servers_ctx);
     servers_publish_data_args_t args = {
@@ -118,21 +118,21 @@ int get_factory_tests_sw_ver(tests_func_args_t args)
     char *sw_ver = "1.0.0";
     EXCEPTION_CHECK_INT(args.val);
     strncpy((char *)args.val, sw_ver, strlen(sw_ver) + 1);
-    LOGI("factory test get sw ver: %s", (char *)args.val);
+    LOG_TEST("factory test get sw ver: %s", (char *)args.val);
 
     //test code
     multi_func_msg_data_t msg = {0};
     msg.union_body.product_test_extra.event_type = FAC_TST_READ_SW_VER_EVENT;
     EXCEPTION_CHECK_INT(thiz);
     MSG_QUEUE_SEND(thiz->priv.tests_thd.msg_id, &msg, 0);
-    LOGI("factory test ver event sent.");
+    LOG_TEST("factory test ver event sent.");
     return ret;
 }
 
 int factory_tests_enter(tests_func_args_t args)
 {
     int ret = 0;
-    LOGI("factory test common enter test");
+    LOG_TEST("factory test common enter test");
     key_input_context_t *key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     EXCEPTION_CHECK_INT(key_ctx);
     power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
@@ -152,7 +152,7 @@ int factory_tests_enter(tests_func_args_t args)
 int factory_tests_exit(tests_func_args_t args)
 {
     int ret = 0;
-    LOGI("factory test aging test exit");
+    LOG_TEST("factory test aging test exit");
     key_input_context_t *key_ctx = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     EXCEPTION_CHECK_INT(key_ctx);
     power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
@@ -169,7 +169,7 @@ int factory_tests_exit(tests_func_args_t args)
 int factory_tests_aging_test_enter_mode1(void)
 {
     int ret = 0;
-    LOGI("factory test aging test enter mode1");
+    LOG_TEST("factory test aging test enter mode1");
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_INT(pump_ctx);
     motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
@@ -188,7 +188,7 @@ int factory_tests_aging_test_enter_mode1(void)
     setting.level[1] = BREAST_PUMP_LEVEL_15;
     pump_ctx->set_breast_pump_setting(&setting, time_index);
 
-    LOGI("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
+    LOG_TEST("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
             setting.level[1]);
     return ret;
 }
@@ -196,14 +196,14 @@ int factory_tests_aging_test_enter_mode1(void)
 int factory_tests_aging_test_enter_mode2(void)
 {
     int ret = 0;
-    LOGI("factory test aging test enter mode2");
+    LOG_TEST("factory test aging test enter mode2");
 
     return ret;
 }
 
 void factory_tests_aging_test_check_result(void)
 {
-    LOGI("factory test aging test check result");
+    LOG_TEST("factory test aging test check result");
     factory_flag_info_t flag_info = {0};
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_VOID(st);
@@ -228,7 +228,7 @@ void factory_tests_aging_test_check_result(void)
                                            "factory_tests_aging_test_enter_mode1_task");
         }
         st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
-        LOGI("factory test aging test check result (MODE_1): age_flag = %d, age_time = %d, age_cycle = %d",
+        LOG_TEST("factory test aging test check result (MODE_1): age_flag = %d, age_time = %d, age_cycle = %d",
              flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_flag, flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_time,
              flag_info.age_info[AGING_MODE_TYPE_1 - 1].age_cycle);
     } else if (thiz->priv.current_mode == TST_AGING_TEST_TYPE
@@ -245,11 +245,11 @@ void factory_tests_aging_test_check_result(void)
                                            "factory_tests_aging_test_enter_mode2_task");
         }
         st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
-        LOGI("factory test aging test check result (MODE_2): age_flag = %d, age_time = %d, age_cycle = %d",
+        LOG_TEST("factory test aging test check result (MODE_2): age_flag = %d, age_time = %d, age_cycle = %d",
              flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_flag, flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_time,
              flag_info.age_info[AGING_MODE_TYPE_2 - 1].age_cycle);
     } else {
-        LOGI("factory test aging test check result: current_mode = %d, aging_type = %d, not in aging test",
+        LOG_TEST("factory test aging test check result: current_mode = %d, aging_type = %d, not in aging test",
              thiz ? thiz->priv.current_mode : -1, thiz ? thiz->priv.factory_ctx.aging_target_info.aging_type : -1);
     }
 }
@@ -261,7 +261,7 @@ int factory_tests_aging_test_enter(tests_func_args_t args)
     memset(&thiz->priv.factory_ctx.aging_target_info, 0, sizeof(aging_target_info_t));
     thiz->priv.factory_ctx.aging_target_info.total_target_time = (uint32_t)args.arg2; /// 老化目标时长
     thiz->priv.factory_ctx.aging_target_info.aging_type = (uint16_t)args.arg1;        /// 老化模式类型
-    LOGI("factory test aging test: total_target_time = %d, aging_type = %d",
+    LOG_TEST("factory test aging test: total_target_time = %d, aging_type = %d",
          thiz->priv.factory_ctx.aging_target_info.total_target_time,
          thiz->priv.factory_ctx.aging_target_info.aging_type);
     power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
@@ -278,7 +278,7 @@ int factory_tests_aging_test_enter(tests_func_args_t args)
             break;
         default:
             ret = -1;
-            LOGI("factory test aging test: aging_type = %d, invalid",
+            LOG_TEST("factory test aging test: aging_type = %d, invalid",
                  thiz->priv.factory_ctx.aging_target_info.aging_type);
             break;
     }
@@ -287,7 +287,7 @@ int factory_tests_aging_test_enter(tests_func_args_t args)
 
 int factory_tests_aging_test_exit(tests_func_args_t args)
 {
-    LOGI("factory test aging test exit");
+    LOG_TEST("factory test aging test exit");
     power_manager_context_t *power_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     EXCEPTION_CHECK_INT(power_ctx);
     CHECK_IF_VALID(power_ctx, {
@@ -307,7 +307,7 @@ int factory_tests_aging_test_exit(tests_func_args_t args)
         flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_flag = AGING_TEST_STATUS_FAILED;
     }
     st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
-    LOGI("factory test aging test exit: age_flag = %d, age_time = %d", flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_flag, flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_time);
+    LOG_TEST("factory test aging test exit: age_flag = %d, age_time = %d", flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_flag, flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_time);
     pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
 
     return 0;
@@ -316,7 +316,7 @@ int factory_tests_aging_test_exit(tests_func_args_t args)
 int factory_tests_suction_test(tests_func_args_t args)
 {
     /* 吸乳模式→L15档→双边工作 */
-    LOGI("factory test suction test: %d", args.arg1);
+    LOG_TEST("factory test suction test: %d", args.arg1);
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_INT(pump_ctx);
     motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
@@ -336,7 +336,7 @@ int factory_tests_suction_test(tests_func_args_t args)
         setting.level[1] = BREAST_PUMP_LEVEL_15;
         pump_ctx->set_breast_pump_setting(&setting, time_index);
 
-        LOGI("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
+        LOG_TEST("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
                 setting.level[1]);
     } else {
         pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
@@ -349,7 +349,7 @@ void factory_tests_thread_handler(struct tests_manager_context *ctx, void *msg)
     multi_func_msg_data_t *m = (multi_func_msg_data_t *)msg;
     factory_tst_event_type_e event = (factory_tst_event_type_e)m->union_body.product_test_extra.event_type;
     uint16_t length = m->union_body.product_test_extra.data_length;
-    //LOGI("product_tests loop recv msg. %d", event);
+    //LOG_TEST("product_tests loop recv msg. %d", event);
     factory_event_printf(event);
     /* 如果当前模式不是产测模式，则不处理 */
     if (ctx->priv.current_mode != TST_FACTORY_TYPE) {

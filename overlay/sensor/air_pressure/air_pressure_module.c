@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
+#include "root_log_define.h"
 #if IS_SUPPORT_DEVICE_AIR_PRESSURE
 #include "sensor_manager.h" 
 #include "air_pressure_module.h"
@@ -58,7 +59,7 @@ void on_perpare_air_pressure_init(sensor_manager_context_t *ptr)
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     ptr->priv.air_pressure.dev = pbus->find_device(ID_DEVICE_AIR_PRESSURE);
     ptr->priv.air_pressure.sampling_interval = AIR_PRESSURE_POLLING_PERIOD;
-    LOGI("air pressure device: %p", ptr->priv.air_pressure.dev);
+    LOG_SENSOR("air pressure device: %p", ptr->priv.air_pressure.dev);
     thiz = ptr;
 }
 #endif

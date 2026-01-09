@@ -241,7 +241,7 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
         uint8_t speed = map_para.speed >= SUCTION_SPEED_MAX ? (SUCTION_SPEED_MAX - 1) : map_para.speed;
         uint16_t pump_freq = long_pump_freq_table[level][speed];
         if (pump_freq == 0) {
-            LOGE("invalid pump_freq=0, level=%d, speed=%d", map_para.level, map_para.speed);
+            LOGW("invalid pump_freq=0, level=%d, speed=%d", map_para.level, map_para.speed);
             pump_freq = long_pump_freq_table[0][0]; /// 使用默认频率
         }
         pump_level = long_level_table[level]; /// 获取负压等级

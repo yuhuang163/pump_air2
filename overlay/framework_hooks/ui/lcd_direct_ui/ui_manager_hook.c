@@ -139,11 +139,11 @@ static void set_black_background_cb(hdr_post_args_t *args)
 {
     // ui_manager_context_t *thiz = (ui_manager_context_t *)args->user_data;
     // EXCEPTION_CHECK_VOID(thiz);
-    // LOGI("==>set black background");
+    // LOG_UI("==>set black background");
     // lv_obj_t *scr = lv_screen_active();
     // lv_obj_set_style_bg_color(scr, lv_color_black(), LV_PART_MAIN);
     // lv_refr_now(NULL);
-    // LOGI("==>set black background done");
+    // LOG_UI("==>set black background done");
 }
 
 static void ui_thread_init_route(struct ui_manager_context *thiz)

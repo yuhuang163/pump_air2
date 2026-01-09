@@ -133,10 +133,10 @@ static void misc_work_broadcast_receive(broadcast_mask_id_t id, void *context, i
     if (id.code == ID_BROADCAST_PM_STATE_CHANGE) {
         int pm_state = args0;
         if (pm_state == ID_SYS_PM_SUSPEND) {
-            LOGI("STOP_TIMER: misc_timer");
+            LOG_MISC("STOP_TIMER: misc_timer");
             STOP_TIMER(ctx->priv.misc_timer);
         } else {
-            LOGI("START_TIMER: id = 0x%lx, misc_timer", id.code);
+            LOG_MISC("START_TIMER: id = 0x%lx, misc_timer", id.code);
             START_TIMER(ctx->priv.misc_timer, MISC_POLLING_PERIOD);
             ctx->priv.battery_ui_has_show = 0;
         }

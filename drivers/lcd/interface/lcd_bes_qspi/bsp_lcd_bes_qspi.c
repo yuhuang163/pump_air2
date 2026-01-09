@@ -26,6 +26,12 @@ static bool lcd_qspi_ready = false;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+#if LV_USE_LOG && !LV_LOG_PRINTF
+static void print_cb(lv_log_level_t level, const char *buf)
+{
+    hal_trace_output((const unsigned char *)buf, strlen(buf));
+}
+#endif
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -34,6 +40,9 @@ static bool lcd_qspi_ready = false;
 int bsp_lcd_init(void) 
 {
     lv_init();
+#if LV_USE_LOG && !LV_LOG_PRINTF
+    lv_log_register_print_cb(print_cb);
+#endif
     lv_tick_set_cb(get_timestamp);
     lv_delay_set_cb(msleep);
     lv_hal_disp_init();

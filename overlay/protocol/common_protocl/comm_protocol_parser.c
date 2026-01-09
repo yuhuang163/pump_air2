@@ -107,13 +107,13 @@ int comm_protocol_assemble_packet(const uint8_t *data, uint16_t len, comm_protoc
 
     /// 检查超时，如果超时则重置缓冲区
     if (packet_assembly_is_timeout()) {
-        LOGE("packet assembly timeout, reset buffer");
+        LOGW("packet assembly timeout, reset buffer");
         packet_assembly_reset();
     }
 
     /// 写入数据到环形缓冲区
     if (packet_assembly_write(data, len) < 0) {
-        LOGE("failed to write data to assembly buffer");
+        LOGW("failed to write data to assembly buffer");
         packet_assembly_reset();
         return -2;
     }
@@ -139,7 +139,7 @@ int comm_protocol_assemble_packet(const uint8_t *data, uint16_t len, comm_protoc
         uint16_t sof = ((uint16_t)header[1] << 8) | header[0];
         if (sof != COMM_PROTOCOL_SOF) {
             /// SOF错误，尝试在缓冲区中查找下一个有效的SOF
-            LOGE("invalid sof: 0x%04X, searching for next valid frame", sof);
+            LOGW("invalid sof: 0x%04X, searching for next valid frame", sof);
             /// 丢弃一个字节，继续查找
             uint8_t dummy;
             packet_assembly_read(&dummy, 1);
@@ -245,7 +245,7 @@ int comm_protocol_frame_deserialize(const uint8_t *buffer, uint16_t buffer_size,
     frame->payload.service_count = 0;
     for (uint8_t i = 0; i < COMM_PROTOCOL_MAX_SERVICE_NUM; i++) {
         if (payload_offset >= frame->payload_length) {
-            LOGI("complete deserialize, payload_length: %d, payload_offset: %d", frame->payload_length, payload_offset);
+            LOG_PROTOCOL("complete deserialize, payload_length: %d, payload_offset: %d", frame->payload_length, payload_offset);
             break;
         }       
         service = (comm_protocol_service_t *)(payload + payload_offset); 
@@ -254,7 +254,7 @@ int comm_protocol_frame_deserialize(const uint8_t *buffer, uint16_t buffer_size,
         frame->payload.services[i].tlvs = service->tlvs;  /// 零拷贝：tlvs 指向 buffer，必须保证 buffer 生命周期足够长
         frame->payload.service_count++;
         payload_offset += service->srv_length + COMM_PROTOCOL_SERVICE_HEADER_SIZE;
-        LOGI("payload_length: %d, payload_offset: %d, service_count: %d", frame->payload_length, payload_offset, frame->payload.service_count);
+        LOG_PROTOCOL("payload_length: %d, payload_offset: %d, service_count: %d", frame->payload_length, payload_offset, frame->payload.service_count);
     }
     return COMM_PROTOCOL_ERROR_NONE;
 }

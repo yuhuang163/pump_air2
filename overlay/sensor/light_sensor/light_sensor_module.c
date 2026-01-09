@@ -49,7 +49,7 @@ void light_sensor_polling_handler(sensor_wrapper_data_t *sensor_data)
         if (thiz->priv.light_sensor.dev) {
             thiz->priv.light_sensor.polling_cnt++;
             DEVICE_READ_ARGS(thiz->priv.light_sensor.dev, &sensor_data->light_sensor_data.lux_level, 1);
-            // LOGI("light_sensor_data.lux_level: %d", sensor_data->light_sensor_data.lux_level);
+            // LOG_SENSOR("light_sensor_data.lux_level: %d", sensor_data->light_sensor_data.lux_level);
         }
     });
 }

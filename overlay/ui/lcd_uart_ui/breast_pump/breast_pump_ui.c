@@ -64,12 +64,12 @@ static void ui_fill_pump_mode(lcd_tlvs_t *tlv, uint8_t mode)
 */
 void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_pump_home_screen_prepare");
+    // LOG_UI("ui_display_pump_home_screen_prepare");
 }
 
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_pump_home_screen_remove");
+    // LOG_UI("ui_display_pump_home_screen_remove");
 }
 
 int ui_display_pump_home_screen(ui_manager_context_t *thiz)
@@ -110,12 +110,12 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
 
 void ui_display_pump_level_prepare(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_pump_left_level_prepare");
+    // LOG_UI("ui_display_pump_left_level_prepare");
 }
 
 void ui_display_pump_level_remove(ui_manager_context_t *thiz)
 {
-    // LOGI("ui_display_pump_left_level_remove");
+    // LOG_UI("ui_display_pump_left_level_remove");
 }
 
 int ui_display_pump_level(ui_manager_context_t *thiz)

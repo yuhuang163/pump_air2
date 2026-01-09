@@ -77,7 +77,7 @@ static int wf100d_write_nbyte(uint8_t index, i2c_master_data_t *data)
     if (s_dev_abnormal_count[index] > WF100D_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
     } else {
-        LOGI("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
+        LOG_PBUS("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;
@@ -112,7 +112,7 @@ static int wf100d_read_nbyte(uint8_t index, i2c_master_data_t *data)
     if (s_dev_abnormal_count[index] > WF100D_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
     } else {
-        LOGI("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
+        LOG_PBUS("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;
@@ -143,7 +143,7 @@ static int wf100d_read_nbyte_no_retry(uint8_t index, i2c_master_data_t *data)
     if (s_dev_abnormal_count[index] > WF100D_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
     } else {
-        LOGI("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
+        LOG_PBUS("air pressure %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;

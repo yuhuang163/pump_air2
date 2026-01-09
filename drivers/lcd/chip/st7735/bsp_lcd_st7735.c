@@ -138,5 +138,5 @@ void lcd_chip_sleep(void)
     bsp_lcd_spi_write_param(0x28, NULL, 0);
     bsp_lcd_spi_write_param(0x10, NULL, 0);
     msleep(40);
-    LOGI("lcd_chip_sleep");
+    LOG_PBUS("lcd_chip_sleep");
 }
