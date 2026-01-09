@@ -55,6 +55,11 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
 
 static void change_images_cb(lv_timer_t *t)
 {
+    static uint32_t log_count = 0;
+    log_count++;
+    if (log_count % 200 == 0) {
+        LOG_UI("change_images_cb:%d", log_count);
+    }
     EXCEPTION_CHECK_VOID(ui_ctx);
     ui_animation_play_t *ani = &ui_ctx->priv.play_info;
     if (ani->is_play_finished) {
@@ -87,6 +92,7 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     ui_animation_play_t *ani = &thiz->priv.play_info;
     if (ani->display_remove_cb) {
         ani->display_remove_cb(thiz);
+        LOG_UI("==> ui remove tag: %s", ani->tag);
     } 
     ani->played_count = 0;
     ani->user_data = play_info.user_data;
@@ -118,6 +124,7 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
 static void ui_animation_play_deinit(struct ui_manager_context *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
+    LOG_UI("==> ui deinit tag: %s", thiz->priv.play_info.tag);
     thiz->play_animation_lock(NULL);
     thiz->priv.need_stop_timer = 1;
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -126,7 +133,6 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
     }
     memset(ani, 0, sizeof(ui_animation_play_t));
     thiz->play_animation_unlock(NULL);
-    LOG_UI("ui_animation_play_deinit");
 }
 
 static void set_black_background_cb(hdr_post_args_t *args)

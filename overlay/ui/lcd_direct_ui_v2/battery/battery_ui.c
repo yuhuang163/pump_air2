@@ -15,20 +15,24 @@
 #define HOME_BATTERY_MAX_COUNT                     (6)
 #define HOME_CHARGE_BATTERY_MAX_COUNT              (5)
 #define HOME_BATTERY_TEXT_COLOR                    (0xB25962)
-#define HOME_BATTERY_TEXT_RING_SIZE                (310)
+#define HOME_BATTERY_TEXT_RING_SIZE                (310 - 4)
 #define HOME_BATTERY_TEXT_RING_R                   (HOME_BATTERY_TEXT_RING_SIZE / 2)
-#define HOME_BATTERY_TEXT_ANGLE_DEG                (288)
+#define HOME_BATTERY_TEXT_ANGLE_DEG                (285)
 
+typedef struct {    
+    lv_obj_t * text;
+    lv_obj_t * icon_img;
+    res_img_info_t icon_info;
+    lv_obj_t * charge_icon;
+    res_img_info_t charge_icon_info;
+    uint16_t text_angle_deg;
+} battery_display_info_t;
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-static lv_obj_t * battery_text;
-static lv_obj_t * battery_icon_img;
-static res_img_info_t battery_icon_info;
-static lv_obj_t * charge_icon_img;
-static res_img_info_t charge_icon_info;
+static battery_display_info_t *battery_info;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -55,80 +59,86 @@ static int get_battery_img_id(uint8_t battery_percent)
     return RESOURCE_ID_HOME_BATTERY_0;
 }
 
-static void battery_text_place(lv_obj_t * lab)
-{
-    /// 父对象 360x360，圆心(180,180)
-    lv_point_t c = { .x = PANLE_DISPLAY_W / 2, .y = PANLE_DISPLAY_H / 2 };
-    /// 计算圆周点
-    lv_coord_t px = c.x + (lv_trigo_cos(HOME_BATTERY_TEXT_ANGLE_DEG) * HOME_BATTERY_TEXT_RING_R) / LV_TRIGO_SIN_MAX;
-    lv_coord_t py = c.y + (lv_trigo_sin(HOME_BATTERY_TEXT_ANGLE_DEG) * HOME_BATTERY_TEXT_RING_R) / LV_TRIGO_SIN_MAX;
-    /// 先把label中心放到该点（固定位置）
-    lv_obj_align(lab, LV_ALIGN_CENTER, px - c.x, py - c.y);
-    /// 旋转中心设为label自身中心（必须在 set_text 后取宽高）
-    lv_coord_t w = lv_obj_get_width(lab);
-    lv_coord_t h = lv_obj_get_height(lab);
-    lv_obj_set_style_transform_pivot_x(lab, w / 2, 0);
-    lv_obj_set_style_transform_pivot_y(lab, h / 2, 0);
-    /// 切线方向：angle + 90°（单位0.1°）
-    int tangent = HOME_BATTERY_TEXT_ANGLE_DEG + 90;
-    /// 文字永远“正着读”, 避免在某些角度出现180°倒置
-    if (tangent > 90 && tangent < 270) {
-        tangent = (tangent + 180) % 360;
-    }
-    lv_obj_set_style_transform_angle(lab, tangent * 10, 0);
-}
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t battery_percent, uint8_t is_charging)
+int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t percent, uint8_t is_charging)
 {
-    // battery_percent = 80; /// TODO: 测试用
-    if (battery_icon_img == NULL || !lv_obj_is_valid(battery_icon_img)) {
-        battery_icon_img = lv_image_create(root);
-        EXCEPTION_CHECK_VOID(battery_icon_img);
+    EXCEPTION_CHECK_INT(battery_info);
+    if (battery_info->icon_img == NULL || !lv_obj_is_valid(battery_info->icon_img)) {
+        battery_info->icon_img = lv_image_create(root);
+        EXCEPTION_CHECK_INT(battery_info->icon_img);
+        lv_obj_align(battery_info->icon_img, LV_ALIGN_TOP_LEFT, 156 + 3, 22);
     }
-    common_ui_img_resource_init(thiz, get_battery_img_id(battery_percent), &battery_icon_info);
-    EXCEPTION_CHECK_VOID(battery_icon_info.data);
+    common_ui_img_resource_init(thiz, get_battery_img_id(percent), &battery_info->icon_info);
+    EXCEPTION_CHECK_INT(battery_info->icon_info.data);
     lv_fs_path_ex_t battery_icon_img_path;
-    lv_fs_make_path_from_buffer(&battery_icon_img_path, LV_FS_MEMFS_LETTER, battery_icon_info.data,
-        battery_icon_info.size, "baj");
-    lv_image_set_src(battery_icon_img, (const void *)&battery_icon_img_path);
-    lv_obj_align(battery_icon_img, LV_ALIGN_TOP_LEFT, 156 + 3, 22);
+    lv_fs_make_path_from_buffer(&battery_icon_img_path, LV_FS_MEMFS_LETTER, battery_info->icon_info.data,
+        battery_info->icon_info.size, "baj");
+    lv_image_set_src(battery_info->icon_img, (const void *)&battery_icon_img_path);
 
-    if (battery_text == NULL || !lv_obj_is_valid(battery_text)) {
-        battery_text = lv_label_create(root);
-        EXCEPTION_CHECK_VOID(battery_text);
-        battery_text_place(battery_text);
+    if (battery_info->text == NULL || !lv_obj_is_valid(battery_info->text)) {
+        battery_info->text = lv_label_create(root);
+        EXCEPTION_CHECK_INT(battery_info->text);
+        lv_obj_set_style_text_color(battery_info->text, lv_color_hex(HOME_BATTERY_TEXT_COLOR), 0);
+        lv_obj_set_style_text_font(battery_info->text, &lv_font_oppo_sans_14_medium, 0);
     }
+    
+    uint16_t angle_deg = 0, ring_r = 0;
+    if (percent < 10) {
+        angle_deg = HOME_BATTERY_TEXT_ANGLE_DEG;
+        ring_r = HOME_BATTERY_TEXT_RING_R;
+    } else if (percent < 100) {
+        angle_deg = HOME_BATTERY_TEXT_ANGLE_DEG + 3;
+        ring_r = HOME_BATTERY_TEXT_RING_R + 1;
+    } else {
+        angle_deg = HOME_BATTERY_TEXT_ANGLE_DEG + 4;
+        ring_r = HOME_BATTERY_TEXT_RING_R + 2;
+    }
+
+    if (angle_deg != battery_info->text_angle_deg) {
+        battery_info->text_angle_deg = angle_deg;
+        common_ui_text_place_in_circle(battery_info->text, 
+            battery_info->text_angle_deg, ring_r, false);
+    }
+    
     char second_value[8] = {0};
-    sprintf(second_value, "%02d%%", battery_percent);
-    lv_label_set_text(battery_text, second_value);
-    lv_obj_set_style_text_color(battery_text, lv_color_hex(HOME_BATTERY_TEXT_COLOR), 0);
-    lv_obj_set_style_text_font(battery_text, &lv_font_oppo_sans_14_medium, 0);
-  
-    if (charge_icon_img == NULL || !lv_obj_is_valid(charge_icon_img)) {
-        charge_icon_img = lv_image_create(root);
-        EXCEPTION_CHECK_VOID(charge_icon_img);
+    sprintf(second_value, "%d%%", percent);
+    lv_label_set_text(battery_info->text, second_value);
+
+    if (battery_info->charge_icon == NULL || !lv_obj_is_valid(battery_info->charge_icon)) {
+        battery_info->charge_icon = lv_image_create(root);
+        EXCEPTION_CHECK_INT(battery_info->charge_icon);
+        lv_obj_align(battery_info->charge_icon, LV_ALIGN_TOP_LEFT, 140 + 3, 27);
     }
     common_ui_img_resource_init(thiz, 
-        is_charging > 0 ? RESOURCE_ID_HOME_CHARGING : RESOURCE_ID_HOME_UNCHARGE, &charge_icon_info);
-    EXCEPTION_CHECK_VOID(charge_icon_info.data);
+        is_charging > 0 ? RESOURCE_ID_HOME_CHARGING : RESOURCE_ID_HOME_UNCHARGE, &battery_info->charge_icon_info);
+    EXCEPTION_CHECK_INT(battery_info->charge_icon_info.data);
     lv_fs_path_ex_t charge_icon_img_path;
-    lv_fs_make_path_from_buffer(&charge_icon_img_path, LV_FS_MEMFS_LETTER, charge_icon_info.data,
-        charge_icon_info.size, "baj");
-    lv_image_set_src(charge_icon_img, (const void *)&charge_icon_img_path);
-    lv_obj_align(charge_icon_img, LV_ALIGN_TOP_LEFT, 140 + 3, 27);
+    lv_fs_make_path_from_buffer(&charge_icon_img_path, LV_FS_MEMFS_LETTER, battery_info->charge_icon_info.data,
+        battery_info->charge_icon_info.size, "baj");
+    lv_image_set_src(battery_info->charge_icon, (const void *)&charge_icon_img_path);
+
+    return 0;
+}
+
+void battery_icon_init(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    if (battery_info == NULL) {
+        battery_info = (battery_display_info_t *)u_malloz(sizeof(battery_display_info_t));
+        EXCEPTION_CHECK_VOID(battery_info);
+    }
 }
 
 void battery_icon_deinit(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    battery_icon_img = NULL;
-    common_ui_img_resource_deinit(thiz, &battery_icon_info);
-    charge_icon_img = NULL;
-    common_ui_img_resource_deinit(thiz, &charge_icon_info);
+    common_ui_img_resource_deinit(thiz, &battery_info->icon_info);
+    common_ui_img_resource_deinit(thiz, &battery_info->charge_icon_info);
+    u_free(battery_info);
+    battery_info = NULL;
 }
 
 void ui_display_charge_screen_prepare(ui_manager_context_t *thiz)

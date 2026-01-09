@@ -15,8 +15,10 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t battery_level, uint8_t is_charging);
+void battery_icon_init(ui_manager_context_t *thiz);
 void battery_icon_deinit(ui_manager_context_t *thiz);
+int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t percent, uint8_t is_charging);
+
 /// 充电中页面
 void ui_display_charge_screen_prepare(ui_manager_context_t *thiz);
 void ui_display_charge_screen_remove(ui_manager_context_t *thiz);
