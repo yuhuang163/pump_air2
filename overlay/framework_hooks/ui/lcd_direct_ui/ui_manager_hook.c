@@ -41,7 +41,7 @@ static void lvgl_mem_monitor_cb(void)
     uint32_t total_kb = mon.total_size / 1024;
     uint32_t max_used_kb = mon.max_used / 1024;
     // uint32_t biggest_free_kb = mon.free_biggest_size / 1024;
-    LOG_UI("lvgl mem total:%lu KB, used:%lu KB (%d%%), free:%lu KB, max_used:%lu KB",
+    LOG_UI("total:%lu KB, used:%lu KB (%d%%), free:%lu KB, max_used:%lu KB",
            (unsigned long)total_kb,
            (unsigned long)used_kb,
            mon.used_pct,
