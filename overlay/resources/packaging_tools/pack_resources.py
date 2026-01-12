@@ -261,17 +261,24 @@ def make_versioned_output_path(
 ) -> str:
     """
     生成带版本/日期/MD5标识的输出文件名（不使用传入文件名的 stem）。
+    格式: V3_20260112_V01.01_xxxxx_RES.bin
     - 前缀: IMG_RES_NAME_PREFIX（例如 V3）
-    - 版本: 使用 IMG_RES_VERSION_CURRENT 的 HEX（去掉前导0，例如 0x0100 -> 100）
     - 日期: YYYYMMDD
+    - 版本: VXX.XX 格式（例如 0x0100 -> V01.00, 0x0101 -> V01.01）
     - MD5: 使用 body_md5 的前8位（内容变化更敏感，便于区分产物）
     """
     p = Path(base_output_file)
     md5_short = (body_md5_hex or "")[:8]
 
     prefix = (name_prefix or IMG_RES_NAME_PREFIX_DEFAULT).strip()
-    ver_str = f"{version_hex:X}"
-    filename = f"{prefix}_RES_V{ver_str}_{date_str}_b{md5_short}.bin"
+    
+    # 将版本号转换为 VXX.XX 格式
+    # 版本号是16位，高8位是主版本号，低8位是次版本号
+    major_version = (version_hex >> 8) & 0xFF
+    minor_version = version_hex & 0xFF
+    ver_str = f"V{major_version:02d}.{minor_version:02d}"
+    
+    filename = f"{prefix}_{date_str}_{ver_str}_{md5_short}_RES.bin"
     return str(p.with_name(filename))
 
 

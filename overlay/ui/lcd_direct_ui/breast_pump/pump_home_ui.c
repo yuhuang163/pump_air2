@@ -212,14 +212,17 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint8_t minutes, u
     char minute_value[4] = {0};
     sprintf(minute_value, "%02d", minutes >= 60 ? 59 : minutes);
     lv_label_set_text(pump_info->time_minute, minute_value);
+    lv_obj_set_style_text_color(pump_info->time_minute, lv_color_hex(PUMP_TEXT_BLACK_COLOR), 0);
     lv_obj_set_style_text_font(pump_info->time_minute, &lv_font_roboto_81_medium, 0);
     lv_obj_align(pump_info->time_minute, LV_ALIGN_TOP_LEFT, 80, 168);
     lv_label_set_text(pump_info->time_colon, ":");
+    lv_obj_set_style_text_color(pump_info->time_colon, lv_color_hex(PUMP_TEXT_BLACK_COLOR), 0);
     lv_obj_set_style_text_font(pump_info->time_colon, &lv_font_roboto_68_medium, 0);
     lv_obj_align(pump_info->time_colon, LV_ALIGN_TOP_LEFT, 175, 179);
     char second_value[4] = {0};
     sprintf(second_value, "%02d", seconds >= 60 ? 59 : seconds);
     lv_label_set_text(pump_info->time_second, second_value);
+    lv_obj_set_style_text_color(pump_info->time_second, lv_color_hex(PUMP_TEXT_BLACK_COLOR), 0);
     lv_obj_set_style_text_font(pump_info->time_second, &lv_font_roboto_81_medium, 0);
     lv_obj_align(pump_info->time_second, LV_ALIGN_TOP_LEFT, 196, 168);
 }
