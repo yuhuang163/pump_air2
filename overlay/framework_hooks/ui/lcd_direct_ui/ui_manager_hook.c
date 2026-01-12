@@ -52,19 +52,15 @@ static void lvgl_mem_monitor_cb(void)
 
 static void lvgl_display_handler(struct ui_manager_context *thiz)
 {
-    uint8_t msg = 0;
+    uint8_t msg = 0, is_running = 0;
     uint32_t ms_till_next = 0;
-    static uint16_t log_count = 0;
+    uint16_t log_count = 0;
     MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id, &msg, OS_WAIT_FOREVER);
-    LOG_UI("==>lvgl scheduler start");
-    while(1) {
-        if (ui_ctx->priv.lv_timer == NULL) {
-            LOG_UI("==>lv_timer is NULL");
-            break;
-        }
-      
-        if (lv_timer_get_paused(ui_ctx->priv.lv_timer) == true) {
-            LOG_UI("==>lv_timer is paused");
+    LOG_UI("==>lvgl scheduler start:%p", ui_ctx->priv.lv_timer);
+    while(1) {             
+        if (thiz->priv.lv_timer == NULL ||
+            lv_timer_get_paused(thiz->priv.lv_timer) == true) {
+            LOG_UI("==>lv_timer is NULL/paused:%p", thiz->priv.lv_timer);
             break;
         }
 
@@ -82,17 +78,23 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
 #endif
         }
     }
+    LOG_UI("==>lvgl scheduler exit");
 }
 
 static void change_images_cb(lv_timer_t *t)
-{
-    static uint32_t log_count = 0;
-    log_count++;
-    if (log_count % 200 == 0) {
-        LOG_UI("change_images_cb:%d", log_count);
-    }
+{    
     EXCEPTION_CHECK_VOID(ui_ctx);
+    if (ui_ctx->priv.lv_timer == NULL || ui_ctx->priv.lv_timer != t) {
+        LOG_UI("==>lv_timer is NULL/changed:%p/%p", ui_ctx->priv.lv_timer, t);
+        return;
+    }
+    
+    if (!ui_ctx->priv.is_playing_ui_animation) {
+        return;
+    }
+    
     ui_animation_play_t *ani = &ui_ctx->priv.play_info;
+    EXCEPTION_CHECK_VOID(ani->tag);
     if (ani->is_play_finished) {
         ui_ctx->priv.is_playing_ui_animation = false;
         if (ani->progress_cb) {
@@ -120,8 +122,12 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
     uint32_t period = 1000 / play_info.fps;
     LOG_UI("==>%s, period: %d", play_info.tag, period);    
     
-    if (thiz->priv.lv_timer != NULL && lv_timer_get_paused(thiz->priv.lv_timer) == false) {
-        lv_timer_pause(thiz->priv.lv_timer);
+    if (thiz->priv.lv_timer != NULL) {
+        lv_timer_t *timer_to_delete = thiz->priv.lv_timer;
+        thiz->priv.lv_timer = NULL;
+        lv_timer_pause(timer_to_delete);
+        msleep(10);
+        lv_timer_delete(timer_to_delete);
     }
 
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -153,24 +159,30 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
         thiz->priv.lv_timer = lv_timer_create(change_images_cb, period < 30 ? 30 : period, NULL);
         if (thiz->priv.lv_timer != NULL) {
             lv_timer_ready(thiz->priv.lv_timer);
+        } else {
+            LOG_UI("==>lv_timer create failed");
         }
-    } else {
-        lv_timer_set_period(thiz->priv.lv_timer, period < 30 ? 30 : period);
-        lv_timer_resume(thiz->priv.lv_timer);
     }
+    thiz->priv.is_playing_ui_animation = true;
+    LOG_UI("==>%s, lv_timer created, period: %d, timer: %p", 
+        play_info.tag, period < 30 ? 30 : period, thiz->priv.lv_timer);
     MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
-    LOG_UI("==>%s, lv_timer created, period: %d", play_info.tag, period < 30 ? 30 : period);
+
 }
 
 static void ui_animation_play_deinit(struct ui_manager_context *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     LOG_UI("==> ui deinit tag: %s", thiz->priv.play_info.tag);
+    thiz->priv.is_playing_ui_animation = false;
     if (thiz->priv.lv_timer != NULL && lv_timer_get_paused(thiz->priv.lv_timer) == false) {
-        lv_timer_pause(thiz->priv.lv_timer);
+        lv_timer_t *timer_to_delete = thiz->priv.lv_timer;
+        thiz->priv.lv_timer = NULL;  // 先清空，防止回调使用
+        lv_timer_pause(timer_to_delete);
+        msleep(10);
+        lv_timer_delete(timer_to_delete);
+        LOG_UI("==>lv_timer deleted:%p", timer_to_delete);
     }
-    thiz->play_animation_lock(NULL);
-    thiz->play_animation_unlock(NULL);
     ui_animation_play_t *ani = &thiz->priv.play_info;
     if (ani->display_remove_cb) {
         lv_lock();
@@ -228,15 +240,6 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == ID_SYS_PM_SUSPEND) {
                 ui->priv.is_playing_ui_animation = false;
-                THREAD_SUSPEND(ui->priv.ui_hdr_thd.tid);
-                if (ui->priv.lv_timer != NULL) {
-                    lv_timer_pause(ui->priv.lv_timer);
-                }
-            } else {
-                THREAD_RESUME(ui->priv.ui_hdr_thd.tid);
-                if (ui->priv.lv_timer != NULL) {
-                    lv_timer_resume(ui->priv.lv_timer);
-                }
             }
             break;
 
