@@ -23,6 +23,8 @@ typedef thread_context_t aglo_thread_context_t;
 #define AIGO_AIR_PRESSURE_NUM  AIR_PRESSURE_NUM //2 //气压传感器数量
 
 #define AIGO_BREAST_PUMP_NUM  BREAST_PUMP_NUM //2 //吸奶器泵数量
+
+#define AIGO_OS_WAIT_FOREVER OS_WAIT_FOREVER
 /// 算法线程优先级
 #ifndef RT_PRIO_ALGO_THREAD
 #define RT_PRIO_ALGO_THREAD                    OS_PRIORITY_REALTIME
@@ -37,7 +39,8 @@ typedef thread_context_t aglo_thread_context_t;
 
 /// log define
 #ifndef AIGO_PRINT_LOG
-#define AIGO_PRINT_LOG(...)  platform_printf(__VA_ARGS__)
+///#define AIGO_PRINT_LOG(...)  platform_printf(__VA_ARGS__)
+#define AIGO_PRINT_LOG(...)  do { ; } while (0)
 #endif
 
 #define IS_AIGO_SUPPORT_QUEUE           1

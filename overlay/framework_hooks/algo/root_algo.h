@@ -50,6 +50,12 @@ typedef struct {
     uint16_t pwm_duty;           //控制pwm占空比，0-100
 } algo_light_data_output_t;
 
+/// 算法输出数据
+typedef struct {
+    uint32_t timestamp;
+    uint8_t wear_detection_result[AIR_PRESSURE_NUM]; //佩戴检测结果 0:未佩戴 1:佩戴    
+} algo_wear_detection_data_output_t;
+
 #ifdef __cplusplus
 }
 #endif

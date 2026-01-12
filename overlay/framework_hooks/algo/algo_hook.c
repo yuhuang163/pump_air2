@@ -12,16 +12,13 @@
 *****************************************************************************************
 */
 #define ALGOLIB_PORT_SUPPORT 1
-#define LUX_LEVEL_BUFFER_SIZE 10  /// lux_level历史数据缓冲区大小
+#define ALGOLIB_PORT_SUPPORT_LOG 0  
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-/// lux_level历史数据缓冲区，用于过滤和均值计算
-static uint16_t lux_level_buffer[LUX_LEVEL_BUFFER_SIZE] = {0};
-static uint8_t lux_level_buffer_count = 0;  /// 当前缓冲区中的数据个数
-static uint8_t lux_level_buffer_index = 0;  /// 当前写入位置（循环缓冲区）
+static algo_manager_context_t *algo_ctx = NULL;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -54,97 +51,53 @@ static void on_sensor_data_algo_cb(void *user_data, uint8_t *data, int data_len)
         .data = NULL,
         .size = 0,
     };
+#if ALGOLIB_PORT_SUPPORT_LOG
     LOG_ALGO("on_sensor_data_algo_cb: pressure_data: %f, %f", 
               pressure_data.pressure_union.pressure[0], pressure_data.pressure_union.pressure[1]);
-    algo_port_run_trigger(&msg);
+#endif
+    if (algo_port_run_trigger(&msg) != 0) {
+        LOG_ALGO("on_sensor_data_algo_cb: algo_port_run_trigger failed");
+    }
 #endif
 }
 
+#if ALGOLIB_PORT_SUPPORT
 static int on_algo_pressure_result_cb(void *user_data, algo_port_result_t *result)
 {
-    LOG_ALGO("on_algo_pressure_result_cb: timestamp: %d, wear_detection_result: %d, %d", 
-              result->timestamp, result->wear_detection_result[0], result->wear_detection_result[1]);
+    if (result->data_type == ALGO_PORT_DATA_TYPE_PRESSURE) {
+#if ALGOLIB_PORT_SUPPORT_LOG
+        LOG_ALGO("on_algo_pressure_result_cb: pressure: timestamp: %d, "
+               "wear_detection_result: %d, %d",
+               result->data_union.pressure_result.timestamp,
+               result->data_union.pressure_result.wear_detection_result[0],
+               result->data_union.pressure_result.wear_detection_result[1]);
+#endif
+               algo_ctx->priv.wear_detection_algo_data.timestamp =
+          result->data_union.pressure_result.timestamp;
+        /// 将气压传感器数据保存到算法上下文中
+        memcpy(
+          algo_ctx->priv.wear_detection_algo_data.wear_detection_result,
+          result->data_union.pressure_result.wear_detection_result,
+          sizeof(
+              algo_ctx->priv.wear_detection_algo_data.wear_detection_result));
+    }
+    else if (result->data_type == ALGO_PORT_DATA_TYPE_LIGHT) {
+#if ALGOLIB_PORT_SUPPORT_LOG
+        LOG_ALGO("on_algo_light_result_cb: timestamp: %d, pwm_duty: %d, setting_level: %d", 
+              result->data_union.light_result.timestamp, result->data_union.light_result.pwm_duty, result->data_union.light_result.setting_level);
+#endif
+              /// 将光传感器数据保存到算法上下文中
+        algo_ctx->priv.light_algo_data.timestamp = result->data_union.light_result.timestamp;
+        algo_ctx->priv.light_algo_data.setting_level = result->data_union.light_result.setting_level;
+        algo_ctx->priv.light_algo_data.pwm_duty = result->data_union.light_result.pwm_duty;
+    }
+    else {
+        LOG_ALGO("on_algo_result_cb: unknown data type: %d", result->data_type);
+        return -1;
+    }
     return 0;
 }
-
-static void algo_light_handle(algo_manager_context_t *ctx, algo_light_sensor_data_input_t *input, algo_light_data_output_t *output)
-{
-    EXCEPTION_CHECK_VOID(ctx);
-    EXCEPTION_CHECK_VOID(input);
-    EXCEPTION_CHECK_VOID(output);
-    
-    uint16_t lux_level = input->lux_level;
-    uint16_t filtered_avg = 0;
-    
-    /// 将新的lux_level添加到缓冲区（循环缓冲区）
-    lux_level_buffer[lux_level_buffer_index] = lux_level;
-    lux_level_buffer_index = (lux_level_buffer_index + 1) % LUX_LEVEL_BUFFER_SIZE;
-    
-    /// 更新缓冲区计数
-    if (lux_level_buffer_count < LUX_LEVEL_BUFFER_SIZE) {
-        lux_level_buffer_count++;
-    }
-    
-    /// 如果数据量少于3个，直接使用当前值（无法过滤最大最小值）
-    if (lux_level_buffer_count < 3) {
-        filtered_avg = lux_level;
-    } else {
-        /// 从循环缓冲区中提取有效数据（按时间顺序）
-        uint16_t valid_buffer[LUX_LEVEL_BUFFER_SIZE];
-        uint8_t valid_count = lux_level_buffer_count;
-        
-        /// 如果缓冲区已满，从当前索引开始提取最近的数据
-        if (lux_level_buffer_count == LUX_LEVEL_BUFFER_SIZE) {
-            for (uint8_t i = 0; i < valid_count; i++) {
-                uint8_t idx = (lux_level_buffer_index + i) % LUX_LEVEL_BUFFER_SIZE;
-                valid_buffer[i] = lux_level_buffer[idx];
-            }
-        } else {
-            /// 缓冲区未满，直接复制
-            for (uint8_t i = 0; i < valid_count; i++) {
-                valid_buffer[i] = lux_level_buffer[i];
-            }
-        }
-        
-        /// 找到最大值和最小值，同时计算总和
-        uint16_t min_val = valid_buffer[0];
-        uint16_t max_val = valid_buffer[0];
-        uint32_t sum = valid_buffer[0];
-        
-        for (uint8_t i = 1; i < valid_count; i++) {
-            if (valid_buffer[i] < min_val) {
-                min_val = valid_buffer[i];
-            }
-            if (valid_buffer[i] > max_val) {
-                max_val = valid_buffer[i];
-            }
-            sum += valid_buffer[i];
-        }
-        
-        /// 过滤最大最小值，计算平均值
-        /// 如果最大值和最小值相同，说明所有值都相同，直接使用该值
-        if (min_val == max_val) {
-            filtered_avg = min_val;
-        } else {
-            /// 减去最大值和最小值，计算剩余值的平均值
-            sum = sum - min_val - max_val;
-            filtered_avg = sum / (valid_count - 2);
-        }
-    }
-    
-    /// 更新输出数据
-    output->timestamp = input->timestamp;
-    /// 这里可以根据filtered_avg计算setting_level和pwm_duty
-    /// 暂时保持原有逻辑，后续可以根据需求添加映射关系
-    //ADC最大1.8v，最小0.3v，1.5v对应100，0.3v对应0
-    //filtered_avg对应0-100
-    //filtered_avg = (filtered_avg - 300) * 100 / (1800 - 300);
-    output->pwm_duty = (filtered_avg - 300) * 100 / (1800 - 300);
-    output->setting_level = output->pwm_duty/10;
-    
-    //LOG_ALGO("algo_light_handle: raw_lux=%d, filtered_avg=%d, buffer_count=%d, pwm_duty=%d, setting_level=%d", 
-    //         lux_level, filtered_avg, lux_level_buffer_count, output->pwm_duty, output->setting_level);
-}
+#endif
 
 #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
 static void on_light_sensor_data_algo_cb(void *user_data, uint8_t *data, int data_len)
@@ -156,8 +109,25 @@ static void on_light_sensor_data_algo_cb(void *user_data, uint8_t *data, int dat
         .timestamp = get_timestamp_ms(0),   //todo
         .lux_level = sensor_data->light_sensor_data.lux_level,
     };
-    algo_light_handle(ctx, &data_input, &ctx->priv.light_algo_data);
+
+    #if ALGOLIB_PORT_SUPPORT
     //LOG_ALGO("on_light_sensor_data_algo_cb: lux_level: %d", data_input.lux_level);
+    algo_port_light_data_t light_data = {
+        .light_union.light = data_input.lux_level,
+    };
+    algo_port_set_data_to_ring_buffer(
+        ALGO_PORT_DATA_TYPE_LIGHT,
+        sizeof(light_data.light_union.light_data),
+        (uint8_t *)&light_data.light_union.light_data);
+    algo_port_msg_type_queue_t msg = {
+        .type = ALGO_PORT_DATA_TYPE_LIGHT,
+        .data = NULL,
+        .size = 0,
+    };
+    if (algo_port_run_trigger(&msg) != 0) {
+        LOG_ALGO("on_light_sensor_data_algo_cb: algo_port_run_trigger failed");
+    }
+    #endif
 }
 #endif
 
@@ -174,10 +144,14 @@ static void  hdr_broadcast_sys_boot_completed(hdr_post_args_t *args)
     LOG_ALGO("algo_inited ok, get_version: %d", ctx->get_algo_version());
 
 #if ALGOLIB_PORT_SUPPORT
+    /// 启动气压传感器算法
     algo_port_run_trigger_t run_trigger = {
         .type = ALGO_PORT_DATA_TYPE_PRESSURE,
         .run_trigger = 1,
     };
+    algo_port_start(&run_trigger);
+    /// 启动光传感器算法
+    run_trigger.type = ALGO_PORT_DATA_TYPE_LIGHT;
     algo_port_start(&run_trigger);
 #endif
 }
@@ -211,6 +185,7 @@ static int on_algo_receiver_route(broadcast_mask_id_t id, void *context, int arg
 
 static int on_post_algo_init_route(algo_manager_context_t *ctx)
 {
+    algo_ctx = ctx;
 #if ALGOLIB_PORT_SUPPORT
     algo_port_init((algo_port_result_cb)on_algo_pressure_result_cb, ctx);
 #endif
