@@ -34,6 +34,7 @@ typedef enum {
     INT_NUM_F_SENSOR  = 0x11,
     INT_NUM_CHARGE    = 0x12,
     INT_NUM_AUDIO     = 0x13,
+    INT_NUM_CHARGE_PD = 0x14,
 } interrupt_number_e;
 
 typedef enum {

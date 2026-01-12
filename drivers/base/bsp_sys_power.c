@@ -34,13 +34,14 @@ void sys_power_gpio_init(void)
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
-    hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_POWER_PIN,  HAL_GPIO_DIR_OUT,  1);
 
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
+
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1)
     gpio_map.pin = (enum HAL_IOMUX_PIN_T)SYS_3V3_EN_PIN;
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_3V3_EN_PIN,  HAL_GPIO_DIR_OUT,  0);
+    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SYS_3V3_EN_PIN, HAL_GPIO_DIR_OUT, 0);
 #endif
     LOG_PBUS("sys_power_gpio_init");
 }
@@ -53,7 +54,7 @@ static void sys_power_gpio_control(bool enable)
 
 static void sys_3v3_en_gpio_control(bool enable)
 {
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1)
     GPIO_PIN_CTRL(SYS_3V3_EN_PIN, enable ? 0 : 1);
     LOG_PBUS("sys_3v3_en_gpio_control: %d", enable);
 #endif

@@ -54,8 +54,8 @@ static void on_sensor_data_algo_cb(void *user_data, uint8_t *data, int data_len)
         .data = NULL,
         .size = 0,
     };
-    LOG_ALGO("on_sensor_data_algo_cb: pressure_data: %f, %f", 
-              pressure_data.pressure_union.pressure[0], pressure_data.pressure_union.pressure[1]);
+    // LOG_ALGO("on_sensor_data_algo_cb: pressure_data: %f, %f", 
+    //           pressure_data.pressure_union.pressure[0], pressure_data.pressure_union.pressure[1]);
     algo_port_run_trigger(&msg);
 #endif
 }

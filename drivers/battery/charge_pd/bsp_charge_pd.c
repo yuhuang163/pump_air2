@@ -84,7 +84,7 @@ static int charge_pd_read_nbyte(i2c_master_data_t *data)
 
 static void charge_pd_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
-
+    bsp_irq_msg_send(INT_NUM_CHARGE_PD);
 }
 
 static void charge_pd_irq_control(bool enable)
@@ -147,7 +147,6 @@ static int charge_pd_voltage_config(charge_pd_voltage_e voltage)
     return charge_pd_write_nbyte(&data);
 }
 
-
 /*
  * GLOBAL FUNCTION DEFINITIONS
  *****************************************************************************************
@@ -174,11 +173,6 @@ int bsp_charge_pd_init(void)
     charge_pd_irq_init();
     charge_pd_irq_control(true);
     bsp_i2c_init(CHARGE_PD_I2C_ID);
-    msleep(10);
-    if (charge_pd_device_is_ready() != BSP_OK) {
-        LOGE("charge pd is not ready");
-        return BSP_ERROR;
-    }
     s_charge_pd_is_ready = true;
     s_charge_pd_abnormal_count = 0;
     return BSP_OK;
@@ -193,8 +187,8 @@ int bsp_charge_pd_resume(void)
 
 int bsp_charge_pd_suspend(void)
 {
-    // s_charge_pd_is_ready = false;
-    // s_charge_pd_abnormal_count = 0;
+    s_charge_pd_is_ready = false;
+    s_charge_pd_abnormal_count = 0;
     return BSP_OK;
 }
 
@@ -203,4 +197,18 @@ int bsp_charge_pd_is_ready(void *args)
     uint8_t *pd_is_ready_status = (uint8_t *)args;
     *pd_is_ready_status = s_charge_pd_is_ready;
     return BSP_OK;
+}
+
+void charge_pd_event_handler(void)
+{
+    if (hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) != 0) {
+        LOGE("charge pd power off");
+        return;
+    } 
+
+    if (charge_pd_device_is_ready() != BSP_OK) {
+        return;
+    }
+    
+    LOG_PBUS("charge pd power on");
 }

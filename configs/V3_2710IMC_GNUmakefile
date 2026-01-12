@@ -12,6 +12,8 @@ CROSS_COMPILE ?= $(CONFIG_CROSS_COMPILE)
 # PWM IOMUX 配置（传递给 SDK 的编译宏）
 PWM2_IOMUX_INDEX ?= 42
 PWM3_IOMUX_INDEX ?= 43
+PWM4_IOMUX_INDEX ?= 44
+PWM5_IOMUX_INDEX ?= 45
 
 # LCD 引脚配置（可通过命令行覆盖）
 DISPLAY_RST_PIN ?= HAL_GPIO_PIN_P4_1
@@ -654,6 +656,10 @@ endif
 # PWM IOMUX 相关宏定义
 CPPFLAGS += -DPWM2_IOMUX_INDEX=$(PWM2_IOMUX_INDEX)
 CPPFLAGS += -DPWM3_IOMUX_INDEX=$(PWM3_IOMUX_INDEX)
+ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2))
+CPPFLAGS += -DPWM4_IOMUX_INDEX=$(PWM4_IOMUX_INDEX)
+CPPFLAGS += -DPWM5_IOMUX_INDEX=$(PWM5_IOMUX_INDEX)
+endif
 
 # LITTLEFS 相关宏定义
 CPPFLAGS += -DLITTLEFS_SECTION_SIZE=$(LITTLEFS_SECTION_SIZE)
@@ -829,13 +835,15 @@ DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
 
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
+ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1))
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
+else ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2))
+DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_htr3316/*.c)
 else
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c) 
+DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c)
 endif
 
-# 电机驱动源码
+# 电机驱动源码C
 DRIVERS_MOTOR_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/motor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/motor/chip/motor_pwm/*.c)
@@ -1087,6 +1095,13 @@ EXTRA_OBJS := $(patsubst $(PROJECT_ROOT)/%.c,$(O)/extra/%.o,$(filter %.c,$(EXTRA
 
 .PHONY: all extra sdk sdk_only clean allclean help print-vars firmware bootloader
 
+# PWM V2 硬件版本特定参数（仅在 V3_2710IMC_HARDWARE_V2 时传递）
+PWM_V2_PARAMS :=
+ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2))
+PWM_V2_PARAMS += PWM4_IOMUX_INDEX=$(PWM4_IOMUX_INDEX)
+PWM_V2_PARAMS += PWM5_IOMUX_INDEX=$(PWM5_IOMUX_INDEX)
+endif
+
 all: extra sdk
 
 sdk: $(EXTRA_LIB) | $(BIN_DIR)
@@ -1101,6 +1116,7 @@ sdk: $(EXTRA_LIB) | $(BIN_DIR)
 		FACTORY_DATA_SECTION_SIZE=$(FACTORY_DATA_SECTION_SIZE) \
 		PWM2_IOMUX_INDEX=$(PWM2_IOMUX_INDEX) \
 		PWM3_IOMUX_INDEX=$(PWM3_IOMUX_INDEX) \
+		$(PWM_V2_PARAMS) \
 		RTC_CALENDAR=$(RTC_CALENDAR) \
 		PMU_CLK_USE_EXT_CRYSTAL=$(PMU_CLK_USE_EXT_CRYSTAL) \
 		CALIB_SLOW_TIMER=$(CALIB_SLOW_TIMER) \
