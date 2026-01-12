@@ -7,7 +7,7 @@
 #include "bsp_config.h"
 #include "bsp_i2c.h"
 #include "bsp_led_internal.h"
-#include <string.h>
+
 /*
 * DEFINES
 *****************************************************************************************
