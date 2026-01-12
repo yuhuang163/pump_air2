@@ -104,6 +104,7 @@ typedef enum {
     SUCTION_LEVEL_37KPA,
     SUCTION_LEVEL_38KPA,
     SUCTION_LEVEL_39KPA,
+    SUCTION_LEVEL_40KPA,
     SUCTION_LEVEL_MAX
 } suction_level_e;
 

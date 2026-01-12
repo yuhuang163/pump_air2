@@ -22,7 +22,7 @@ int hal_pwm_update_duty_only(enum HAL_PWM_ID_T id, uint8_t duty, uint32_t freq);
 #define IS_SUPPORT_PUMP_RUN_TIME_TEST          (1)
 #define IS_SUPPORT_PUMP_DEBUG_LOG              (0)
 
-#define IS_SUPPORT_PUMP_PWM_IDLE_HIGH          (0)
+#define IS_SUPPORT_PUMP_PWM_IDLE_HIGH          (1)
 #define IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE     (1)
 #if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
 #define PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY      (90) /// 初始占空比
