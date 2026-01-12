@@ -56,11 +56,10 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
     uint32_t ms_till_next = 0;
     uint16_t log_count = 0;
     MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id, &msg, OS_WAIT_FOREVER);
-    LOG_UI("==>lvgl scheduler start:%p", ui_ctx->priv.lv_timer);
+    LOG_UI("==>lvgl scheduler enter");
     while(1) {             
         if (thiz->priv.lv_timer == NULL ||
             lv_timer_get_paused(thiz->priv.lv_timer) == true) {
-            LOG_UI("==>lv_timer is NULL/paused:%p", thiz->priv.lv_timer);
             break;
         }
 
@@ -85,7 +84,7 @@ static void change_images_cb(lv_timer_t *t)
 {    
     EXCEPTION_CHECK_VOID(ui_ctx);
     if (ui_ctx->priv.lv_timer == NULL || ui_ctx->priv.lv_timer != t) {
-        LOG_UI("==>lv_timer is NULL/changed:%p/%p", ui_ctx->priv.lv_timer, t);
+        LOG_UI("==>lv_timer is %s:%p", ui_ctx->priv.lv_timer == NULL ? "NULL" : "changed", t);
         return;
     }
     
@@ -174,6 +173,7 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     LOG_UI("==> ui deinit tag: %s", thiz->priv.play_info.tag);
+    MSG_QUEUE_RESET(thiz->priv.ui_hdr_thd.msg_id);
     thiz->priv.is_playing_ui_animation = false;
     if (thiz->priv.lv_timer != NULL && lv_timer_get_paused(thiz->priv.lv_timer) == false) {
         lv_timer_t *timer_to_delete = thiz->priv.lv_timer;
