@@ -6,11 +6,12 @@
 #include "algorithm_manager.h"  // IWYU pragma: keep
 #include "root_algo_core.h" // IWYU pragma: keep
 #include "root_algo_acq_proc.h" // IWYU pragma: keep
-
+#include "algo_port.h"
 /*
 * DEFINES
 *****************************************************************************************
 */
+#define ALGOLIB_PORT_SUPPORT 1
 #define LUX_LEVEL_BUFFER_SIZE 10  /// lux_level历史数据缓冲区大小
 
 /*
@@ -38,6 +39,32 @@ static void on_sensor_data_algo_cb(void *user_data, uint8_t *data, int data_len)
     if (ctx->priv.is_sampling) {
         algo_sampling_data_cb(ctx, data, data_len);
     }
+#if ALGOLIB_PORT_SUPPORT
+    algo_port_pressure_data_t pressure_data = {0};
+    sensor_wrapper_data_t *sensor_data = (sensor_wrapper_data_t *)data;
+    for (int i = 0; i < AIR_PRESSURE_NUM; i++) {
+        pressure_data.pressure_union.pressure[i] = sensor_data->air_pressure_data[i].pressure;
+    }
+    algo_port_set_data_to_ring_buffer(
+        ALGO_PORT_DATA_TYPE_PRESSURE,
+        sizeof(pressure_data.pressure_union.pressure_data),
+        (uint8_t *)&pressure_data.pressure_union.pressure_data);
+    algo_port_msg_type_queue_t msg = {
+        .type = ALGO_PORT_DATA_TYPE_PRESSURE,
+        .data = NULL,
+        .size = 0,
+    };
+    LOG_ALGO("on_sensor_data_algo_cb: pressure_data: %f, %f", 
+              pressure_data.pressure_union.pressure[0], pressure_data.pressure_union.pressure[1]);
+    algo_port_run_trigger(&msg);
+#endif
+}
+
+static int on_algo_pressure_result_cb(void *user_data, algo_port_result_t *result)
+{
+    LOG_ALGO("on_algo_pressure_result_cb: timestamp: %d, wear_detection_result: %d, %d", 
+              result->timestamp, result->wear_detection_result[0], result->wear_detection_result[1]);
+    return 0;
 }
 
 static void algo_light_handle(algo_manager_context_t *ctx, algo_light_sensor_data_input_t *input, algo_light_data_output_t *output)
@@ -145,6 +172,14 @@ static void  hdr_broadcast_sys_boot_completed(hdr_post_args_t *args)
     #endif
     ctx->priv.algo_inited = 1;
     LOG_ALGO("algo_inited ok, get_version: %d", ctx->get_algo_version());
+
+#if ALGOLIB_PORT_SUPPORT
+    algo_port_run_trigger_t run_trigger = {
+        .type = ALGO_PORT_DATA_TYPE_PRESSURE,
+        .run_trigger = 1,
+    };
+    algo_port_start(&run_trigger);
+#endif
 }
 
 static int on_algo_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data)
@@ -176,6 +211,9 @@ static int on_algo_receiver_route(broadcast_mask_id_t id, void *context, int arg
 
 static int on_post_algo_init_route(algo_manager_context_t *ctx)
 {
+#if ALGOLIB_PORT_SUPPORT
+    algo_port_init((algo_port_result_cb)on_algo_pressure_result_cb, ctx);
+#endif
     return 0;
 }
 
