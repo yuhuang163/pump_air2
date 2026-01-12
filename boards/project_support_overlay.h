@@ -76,7 +76,7 @@ extern "C" {
 #define IS_SUPPORT_LVGL                                  (0)
 #endif
 
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
 #if IS_SUPPORT_DEVICE_BATTERY
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (1)

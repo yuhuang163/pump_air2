@@ -22,7 +22,7 @@ extern "C" {
     FILTER_UI|FILTER_WM \
 )
 
-#define LOG_FILTER    LOG_FILTER_ALL // LOG_FILTER_LVGL
+#define LOG_FILTER   LOG_FILTER_ALL
 
 #define BSP_LOG_HEX_SUPPORT                             (1)  //底层串口交互日志开关，量产前关闭 
 #define BSP_LOG_SUPPORT                                 (1)

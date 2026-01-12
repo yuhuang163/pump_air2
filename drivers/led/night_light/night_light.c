@@ -30,7 +30,7 @@ typedef struct {
 */
 static led_status_t led_status[NIGHT_LIGHT_SIZE];
 
-#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
 static const night_light_cfg_t night_light_cfg[NIGHT_LIGHT_SIZE] = {
     {NIGHT_LIGHT_PIN, HAL_PWM_ID_2,  hal_iomux_set_pwm2, 1000},
 };
@@ -38,7 +38,7 @@ uint8_t night_light_pwm_duty[LED_LEVEL_MAX + 1] = {0,  10, 20, 30, 40, 50,
     60, 70, 80, 90, 100};
 #endif
 
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
 static HWTIMER_ID night_light_hwt = NULL;
 static uint8_t night_light_time_is_running = 0;
 static uint8_t night_light_duty = 0;
@@ -54,7 +54,7 @@ static uint8_t night_light_count = 0;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
 static void night_light_level_set(uint8_t index, led_luminous_t luminous)
 {
     if (luminous.level == 0) {
@@ -145,11 +145,11 @@ static void led_timer_deinit(void)
 */
 void bsp_night_light_init(void)
 {
-#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     for (uint8_t i = 0; i < LENGTH_OF_ARRAY(night_light_cfg); i++) {
         night_light_cfg[i].iomux_set();
     }
-#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
     night_light_timer_init();
 #else
     #error "Unsupported hardware version"
@@ -165,7 +165,7 @@ void bsp_night_light_resume(void)
 
 void bsp_night_light_suspend(void)
 {
-#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     #if IS_SUPPORT_NIGHT_LIGHT_SUSPEND
         struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
             (enum HAL_IOMUX_PIN_T)NIGHT_LIGHT_PIN,  
@@ -217,7 +217,7 @@ int bsp_night_light_pwm_duty_set(void *args)
         LOGE("index is out of range: %d", msg->led_index);
         return BSP_ERROR;
     }
-    #if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+    #if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     if (msg->pwm_duty == 0) {
         hal_pwm_disable(night_light_cfg[msg->led_index].id);
         return BSP_OK;

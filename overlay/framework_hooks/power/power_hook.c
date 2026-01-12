@@ -71,7 +71,7 @@ static void system_power_event_cb(hdr_post_args_t *args)
                     pm->system_power_control(true);
                     SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
                 } else {
-                    #if V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION
+                    #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
                         pm->priv.is_power_on_timeout_detect = 0;   
                         pm->system_power_control(true);
                         SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
