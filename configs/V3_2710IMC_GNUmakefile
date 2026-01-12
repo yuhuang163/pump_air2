@@ -94,14 +94,15 @@ CFG_LVGL_ENABLE := 1
 CFG_LVGL_SNAPSHOT_ENABLE := 1
 
 # 硬件版本
-V3_2710IMP_HARDWARE_VERSION ?= 0
-V3_2710IMC_HARDWARE_VERSION ?= 1
-V3_HARDWARE_VERSION ?= $(V3_2710IMC_HARDWARE_VERSION)
+V3_2710IMP_HARDWARE_V1 ?= 0
+V3_2710IMC_HARDWARE_V1 ?= 1
+V3_2710IMC_HARDWARE_V2 ?= 2
+V3_HARDWARE_VERSION ?= $(V3_2710IMC_HARDWARE_V1)
 
 # UI版本
 V3_UI_V1 ?= 1
 V3_UI_V2 ?= 2
-V3_UI_VERSION ?= $(V3_UI_V1)
+V3_UI_VERSION ?= $(V3_UI_V2)
 
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
@@ -263,7 +264,7 @@ DRIVERS_BATTERY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/battery \
 	-I$(PROJECT_ROOT)/drivers/battery/charge
 
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_BATTERY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/battery/charge_pd
 endif
 
@@ -306,7 +307,7 @@ DRIVERS_IMU_INC_FLAGS := \
 DRIVERS_KEY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/key \
 	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
 endif
 
@@ -314,7 +315,7 @@ endif
 DRIVERS_LCD_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/lcd 
 	
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi
 else
 DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart
@@ -360,7 +361,7 @@ DRIVERS_INC_FLAGS := \
 	$(DRIVERS_UART_INC_FLAGS) \
 	$(DRIVERS_WIFI_INC_FLAGS)
 
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_INC_FLAGS += $(DRIVERS_LIGHT_SENSOR_INC_FLAGS)
 endif	
 
@@ -415,7 +416,7 @@ SENSOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 SENSOR_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/sensor/light_sensor
 endif	
 
@@ -616,8 +617,9 @@ CONFIG_LV_THEME_DEFAULT_DARK ?= 1
 CPPFLAGS += -DCONFIG_LV_THEME_DEFAULT_DARK=$(CONFIG_LV_THEME_DEFAULT_DARK)
 
 # 硬件版本
-CPPFLAGS += -DV3_2710IMC_HARDWARE_VERSION=$(V3_2710IMC_HARDWARE_VERSION)
-CPPFLAGS += -DV3_2710IMP_HARDWARE_VERSION=$(V3_2710IMP_HARDWARE_VERSION)
+CPPFLAGS += -DV3_2710IMC_HARDWARE_V1=$(V3_2710IMC_HARDWARE_V1)
+CPPFLAGS += -DV3_2710IMC_HARDWARE_V2=$(V3_2710IMC_HARDWARE_V2)
+CPPFLAGS += -DV3_2710IMP_HARDWARE_V1=$(V3_2710IMP_HARDWARE_V1)
 CPPFLAGS += -DV3_HARDWARE_VERSION=$(V3_HARDWARE_VERSION)
 
 # 调试日志相关宏定义
@@ -761,7 +763,7 @@ DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_BATTERY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/battery/charge_pd/*.c)
 endif
 
@@ -808,7 +810,7 @@ DRIVERS_IMU_SRCS := \
 DRIVERS_KEY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c)
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/knob/*.c)
 endif
 
@@ -816,7 +818,7 @@ endif
 DRIVERS_LCD_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) 
 	
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi/*.c)
 else
 DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c)
@@ -827,7 +829,7 @@ DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
 
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
 else
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c) 
@@ -868,7 +870,7 @@ DRIVERS_SRCS := \
 	$(DRIVERS_UART_SRCS) \
 	$(DRIVERS_WIFI_SRCS)
 
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_SRCS += $(DRIVERS_LIGHT_SENSOR_SRCS)
 endif	
 
@@ -919,7 +921,7 @@ SENSOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c)
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_VERSION))	
+ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 SENSOR_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/sensor/light_sensor/*.c)
 endif	
 

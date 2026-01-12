@@ -507,7 +507,7 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
         case OP_CODE_BAT_IS_READY:
             return bsp_charge_is_ready(args);
         case OP_CODE_BAT_PD_IS_READY:
-        #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+        #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
             return bsp_charge_pd_is_ready(args);
         #else
             return 0;

@@ -29,7 +29,7 @@ static uint8_t motor_power_status = 0;
 */
 static void motor_power_gpio_init(void)
 {
-#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
         (enum HAL_IOMUX_PIN_T)PUMP_POWER_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
@@ -43,7 +43,7 @@ static void motor_power_gpio_init(void)
 
 static void motor_power_control(uint8_t status)
 {
-#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     GPIO_PIN_CTRL(PUMP_POWER_PIN, status > 0 ? 1 : 0);
 #endif
 }

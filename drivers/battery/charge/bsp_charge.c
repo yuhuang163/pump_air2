@@ -154,7 +154,7 @@ static void charge_power_gpio_init(void)
     };
     hal_iomux_init(&pinmux, 1);
     hal_gpio_pin_set_dir(CHARGE_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
     pinmux.pin = (enum HAL_IOMUX_PIN_T)CHARGE_SLEEP_PIN;
     hal_iomux_init(&pinmux, 1);
     hal_gpio_pin_set_dir(CHARGE_SLEEP_PIN, HAL_GPIO_DIR_OUT, 1);
@@ -169,7 +169,7 @@ static void charge_power_control(bool enable)
 
 static void charge_sleep_control(bool enable)
 {
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_VERSION)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
     GPIO_PIN_CTRL(CHARGE_SLEEP_PIN, enable ? 0 : 1);
     LOG_PBUS("charge_sleep_control: %d", enable);
 #endif

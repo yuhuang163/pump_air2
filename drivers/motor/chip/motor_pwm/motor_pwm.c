@@ -514,7 +514,7 @@ int bsp_motor_init(void)
     }
     bsp_motor_pwm_gradual_gpio_irq_init(1);
     // 直接运行PWM测试函数
-    bsp_motor_pwm_test_all_step_counts();
+    // bsp_motor_pwm_test_all_step_counts();
 #endif
 
 #if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
