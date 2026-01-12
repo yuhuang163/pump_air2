@@ -17,6 +17,8 @@
 #define U_HEAP_SIZE_PSRAM    (120 * 1024)
 #endif
 
+#define B2KB(x)     (x / 1024)
+
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -208,22 +210,26 @@ uint32_t u_heap_free_size_psram_get(int is_psram_nc)
 
 void u_heap_info_output(void)
 {
+#if PSRAM_ENABLE
     multi_heap_info_t info;
     heap_get_info(u_heap, &info);
-    PRINT_LOG("total:bytes=%ld, blocks=%ld; alloc:bytes=%ld, blocks=%ld; free:bytes=%ld, blocks=%ld, largest=%ld, mini=%ld\r\n", 
-        info.total_allocated_bytes, info.allocated_blocks, info.total_bytes, info.total_blocks,
-        info.total_free_bytes, info.free_blocks, info.largest_free_block, info.minimum_free_bytes);
-#if PSRAM_ENABLE
-    multi_heap_info_t info_psram_nc;
-    heap_get_info(u_heap_psram_nc, &info_psram_nc);
-    PRINT_LOG("total:bytes=%ld, blocks=%ld; alloc:bytes=%ld, blocks=%ld; free:bytes=%ld, blocks=%ld, largest=%ld, mini=%ld\r\n", 
-        info_psram_nc.total_allocated_bytes, info_psram_nc.allocated_blocks, info_psram_nc.total_bytes, info_psram_nc.total_blocks,
-        info_psram_nc.total_free_bytes, info_psram_nc.free_blocks, info_psram_nc.largest_free_block, info_psram_nc.minimum_free_bytes);
-    multi_heap_info_t info_psram;
-    heap_get_info(u_heap_psram, &info_psram);
-    PRINT_LOG("total:bytes=%ld, blocks=%ld; alloc:bytes=%ld, blocks=%ld; free:bytes=%ld, blocks=%ld, largest=%ld, mini=%ld\r\n", 
-        info_psram.total_allocated_bytes, info_psram.allocated_blocks, info_psram.total_bytes, info_psram.total_blocks,
-        info_psram.total_free_bytes, info_psram.free_blocks, info_psram.largest_free_block, info_psram.minimum_free_bytes);
+    multi_heap_info_t nc_info;
+    heap_get_info(u_heap_psram_nc, &nc_info);
+    multi_heap_info_t psram_info;
+    heap_get_info(u_heap_psram, &psram_info);
+    PRINT_LOG("sram total=(%ld/%ld)KB, free=(%ld/%ld)KB; psram total=(%ld/%ld)/(%ld/%ld)KB, free=(%ld/%ld)/(%ld/%ld)KB\r\n", 
+        B2KB(info.total_bytes), B2KB(info.total_allocated_bytes), 
+        B2KB(info.total_free_bytes), B2KB(info.largest_free_block),
+        B2KB(nc_info.total_bytes), B2KB(nc_info.total_allocated_bytes),
+        B2KB(psram_info.total_bytes), B2KB(psram_info.total_allocated_bytes),
+        B2KB(nc_info.total_free_bytes), B2KB(nc_info.largest_free_block),
+        B2KB(psram_info.total_free_bytes), B2KB(psram_info.largest_free_block)
+    );
+#else
+    multi_heap_info_t info;
+    heap_get_info(u_heap, &info);
+    PRINT_LOG("sram total=%ldKB, free=%ldKB, free largest=%ldKB\r\n", 
+        B2KB(info.total_allocated_bytes), B2KB(info.total_free_bytes), B2KB(info.largest_free_block));
 #endif
 }
 

@@ -111,6 +111,7 @@ static int charge_read_nbyte(i2c_master_data_t *data)
     return BSP_ERROR;
 }
 
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
 static void charge_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
     uint8_t msg = 0;
@@ -143,6 +144,7 @@ static void charge_irq_init(void)
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir(CHARGE_INT_PIN,  HAL_GPIO_DIR_IN,  1);
 }
+#endif
 
 static void charge_power_gpio_init(void)
 {
@@ -377,7 +379,9 @@ static void charge_chip_init(void)
         LOGE("charge vbat config failed, ret: %d", ret);
         return;
     }
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     charge_irq_control(true);
+#endif
     LOG_PBUS("charge chip init success");
 }
 
@@ -496,11 +500,13 @@ int get_charge_full_debounce(void)
 int bsp_charge_init(void)
 {
     int ret = BSP_OK;
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     charge_irq_init();
+#endif
     charge_power_gpio_init();
     bsp_i2c_init(CHARGE_I2C_ID);
 #if IS_SUPPORT_PD_CHARGE
-    // bsp_charge_pd_init();
+    bsp_charge_pd_init();
 #endif
     s_charge_is_ready = true;
     CREATE_MSG_TYPE_QUEUE(&s_charge_device_thd.msg_id, 1, 1);
