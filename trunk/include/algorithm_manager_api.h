@@ -32,6 +32,7 @@ typedef struct algo_manager_context {
         int algo_inited;
         uint8_t is_sampling;          /// 是否正在采集
         algo_light_data_output_t light_algo_data;
+        algo_wear_detection_data_output_t wear_detection_algo_data;
     } priv;
 
 /// public
