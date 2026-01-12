@@ -37,7 +37,7 @@ typedef thread_context_t aglo_thread_context_t;
 
 /// log define
 #ifndef AIGO_PRINT_LOG
-#define AIGO_PRINT_LOG(...)  PRINT_LOG(...)
+#define AIGO_PRINT_LOG(...)  platform_printf(__VA_ARGS__)
 #endif
 
 #define IS_AIGO_SUPPORT_QUEUE           1
