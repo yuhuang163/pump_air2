@@ -410,7 +410,7 @@ WINDOWS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/windows/home \
 	-I$(PROJECT_ROOT)/overlay/windows/logo \
 	-I$(PROJECT_ROOT)/overlay/windows/ota \
-	-I$(PROJECT_ROOT)/overlay/windows/pop_windows \
+	-I$(PROJECT_ROOT)/overlay/windows/popup_windows \
 	-I$(PROJECT_ROOT)/overlay/windows/setting \
 	-I$(PROJECT_ROOT)/overlay/windows/product_test_window \
 	-I$(PROJECT_ROOT)/overlay/windows/factory_reset \
@@ -840,7 +840,7 @@ WINDOWS_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/home/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/logo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/ota/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/pop_windows/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/popup_windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/product_test_window/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/factory_reset/*.c) \
