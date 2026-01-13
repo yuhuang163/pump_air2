@@ -43,6 +43,7 @@ static void wear_detection_process_data(void)
 {
     if (s_task_flag & (1 << WEAR_DETECTION_TASK)) {
         /// TODO: 实现佩戴检测算法
+        /// TODO: 修改算法结果s_result
     }
 }
 
