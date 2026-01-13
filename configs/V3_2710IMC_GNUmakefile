@@ -104,7 +104,7 @@ V3_HARDWARE_VERSION ?= $(V3_2710IMC_HARDWARE_V1)
 # UI版本
 V3_UI_V1 ?= 1
 V3_UI_V2 ?= 2
-V3_UI_VERSION ?= $(V3_UI_V2)
+V3_UI_VERSION ?= $(V3_UI_V1)
 
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
@@ -481,7 +481,7 @@ WINDOWS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/windows/home \
 	-I$(PROJECT_ROOT)/overlay/windows/logo \
 	-I$(PROJECT_ROOT)/overlay/windows/ota \
-	-I$(PROJECT_ROOT)/overlay/windows/pop_windows \
+	-I$(PROJECT_ROOT)/overlay/windows/popup_windows \
 	-I$(PROJECT_ROOT)/overlay/windows/setting \
 	-I$(PROJECT_ROOT)/overlay/windows/product_test_window \
 	-I$(PROJECT_ROOT)/overlay/windows/factory_reset \
@@ -991,7 +991,7 @@ WINDOWS_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/home/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/logo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/ota/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/pop_windows/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/popup_windows/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/product_test_window/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/factory_reset/*.c) \
