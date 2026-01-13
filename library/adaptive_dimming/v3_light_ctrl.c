@@ -4,7 +4,8 @@
 */
 #include "v3_light_ctrl.h"
 #include "algo_port.h"
-
+#include "algorithm_manager.h"
+#include "root_common_api.h"
 /*
 * DEFINES
 *****************************************************************************************
@@ -32,11 +33,8 @@ static unsigned char lux_level_buffer_index = 0;  /// 当前写入位置（循�
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-
 void algo_light_handle(unsigned int lux_level_input, algo_port_light_result_t *output)
 {
-
-    
     unsigned int lux_level = lux_level_input;
     unsigned int filtered_avg = 0;
     
@@ -109,3 +107,12 @@ void algo_light_handle(unsigned int lux_level_input, algo_port_light_result_t *o
     //     lux_level, filtered_avg, lux_level_buffer_count, output->pwm_duty, output->setting_level);
 }
 
+void light_sensor_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_len)
+{
+    EXCEPTION_CHECK_VOID(ctx);
+    sensor_wrapper_data_t *sensor_data = (sensor_wrapper_data_t *)data;
+    algo_light_sensor_data_input_t data_input = {
+        .timestamp = get_timestamp_ms(0),   //todo
+        .lux_level = sensor_data->light_sensor_data.lux_level,
+    };
+}
