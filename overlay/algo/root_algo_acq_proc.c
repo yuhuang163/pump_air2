@@ -18,7 +18,7 @@
 */
 static uint16_t sampling_count = 0; /// 算法采集数据次数
 static algo_sampling_data_t *algo_sampling_data = NULL;
-static motor_manager_context_t *motor_ctx = NULL;
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -36,19 +36,17 @@ static motor_manager_context_t *motor_ctx = NULL;
 void algo_sampling_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_len)
 {
     int ret = 0;
-    EXCEPTION_CHECK_VOID(ctx && data && algo_sampling_data);
+    EXCEPTION_CHECK_VOID(ctx && data && ctx->priv.motor);
     sensor_wrapper_data_t *sensor_data = (sensor_wrapper_data_t *)data;
     algo_sampling_data_t *sampling_data = &algo_sampling_data[sampling_count];
-    motor_policy_info_t *info = motor_ctx->priv.runtime.info;
+    motor_policy_info_t *info = ctx->priv.motor->priv.runtime.info;
     sampling_data->timestamp = get_timestamp_ms(0);
     /// 气压数据
+#if IS_SUPPORT_DEVICE_AIR_PRESSURE
     for (int i = 0; i < AIR_PRESSURE_NUM; i++) {
-        #if IS_SUPPORT_DEVICE_AIR_PRESSURE
-            sampling_data->air_pressure[i] = sensor_data->air_pressure_data[i].pressure;
-        #else
-            sampling_data->air_pressure[i] = 0;
-        #endif
+        sampling_data->air_pressure[i] = sensor_data->air_pressure_data[i].pressure;
     }
+#endif
     /// 泵奶数据
     for (int i = 0; i < BREAST_PUMP_NUM; i++) {
         sampling_data->pump_state[i].state = info[i].state.status;
@@ -90,8 +88,6 @@ void algo_sampling_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_
 void algo_sampling_start(algo_manager_context_t *ctx)
 {
     EXCEPTION_CHECK_VOID(ctx);
-    motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
-    EXCEPTION_CHECK_VOID(motor_ctx);
     sampling_count = 0;
     ctx->priv.is_sampling = 1;
     algo_sampling_data = u_malloz(sizeof(algo_sampling_data_t) * ALGO_SAMPLING_DATA_POINT_NUM);
@@ -117,9 +113,8 @@ bool algo_change_sampling_interval(algo_manager_context_t *ctx, uint16_t interva
 {
     EXCEPTION_CHECK_BOOL(ctx);
     algo_sampling_stop(ctx);
-    sensor_manager_context_t *sensor_ctx = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
-    EXCEPTION_CHECK_BOOL(sensor_ctx);
-    sensor_ctx->priv.air_pressure.sampling_interval = interval - 5; //sensor线程为10ms触发，重设间隔，减去固定值，过滤线程执行时间抖动
+    EXCEPTION_CHECK_BOOL(ctx->priv.sensor);
+    ctx->priv.sensor->priv.air_pressure.sampling_interval = interval - 5; //sensor线程为10ms触发，重设间隔，减去固定值，过滤线程执行时间抖动
     algo_sampling_start(ctx);
     return true;
 }

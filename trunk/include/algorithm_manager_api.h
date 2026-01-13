@@ -25,6 +25,8 @@ typedef enum{
 } algo_breast_pump_data_id_e;
 
 /// 算法接口.
+struct motor_manager_context;
+struct sensor_manager_context;
 typedef struct algo_manager_context {
 /// private
     struct __algo_private {
@@ -33,6 +35,8 @@ typedef struct algo_manager_context {
         uint8_t is_sampling;          /// 是否正在采集
         algo_light_data_output_t light_algo_data;
         algo_wear_detection_data_output_t wear_detection_algo_data;
+        struct motor_manager_context *motor;
+        struct sensor_manager_context *sensor;
     } priv;
 
 /// public

@@ -343,7 +343,9 @@ EXTERNAL_INC_FLAGS := \
 # 算法模块头文件
 ALGORITHM_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/algo \
-	-I$(PROJECT_ROOT)/overlay/algo_lib \
+	-I$(PROJECT_ROOT)/library/root_algo/include \
+	-I$(PROJECT_ROOT)/library/root_algo/wear_detecttion \
+	-I$(PROJECT_ROOT)/library/root_algo \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/algo \
 	-I$(PROJECT_ROOT)/trunk/root_source/algorithm
 
@@ -774,7 +776,9 @@ EXTERNAL_SRCS := \
 # 算法模块源码
 ALGORITHM_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/algo/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/algo_lib/*.c) \
+	$(wildcard $(PROJECT_ROOT)/library/root_algo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/library/root_algo/include/*.c) \
+	$(wildcard $(PROJECT_ROOT)/library/root_algo/wear_detecttion/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c)
 

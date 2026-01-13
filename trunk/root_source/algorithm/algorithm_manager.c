@@ -25,11 +25,6 @@ static algo_manager_context_t *algo_obj = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static int algo_version_get(void)
-{
-    return 0;
-}
-
 static void algo_on_receive_internal(broadcast_mask_id_t id, void *context, int args1, int args2, broadcast_priv_data_t *pdata)
 {
     algo_manager_context_t *ctx = context;
@@ -47,6 +42,8 @@ static int on_perpare_algo_init(void *self)
 static int on_post_algo_init(void *ptr)
 {
     algo_manager_context_t *ctx = ptr;
+    ctx->priv.motor = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    ctx->priv.sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     broadcast_obj_t *bdc = &ctx->priv.m_bcd;
     bdc->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
     bdc->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
@@ -75,7 +72,6 @@ static uint16_t algo_get_output_light_data(algo_light_data_output_t *output)
 void *register_module_for_algo_fusion_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, algo_manager_context_t);
-    ptr->get_algo_version = algo_version_get;
     ptr->get_algo_output_light_data = algo_get_output_light_data;
     ptr->priv.algo_inited = 0;
     algo_obj = ptr;
