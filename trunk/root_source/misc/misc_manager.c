@@ -210,12 +210,16 @@ static void misc_work_polling_thread(const void *args)
         /// 光适应状态轮询
         if (ctx->get_light_adapt_state()) {
             algo_light_data_output_t light_data = {0};
+            static uint8_t last_pwm_duty = 0;
             ctx->priv.algo_ctx->get_algo_output_light_data(&light_data);
-            night_light_pwm_duty_set_msg_t msg = {
-                .led_index = NIGHT_LIGHT_LED_ID_0,
-                .pwm_duty = light_data.pwm_duty,
-            };
-            DEVICE_IOCTL_ARGS(ctx->priv.led_dev, OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET, (void *)&msg);
+            if (light_data.pwm_duty != last_pwm_duty) {
+                last_pwm_duty = light_data.pwm_duty;
+                night_light_pwm_duty_set_msg_t msg = {
+                    .led_index = NIGHT_LIGHT_LED_ID_0,
+                    .pwm_duty = light_data.pwm_duty,
+                };
+                DEVICE_IOCTL_ARGS(ctx->priv.led_dev, OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET, (void *)&msg);
+            } 
         }
     }
 }
