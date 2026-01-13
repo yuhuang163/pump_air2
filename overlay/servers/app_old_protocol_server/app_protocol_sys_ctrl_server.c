@@ -27,8 +27,10 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
 {
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     EXCEPTION_CHECK_VOID(st);
     EXCEPTION_CHECK_VOID(pbus);
+    EXCEPTION_CHECK_VOID(misc);
 
     struct rt_device_node *led_dev = pbus->find_device(ID_DEVICE_LED);
     EXCEPTION_CHECK_VOID(led_dev);
@@ -37,7 +39,14 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
     st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
 
     // Update night light info
-    night_light_info.onoff = onoff;
+    if (onoff == 2) {
+        night_light_info.adaptive = 1;
+        misc->set_light_adapt_state(1); //开启自适应
+    } else {
+        night_light_info.adaptive = 0;
+        misc->set_light_adapt_state(0); //关闭自适应
+    }
+    night_light_info.onoff = (onoff == 2) ? 0 : (onoff ? 1 : 0);
     night_light_info.level = level;
 
     st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
@@ -49,7 +58,7 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
         },
     };
     led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
-    LOG_SRV(" Night light set: onoff=%d, level=%d\n", night_light_info.onoff, night_light_info.level);
+    LOG_SRV(" Night light set: onoff=%d, level=%d, adaptive=%d\n", night_light_info.onoff, night_light_info.level, night_light_info.adaptive);
 }
 
 /*
@@ -218,7 +227,7 @@ void app_old_comm_handle_ctrl_dev_sys_status_req(uint8_t cal, uint8_t *cab)
     // Byte 3-4: Massage duration in seconds (Little Endian, range: 30s - 600s)
     sys_status.motor_Duration = (uint16_t)(cab[3] | (cab[4] << 8));
 
-    // Byte 5: Night light switch (0-off, 1-on)
+    // Byte 5: Night light switch (0-off, 1-on，2-auto)
     sys_status.night_light_switch = cab[5];
 
     // Byte 6: Night light brightness level (1-10)
