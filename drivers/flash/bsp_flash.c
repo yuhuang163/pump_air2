@@ -4,6 +4,7 @@
 */
 #include "bsp_common.h"
 #include "norflash_api.h"
+#include "app_flash_api.h"
 #include "hal_norflash.h"
 
 /*
@@ -37,28 +38,25 @@ static void flash_callback(void* param)
 
 static int flash_section_init(void)
 {
-    enum NORFLASH_API_RET_T result;
     enum HAL_FLASH_ID_T flash_id;
-    uint32_t sector_size = 0;
-    uint32_t block_size = 0;
-    uint32_t page_size = 0;
 
+    /// 注册Factory Data模块
     flash_id = norflash_api_get_dev_id_by_addr(FACTORY_DATA_START_ADDR);
-    hal_norflash_get_size(flash_id, NULL, &block_size, &sector_size, &page_size);
-    result = norflash_api_register(NORFLASH_API_MODULE_ID_FACTORY_DATA,
-                    flash_id, (uint32_t)FACTORY_DATA_START_ADDR, 
+    /// 使用app_flash_register_module简化注册，自动获取flash参数并使用默认缓存大小
+    app_flash_register_module(NORFLASH_API_MODULE_ID_FACTORY_DATA,
+                    flash_id, 
+                    (uint32_t)FACTORY_DATA_START_ADDR, 
                     (uint32_t)FACTORY_DATA_END_ADDR - (uint32_t)FACTORY_DATA_START_ADDR,
-                    block_size, sector_size, page_size, FACTORY_DATA_BLOCK_SIZE, 
-                    flash_callback);
+                    (uint32_t)flash_callback);
 
+    /// 注册Picture Data模块
     flash_id = norflash_api_get_dev_id_by_addr(PICTURE_DATA_INT_START_ADDR);
-    hal_norflash_get_size(flash_id, NULL, &block_size, &sector_size, &page_size);
-    result = norflash_api_register(NORFLASH_API_MODULE_ID_LUTE_PICTURE_RESOURCES,
-                    flash_id, (uint32_t)PICTURE_DATA_INT_START_ADDR, 
+    app_flash_register_module(NORFLASH_API_MODULE_ID_LUTE_PICTURE_RESOURCES,
+                    flash_id, 
+                    (uint32_t)PICTURE_DATA_INT_START_ADDR, 
                     (uint32_t)PICTURE_DATA_INT_END_ADDR - (uint32_t)PICTURE_DATA_INT_START_ADDR,
-                    block_size, sector_size, page_size, PICTURE_DATA_INT_BLOCK_SIZE, 
-                    flash_callback);
-    return result;
+                    (uint32_t)flash_callback);
+    return 0;
 }
 
 static int flash_dev_open(struct rt_device_node *dev)
