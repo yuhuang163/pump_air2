@@ -208,7 +208,7 @@ static void misc_work_polling_thread(const void *args)
         });
 
         /// 光适应状态轮询
-        if (ctx->priv.light_adapt_state) {
+        if (ctx->get_light_adapt_state()) {
             algo_light_data_output_t light_data = {0};
             ctx->priv.algo_ctx->get_algo_output_light_data(&light_data);
             night_light_pwm_duty_set_msg_t msg = {
@@ -371,12 +371,26 @@ static uint8_t local_battery_show_ui_if_need(void *wm, int is_fg)
 
 static uint8_t local_get_light_adapt_state(void)
 {
+    night_light_info_t night_light_info = {0};
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_UINT(st);
+    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+    thiz->priv.light_adapt_state = night_light_info.adaptive;
     return thiz->priv.light_adapt_state;
 }
 
 static void local_set_light_adapt_state(uint8_t state)
 {
+    if (state > 1 || state < 0) {
+        LOGE("light_adapt_state is out of range: %d", state);
+    }
     thiz->priv.light_adapt_state = state;
+    night_light_info_t night_light_info = {0};
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(st);
+    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+    night_light_info.adaptive = state;
+    st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
 }
 
 /*
