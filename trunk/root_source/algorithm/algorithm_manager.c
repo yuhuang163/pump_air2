@@ -52,16 +52,10 @@ static int on_post_algo_init(void *ptr)
     bdc->name = "algo_fusion";
     bdc->receiver_cb = algo_on_receive_internal;
     register_broadcast_receiver(bdc);
-    /// 钩子参数初始化
     if (ctx->hook && ctx->hook->on_post_init_route) {
         ctx->hook->on_post_init_route(ctx);
     }
-    return 0;
-}
 
-static uint16_t algo_get_output_light_data(algo_light_data_output_t *output)
-{
-    memcpy(output, &algo_obj->priv.light_algo_data, sizeof(algo_light_data_output_t));
     return 0;
 }
 
@@ -72,7 +66,6 @@ static uint16_t algo_get_output_light_data(algo_light_data_output_t *output)
 void *register_module_for_algo_fusion_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, algo_manager_context_t);
-    ptr->get_algo_output_light_data = algo_get_output_light_data;
     ptr->priv.algo_inited = 0;
     algo_obj = ptr;
 

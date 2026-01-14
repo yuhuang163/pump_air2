@@ -33,7 +33,6 @@ typedef struct algo_manager_context {
         broadcast_obj_t m_bcd;
         int algo_inited;
         uint8_t is_sampling;          /// 是否正在采集
-        algo_light_data_output_t light_algo_data;
         algo_wear_detection_data_output_t wear_detection_algo_data;
         struct motor_manager_context *motor;
         struct sensor_manager_context *sensor;
@@ -41,7 +40,6 @@ typedef struct algo_manager_context {
 
 /// public
     int (*get_algo_version)(void);
-    uint16_t (*get_algo_output_light_data)(algo_light_data_output_t *output);
     struct __algo_manager_hook {
         int (*on_post_init_route)(struct algo_manager_context *ctx);
         int (*on_algo_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, void *user_data);
@@ -55,6 +53,10 @@ typedef struct algo_manager_context {
         int (*add_static_calib_cmpl_cb)(void (*cb)(void));
         void (*imu_static_calib_start)(void);
         void (*imu_static_calib_stop)(void);
+    #endif
+    #if IS_SUPPORT_ADAPTIVE_DIMMING
+        void (*set_adaptive_dimming_state)(bool state); /// 开启/关闭自适应背光
+        bool (*get_adaptive_dimming_state)(void); /// 获取自适应背光状态
     #endif
     } *hook;
 

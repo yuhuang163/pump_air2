@@ -27,10 +27,10 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
 {
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
     EXCEPTION_CHECK_VOID(st);
     EXCEPTION_CHECK_VOID(pbus);
-    EXCEPTION_CHECK_VOID(misc);
+    EXCEPTION_CHECK_VOID(algo);
 
     struct rt_device_node *led_dev = pbus->find_device(ID_DEVICE_LED);
     EXCEPTION_CHECK_VOID(led_dev);
@@ -41,11 +41,14 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
     // Update night light info
     if (onoff == 2) {
         night_light_info.adaptive = 1;
-        misc->set_light_adapt_state(1); //开启自适应
     } else {
         night_light_info.adaptive = 0;
-        misc->set_light_adapt_state(0); //关闭自适应
     }
+#if IS_SUPPORT_ADAPTIVE_DIMMING
+    if (algo->hook->set_adaptive_dimming_state) {
+        algo->hook->set_adaptive_dimming_state(night_light_info.adaptive);
+    }
+#endif
     night_light_info.onoff = (onoff == 2) ? 0 : (onoff ? 1 : 0);
     night_light_info.level = level;
 

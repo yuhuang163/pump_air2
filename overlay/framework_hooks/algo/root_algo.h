@@ -37,19 +37,6 @@ typedef struct {
     motor_component_state_t pump_state[BREAST_PUMP_NUM];
 } algo_sampling_data_t;
 
-/// 算法采集数据
-typedef struct {
-    uint32_t timestamp;
-    uint16_t lux_level;          //光传感器采集的亮度等级
-} algo_light_sensor_data_input_t;
-
-/// 算法输出数据
-typedef struct {
-    uint32_t timestamp;
-    uint16_t setting_level;      //设置的亮度等级0-10
-    uint16_t pwm_duty;           //控制pwm占空比，0-100
-} algo_light_data_output_t;
-
 /// 算法输出数据
 typedef struct {
     uint32_t timestamp;

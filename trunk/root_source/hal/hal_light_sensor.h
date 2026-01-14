@@ -21,7 +21,7 @@ typedef enum {
  * @brief 描述光传感器数据
 */
 typedef struct {
-    uint32_t lux_level;
+    uint16_t lux_level;          //光传感器采集的亮度等级
 } light_sensor_data_t;
 
 #ifdef __cplusplus
