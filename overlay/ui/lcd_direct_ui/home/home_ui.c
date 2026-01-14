@@ -134,7 +134,7 @@ static void home_bg_update(ui_manager_context_t *thiz)
 static void home_icon_image_update(ui_manager_context_t *thiz, uint8_t page_index)
 {
     if (home_info->icon == NULL || !lv_obj_is_valid(home_info->root)) {
-        home_info->icon = lv_image_create(lv_screen_active());
+        home_info->icon = lv_image_create(home_info->root);
         EXCEPTION_CHECK_VOID(home_info->icon);
     }
 
@@ -240,9 +240,7 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
 void ui_display_home_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (home_info == NULL) {
-        return;
-    }
+    EXCEPTION_CHECK_VOID(home_info);
     common_ui_img_resource_deinit(thiz, &home_info->icon_info);
     LVGL_OBJ_DELETE(home_info->root);  /// 删除 root 时会自动删除所有子对象（包括 qrcode_container） 
     u_free(home_info);
