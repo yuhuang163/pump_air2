@@ -111,7 +111,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
-    proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    proc->battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     window_context_t *w_ctx = &proc->w_ctx;

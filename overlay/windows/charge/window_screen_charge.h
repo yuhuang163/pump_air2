@@ -43,7 +43,7 @@ typedef struct {
     window_context_t w_ctx;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
-    misc_manager_context_t *misc;
+    battery_manager_context_t *battery;
     key_input_context_t *key;
     peripheral_bus_context_t *pbus;
     storage_manager_context_t *st;

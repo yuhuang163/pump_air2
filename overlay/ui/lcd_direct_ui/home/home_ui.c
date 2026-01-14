@@ -257,14 +257,14 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->ble);
-    EXCEPTION_CHECK_INT(proc->misc);
+    EXCEPTION_CHECK_INT(proc->battery);
 #if IS_SUPPORT_HOME_COMP_BG
     home_bg_update(thiz);
 #endif
     uint8_t page_index = proc->page_index;
     ble_ui_update(thiz, home_info->root, proc->ble->ble_is_connected());
-    battery_icon_update(thiz, home_info->root, proc->misc->get_battery_percent(),
-        proc->misc->is_charge_plug_in());
+    battery_icon_update(thiz, home_info->root, proc->battery->get_battery_percent(),
+        proc->battery->is_charge_plug_in());
     home_qrcode_update(thiz, page_index);
     home_icon_image_update(thiz, page_index);
     home_text_update(thiz, page_index);

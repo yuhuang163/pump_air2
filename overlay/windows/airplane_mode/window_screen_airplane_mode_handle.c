@@ -168,7 +168,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->current_ui_type = AIRPLANE_MODE_UI_TYPE_NONE;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-    proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    proc->battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);

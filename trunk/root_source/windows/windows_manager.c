@@ -139,13 +139,15 @@ static void remove_window_history(uint8_t window_id)
 static int to_valid_window_id(window_manager_context_t *wm, uint8_t window_id)
 {
     if (!(window_id > ID_WINDOW_BEGIN && window_id < ID_WINDOW_MAX)) {
-        misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
         LOG_WM("%s(window_id:%d)[%d~%d]", to_window_name(window_id), window_id, ID_WINDOW_BEGIN, ID_WINDOW_MAX);
         do {
-            if (misc->is_charge_plug_in()) {
+#if IS_SUPPORT_MODULE_BATTERY
+            battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+            if (battery && battery->is_charge_plug_in() > 0) {
                 window_id = ID_WINDOW_CHARGE;
                 break;
             }
+#endif
             window_id = wm->is_window_guidance_deployed() ? ID_WINDOW_PUMP : ID_WINDOW_HOME;
         } while (0);
     }

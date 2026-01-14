@@ -48,6 +48,7 @@ extern "C" {
 #define IS_SUPPORT_WEEKLY_STAT                           (0)
 #define IS_SUPPORT_MODULE_PROTOCOL                       (1)
 #define IS_SUPPORT_MODULE_SERVERS                        (1)
+#define IS_SUPPORT_MODULE_BATTERY                        (1)
 
 /// 日志功能
 #define IS_SUPPORT_LOG_OUT                               (1)

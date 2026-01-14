@@ -106,7 +106,7 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->ble);
-    EXCEPTION_CHECK_INT(proc->misc);
+    EXCEPTION_CHECK_INT(proc->battery);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();

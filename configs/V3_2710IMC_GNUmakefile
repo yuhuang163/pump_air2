@@ -558,6 +558,11 @@ RESOURCE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/resources/V2
 RESOURCE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/resources/reference
 endif
 
+# 电池模块头文件
+BATTERY_MODULE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/battery \
+	-I$(PROJECT_ROOT)/trunk/root_source/battery
+
 # 汇总所有 SDK 头文件路径
 SDK_INCLUDE_PATHS := \
 	$(SDK_CORE_INC_FLAGS) \
@@ -590,7 +595,8 @@ SDK_INCLUDE_PATHS := \
 	$(NETWORK_INC_FLAGS) \
 	$(OTA_INC_FLAGS) \
 	$(PRODUCT_TESTS_INC_FLAGS) \
-	$(RESOURCE_INC_FLAGS)
+	$(RESOURCE_INC_FLAGS) \
+	$(BATTERY_MODULE_INC_FLAGS)
 
 # 添加项目根目录和 SDK 头文件路径
 CPPFLAGS ?= -I$(PROJECT_ROOT) -I$(PROJECT_ROOT)/trunk $(SDK_INCLUDE_PATHS)
@@ -1064,6 +1070,10 @@ PRODUCT_TESTS_MODULE_SRCS := \
 FRAMEWORK_HOOKS_BASE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c)
 
+# 电池模块源码
+BATTERY_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/battery/*.c)
+
 # 汇总所有应用源码
 EXTRA_SRCS := \
 	$(OS_BASE_SRCS) \
@@ -1089,7 +1099,8 @@ EXTRA_SRCS := \
 	$(NETWORK_MODULE_SRCS) \
 	$(OTA_MODULE_SRCS) \
 	$(PRODUCT_TESTS_MODULE_SRCS) \
-	$(FRAMEWORK_HOOKS_BASE_SRCS) 
+	$(FRAMEWORK_HOOKS_BASE_SRCS) \
+	$(BATTERY_MODULE_SRCS)
 
 CC := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)gcc,gcc)
 AR := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)ar,ar)

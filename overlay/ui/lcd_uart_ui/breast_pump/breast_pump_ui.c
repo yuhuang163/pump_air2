@@ -100,8 +100,10 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     ui_fill_pump_level(&msg.tlvs[2], setting.level[0], setting.level[1]);
     ui_fill_pump_speed(&msg.tlvs[3], setting.speed);
     ui_fill_ble_status(&msg.tlvs[4]);
+#if IS_SUPPORT_MODULE_BATTERY
     ui_fill_charge_status(&msg.tlvs[5]);
     ui_fill_battery_status(&msg.tlvs[6]);
+#endif
     ui_fill_pump_mode(&msg.tlvs[7], pump->get_breast_pump_mode());
     thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
     u_free(msg.tlvs);

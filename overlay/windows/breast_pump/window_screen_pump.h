@@ -97,7 +97,7 @@ typedef struct {
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
     breast_pump_manager_context_t *pump;
-    misc_manager_context_t *misc;
+    battery_manager_context_t *battery;
     ble_manager_context_t *ble;
     motor_manager_context_t *motor;
     storage_manager_context_t *st;

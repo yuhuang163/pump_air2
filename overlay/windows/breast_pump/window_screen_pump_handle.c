@@ -395,7 +395,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     proc->pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    proc->misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    proc->battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     proc->motor = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
