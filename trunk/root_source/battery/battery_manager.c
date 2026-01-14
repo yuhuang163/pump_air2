@@ -43,6 +43,9 @@ static void polling_battery_status(void *user_data)
 {
     // LOG_MISC("polling_battery_status");
     EXCEPTION_CHECK_VOID(thiz);
+    if (thiz->priv.battery == NULL) {
+        return;
+    }
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     EXCEPTION_CHECK_VOID(pm);
     uint8_t bat_tmp = check_if_low_battery();
@@ -79,7 +82,9 @@ static void polling_charge_status(void *user_data)
 {
     // LOG_MISC("polling_charge_status");
     EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(thiz->priv.battery);
+    if (thiz->priv.battery == NULL) {
+        return;
+    }
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     EXCEPTION_CHECK_VOID(pm);
     uint8_t plug_status = 0, chage_state = 0;
@@ -139,7 +144,9 @@ static void charge_irq_callback(uint8_t *data)
 static uint8_t local_get_battery_percent(void)
 {
     EXCEPTION_CHECK_UINT(thiz);
-    EXCEPTION_CHECK_UINT(thiz->priv.battery);
+    if (thiz->priv.battery == NULL) {
+        return 100;
+    }
     uint8_t val = 0;
     if (thiz->priv.battery) {   
         val = DEVICE_READ(thiz->priv.battery);
@@ -206,7 +213,9 @@ static uint8_t is_empty_battery(void)
 static uint8_t local_is_charge_plug_in(void)
 {
     EXCEPTION_CHECK_UINT(thiz);
-    EXCEPTION_CHECK_UINT(thiz->priv.battery);
+    if (thiz->priv.battery == NULL) {
+        return 0;
+    }
     DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_CHARGE_IS_PLUG_IN, ret);
     return ret > 0 ? 1 : 0;
 }

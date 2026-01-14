@@ -387,6 +387,32 @@ uint8_t app_old_comm_set_nommal_pump_speed(app_old_comm_pump_ctrl *app_old_comm_
     return true;
 }
 
+uint8_t app_old_comm_set_pump_control_type(app_old_comm_pump_ctrl *app_old_comm_pump_ctrl_date)
+{
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_UINT(storage_ctx);
+    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT+1) {
+        control_type = BREAST_PUMP_CONTROL_TYPE_LEFT;
+    } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT+1) {
+        control_type = BREAST_PUMP_CONTROL_TYPE_RIGHT;
+    } else {
+        control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    }
+    LOG_SRV("set pump control type %d", control_type);
+    storage_ctx->put_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    return true;
+}
+
+uint8_t app_old_comm_get_pump_control_type(app_old_comm_pump_ctrl *app_old_comm_pump_ctrl_date)
+{
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_UINT(storage_ctx);
+    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    storage_ctx->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    LOG_SRV("get pump control type %d", control_type);
+    return control_type;
+}
 
 uint8_t app_old_comm_set_custom_pump_level(app_old_comm_pump_ctrl *app_old_comm_pump_ctrl_date)
 {
@@ -445,6 +471,9 @@ uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old_comm_p
     //appbug，就是切模式把之前目标模式的参数，也带下来了，但是切模式都要从第一步运行，要以我这边为准
     //如果模式不变，说明只设置当前模式参数,
     if (app_old_comm_pump_ctrl_date->pump_mode == app_old_comm_get_current_pump_mode()) {
+        //设置控制类型
+        app_old_comm_set_pump_control_type(app_old_comm_pump_ctrl_date);
+        //设置参数
         switch (app_old_comm_get_current_pump_mode()) {
             case BREAST_PUMP_LACTATION_MODE:
             case BREAST_PUMP_STIMULATION_MODE: // 传统模式
