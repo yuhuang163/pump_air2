@@ -90,6 +90,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
 /// 支持资源管理
 #define IS_SUPPORT_MODULE_RES                            (0)
+/// 支持自适应背光  
+#define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
 #elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
 #if IS_SUPPORT_DEVICE_BATTERY
 /// 支持PD充电
@@ -107,6 +109,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (1)
 /// 支持资源管理
 #define IS_SUPPORT_MODULE_RES                            (1)
+/// 支持自适应背光  
+#define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
 #else
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (0)
@@ -120,6 +124,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
 /// 支持资源管理
 #define IS_SUPPORT_MODULE_RES                            (0)
+/// 支持自适应背光  
+#define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
 #endif
 
 #ifdef __cplusplus

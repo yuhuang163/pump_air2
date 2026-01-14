@@ -16,6 +16,7 @@ typedef enum {
     MISC_TASK_ID_CHARGE_POLLING = 1,
     MISC_TASK_ID_BATTERY_POLLING = 2,
     MISC_TASK_ID_BATTERY_VOLTAGE_POLLING = 3,
+    MISC_TASK_ID_ADAPTIVE_DIMMING = 4,
     MISC_TASK_ID_MAX
 } misc_task_id_e;
 
@@ -34,11 +35,8 @@ typedef void (*on_misc_task_cb_fptr)(void *user_data);
 /// 描述misc杂项管理上下文对象
 struct rt_device_node;
 struct broadcast_obj;
-struct algo_manager_context;
 typedef struct misc_manager_context {
 /// public:
-    uint8_t (*get_light_adapt_state)(void);
-    void (*set_light_adapt_state)(uint8_t state);
     void (*add_misc_task)(void *user_data, int task_id, uint32_t polling_period, misc_work_msg_id_mask_t msg_id_mask, on_misc_task_cb_fptr cb);
     void (*remove_misc_task)(on_misc_task_cb_fptr cb);
     void (*trigger_misc_work)(misc_work_msg_id_mask_t msg_id_mask);  /// 立即触发misc_work_polling_thread执行，带消息ID位掩码
