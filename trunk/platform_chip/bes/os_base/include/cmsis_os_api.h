@@ -224,6 +224,8 @@ unsigned char platform_bt_xtal_calib_set(uint32_t fcap);
 unsigned char platform_bt_xtal_calib_get(uint32_t *fcap);
 /// 平台提供的蓝牙校频测试结束接口.
 unsigned char platform_bt_xtal_calib_end(void);
+/// 平台提供的蓝牙获取RSSI值接口.
+int platform_bt_get_rssi_value(int32_t *rssi);
 /// 平台提供的蓝牙trace RX注册接口.
 void platform_bt_trace_rx_register(unsigned char *rx_buff, unsigned int len, PLATFORM_BT_TRACE_RX_CALLBACK_T rx_callback);
 /// 平台提供的蓝牙trace TX接口.

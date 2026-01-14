@@ -38,6 +38,7 @@ typedef enum {
     TESTS_TLV_STANDBY_MODE = 0x0016,           /// 进入或退出待机 (0x01:进入, 0x00:退出)
     TESTS_TLV_QUERY_SENSOR_STATUS = 0x0017,    /// 查询外设sensor状态 (Length=0)
     TESTS_TLV_READ_FACTORY_COMPLETE_FLAG = 0x0018, /// 产测完成标识读取 (Length=0)
+    TESTS_TLV_GET_RSSI = 0x0019,               /// 获取蓝牙RSSI (Length=1: byte0=0x00获取BLE RSSI, 0x01获取BT RSSI)
     TESTS_TLV_ID_MAX,
 } tests_tlvs_id_e;
 
@@ -132,6 +133,10 @@ int tests_tlvs_get_trim_value(comm_protocol_builder_t *builder, comm_protocol_se
 int tests_tlvs_standby_mode(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 int tests_tlvs_query_sensor_status(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                    uint8_t *data, uint16_t data_len);
+
+/// RSSI获取
+int tests_tlvs_get_rssi(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                     uint8_t *data, uint16_t data_len);
 
 /// NOTIFY上报 (设备主动上报)

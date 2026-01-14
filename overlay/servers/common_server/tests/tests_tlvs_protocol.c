@@ -1032,6 +1032,61 @@ int tests_tlvs_query_sensor_status(comm_protocol_builder_t *builder, comm_protoc
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
 }
 
+/// ======================== RSSI获取 ========================
+
+int tests_tlvs_get_rssi(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                        uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    LOG_SRV("tests_tlvs_get_rssi, data_len: %d", data_len);
+
+    // 协议格式: REQUEST Length=1, byte0: 0x00获取BLE RSSI, 0x01获取BT RSSI
+    uint8_t rssi_type = 0;
+    if (data && data_len >= 1) {
+        rssi_type = data[0];
+    } else {
+        LOG_SRV("tests_tlvs_get_rssi: invalid data_len=%d, expected 1", data_len);
+    }
+
+    // 应答格式: RESPONSE Length=4, byte0-3: RSSI值(小端序，int32_t)
+    int32_t rssi_value = 0;
+
+    if (rssi_type == 0x00) {
+        // 获取BLE RSSI
+        if (platform_bt_get_rssi_value(&rssi_value) == 0) {
+            LOG_SRV("tests_tlvs_get_rssi: BLE RSSI=%d", rssi_value);
+        } else {
+            LOG_SRV("tests_tlvs_get_rssi: BLE RSSI获取失败");
+            rssi_value = 0; // 失败时返回0
+        }
+    } else if (rssi_type == 0x01) {
+        // 获取BT RSSI - 暂未实现
+        LOG_SRV("tests_tlvs_get_rssi: BT RSSI获取功能暂未实现");
+        rssi_value = 0; // 暂未实现，返回0
+    } else {
+        LOG_SRV("tests_tlvs_get_rssi: invalid rssi_type=0x%02X, expected 0x00(BLE) or 0x01(BT)", rssi_type);
+        rssi_value = 0; // 无效类型时返回0
+    }
+    uint8_t response[4] = {0};
+    response[0] = (uint8_t)(rssi_value & 0xFF);
+    response[1] = (uint8_t)((rssi_value >> 8) & 0xFF);
+    response[2] = (uint8_t)((rssi_value >> 16) & 0xFF);
+    response[3] = (uint8_t)((rssi_value >> 24) & 0xFF);
+
+    LOG_SRV("tests_tlvs_get_rssi: rssi_type=0x%02X, rssi_value=%d", rssi_type, rssi_value);
+    LOG_HEX("rssi_response", response, sizeof(response));
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_GET_RSSI,
+        .length = sizeof(response),
+        .value = response,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
 /// ======================== NOTIFY上报 ========================
 
 int tests_key_status_publish(servers_publish_data_args_t *args)
