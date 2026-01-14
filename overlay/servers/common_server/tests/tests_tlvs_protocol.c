@@ -370,13 +370,22 @@ int tests_tlvs_write_sn(comm_protocol_builder_t *builder, comm_protocol_service_
 
     uint8_t result = 0x00; // 默认失败
 
-    if (data && data_len == TESTS_SN_LENGTH) {
+    if (data && data_len > 0) {
         storage_manager_context_t *st = get_storage_ctx();
         if (st) {
             factory_dev_info_t dev_info = {0};
             st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
-            memcpy(dev_info.sn, data, TESTS_SN_LENGTH);
-            dev_info.sn_len = TESTS_SN_LENGTH;
+            
+            /// 参考app_protocol_auth_server.c中的写法进行长度判断
+            if (data_len >= DEVICE_UNIQUE_SN_LEN) {
+                dev_info.sn_len = DEVICE_UNIQUE_SN_LEN;
+            } else {
+                dev_info.sn_len = data_len;
+            }
+            
+            memset(dev_info.sn, 0, DEVICE_UNIQUE_SN_LEN);
+            memcpy(dev_info.sn, data, dev_info.sn_len);
+            
             if (st->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info) == 0) {
                 result = 0x01; // 成功
             }
@@ -403,13 +412,22 @@ int tests_tlvs_write_product_id(comm_protocol_builder_t *builder, comm_protocol_
 
     uint8_t result = 0x00; // 默认失败
 
-    if (data && data_len == TESTS_PRODUCT_ID_LENGTH) {
+    if (data && data_len > 0) {
         storage_manager_context_t *st = get_storage_ctx();
         if (st) {
             factory_dev_info_t dev_info = {0};
             st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
-            memcpy(dev_info.product_id, data, TESTS_PRODUCT_ID_LENGTH);
-            dev_info.product_id_len = TESTS_PRODUCT_ID_LENGTH;
+            
+            /// 参考app_protocol_auth_server.c中的写法进行长度判断
+            if (data_len >= DEVICE_PRODUCT_ID_LEN) {
+                dev_info.product_id_len = DEVICE_PRODUCT_ID_LEN;
+            } else {
+                dev_info.product_id_len = data_len;
+            }
+            
+            memset(dev_info.product_id, 0, DEVICE_PRODUCT_ID_LEN);
+            memcpy(dev_info.product_id, data, dev_info.product_id_len);
+            
             if (st->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info) == 0) {
                 result = 0x01; // 成功
             }
@@ -436,13 +454,22 @@ int tests_tlvs_write_device_id(comm_protocol_builder_t *builder, comm_protocol_s
 
     uint8_t result = 0x00; // 默认失败
 
-    if (data && data_len == TESTS_DEVICE_ID_LENGTH) {
+    if (data && data_len > 0) {
         storage_manager_context_t *st = get_storage_ctx();
         if (st) {
             factory_dev_info_t dev_info = {0};
             st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
-            memcpy(dev_info.device_id, data, TESTS_DEVICE_ID_LENGTH);
-            dev_info.device_id_len = TESTS_DEVICE_ID_LENGTH;
+            
+            /// 参考app_protocol_auth_server.c中的写法进行长度判断
+            if (data_len >= DEVICE_DEVICE_ID_LEN) {
+                dev_info.device_id_len = DEVICE_DEVICE_ID_LEN;
+            } else {
+                dev_info.device_id_len = data_len;
+            }
+            
+            memset(dev_info.device_id, 0, DEVICE_DEVICE_ID_LEN);
+            memcpy(dev_info.device_id, data, dev_info.device_id_len);
+            
             if (st->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info) == 0) {
                 result = 0x01; // 成功
             }
@@ -469,13 +496,22 @@ int tests_tlvs_write_secret_key(comm_protocol_builder_t *builder, comm_protocol_
 
     uint8_t result = 0x00; // 默认失败
 
-    if (data && data_len == TESTS_SECRET_KEY_LENGTH) {
+    if (data && data_len > 0) {
         storage_manager_context_t *st = get_storage_ctx();
         if (st) {
             factory_dev_info_t dev_info = {0};
             st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
-            memcpy(dev_info.enctyption_key, data, TESTS_SECRET_KEY_LENGTH);
-            dev_info.enctyption_key_len = TESTS_SECRET_KEY_LENGTH;
+            
+            /// 参考app_protocol_auth_server.c中的写法进行长度判断
+            if (data_len >= DEVICE_ENCTYPTION_KEY_LEN) {
+                dev_info.enctyption_key_len = DEVICE_ENCTYPTION_KEY_LEN;
+            } else {
+                dev_info.enctyption_key_len = data_len;
+            }
+            
+            memset(dev_info.enctyption_key, 0, DEVICE_ENCTYPTION_KEY_LEN);
+            memcpy(dev_info.enctyption_key, data, dev_info.enctyption_key_len);
+            
             if (st->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info) == 0) {
                 result = 0x01; // 成功
             }
@@ -502,25 +538,35 @@ int tests_tlvs_read_triple_data(comm_protocol_builder_t *builder, comm_protocol_
     LOG_SRV("tests_tlvs_read_triple_data");
 
     // 应答格式: byte0-5=产品ID(6字节), byte6-21=设备ID(16字节), byte22-37=密钥(16字节)
-    uint8_t response[TESTS_TRIPLE_DATA_LENGTH] = {0};
+    // 使用最大长度作为缓冲区大小，但使用实际存储的长度进行复制
+    uint8_t response[DEVICE_PRODUCT_ID_LEN + DEVICE_DEVICE_ID_LEN + DEVICE_ENCTYPTION_KEY_LEN] = {0};
+    uint16_t response_len = 0;
 
     storage_manager_context_t *st = get_storage_ctx();
     if (st) {
         factory_dev_info_t dev_info = {0};
         st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
-        memcpy(response, dev_info.product_id, TESTS_PRODUCT_ID_LENGTH);
-        memcpy(response + TESTS_PRODUCT_ID_LENGTH, dev_info.device_id, TESTS_DEVICE_ID_LENGTH);
-        memcpy(response + TESTS_PRODUCT_ID_LENGTH + TESTS_DEVICE_ID_LENGTH, dev_info.enctyption_key,
-               TESTS_SECRET_KEY_LENGTH);
+        
+        /// 参考app_protocol_auth_server.c中的写法，使用实际存储的长度
+        uint16_t product_id_len = dev_info.product_id_len > DEVICE_PRODUCT_ID_LEN ? DEVICE_PRODUCT_ID_LEN : dev_info.product_id_len;
+        uint16_t device_id_len = dev_info.device_id_len > DEVICE_DEVICE_ID_LEN ? DEVICE_DEVICE_ID_LEN : dev_info.device_id_len;
+        uint16_t key_len = dev_info.enctyption_key_len > DEVICE_ENCTYPTION_KEY_LEN ? DEVICE_ENCTYPTION_KEY_LEN : dev_info.enctyption_key_len;
+        
+        memcpy(response, dev_info.product_id, product_id_len);
+        memcpy(response + product_id_len, dev_info.device_id, device_id_len);
+        memcpy(response + product_id_len + device_id_len, dev_info.enctyption_key, key_len);
+        
+        response_len = product_id_len + device_id_len + key_len;
+        
         //打印dev_info.product_id, dev_info.device_id, dev_info.enctyption_key
-        LOG_HEX("dev_info.product_id", dev_info.product_id, TESTS_PRODUCT_ID_LENGTH);
-        LOG_HEX("dev_info.device_id", dev_info.device_id, TESTS_DEVICE_ID_LENGTH);
-        LOG_HEX("dev_info.enctyption_key", dev_info.enctyption_key, TESTS_SECRET_KEY_LENGTH);
+        LOG_HEX("dev_info.product_id", dev_info.product_id, product_id_len);
+        LOG_HEX("dev_info.device_id", dev_info.device_id, device_id_len);
+        LOG_HEX("dev_info.enctyption_key", dev_info.enctyption_key, key_len);
     }
 
     comm_protocol_tlv_node_t tlv_node = {
         .type = TESTS_TLV_READ_TRIPLE_DATA,
-        .length = TESTS_TRIPLE_DATA_LENGTH,
+        .length = response_len,
         .value = response,
     };
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
@@ -535,18 +581,25 @@ int tests_tlvs_read_sn(comm_protocol_builder_t *builder, comm_protocol_service_t
 
     LOG_SRV("tests_tlvs_read_sn");
 
-    uint8_t response[TESTS_SN_LENGTH] = {0};
+    // 使用最大长度作为缓冲区大小，但使用实际存储的长度进行复制
+    uint8_t response[DEVICE_UNIQUE_SN_LEN] = {0};
+    uint16_t response_len = 0;
 
     storage_manager_context_t *st = get_storage_ctx();
     if (st) {
         factory_dev_info_t dev_info = {0};
         st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
-        memcpy(response, dev_info.sn, TESTS_SN_LENGTH);
+        
+        /// 参考app_protocol_auth_server.c中的写法，使用实际存储的长度
+        response_len = dev_info.sn_len > DEVICE_UNIQUE_SN_LEN ? DEVICE_UNIQUE_SN_LEN : dev_info.sn_len;
+        memcpy(response, dev_info.sn, response_len);
+        
+        LOG_HEX("SN:", dev_info.sn, response_len);
     }
 
     comm_protocol_tlv_node_t tlv_node = {
         .type = TESTS_TLV_READ_SN,
-        .length = TESTS_SN_LENGTH,
+        .length = response_len,
         .value = response,
     };
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
