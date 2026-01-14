@@ -11,6 +11,7 @@
 #include "apps.h"            // IWYU pragma: keep
 #include "bt_drv_interface.h"
 #include "nvrecord_dev.h"
+#include "bt_drv_reg_op.h"
 
 /*
 * DEFINES
@@ -359,6 +360,22 @@ unsigned char platform_bt_xtal_calib_end(void)
     return 0;
 }
 
+int platform_bt_get_rssi_value(int32_t *rssi)
+{
+    rx_agc_t rx_val;
+    //bool ret = bt_drv_reg_op_read_rssi_in_dbm(0x80, &rx_val);
+    //if (ret) {
+    //    *rssi = rx_val.rssi;
+    //}
+    bool ret = bt_drv_reg_op_read_ble_rssi_in_dbm(0x00, &rx_val);
+    if (ret) {
+        *rssi = rx_val.rssi;
+        return 0;
+    }
+    return -1;
+}
+
+//产测trace RX注册接口，用于接收日志串口传输的数据
 void platform_bt_trace_rx_register(unsigned char *rx_buff, unsigned int len, PLATFORM_BT_TRACE_RX_CALLBACK_T rx_callback)
 {
     int ret;

@@ -46,6 +46,8 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
     /// 待机和传感器状态
     {TESTS_TLV_STANDBY_MODE, tests_tlvs_standby_mode},
     {TESTS_TLV_QUERY_SENSOR_STATUS, tests_tlvs_query_sensor_status},
+    /// RSSI获取
+    {TESTS_TLV_GET_RSSI, tests_tlvs_get_rssi},
 };
 
 /*
