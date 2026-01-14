@@ -94,7 +94,7 @@ static int led_extension_write_nbyte(i2c_master_data_t *data)
     }
 
     for (uint8_t i = 0; i < TM1650_RETRY_COUNT; i++) {
-        ret = bsp_i2c_write_byte(TM1650_I2C_ID, data);
+        ret = bsp_i2c_write_byte(LED_I2C_ID, data);
         if (ret == BSP_OK) {
             s_led_abnormal_count = 0;
             return BSP_OK;
@@ -297,7 +297,7 @@ int bsp_led_init(void)
 {
     int ret = 0;
     
-    bsp_i2c_init(TM1650_I2C_ID);
+    bsp_i2c_init(LED_I2C_ID);
     s_led_is_ready = true;
     s_led_abnormal_count = 0;
     RUN_NEW_THREAD(&s_led_device_thd, "led", led_device_thread, RT_PRIO_LED_DEVICE_THREAD, (LED_DEVICE_THREAD_STACKSIZE));

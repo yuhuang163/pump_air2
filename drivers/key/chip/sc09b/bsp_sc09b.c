@@ -241,10 +241,6 @@ POSSIBLY_UNUSED static int sc09b_is_ready(void)
 
 POSSIBLY_UNUSED static int sc09b_chip_init(void)
 {
-    if (sc09b_is_ready() != BSP_OK) {
-        LOGE("touch key is not ready");
-        return BSP_NOT_READY;
-    }
     bsp_key_sensitivity_set(0, SC09B_SEN_6);
     bsp_key_sensitivity_set(1, SC09B_SEN_6);
     // sc09b_reference_cap_config();
@@ -296,15 +292,20 @@ int bsp_key_init(void)
     /// 初始化触摸键
     sc09b_irq_init();
     bsp_i2c_init(TOUCH_KEY_I2C_ID);
+    if (sc09b_is_ready() != BSP_OK) {
+        LOGE("touch key is not ready");
+        return BSP_NOT_READY;
+    }
+    s_touch_is_ready = true;
+    s_touch_abnormal_count = 0;
     if (sc09b_chip_init() != BSP_OK) {
        LOGE("touch key init failed");
         return BSP_ERROR;
     }
-    s_touch_is_ready = true;
-    s_touch_abnormal_count = 0;
     CREATE_MSG_TYPE_QUEUE(&s_key_device_thd.msg_id, 1, 1);
     RUN_NEW_THREAD(&s_key_device_thd, "key", key_device_thread, RT_PRIO_KEY_DEVICE_THREAD, (KEY_DEVICE_THREAD_STACKSIZE));
     sc09b_irq_control(true);
+    LOG_PBUS("key init success");
 #endif
     return BSP_OK;
 }

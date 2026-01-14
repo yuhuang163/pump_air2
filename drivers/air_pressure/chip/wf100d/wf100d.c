@@ -65,7 +65,7 @@ static int wf100d_write_nbyte(uint8_t index, i2c_master_data_t *data)
     }
 
     for (uint8_t i = 0; i < 3; i++) {
-        ret = bsp_i2c_write_byte(index == 0 ? W100DP_I2C_ID1 : W100DP_I2C_ID2, data);
+        ret = bsp_i2c_write_byte(index == 0 ? AIR_PRESSURE_I2C_ID1 : AIR_PRESSURE_I2C_ID2, data);
         if (ret == BSP_OK) {
             s_dev_abnormal_count[index] = 0;
             return BSP_OK;
@@ -100,7 +100,7 @@ static int wf100d_read_nbyte(uint8_t index, i2c_master_data_t *data)
     }
 
     for (uint8_t i = 0; i < 3; i++) {
-        ret = bsp_i2c_read_byte(index == 0 ? W100DP_I2C_ID1 : W100DP_I2C_ID2, data);
+        ret = bsp_i2c_read_byte(index == 0 ? AIR_PRESSURE_I2C_ID1 : AIR_PRESSURE_I2C_ID2, data);
         if (ret == BSP_OK) {
             s_dev_abnormal_count[index] = 0;
             return BSP_OK;
@@ -133,7 +133,7 @@ static int wf100d_read_nbyte_no_retry(uint8_t index, i2c_master_data_t *data)
         return BSP_NOT_READY;
     }
 
-    ret = bsp_i2c_read_byte(index == 0 ? W100DP_I2C_ID1 : W100DP_I2C_ID2, data);
+    ret = bsp_i2c_read_byte(index == 0 ? AIR_PRESSURE_I2C_ID1 : AIR_PRESSURE_I2C_ID2, data);
     if (ret == BSP_OK) {
         s_dev_abnormal_count[index] = 0;
         return BSP_OK;
@@ -219,7 +219,7 @@ static int air_pressure_is_ready(uint8_t index)
     };
 
     for (uint8_t i = 0; i < 3; i++) {
-        ret = bsp_i2c_read_byte(index == 0 ? W100DP_I2C_ID1 : W100DP_I2C_ID2, &air_pressure);
+        ret = bsp_i2c_read_byte(index == 0 ? AIR_PRESSURE_I2C_ID1 : AIR_PRESSURE_I2C_ID2, &air_pressure);
         if (ret == BSP_OK) {
             break;
         }
@@ -234,8 +234,8 @@ static int air_pressure_is_ready(uint8_t index)
 */
 int bsp_air_pressure_init(void)
 {
-    bsp_i2c_init(W100DP_I2C_ID1);
-    bsp_i2c_init(W100DP_I2C_ID2);
+    bsp_i2c_init(AIR_PRESSURE_I2C_ID1);
+    bsp_i2c_init(AIR_PRESSURE_I2C_ID2);
     msleep(10);
     for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
         if (air_pressure_is_ready(i) != BSP_OK) {

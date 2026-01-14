@@ -57,8 +57,8 @@ extern "C" {
 #define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
 #define I2C4_SCL_PIN                    HAL_GPIO_PIN_P1_0
 #define I2C4_SDA_PIN                    HAL_GPIO_PIN_P1_1
-#define W100DP_I2C_ID1                  I2C_MASTER_ID_1
-#define W100DP_I2C_ID2                  I2C_MASTER_ID_2
+#define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_1
+#define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_2
 #define CHARGE_I2C_ID                   I2C_MASTER_ID_0
 #define TOUCH_KEY_I2C_ID                I2C_MASTER_ID_0
 /// 充电中断引脚
@@ -128,10 +128,10 @@ extern "C" {
 #define I2C2_SDA_PIN                    HAL_GPIO_PIN_P0_5
 #define I2C3_SCL_PIN                    HAL_GPIO_PIN_P0_6
 #define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
-#define TM1650_I2C_ID                   I2C_MASTER_ID_1
+#define LED_I2C_ID                      I2C_MASTER_ID_1
 #define TOUCH_KEY_I2C_ID                I2C_MASTER_ID_1
-#define W100DP_I2C_ID1                  I2C_MASTER_ID_0
-#define W100DP_I2C_ID2                  I2C_MASTER_ID_3
+#define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_0
+#define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_3
 #define CHARGE_I2C_ID                   I2C_MASTER_ID_2
 #define CHARGE_PD_I2C_ID                I2C_MASTER_ID_2
 /// 充电芯片相关定义
@@ -164,6 +164,9 @@ extern "C" {
 #define USR_LCD_D1_PIN                  HAL_GPIO_PIN_P3_3
 #define USR_LCD_D2_PIN                  HAL_GPIO_PIN_P3_4
 #define USR_LCD_D3_PIN                  HAL_GPIO_PIN_P3_5
+#define LCD_LCD_BL_PIN                  HAL_GPIO_PIN_P3_6
+#define LCD_LCD_BL_PWM_ID               HAL_PWM1_ID_2
+#define LCD_LCD_BL_PWM_IMUX             hal_iomux_set_pwm6
 /// nor flash相关定义
 #define NOR_FLASH_CS_PIN                HAL_GPIO_PIN_P2_5
 #define NOR_FLASH_CLK_PIN               HAL_GPIO_PIN_P2_4
@@ -206,10 +209,10 @@ extern "C" {
 #define I2C2_SDA_PIN                    HAL_GPIO_PIN_P0_5
 #define I2C3_SCL_PIN                    HAL_GPIO_PIN_P0_6
 #define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
-#define HTR3316_I2C_ID                  I2C_MASTER_ID_1
+#define LED_I2C_ID                      I2C_MASTER_ID_1
 #define TOUCH_KEY_I2C_ID                I2C_MASTER_ID_1
-#define W100DP_I2C_ID1                  I2C_MASTER_ID_0
-#define W100DP_I2C_ID2                  I2C_MASTER_ID_3
+#define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_0
+#define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_3
 #define CHARGE_I2C_ID                   I2C_MASTER_ID_1
 #define CHARGE_PD_I2C_ID                I2C_MASTER_ID_2
 /// 充电芯片相关定义

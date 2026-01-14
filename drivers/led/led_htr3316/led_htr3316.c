@@ -85,7 +85,7 @@ static int led_extension_write_nbyte(i2c_master_data_t *data)
     }
 
     for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
-        ret = bsp_i2c_write_byte(HTR3316_I2C_ID, data);
+        ret = bsp_i2c_write_byte(LED_I2C_ID, data);
         if (ret == BSP_OK) {
             s_led_abnormal_count = 0;
             return BSP_OK;
@@ -111,7 +111,7 @@ static int led_extension_read_nbyte(i2c_master_data_t *data)
     }
 
     for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
-        ret = bsp_i2c_read_byte(HTR3316_I2C_ID, data);
+        ret = bsp_i2c_read_byte(LED_I2C_ID, data);
         if (ret == BSP_OK) {
             s_led_abnormal_count = 0;
             return BSP_OK;
@@ -239,10 +239,12 @@ static void led_htr3316_chip_id_get(uint8_t *chip_id)
         .len = 1,
     };
 
-    ret = led_extension_read_nbyte(&i2c_data);
-    if (ret != BSP_OK) {
-        LOGE("led extension chip id get failed");
-        return;
+    for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
+        ret = bsp_i2c_read_byte(LED_I2C_ID, &i2c_data);
+        if (ret == BSP_OK) {
+            break;
+        }
+        msleep(10);
     }
     LOG_PBUS("led extension chip id: %d", i2c_data.data[0]);
 }
@@ -292,7 +294,7 @@ static void led_htr3316_init(void)
 */
 int bsp_led_init(void)
 {
-    bsp_i2c_init(HTR3316_I2C_ID);
+    bsp_i2c_init(LED_I2C_ID);
     msleep(20);
     uint8_t chip_id = 0;
     led_htr3316_chip_id_get(&chip_id);
@@ -300,9 +302,9 @@ int bsp_led_init(void)
         LOGE("chip id error");
         return BSP_ERROR;
     }
-    led_htr3316_init();
     s_led_is_ready = true;
     s_led_abnormal_count = 0;
+    led_htr3316_init();
     RUN_NEW_THREAD(&s_led_device_thd, "led", led_device_thread, RT_PRIO_LED_DEVICE_THREAD, (LED_DEVICE_THREAD_STACKSIZE));
     return BSP_OK;
 }
