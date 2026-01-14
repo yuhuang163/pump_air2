@@ -479,6 +479,11 @@ RESOURCE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/resources/image_bin \
 	-I$(PROJECT_ROOT)/overlay/resources
 
+# 电池模块头文件
+BATTERY_MODULE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/battery \
+	-I$(PROJECT_ROOT)/trunk/root_source/battery
+
 # 汇总所有 SDK 头文件路径
 SDK_INCLUDE_PATHS := \
 	$(SDK_CORE_INC_FLAGS) \
@@ -500,6 +505,7 @@ SDK_INCLUDE_PATHS := \
 	$(AUDIO_INC_FLAGS) \
 	$(INPUT_KEY_INC_FLAGS) \
 	$(UI_MODULE_INC_FLAGS) \
+	$(BATTERY_MODULE_INC_FLAGS) \
 	$(WINDOWS_INC_FLAGS) \
 	$(AIRPLANE_MODE_INC_FLAGS) \
 	$(POWER_INC_FLAGS) \
@@ -824,7 +830,7 @@ INPUT_KEY_MODULE_SRCS := \
 UI_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/ui/*.c) 
-	
+
 ifeq ($(CFG_LVGL_ENABLE), 1)
 UI_MODULE_SRCS += $(UI_LCD_DIRECT_SRCS)
 UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui/*.c) 
@@ -912,6 +918,10 @@ PRODUCT_TESTS_MODULE_SRCS := \
 FRAMEWORK_HOOKS_BASE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/*.c)
 
+# 电池模块源码
+BATTERY_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/battery/*.c)
+
 # 汇总所有应用源码
 EXTRA_SRCS := \
 	$(OS_BASE_SRCS) \
@@ -926,6 +936,7 @@ EXTRA_SRCS := \
 	$(AUDIO_MODULE_SRCS) \
 	$(INPUT_KEY_MODULE_SRCS) \
 	$(UI_MODULE_SRCS) \
+	$(BATTERY_MODULE_SRCS) \
 	$(WINDOWS_MODULE_SRCS) \
 	$(AIRPLANE_MODE_MODULE_SRCS) \
 	$(POWER_MODULE_SRCS) \

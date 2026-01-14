@@ -84,12 +84,13 @@ static void set_pm_state_progress(const char *tag, int state, int t0)
 
 static int get_suspend_timeout(power_manager_context_t *thiz)
 {
-    misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
-    EXCEPTION_CHECK_INT(misc);
     int timeout = PM_SUSPEND_TIME_S;
-    if (misc && misc->is_empty_battery()) {
+#if IS_SUPPORT_MODULE_BATTERY
+    battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+    if (battery && battery->is_empty_battery() > 0) {
         timeout = PM_SUSPEND_LOW_BAT_TIME_S;
     }
+#endif
     // LOG_PM("suspend_timeout:(%d)s", timeout);
     return timeout;
 }
@@ -650,7 +651,6 @@ static const char *wake_up_reason_name(pm_wakeup_reason_e reason)
 static void pm_wakeup(pm_wakeup_reason_e reason)
 {
     const char *reason_str = wake_up_reason_name(reason);
-    misc_manager_context_t *misc_ctx = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     LOG_PM("pm_wakeup reason: %d(%s)", reason, reason_str);
     if (reason == PM_WAKEUP_REASON_ENTER_NEW_SCREEN) {
         if (thiz->priv.wakeup_reason == PM_WAKEUP_REASON_IOT) {
@@ -661,10 +661,14 @@ static void pm_wakeup(pm_wakeup_reason_e reason)
                 }
             }
             return;
-        } else if (misc_ctx->is_charge_plug_in()) {
+        }   
+#if IS_SUPPORT_MODULE_BATTERY
+        battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+        if (battery && battery->is_charge_plug_in() > 0) {
             LOG_PM("charging. ignore");
             return;
         }
+#endif
     }
 
     if (external_wakeup_policy(thiz, reason) < 0) {

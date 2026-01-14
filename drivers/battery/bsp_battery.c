@@ -80,7 +80,7 @@ static const capacity_data_t sc_batt_tables[] = {
     {60, 11076, 11315}, 
     {70, 11316, 11621}, 
     {80, 11622, 11930}, 
-    {90, 11931, 12480}, 
+    {90, 11931, 12200}, 
 };
 
 static const battery_para_t sc_charging_tables[] = {
@@ -111,7 +111,6 @@ static const battery_float_voltage_t sc_charging_float_tables[] = {
     {THREE_FLOAT_VOLTAGE_RATE_1, THREE_FLOAT_VOLTAGE_THRESHOLD_2}, 
     {THREE_FLOAT_VOLTAGE_RATE_2, THREE_FLOAT_VOLTAGE_THRESHOLD_3}, 
 };
-
 #endif
 
 static uint8_t log_timer = 0;

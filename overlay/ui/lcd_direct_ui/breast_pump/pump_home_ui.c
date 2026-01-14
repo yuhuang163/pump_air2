@@ -501,13 +501,13 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc->pump);
     EXCEPTION_CHECK_INT(proc->motor);
     EXCEPTION_CHECK_INT(proc->ble);
-    EXCEPTION_CHECK_INT(proc->misc);
+    EXCEPTION_CHECK_INT(proc->battery);
     EXCEPTION_CHECK_INT(proc->st);
     const pump_result_info_t *result = proc->pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     // pump_home_bg_update(thiz);
     ble_ui_update(thiz, pump_info->root, proc->ble->ble_is_connected());
     battery_icon_update(thiz, pump_info->root, 
-        proc->misc->get_battery_percent(), proc->misc->is_charge_plug_in());
+        proc->battery->get_battery_percent(), proc->battery->is_charge_plug_in());
     uint16_t hold_time = 0;
     if (result != NULL) {
         hold_time = result->work_valid_time / 1000;

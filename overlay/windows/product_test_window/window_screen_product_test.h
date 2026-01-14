@@ -45,7 +45,7 @@ typedef struct {
     window_manager_context_t *wm;
     ui_manager_context_t *ui;  
     key_input_context_t *key;
-    misc_manager_context_t *misc;
+    battery_manager_context_t *battery;
     tests_manager_context_t *tests;
     ble_manager_context_t *ble;
     storage_manager_context_t *st;

@@ -744,7 +744,7 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc->pump);
     EXCEPTION_CHECK_INT(proc->motor);
     EXCEPTION_CHECK_INT(proc->ble);
-    EXCEPTION_CHECK_INT(proc->misc);
+    EXCEPTION_CHECK_INT(proc->battery);
     const pump_result_info_t *result = proc->pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     uint16_t hold_time = 0;
     if (result != NULL) {
@@ -755,7 +755,7 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
     proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
     uint8_t mode = proc->pump->get_breast_pump_mode();  
-    pump_home_battery_update(thiz, proc->misc->get_battery_percent(), proc->misc->is_charge_plug_in());
+    pump_home_battery_update(thiz, proc->battery->get_battery_percent(), proc->battery->is_charge_plug_in());
     pump_home_time_update(thiz, hold_time);
     pump_home_left_level_update(thiz, setting.level[0]);
     pump_home_right_level_update(thiz, setting.level[1]);

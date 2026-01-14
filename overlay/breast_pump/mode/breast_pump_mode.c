@@ -10,7 +10,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_PUMP_MODE_DEBUG_LOG              (1)
+#define IS_SUPPORT_PUMP_MODE_DEBUG_LOG              (0)
 
 /*
 * LOCAL VARIABLE DEFINITIONS

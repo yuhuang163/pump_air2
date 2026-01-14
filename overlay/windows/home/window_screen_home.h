@@ -51,7 +51,7 @@ typedef struct {
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
     ble_manager_context_t *ble;
-    misc_manager_context_t *misc;
+    battery_manager_context_t *battery;
     storage_manager_context_t *st;
     key_input_context_t *key;
     uint32_t margic; /// 窗口标识.

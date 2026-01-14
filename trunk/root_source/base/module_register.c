@@ -54,6 +54,9 @@ static const module_register_fptr s_module_register[] = {
     #if IS_SUPPORT_MODULE_MISC
     register_module_for_misc_manager_new,
     #endif
+    #if IS_SUPPORT_MODULE_BATTERY
+    register_module_for_battery_manager_new,
+    #endif
     #if IS_SUPPORT_MODULE_BREAST_PUMP
     register_module_for_breast_pump_new,
     #endif

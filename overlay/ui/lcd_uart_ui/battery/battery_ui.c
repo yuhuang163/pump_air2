@@ -31,21 +31,21 @@
 */
 void ui_fill_battery_status(lcd_tlvs_t *tlv)
 {
-    misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
-    if (misc) {
+    battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+    if (battery) {
         tlv->type = LCD_BATTERY_STATUS;
         tlv->data_size = 1;
-        tlv->data[0] = misc->get_battery_percent();
+        tlv->data[0] = battery->get_battery_percent();
     }
 }
 
 void ui_fill_charge_status(lcd_tlvs_t *tlv)
 {
-    misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
-    if (misc) {
+    battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+    if (battery) {
         tlv->type = LCD_PUMP_CHARGE_STATUS;
         tlv->data_size = 1;
-        tlv->data[0] = misc->get_charge_status();
+        tlv->data[0] = battery->get_charge_status();
     }
 }
 
@@ -70,8 +70,10 @@ int ui_display_charge_screen(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_UINT(msg.tlvs);
     lcd_tlvs_t *tlv = &msg.tlvs[0];
     UI_FILL_IMG_ID(tlv, UI_IMG_ID_CHARGE);
+#if IS_SUPPORT_MODULE_BATTERY
     ui_fill_battery_status(&msg.tlvs[1]);
     ui_fill_charge_status(&msg.tlvs[2]);
+#endif
     thiz->priv.panel_dev->ioctl(thiz->priv.panel_dev, OP_CODE_PANEL_DATA_SEND, (void *)&msg);
     u_free(msg.tlvs);
     return 0;
