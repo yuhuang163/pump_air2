@@ -234,9 +234,6 @@ static int air_pressure_is_ready(uint8_t index)
 */
 int bsp_air_pressure_init(void)
 {
-    bsp_i2c_init(AIR_PRESSURE_I2C_ID1);
-    bsp_i2c_init(AIR_PRESSURE_I2C_ID2);
-    msleep(10);
     for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
         if (air_pressure_is_ready(i) != BSP_OK) {
             LOGE("air pressure is not ready: %d", i);

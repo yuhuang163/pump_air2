@@ -13,35 +13,22 @@
 * DEFINES
 *****************************************************************************************
 */
-#define LIMS_I2C_ADDR                0x6C
+#define LIMS_I2C_ADDR                  0x6C
+#define LIMS_LOG_DEBUG                 0
+#define LIMS_ABNORMAL_MAX_COUNT        10
+#define LIMS_LOG_COUNT_INTERVAL        100
 
-#define LIMS_20KPA                   0
-#define LIMS_40KPA                   1
-#define LIMS_100KPA                  2
-#define LIMS_200KPA                  3
+#define PRESSURE_RAW_DATA_CALC(x)  (x) > 8388608 ? \
+ (((x) - 16777216) / 8388608.0f * (-110)) : ((x) / 8388608.0f * (-110))
 
-#define LIMS_MEASUREMENT_RANG        2
-#define PRESSURE_RAW_DATA_CALC(x)      (x) > 8388608 ? (((x) - 16777216) / 8388608.0f) : ((x) / 8388608.0f)
-
-#if WF100D_MEASUREMENT_RANG ==  W100DP_100KPA
-#define PRESSURE_CALC_KPA(x)           (x) * 125 - 12.5
-#else
-#define PRESSURE_CALC_KPA(x)           (x) * 50 + 5
-#endif
-
-#define TEMP_CALC_CELSIUS(msb, lsb)    -1.2 + (msb) + (lsb) * 0.004
-
-#define LIMS_LOG_DEBUG               0
-
-#define LIMS_ABNORMAL_MAX_COUNT      10
-#define LIMS_LOG_COUNT_INTERVAL      100
-/*c
+/*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-static air_pressue_status_t s_air_pressure[AIR_PRESSURE_NUM] = {0};
-static uint16_t s_dev_abnormal_count[AIR_PRESSURE_NUM] = {0};
+static float s_temp[AIR_PRESSURE_NUM] = {0};
+static uint8_t s_temp_is_ready[AIR_PRESSURE_NUM] = {0};
 static uint8_t s_dev_is_ready[AIR_PRESSURE_NUM] = {0};
+static uint16_t s_dev_abnormal_count[AIR_PRESSURE_NUM] = {0};
 static uint16_t s_log_count = 0;
 
 /*
@@ -149,9 +136,10 @@ static int lims_read_nbyte_no_retry(uint8_t index, i2c_master_data_t *data)
     return BSP_ERROR;
 }
 
-static int air_pressure_start_conversion(uint8_t index)
+static int start_air_pressure_conversion(lims_conversion_data_type_e type)
 {
-    uint8_t reg_val = LIMS_SINGLE_CONVERSION;
+    uint8_t reg_val = (type == LIMS_PRESSURE_DATA) ? 
+            LIMS_1024X_PRESSURE_CONVERSION : LIMS_1024X_TEMP_CONVERSION;
     i2c_master_data_t air_pressure = {
         .dev_address = LIMS_I2C_ADDR,
         .data = &reg_val,
@@ -159,12 +147,17 @@ static int air_pressure_start_conversion(uint8_t index)
         .reg_addr = LIMS_CONVERSION_MODE_REG
     };
 
-    return lims_write_nbyte(index, &air_pressure); 
+    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
+        if (lims_write_nbyte(i, &air_pressure) != BSP_OK) {
+            return BSP_ERROR;
+        }
+    }
+    return BSP_OK;
 }
 
-static int wait_air_pressure_conversion_completed(uint8_t index)
+static int wait_conversion_completed(void)
 {
-    uint8_t reg_val = 0,  wait_timeout = 10;
+    uint8_t reg_val = 0,  wait_timeout = 0, index = 0;
     i2c_master_data_t air_pressure = {
         .dev_address = LIMS_I2C_ADDR,
         .data = &reg_val,
@@ -172,27 +165,38 @@ static int wait_air_pressure_conversion_completed(uint8_t index)
         .reg_addr = LIMS_STATUS_REG
     };
 
-    while(wait_timeout --) {
+    for (;;) {
         if (lims_read_nbyte_no_retry(index, &air_pressure) != BSP_OK) {
-            return BSP_ERROR;
+            return BSP_ERROR; /// 读取失败
         }
-
+        /// 转换完成
         if (reg_val == 1) {
-            return BSP_OK;
+            index++;
+            if (index >= AIR_PRESSURE_NUM) {
+                break; /// 所有设备都已读取完成
+            }
+            continue; /// 继续读取下一个设备
+        }
+        wait_timeout++;
+        if (wait_timeout > 10) {
+            return BSP_TIMEOUT; /// 等待超时
         }
         msleep(1);
     }
-    return BSP_TIMEOUT;
+    if (wait_timeout > 0) {
+        LOG_PBUS("wait conversion completed timeout: %d", wait_timeout);
+    }
+    return BSP_OK;
 }
 
 static int air_pressure_result_get(uint8_t index, air_pressue_status_t *out_status)
 {
-    uint8_t reg_data[5];
+    uint8_t reg_data[4];
     int32_t raw_data = 0;
     i2c_master_data_t air_pressure = {
         .dev_address = LIMS_I2C_ADDR,
         .data = reg_data,
-        .len  = 5,
+        .len  = 3,
         .reg_addr = LIMS_PRESSURE_MSB_REG
     };
 
@@ -201,10 +205,52 @@ static int air_pressure_result_get(uint8_t index, air_pressue_status_t *out_stat
         return ret;
     }
     raw_data = (int32_t)((((uint32_t)reg_data[0]) << 16) | (((uint32_t)reg_data[1]) << 8) | ((uint32_t)reg_data[2]));
-    out_status->pressure = PRESSURE_CALC_KPA(PRESSURE_RAW_DATA_CALC(raw_data));
-    out_status->temp = TEMP_CALC_CELSIUS(reg_data[3], reg_data[4]);
+    out_status->pressure = PRESSURE_RAW_DATA_CALC(raw_data);
+    out_status->temp = 0;
     out_status->raw_data = raw_data;
     return ret;
+}
+
+static float temperature_result_get(uint8_t index)
+{
+    uint8_t reg_data[4];
+    i2c_master_data_t air_pressure = {
+        .dev_address = LIMS_I2C_ADDR,
+        .data = reg_data,
+        .len  = 2,
+        .reg_addr = LIMS_TEMP_MSB_REG
+    };
+
+    if (lims_read_nbyte(index, &air_pressure) != BSP_OK) {
+        return 0;
+    }
+    
+    int16_t temp_raw_data = (int16_t)((reg_data[0] << 8) | reg_data[1]);
+    float temp = temp_raw_data > 0 ? (temp_raw_data / 128.0f) : ((temp_raw_data & 0x7FFF) / 128.0f - 256.0f);
+#if LIMS_LOG_DEBUG
+    PRINT_LOG("temp: %f, raw: %d\r\n", temp, temp_raw_data);
+#endif
+    return temp;
+}
+
+static int temperature_single_conversion(void)
+{
+    if (start_air_pressure_conversion(LIMS_TEMP_DATA) != BSP_OK) {
+        LOGE("start temperature conversion failed");
+        return BSP_ERROR;
+    }
+    msleep(LIMS_TEMP_CONVERSION_TIME);
+    if (wait_conversion_completed() != BSP_OK) {
+        LOGE("wait temperature conversion timeout");
+        return BSP_ERROR;
+    }
+
+    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
+        s_temp[i] = temperature_result_get(i);
+        s_temp_is_ready[i] = true;
+    } 
+    LOG_PBUS("temperature conversion success");
+    return BSP_OK;
 }
 
 static int air_pressure_is_ready(uint8_t index)
@@ -234,9 +280,6 @@ static int air_pressure_is_ready(uint8_t index)
 */
 int bsp_air_pressure_init(void)
 {
-    bsp_i2c_init(AIR_PRESSURE_I2C_ID1);
-    bsp_i2c_init(AIR_PRESSURE_I2C_ID2);
-    msleep(10);
     for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
         if (air_pressure_is_ready(i) != BSP_OK) {
             LOGE("air pressure is not ready: %d", i);
@@ -246,16 +289,22 @@ int bsp_air_pressure_init(void)
             s_dev_abnormal_count[i] = 0;
         }
     }
+
+    if (temperature_single_conversion() != BSP_OK) {
+        return BSP_ERROR;
+    }
+    start_air_pressure_conversion(LIMS_PRESSURE_DATA);
     LOG_PBUS("air pressure init success");
     return BSP_OK;
 }
 
 int bsp_air_pressure_deinit(void)
 {
-    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
-        s_dev_is_ready[i] = false;
-        s_dev_abnormal_count[i] = 0;
-    }
+    memset(s_temp, 0, sizeof(s_temp));
+    memset(s_temp_is_ready, 0, sizeof(s_temp_is_ready));
+    memset(s_dev_is_ready, 0, sizeof(s_dev_is_ready));
+    memset(s_dev_abnormal_count, 0, sizeof(s_dev_abnormal_count));
+    s_log_count = 0;
     return BSP_OK;
 }
 
@@ -265,22 +314,37 @@ int bsp_read_air_pressure_status(void *args)
 #if LIMS_LOG_DEBUG
     uint32_t start_time = get_timestamp();
 #endif
+#if 1
     memset(out_status, 0, sizeof(air_pressue_status_t) * AIR_PRESSURE_NUM);
+    /// 温度转换未完成，则进行单次转换
+    if (s_temp_is_ready[0] == 0 || s_temp_is_ready[1] == 0) {
+        if (temperature_single_conversion() != BSP_OK) {
+            LOGE("temperature single conversion failed");
+            return BSP_ERROR;
+        }
+        LOG_PBUS("start pressure conversion");
+        start_air_pressure_conversion(LIMS_PRESSURE_DATA); /// 重新开始压力转换
+        msleep(LIMS_PRESSURE_CONVERSION_TIME); /// 等待压力转换完成
+    }
+
+    /// 等待转换完成
+    if (wait_conversion_completed() != BSP_OK) {
+        start_air_pressure_conversion(LIMS_PRESSURE_DATA); /// 重新开始压力转换
+        return BSP_ERROR;
+    }
+
     for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
-        if (air_pressure_start_conversion(i) != BSP_OK) {
-            continue;
+        if (air_pressure_result_get(i, &out_status[i]) != BSP_OK) {
+            start_air_pressure_conversion(LIMS_PRESSURE_DATA); /// 重新开始压力转换
+            return BSP_ERROR;
         }
     }
-    msleep(4);
-    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
-        if (wait_air_pressure_conversion_completed(i) != BSP_OK) {
-            continue;
-        }
-        air_pressure_result_get(i, &out_status[i]);
-    }   
+#endif
+    start_air_pressure_conversion(LIMS_PRESSURE_DATA);
 #if LIMS_LOG_DEBUG
-    PRINT_LOG("time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
-        get_timestamp_ms(start_time), out_status[0].pressure, out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
+    PRINT_LOG("4 time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
+        get_timestamp_ms(start_time), out_status[0].pressure, 
+        out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
 #endif
     s_log_count++;
     return BSP_OK;
