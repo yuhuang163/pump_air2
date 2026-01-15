@@ -30,7 +30,7 @@ typedef enum {
 #define DEFAULT_PID_CODE    0x08
 #endif
 
-#if (ROOT_PRODUCT_ID == 0x09)
+#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
 #define ROOT_FW_NAME                                  "BREAST_PUMP_V3PRO"
 #define ROOT_DEVICE_NAME                              "V3PRO"
 #else
