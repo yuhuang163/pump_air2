@@ -12,11 +12,11 @@ extern "C" {
 #include "algo_fusion_os.h" // IWYU pragma: keep
 
 #ifndef ALGO_AIR_PRESSURE_NUM
-#define ALGO_AIR_PRESSURE_NUM 1
+#define ALGO_AIR_PRESSURE_NUM 2
 #endif
 
 typedef struct {
-    uint8_t coverage;         
+    uint8_t wear_status[2];   /// 0: 未佩戴 1: 正常佩戴
 } algo_fusion_result_t;
 
 typedef enum {
@@ -35,7 +35,7 @@ typedef struct {
 
 typedef struct {
     uint8_t data_type;
-    void *data;
+    float *data;
     uint32_t data_size;
 } algo_fusion_nv_data_t;
 

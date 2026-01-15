@@ -45,6 +45,11 @@ static void on_sensor_data_algo_cb(void *user_data, uint8_t *data, int data_len)
 static void algo_out_result_cb(algo_fusion_result_t *algo_result)
 {  
     EXCEPTION_CHECK_VOID(algo_result);
+    //LOG_ALGO("algo_out_result_cb: %d, %d", algo_result->wear_status[0], algo_result->wear_status[1]);
+    algo_manager_context_t *ctx = s_algo_ctx;
+    EXCEPTION_CHECK_VOID(ctx);
+    ctx->priv.wear_detection_algo_data.wear_detection_result[0] = algo_result->wear_status[0];
+    ctx->priv.wear_detection_algo_data.wear_detection_result[1] = algo_result->wear_status[1];
 }
 
 static void set_sensor_attr_cb(algo_fusion_sensor_attr_cfg_t *attr)

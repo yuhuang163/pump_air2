@@ -13,81 +13,21 @@
 修改内容：
 ******************************************************************************************************************/
 #include "v3_wear_detection.h"
-#include <stdlib.h>
-
-
-// structures
-
-typedef struct _DEVICE_INFO
-{
-	unsigned short	uMode;
-	unsigned short	uLevel;
-}SDEVICE_INFO;
-
-typedef struct _PV_INFO
-{
-	unsigned short	uType;
-	unsigned int	uPos;
-	float			fValue;
-}SPV_INFO;
-
-typedef struct _WAVE_INFO
-{
-	unsigned short	uType;
-	unsigned int	uPos;
-	float			fValue;
-	float			fLeftAmp; 
-	float			fRightAmp;
-	unsigned int	uwidth;
-}SWAVE_INFO;
-
-
-typedef struct _FEATURE_INFO_
-{
-	unsigned int	uPVIndex; 
-	unsigned int	uWaveSpikes;
-	float			fMinData;
-	unsigned int	uNoiseLevel;
-	unsigned int	uDataIdx;		// data index
-	unsigned short	uUpdateFlag;
-	float			fThreshold;
-	unsigned short	uWearStatus;	// result
-	unsigned short	uPrevWearStatus;
-	unsigned int	uNormalWaveform;
-}SFEATURE_INFO;
-
-typedef struct _DATA_BUFFER_
-{
-	float			fDataBuff[WIN_SIZE];
-	float			fDataMax;
-	float			fDataMin;
-	unsigned int	uCurrPos;		// current pos
-	unsigned short  uFirstTime;
-}SDATA_BUFFER;
-
-
-typedef struct _FILTER_INFO_
-{
-	float			fFc;
-	float			fDT;
-	float			fRC;
-	float			fAlpha;
-	float			fYpre;
-	unsigned short	uInitState;
-}SFILTER_INFO;
-
+//#include <math.h>
 
 // global data
-SDATA_BUFFER		tDataBuffer;
-SPV_INFO			tPVInfo[100];
-SWAVE_INFO			tWaveInfo[100];
-SFEATURE_INFO		tFeatureInfo;
-SDEVICE_INFO		tDeviceInfo;
-SFILTER_INFO		tFilterInfo;
+SDATA_BUFFER		tDataBuffer[2];
+SPV_INFO			tPVInfo[2];
+SWAVE_INFO			tWaveInfo[2];
+SFEATURE_INFO		tFeatureInfo[2];
+SDEVICE_INFO		tDeviceInfo[2];
+SFILTER_INFO		tFilterInfo[2];
+
 // Thresholds for each mode and level
 float EXPRESSION_THRESHOLD[] = {-12.06, -12.465, -13.655, -15.77, -16.815, -18.39, -22.165, -26.885, -32.46, -36.585, -39.84, -42.305, -44.645, -46.74, -48.83};
 float STIMULATION_THRESHOLD[] = { -3, -4, -4, -8, -10, -5, -5, -5, -6, -10, -15, -16, -18, -20, -23 };
 float MIXED_THRESHOLD[] = {-12.01, -12.45, -13.785, -15.75, -17.04, -18.375, -22.52, -27.19, -32.69,-36.795, -40.145, -42.725, -45.32, -47.04, -48.93};
+
 
 /*************************************************************************************************************************************************
 * 函数名称：V3WearDetectionInit
@@ -99,62 +39,136 @@ float MIXED_THRESHOLD[] = {-12.01, -12.45, -13.785, -15.75, -17.04, -18.375, -22
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void V3WearDetectionInit(unsigned int level, unsigned int mode)
+void V3WearDetectionInit(unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight)
 {
-	
+	// Device info
+	tDeviceInfo[CHANNEL_0].uMode = uModeLeft;
+	tDeviceInfo[CHANNEL_0].uLevel = uLevelLeft;
+	tDeviceInfo[CHANNEL_1].uMode = uModeRight;
+	tDeviceInfo[CHANNEL_1].uLevel = ulevelRight;
+
+	for (int j = 0; j < CHANNEL_NUM; j++)
+	{
+		// pv info
+		for (int i = 0; i < 100; i++)
+		{
+			// PVInfo initiation
+			tPVInfo[j].uPos[i] = 0;
+			tPVInfo[j].fValue[i] = 0;
+			tPVInfo[j].uType[i] = 0;
+			// WaveInfo initiation
+			tWaveInfo[j].fLeftAmp[i] = 0;
+			tWaveInfo[j].fRightAmp[i] = 0;
+			tWaveInfo[j].fValue[i] = 0;
+			tWaveInfo[j].uPos[i] = 0;
+			tWaveInfo[j].uType[i] = 0;
+			tWaveInfo[j].uwidth[i] = 0;
+
+		}
+		// data buffer
+		for (int i = 0; i < WIN_SIZE; i++)
+		{
+			tDataBuffer[j].fDataBuff[i] = 0;
+			tDataBuffer[j].uCurrPos = 0;
+		}
+		tDataBuffer[j].fDataMax = -1;
+		tDataBuffer[j].fDataMin = 0;
+		tDataBuffer[j].uFirstTime = 1;
+
+		// features
+		tFeatureInfo[j].uUpdateFlag = 0;
+		tFeatureInfo[j].fMinData = 0;
+		tFeatureInfo[j].uNoiseLevel = 0;
+		tFeatureInfo[j].uWaveSpikes = 0;
+		tFeatureInfo[j].uPVIndex = 0;
+		tFeatureInfo[j].uWearStatus = 0;
+		tFeatureInfo[j].uNormalWaveform = 0;
+
+		switch (tDeviceInfo[j].uMode)
+		{
+		case MODE_EXPRESSION:
+			tFeatureInfo[j].fThreshold = EXPRESSION_THRESHOLD[tDeviceInfo[j].uLevel - 1];
+		case MODE_MIXED:
+			tFeatureInfo[j].fThreshold = MIXED_THRESHOLD[tDeviceInfo[j].uLevel - 1];
+		case MODE_STIMULATION:
+			tFeatureInfo[j].fThreshold = STIMULATION_THRESHOLD[tDeviceInfo[j].uLevel - 1];
+		}
+		// filter info
+		tFilterInfo[j].fFc = 3.0;
+		tFilterInfo[j].fDT = 1.0 / SAMPLE_RATE;
+		tFilterInfo[j].fRC = 1.0 / (2.0 * 3.1415926 * tFilterInfo[j].fFc);
+		tFilterInfo[j].fAlpha = tFilterInfo[j].fDT / (tFilterInfo[j].fRC + tFilterInfo[j].fDT);
+		tFilterInfo[j].fYpre = 0.0;
+		tFilterInfo[j].uInitState = 0;
+	}
+
+}
+
+
+/*************************************************************************************************************************************************
+* 函数名称：V3WearDetectionModeReset
+* 作    者：sahar.hu
+* 创建日期：2025.01.19
+* 功能说明：初始化
+* 输入参数：无
+* 输出参数：无
+* 返 回 值：无
+*************************************************************************************************************************************************
+*/
+void V3WearDetectionModeReset(unsigned char uLevel, unsigned char uMode, unsigned int uChannelIdx)
+{
 	for (int i = 0; i < 100; i++)
 	{
 		// PVInfo initiation
-		tPVInfo[i].uPos			= 0;
-		tPVInfo[i].fValue		= 0;
-		tPVInfo[i].uType		= 0;
+		tPVInfo[uChannelIdx].uPos[i] = 0;
+		tPVInfo[uChannelIdx].fValue[i] = 0;
+		tPVInfo[uChannelIdx].uType[i] = 0;
 		// WaveInfo initiation
-		tWaveInfo[i].fLeftAmp	= 0;
-		tWaveInfo[i].fRightAmp	= 0;
-		tWaveInfo[i].fValue		= 0;
-		tWaveInfo[i].uPos		= 0;
-		tWaveInfo[i].uType		= 0;
-		tWaveInfo[i].uwidth		= 0;
+		tWaveInfo[uChannelIdx].fLeftAmp[i] = 0;
+		tWaveInfo[uChannelIdx].fRightAmp[i] = 0;
+		tWaveInfo[uChannelIdx].fValue[i] = 0;
+		tWaveInfo[uChannelIdx].uPos[i] = 0;
+		tWaveInfo[uChannelIdx].uType[i] = 0;
+		tWaveInfo[uChannelIdx].uwidth[i] = 0;
 
 	}
 	// data buffer
 	for (int i = 0; i < WIN_SIZE; i++)
 	{
-		tDataBuffer.fDataBuff[i]= 0;
-		tDataBuffer.uCurrPos	= 0;
+		tDataBuffer[uChannelIdx].fDataBuff[i] = 0;
 	}
-	tDataBuffer.fDataMax = -1;
-	tDataBuffer.fDataMin = 0;
-	tDataBuffer.uFirstTime = 1;
+	tDataBuffer[uChannelIdx].uCurrPos = 0;
+	tDataBuffer[uChannelIdx].fDataMax = -1;
+	tDataBuffer[uChannelIdx].fDataMin = 0;
+	tDataBuffer[uChannelIdx].uFirstTime = 1;
 
 	// features
-	tFeatureInfo.uUpdateFlag	= 0;
-	tFeatureInfo.fMinData		= 0;
-	tFeatureInfo.uNoiseLevel	= 0;
-	tFeatureInfo.uWaveSpikes	= 0;
-	tFeatureInfo.uPVIndex		= 0;
-	tFeatureInfo.uWearStatus	= 0;
-	tFeatureInfo.uNormalWaveform = 0;
+	tFeatureInfo[uChannelIdx].uUpdateFlag = 0;
+	tFeatureInfo[uChannelIdx].fMinData = 0;
+	tFeatureInfo[uChannelIdx].uNoiseLevel = 0;
+	tFeatureInfo[uChannelIdx].uWaveSpikes = 0;
+	tFeatureInfo[uChannelIdx].uPVIndex = 0;
+	tFeatureInfo[uChannelIdx].uWearStatus = 0;
+	tFeatureInfo[uChannelIdx].uNormalWaveform = 0;
 	// Device info
-	tDeviceInfo.uMode = mode;
-	tDeviceInfo.uLevel = level;
-	switch (mode)
+	tDeviceInfo[uChannelIdx].uMode = uMode;
+	tDeviceInfo[uChannelIdx].uLevel = uLevel;
+	switch (uMode)
 	{
-		case MODE_EXPRESSION:
-			tFeatureInfo.fThreshold = EXPRESSION_THRESHOLD[level-1];
-		case MODE_MIXED:
-			tFeatureInfo.fThreshold = MIXED_THRESHOLD[level-1];
-		case MODE_STIMULATION:
-			tFeatureInfo.fThreshold = STIMULATION_THRESHOLD[level-1];
+	case MODE_EXPRESSION:
+		tFeatureInfo[uChannelIdx].fThreshold = EXPRESSION_THRESHOLD[uLevel - 1];
+	case MODE_MIXED:
+		tFeatureInfo[uChannelIdx].fThreshold = MIXED_THRESHOLD[uLevel - 1];
+	case MODE_STIMULATION:
+		tFeatureInfo[uChannelIdx].fThreshold = STIMULATION_THRESHOLD[uLevel - 1];
 	}
-	
 	// filter info
-	tFilterInfo.fFc = 3.0;
-	tFilterInfo.fDT = 1.0/ SAMPLE_RATE;
-	tFilterInfo.fRC = 1.0/(2.0*3.1415926*tFilterInfo.fFc);
-	tFilterInfo.fAlpha = tFilterInfo.fDT / (tFilterInfo.fRC + tFilterInfo.fDT);
-	tFilterInfo.fYpre = 0.0;
-	tFilterInfo.uInitState = 0;
+	tFilterInfo[uChannelIdx].fFc = 3.0;
+	tFilterInfo[uChannelIdx].fDT = 1.0 / SAMPLE_RATE;
+	tFilterInfo[uChannelIdx].fRC = 1.0 / (2.0 * 3.1415926 * tFilterInfo[uChannelIdx].fFc);
+	tFilterInfo[uChannelIdx].fAlpha = tFilterInfo[uChannelIdx].fDT / (tFilterInfo[uChannelIdx].fRC + tFilterInfo[uChannelIdx].fDT);
+	tFilterInfo[uChannelIdx].fYpre = 0.0;
+	tFilterInfo[uChannelIdx].uInitState = 0;
 }
 
 
@@ -221,20 +235,21 @@ unsigned int BufferCircleRelativeIndexrCircle(unsigned int uPos, unsigned int uI
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-float FilterPreprocess(float fInputData)
+float FilterPreprocess(float fInputData, SFILTER_INFO *tFilterInfoTemp)
 {
 	// low pass filter
 	float filtered_data = 0.0;
-	if (tFilterInfo.uInitState == 0)
+	if (tFilterInfoTemp->uInitState == 0)
 	{
-		tFilterInfo.fYpre = fInputData;
-		tFilterInfo.uInitState = 1;
+		tFilterInfoTemp->fYpre = fInputData;
+		tFilterInfoTemp->uInitState = 1;
 		return fInputData;
 	}
-	filtered_data = tFilterInfo.fYpre + tFilterInfo.fAlpha * (fInputData - tFilterInfo.fYpre);
-	tFilterInfo.fYpre = filtered_data;
+	filtered_data = tFilterInfoTemp->fYpre + tFilterInfoTemp->fAlpha * (fInputData - tFilterInfoTemp->fYpre);
+	tFilterInfoTemp->fYpre = filtered_data;
 	return filtered_data;
 }
+
 
 /*************************************************************************************************************************************************
 * 函数名称：PressureDataPreprocess
@@ -246,31 +261,33 @@ float FilterPreprocess(float fInputData)
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void PressureDataPreprocess(float fInputData)
+void PressureDataPreprocess(float fPumpData, SFILTER_INFO *tFilterInfoTemp, SDATA_BUFFER *tDataBufferTemp, SFEATURE_INFO *tFeatureInfoTemp)
 {
 	float filtered_data = 0.0;
-	filtered_data = FilterPreprocess(fInputData);
-	tDataBuffer.fDataBuff[tDataBuffer.uCurrPos] = filtered_data;
-	if (tFeatureInfo.uDataIdx == SAMPLE_RATE-1)
+	filtered_data = FilterPreprocess(fPumpData, tFilterInfoTemp);
+
+	tDataBufferTemp->fDataBuff[tDataBufferTemp->uCurrPos] = filtered_data;
+	if (tFeatureInfoTemp->uDataIdx == SAMPLE_RATE - 1)
 	{
-		tDataBuffer.fDataMax = -1;
-		tDataBuffer.fDataMin = 0;
+		tDataBufferTemp->fDataMax = -1;
+		tDataBufferTemp->fDataMin = 0;
 
-		tFeatureInfo.fMinData = 0;
-		tFeatureInfo.uNoiseLevel = 0;
-		tFeatureInfo.uWaveSpikes = 0;
-		tFeatureInfo.uDataIdx = 0;
-		tFeatureInfo.uUpdateFlag = 1;
+		tFeatureInfoTemp->fMinData = 0;
+		tFeatureInfoTemp->uNoiseLevel = 0;
+		tFeatureInfoTemp->uWaveSpikes = 0;
+		tFeatureInfoTemp->uDataIdx = 0;
+		tFeatureInfoTemp->uUpdateFlag = 1;
 
-		tFeatureInfo.uNormalWaveform = 0;
+		tFeatureInfoTemp->uNormalWaveform = 0;
 	}
 	else
 	{
-		tFeatureInfo.uDataIdx ++;
-		tFeatureInfo.uUpdateFlag = 0;	
+		tFeatureInfoTemp->uDataIdx ++;
+		tFeatureInfoTemp->uUpdateFlag = 0;
 	}
 
 }
+
 
 /*************************************************************************************************************************************************
 * 函数名称：PeakValleyAnalysis
@@ -282,97 +299,99 @@ void PressureDataPreprocess(float fInputData)
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void PeakValleyAnalysis()
+void PeakValleyAnalysis(SPV_INFO* tPVInfoTemp, SWAVE_INFO* tWaveInfoTemp, SDATA_BUFFER* tDataBufferTemp, SFEATURE_INFO* tFeatureInfoTemp)
 { 
-	if (tFeatureInfo.uUpdateFlag == 1)
+	if (tFeatureInfoTemp->uUpdateFlag == 1)
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			tPVInfo[j].fValue = 0;
-			tPVInfo[j].uPos = 0;
-			tPVInfo[j].uType = 0;
-			tWaveInfo[j].fLeftAmp = 0;
-			tWaveInfo[j].fRightAmp = 0;
-			tWaveInfo[j].fValue = 0;
-			tWaveInfo[j].uPos = 0;
-			tWaveInfo[j].uType = 0;
-			tWaveInfo[j].uwidth = 0;
+			tPVInfoTemp->fValue[j] = 0;
+			tPVInfoTemp->uPos[j] = 0;
+			tPVInfoTemp->uType[j] = 0;
+			tWaveInfoTemp->fLeftAmp[j] = 0;
+			tWaveInfoTemp->fRightAmp[j] = 0;
+			tWaveInfoTemp->fValue[j] = 0;
+			tWaveInfoTemp->uPos[j] = 0;
+			tWaveInfoTemp->uType[j] = 0;
+			tWaveInfoTemp->uwidth[j] = 0;
 
 		}
-		tFeatureInfo.uPVIndex = 0;
-		if (tDataBuffer.fDataMax < tDataBuffer.fDataBuff[0])
+		tFeatureInfoTemp->uPVIndex = 0;
+		if (tDataBufferTemp->fDataMax < tDataBufferTemp->fDataBuff[0])
 		{
-			tDataBuffer.fDataMax = tDataBuffer.fDataBuff[0];
+			tDataBufferTemp->fDataMax = tDataBufferTemp->fDataBuff[0];
 		}
-		if (tDataBuffer.fDataMin > tDataBuffer.fDataBuff[0])
+		if (tDataBufferTemp->fDataMin > tDataBufferTemp->fDataBuff[0])
 		{
-			tDataBuffer.fDataMin = tDataBuffer.fDataBuff[0];
+			tDataBufferTemp->fDataMin = tDataBufferTemp->fDataBuff[0];
 		}
 		for (int i = 1; i < WIN_SIZE - 1; i++)
 		{
-			if (tDataBuffer.fDataMax < tDataBuffer.fDataBuff[i])
+			if (tDataBufferTemp->fDataMax < tDataBufferTemp->fDataBuff[i])
 			{
-				tDataBuffer.fDataMax = tDataBuffer.fDataBuff[i];
+				tDataBufferTemp->fDataMax = tDataBufferTemp->fDataBuff[i];
 			}
-			if (tDataBuffer.fDataMin > tDataBuffer.fDataBuff[i])
+			if (tDataBufferTemp->fDataMin > tDataBufferTemp->fDataBuff[i])
 			{
-				tDataBuffer.fDataMin = tDataBuffer.fDataBuff[i];
+				tDataBufferTemp->fDataMin = tDataBufferTemp->fDataBuff[i];
 			}
-			unsigned int uTempCurrPos = BufferCircleRelativeIndexrCircle(tDataBuffer.uCurrPos, i, WIN_SIZE, tDataBuffer.uFirstTime);
-			unsigned int uTempNextPos = BufferCircleRelativeIndexrCircle(tDataBuffer.uCurrPos, i + 1, WIN_SIZE, tDataBuffer.uFirstTime);
-			unsigned int uTempPrevPos = BufferCircleRelativeIndexrCircle(tDataBuffer.uCurrPos, i - 1, WIN_SIZE, tDataBuffer.uFirstTime);
+			unsigned int uTempCurrPos = BufferCircleRelativeIndexrCircle(tDataBufferTemp->uCurrPos, i, WIN_SIZE, tDataBufferTemp->uFirstTime);
+			unsigned int uTempNextPos = BufferCircleRelativeIndexrCircle(tDataBufferTemp->uCurrPos, i + 1, WIN_SIZE, tDataBufferTemp->uFirstTime);
+			unsigned int uTempPrevPos = BufferCircleRelativeIndexrCircle(tDataBufferTemp->uCurrPos, i - 1, WIN_SIZE, tDataBufferTemp->uFirstTime);
 
 			//printf("i: %d, currPos: %d, prev: %d, curr: %d, next: %d\n", i, tDataBuffer.uCurrPos, uTempPrevPos, uTempCurrPos, uTempNextPos);
-			//printf("i: %d: %f\n", i, tDataBuffer.fDataBuff[uTempCurrPos]);
+			//printf("i: %d: %f %d\n", i, tDataBufferTemp->fDataBuff[uTempCurrPos], tDataBufferTemp->uCurrPos);
 		
 			// peak
-			if ((tDataBuffer.fDataBuff[uTempPrevPos] <= tDataBuffer.fDataBuff[uTempCurrPos] && tDataBuffer.fDataBuff[uTempCurrPos] > tDataBuffer.fDataBuff[uTempNextPos]) || 
-			(tDataBuffer.fDataBuff[uTempPrevPos] < tDataBuffer.fDataBuff[uTempCurrPos] && tDataBuffer.fDataBuff[uTempCurrPos] >= tDataBuffer.fDataBuff[uTempNextPos]))
+			if ((tDataBufferTemp->fDataBuff[uTempPrevPos] <= tDataBufferTemp->fDataBuff[uTempCurrPos] && tDataBufferTemp->fDataBuff[uTempCurrPos] > tDataBufferTemp->fDataBuff[uTempNextPos]) ||
+			(tDataBufferTemp->fDataBuff[uTempPrevPos] < tDataBufferTemp->fDataBuff[uTempCurrPos] && tDataBufferTemp->fDataBuff[uTempCurrPos] >= tDataBufferTemp->fDataBuff[uTempNextPos]))
 			{
 				// combine with the previous PV if it's flat
-				if (tFeatureInfo.uPVIndex >= 1)
+				if (tFeatureInfoTemp->uPVIndex >= 1)
 				{
-					if (tPVInfo[tFeatureInfo.uPVIndex - 1].fValue == tDataBuffer.fDataBuff[uTempCurrPos] && tPVInfo[tFeatureInfo.uPVIndex - 1].uType == 1)
+					if (tPVInfoTemp->fValue[tFeatureInfoTemp->uPVIndex - 1] == tDataBufferTemp->fDataBuff[uTempCurrPos] && tPVInfoTemp->uType[tFeatureInfoTemp->uPVIndex - 1] == 1)
 					{
-						tFeatureInfo.uPVIndex -= 1;
+						tFeatureInfoTemp->uPVIndex -= 1;
 					}
 				}
 				// update PVInfo
-				tPVInfo[tFeatureInfo.uPVIndex].uPos = i;
-				tPVInfo[tFeatureInfo.uPVIndex].fValue = tDataBuffer.fDataBuff[uTempCurrPos];
-				tPVInfo[tFeatureInfo.uPVIndex].uType = 1;
-				tFeatureInfo.uPVIndex ++;
+				tPVInfoTemp->uPos[tFeatureInfoTemp->uPVIndex] = i;
+				tPVInfoTemp->fValue[tFeatureInfoTemp->uPVIndex] = tDataBufferTemp->fDataBuff[uTempCurrPos];
+				tPVInfoTemp->uType[tFeatureInfoTemp->uPVIndex] = 1;
+				tFeatureInfoTemp->uPVIndex ++;
 			}
 
 			// valley
-			if ((tDataBuffer.fDataBuff[uTempPrevPos] >= tDataBuffer.fDataBuff[uTempCurrPos] && tDataBuffer.fDataBuff[uTempCurrPos] < tDataBuffer.fDataBuff[uTempNextPos]) ||
-				(tDataBuffer.fDataBuff[uTempPrevPos] > tDataBuffer.fDataBuff[uTempCurrPos] && tDataBuffer.fDataBuff[uTempCurrPos] <= tDataBuffer.fDataBuff[uTempNextPos]))
+			if ((tDataBufferTemp->fDataBuff[uTempPrevPos] >= tDataBufferTemp->fDataBuff[uTempCurrPos] && tDataBufferTemp->fDataBuff[uTempCurrPos] < tDataBufferTemp->fDataBuff[uTempNextPos]) ||
+				(tDataBufferTemp->fDataBuff[uTempPrevPos] > tDataBufferTemp->fDataBuff[uTempCurrPos] && tDataBufferTemp->fDataBuff[uTempCurrPos] <= tDataBufferTemp->fDataBuff[uTempNextPos]))
 			{
 				// combine with the previous PV if it's flat
-				if (tFeatureInfo.uPVIndex >= 1)
+				if (tFeatureInfoTemp->uPVIndex >= 1)
 				{
-					if (tPVInfo[tFeatureInfo.uPVIndex - 1].fValue == tDataBuffer.fDataBuff[uTempCurrPos] && tPVInfo[tFeatureInfo.uPVIndex - 1].uType == 0)
+					if (tPVInfoTemp->fValue[tFeatureInfoTemp->uPVIndex - 1] == tDataBufferTemp->fDataBuff[uTempCurrPos] && tPVInfoTemp->uType[tFeatureInfoTemp->uPVIndex - 1] == 0)
 					{
-						tFeatureInfo.uPVIndex -= 1;
+						tFeatureInfoTemp->uPVIndex -= 1;
 					}
 				}
 				// update PVInfo
-				tPVInfo[tFeatureInfo.uPVIndex].uPos = i;
-				tPVInfo[tFeatureInfo.uPVIndex].fValue = tDataBuffer.fDataBuff[uTempCurrPos];
-				tPVInfo[tFeatureInfo.uPVIndex].uType = 0;
-				tFeatureInfo.uPVIndex++;
+				tPVInfoTemp->uPos[tFeatureInfoTemp->uPVIndex] = i;
+				tPVInfoTemp->fValue[tFeatureInfoTemp->uPVIndex] = tDataBufferTemp->fDataBuff[uTempCurrPos];
+				tPVInfoTemp->uType[tFeatureInfoTemp->uPVIndex] = 0;
+				tFeatureInfoTemp->uPVIndex++;
 			}
 		}
 		// update the buffer status
-		if (tDataBuffer.uFirstTime == 1 && tDataBuffer.uCurrPos == 89)
+		if (tDataBufferTemp->uFirstTime == 1 && tDataBufferTemp->uCurrPos == 89)
 		{
-			tDataBuffer.uFirstTime = 0;
+			tDataBufferTemp->uFirstTime = 0;
 		}
 		// update the max and min data
-		if ((tDataBuffer.fDataMax - tDataBuffer.fDataMin) < 5)
-			tFeatureInfo.uNoiseLevel += 1;
+		if ((tDataBufferTemp->fDataMax - tDataBufferTemp->fDataMin) < 5)
+			tFeatureInfoTemp->uNoiseLevel += 1;
 	}
 }
+
+
 /*************************************************************************************************************************************************
 * 函数名称：PressureDataFeature
 * 作    者：sahar.hu
@@ -383,70 +402,70 @@ void PeakValleyAnalysis()
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void PressureDataFeature()
+void PressureDataFeature(SPV_INFO *tPVInfoTemp, SWAVE_INFO * tWaveInfoTemp, SDATA_BUFFER* tDataBufferTemp, SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO *tDeviceInfoTemp)
 {
 	// peak and valley
-	PeakValleyAnalysis();
+	PeakValleyAnalysis(tPVInfoTemp, tWaveInfoTemp, tDataBufferTemp, tFeatureInfoTemp);
 	// wave analysis
 	unsigned int uWaveIndex = 0;
-	if (tFeatureInfo.uUpdateFlag == 1) 
+	if (tFeatureInfoTemp->uUpdateFlag == 1)
 	{
-		if (tFeatureInfo.uPVIndex >= 2)
+		if (tFeatureInfoTemp->uPVIndex >= 2)
 		{
 			// check the peak/valley starting at the first PV
 			unsigned int i = 0;
-			if (tPVInfo[i].uType == 0 && tPVInfo[i + 1].uType == 1)
+			if (tPVInfoTemp->uType[i] == 0 && tPVInfoTemp->uType[i + 1] == 1)
 			{
-				tWaveInfo[uWaveIndex].uPos = tPVInfo[i].uPos;
-				tWaveInfo[uWaveIndex].fValue = tPVInfo[i].fValue;
-				tWaveInfo[uWaveIndex].uwidth = tPVInfo[i+1].uPos;		// it starts at "0"
-				tWaveInfo[uWaveIndex].uType = 0;
-				tWaveInfo[uWaveIndex].fRightAmp = tPVInfo[i + 1].fValue - tPVInfo[i].fValue;
-				tWaveInfo[uWaveIndex].fLeftAmp = fabs(tPVInfo[i].fValue);
-				if (tFeatureInfo.fMinData > tWaveInfo[uWaveIndex].fValue)
+				tWaveInfoTemp->uPos[uWaveIndex] = tPVInfoTemp->uPos[i];
+				tWaveInfoTemp->fValue[uWaveIndex] = tPVInfoTemp->fValue[i];
+				tWaveInfoTemp->uwidth[uWaveIndex] = tPVInfoTemp->uPos[i+1];		// it starts at "0"
+				tWaveInfoTemp->uType[uWaveIndex] = 0;
+				tWaveInfoTemp->fRightAmp[uWaveIndex] = tPVInfoTemp->fValue[i + 1] - tPVInfoTemp->fValue[i];
+				tWaveInfoTemp->fLeftAmp[uWaveIndex] = fabs(tPVInfoTemp->fValue[i]);
+				if (tFeatureInfoTemp->fMinData > tWaveInfoTemp->fValue[uWaveIndex])
 				{
-					tFeatureInfo.fMinData = tWaveInfo[uWaveIndex].fValue;
+					tFeatureInfoTemp->fMinData = tWaveInfoTemp->fValue[uWaveIndex];
 				}
 				uWaveIndex += 1;
 			}
-			else if (tPVInfo[i].uType == 1 && tPVInfo[i + 1].uType == 0)
+			else if (tPVInfoTemp->uType[i] == 1 && tPVInfoTemp->uType[i + 1] == 0)
 			{
-				tWaveInfo[uWaveIndex].uPos = tPVInfo[i].uPos;
-				tWaveInfo[uWaveIndex].fValue = tPVInfo[i].fValue;
-				tWaveInfo[uWaveIndex].uwidth = tPVInfo[i + 1].uPos;		// it starts at "0"
-				tWaveInfo[uWaveIndex].uType = 1;
-				tWaveInfo[uWaveIndex].fRightAmp = tPVInfo[i].fValue - tPVInfo[i + 1].fValue;
-				tWaveInfo[uWaveIndex].fLeftAmp = fabs(tPVInfo[i].fValue);
+				tWaveInfoTemp->uPos[uWaveIndex] = tPVInfoTemp->uPos[i];
+				tWaveInfoTemp->fValue[uWaveIndex] = tPVInfoTemp->fValue[i];
+				tWaveInfoTemp->uwidth[uWaveIndex] = tPVInfoTemp->uPos[i + 1];		// it starts at "0"
+				tWaveInfoTemp->uType[uWaveIndex] = 1;
+				tWaveInfoTemp->fRightAmp[uWaveIndex] = tPVInfoTemp->fValue[i] - tPVInfoTemp->fValue[i + 1];
+				tWaveInfoTemp->fLeftAmp[uWaveIndex] = fabs(tPVInfoTemp->fValue[i]);
 				uWaveIndex += 1;
 			}
-			if (tFeatureInfo.uPVIndex >= 3)
+			if (tFeatureInfoTemp->uPVIndex >= 3)
 			{
-				for (i = 1; i < tFeatureInfo.uPVIndex - 1; i++)
+				for (i = 1; i < tFeatureInfoTemp->uPVIndex - 1; i++)
 				{
 					// check a valley wave
-					if (tPVInfo[i - 1].uType == 1 && tPVInfo[i].uType == 0 && tPVInfo[i + 1].uType == 1)
+					if (tPVInfoTemp->uType[i - 1] == 1 && tPVInfoTemp->uType[i] == 0 && tPVInfoTemp->uType[i + 1] == 1)
 					{
-						tWaveInfo[uWaveIndex].uPos = tPVInfo[i].uPos;
-						tWaveInfo[uWaveIndex].fValue = tPVInfo[i].fValue;
-						tWaveInfo[uWaveIndex].uwidth = tPVInfo[i + 1].uPos - tPVInfo[i - 1].uPos;
-						tWaveInfo[uWaveIndex].uType = 0;
-						tWaveInfo[uWaveIndex].fRightAmp = tPVInfo[i + 1].fValue - tPVInfo[i].fValue;
-						tWaveInfo[uWaveIndex].fLeftAmp = tPVInfo[i - 1].fValue - tPVInfo[i].fValue;
-						if (tFeatureInfo.fMinData > tWaveInfo[uWaveIndex].fValue)
+						tWaveInfoTemp->uPos[uWaveIndex] = tPVInfoTemp->uPos[i];
+						tWaveInfoTemp->fValue[uWaveIndex] = tPVInfoTemp->fValue[i];
+						tWaveInfoTemp->uwidth[uWaveIndex] = tPVInfoTemp->uPos[i + 1] - tPVInfoTemp->uPos[i - 1];
+						tWaveInfoTemp->uType[uWaveIndex] = 0;
+						tWaveInfoTemp->fRightAmp[uWaveIndex] = tPVInfoTemp->fValue[i + 1] - tPVInfoTemp->fValue[i];
+						tWaveInfoTemp->fLeftAmp[uWaveIndex] = tPVInfoTemp->fValue[i - 1] - tPVInfoTemp->fValue[i];
+						if (tFeatureInfoTemp->fMinData > tWaveInfoTemp->fValue[uWaveIndex])
 						{
-							tFeatureInfo.fMinData = tWaveInfo[uWaveIndex].fValue;
+							tFeatureInfoTemp->fMinData = tWaveInfoTemp->fValue[uWaveIndex];
 						}
 						uWaveIndex += 1;
 					}
 					// check a peak wave
-					if (tPVInfo[i - 1].uType == 0 && tPVInfo[i].uType == 1 && tPVInfo[i + 1].uType == 0)
+					if (tPVInfoTemp->uType[i - 1] == 0 && tPVInfoTemp->uType[i] == 1 && tPVInfoTemp->uType[i + 1] == 0)
 					{
-						tWaveInfo[uWaveIndex].uPos = tPVInfo[i].uPos;
-						tWaveInfo[uWaveIndex].fValue = tPVInfo[i].fValue;
-						tWaveInfo[uWaveIndex].uwidth = tPVInfo[i + 1].uPos - tPVInfo[i - 1].uPos;
-						tWaveInfo[uWaveIndex].uType = 1;
-						tWaveInfo[uWaveIndex].fRightAmp = tPVInfo[i].fValue - tPVInfo[i + 1].fValue;
-						tWaveInfo[uWaveIndex].fLeftAmp = tPVInfo[i].fValue - tPVInfo[i - 1].fValue;
+						tWaveInfoTemp->uPos[uWaveIndex] = tPVInfoTemp->uPos[i];
+						tWaveInfoTemp->fValue[uWaveIndex] = tPVInfoTemp->fValue[i];
+						tWaveInfoTemp->uwidth[uWaveIndex] = tPVInfoTemp->uPos[i+1] - tPVInfoTemp->uPos[i - 1];
+						tWaveInfoTemp->uType[uWaveIndex] = 1;
+						tWaveInfoTemp->fRightAmp[uWaveIndex] = tPVInfoTemp->fValue[i] - tPVInfoTemp->fValue[i + 1];
+						tWaveInfoTemp->fLeftAmp[uWaveIndex] = tPVInfoTemp->fValue[i] - tPVInfoTemp->fValue[i - 1];
 						uWaveIndex += 1;
 					}
 				}
@@ -455,25 +474,26 @@ void PressureDataFeature()
 		// check wave spikes
 		for (unsigned int i = 0; i < uWaveIndex; i++)
 		{
-			if (tWaveInfo[i].uType == 1 && fabs(tWaveInfo[i].fLeftAmp - tWaveInfo[i].fRightAmp) > 2 && fabs(tWaveInfo[i].fLeftAmp) > .1 && fabs(tWaveInfo[i].fRightAmp) > .1 && 
-			( (2 <= tWaveInfo[i].uwidth && tWaveInfo[i].uwidth <= 15 && tFeatureInfo.fThreshold < tWaveInfo[i].fValue && tWaveInfo[i].fValue < -.1) || 
-			(15 <= tWaveInfo[i].uwidth && tWaveInfo[i].uwidth <= 50 && tWaveInfo[i].fValue < -.1)))
+			if (tWaveInfoTemp->uType[i] == 1 && fabs(tWaveInfoTemp->fLeftAmp[i] - tWaveInfoTemp->fRightAmp[i]) > 2 && fabs(tWaveInfoTemp->fLeftAmp[i]) > .1 && fabs(tWaveInfoTemp->fRightAmp[i]) > .1 &&
+			( (2 <= tWaveInfoTemp->uwidth[i] && tWaveInfoTemp->uwidth[i] <= 15 && tFeatureInfoTemp->fThreshold < tWaveInfoTemp->fValue[i] && tWaveInfoTemp->fValue[i] < -.1) ||
+			(15 <= tWaveInfoTemp->uwidth[i] && tWaveInfoTemp->uwidth[i] <= 50 && tWaveInfoTemp->fValue[i] < -.1)))
 			{
-				tFeatureInfo.uWaveSpikes ++;
+				tFeatureInfoTemp->uWaveSpikes ++;
 			}
-			else if (tWaveInfo[i].uType == 0 && 
-			(tWaveInfo[i].fValue < tFeatureInfo.fThreshold && tDeviceInfo.uMode == MODE_STIMULATION || (tDeviceInfo.uMode == MODE_EXPRESSION && tDeviceInfo.uLevel <= 7)) || 
-				(tWaveInfo[i].fValue < -1 && abs(tFeatureInfo.fThreshold - tWaveInfo[i].fValue) < 10 && (tDeviceInfo.uMode == MODE_EXPRESSION && tDeviceInfo.uLevel > 7 && tDeviceInfo.uLevel < 10)) ||
-				(tWaveInfo[i].fValue < -1 && abs(tFeatureInfo.fThreshold - tWaveInfo[i].fValue) > 2 && (tDeviceInfo.uMode == MODE_EXPRESSION && tDeviceInfo.uLevel >=11))
+			else if (tWaveInfoTemp->uType[i] == 0 &&
+			(tWaveInfoTemp->fValue[i] < tFeatureInfoTemp->fThreshold && tDeviceInfoTemp->uMode == MODE_STIMULATION || (tDeviceInfoTemp->uMode == MODE_EXPRESSION && tDeviceInfoTemp->uLevel <= 7)) ||
+				(tWaveInfoTemp->fValue[i] < -1 && abs(tFeatureInfoTemp->fThreshold - tWaveInfoTemp->fValue[i]) < 10 && (tDeviceInfoTemp->uMode == MODE_EXPRESSION && tDeviceInfoTemp->uLevel > 7 && tDeviceInfoTemp->uLevel < 10)) ||
+				(tWaveInfoTemp->fValue[i] < -1 && abs(tFeatureInfoTemp->fThreshold - tWaveInfoTemp->fValue[i]) > 2 && (tDeviceInfoTemp->uMode == MODE_EXPRESSION && tDeviceInfoTemp->uLevel >=11))
 				)
 			{
-				tFeatureInfo.uNormalWaveform ++;
+				tFeatureInfoTemp->uNormalWaveform ++;
 			}
 
 		}
 	}
 	//printf("%d \n", tFeatureInfo.uWaveSpikes);
 }
+
 
 /*************************************************************************************************************************************************
 * 函数名称：WearDetectionDetermination
@@ -485,32 +505,33 @@ void PressureDataFeature()
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void WearDetectionDetermination()
+void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* tDeviceInfoTemp)
 {
-	tFeatureInfo.uWearStatus = tFeatureInfo.uPrevWearStatus;
-	if (tFeatureInfo.uWearStatus == 0)
+	
+	if (tFeatureInfoTemp->uWearStatus == 0)
 	{
 		//
-		if (tFeatureInfo.uWaveSpikes <= 1 && tFeatureInfo.uNoiseLevel == 0 && tFeatureInfo.uNormalWaveform >=1)
+		if (tFeatureInfoTemp->uWaveSpikes <= 1 && tFeatureInfoTemp->uNoiseLevel == 0 && tFeatureInfoTemp->uNormalWaveform >=1)
 		{
-			tFeatureInfo.uWearStatus = 1;
+			tFeatureInfoTemp->uWearStatus = 1;
 		}
 	}
-	else if (tFeatureInfo.uWearStatus == 1)
+	else if (tFeatureInfoTemp->uWearStatus == 1)
 	{
-		if (((tFeatureInfo.fThreshold > tFeatureInfo.fMinData && tDeviceInfo.uLevel > LEVEL_12 && tDeviceInfo.uMode == MODE_EXPRESSION)
-			|| (tFeatureInfo.fThreshold < tFeatureInfo.fMinData && tFeatureInfo.fMinData < -.1 && tDeviceInfo.uMode == MODE_STIMULATION)
-			|| (STIMULATION_THRESHOLD[tDeviceInfo.uLevel] < tFeatureInfo.fMinData && tFeatureInfo.fMinData < -.1 && tDeviceInfo.uMode == MODE_MIXED && tDeviceInfo.uLevel <= 7)) ||
-			(tFeatureInfo.fThreshold > tFeatureInfo.fMinData && tDeviceInfo.uLevel > 12 && tDeviceInfo.uMode == MODE_EXPRESSION))
+		if (((tFeatureInfoTemp->fThreshold > tFeatureInfoTemp->fMinData && tDeviceInfoTemp->uLevel > LEVEL_12 && tDeviceInfoTemp->uMode == MODE_EXPRESSION)
+			|| (tFeatureInfoTemp->fThreshold < tFeatureInfoTemp->fMinData && tFeatureInfoTemp->fMinData < -.1 && tDeviceInfoTemp->uMode == MODE_STIMULATION)
+			|| (STIMULATION_THRESHOLD[tDeviceInfoTemp->uLevel] < tFeatureInfoTemp->fMinData && tFeatureInfoTemp->fMinData < -.1 && tDeviceInfoTemp->uMode == MODE_MIXED && tDeviceInfoTemp->uLevel <= 7)) ||
+			(tFeatureInfoTemp->fThreshold > tFeatureInfoTemp->fMinData && tDeviceInfoTemp->uLevel > 12 && tDeviceInfoTemp->uMode == MODE_EXPRESSION))
 		{
-			tFeatureInfo.uWearStatus = 0;		// off
+			tFeatureInfoTemp->uWearStatus = 0;		// off
 		}
-		else if (tFeatureInfo.fMinData > -.1 || \
-			(tFeatureInfo.fThreshold > tFeatureInfo.fMinData && tDeviceInfo.uLevel > 12 && tDeviceInfo.uMode == MODE_EXPRESSION || tDeviceInfo.uMode == MODE_MIXED))
+		else if (tFeatureInfoTemp->fMinData > -.1 || \
+			(tFeatureInfoTemp->fThreshold > tFeatureInfoTemp->fMinData && tDeviceInfoTemp->uLevel > 12 && tDeviceInfoTemp->uMode == MODE_EXPRESSION || tDeviceInfoTemp->uMode == MODE_MIXED))
 		{
-			tFeatureInfo.uWearStatus = tFeatureInfo.uPrevWearStatus;
+			tFeatureInfoTemp->uWearStatus = tFeatureInfoTemp->uPrevWearStatus;
 		}
 	}
+	tFeatureInfoTemp->uPrevWearStatus = tFeatureInfoTemp->uWearStatus;
 	
 	
 }
@@ -526,17 +547,42 @@ void WearDetectionDetermination()
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void V3WearDetectionMain(float fInputData)
+void V3WearDetectionMain(float *fPressureData, unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight)
 {
-	PressureDataPreprocess(fInputData);
-	PressureDataFeature();
-	WearDetectionDetermination();
-	// update current index 
-	tDataBuffer.uCurrPos = BufferCircleNextIndex(tDataBuffer.uCurrPos, 1, WIN_SIZE);
+	// reset if mode or level changed
+	if (uLevelLeft != tDeviceInfo[CHANNEL_0].uLevel || uModeLeft != tDeviceInfo[CHANNEL_0].uMode)
+	{
+		V3WearDetectionModeReset(uLevelLeft, uModeLeft, CHANNEL_0);
+	}
+	if (ulevelRight != tDeviceInfo[CHANNEL_1].uLevel || uModeRight != tDeviceInfo[CHANNEL_1].uMode)
+	{
+		V3WearDetectionModeReset(ulevelRight, uModeRight, CHANNEL_1);
+	}
+
+	for (unsigned int i = 0; i < CHANNEL_NUM; i++)
+	{
+		// processing left and right data
+		PressureDataPreprocess(fPressureData[i], &tFilterInfo[i], &tDataBuffer[i], &tFeatureInfo[i]);
+		PressureDataFeature(&tPVInfo[i], &tWaveInfo[i], &tDataBuffer[i], &tFeatureInfo[i], &tDeviceInfo[i]);
+		WearDetectionDetermination(&tFeatureInfo[i], &tDeviceInfo[i]);
+		// update current index 
+		tDataBuffer[i].uCurrPos = BufferCircleNextIndex(tDataBuffer[i].uCurrPos, 1, WIN_SIZE);
+	}
 }
 
 
-unsigned int GetWearDetectionResult()
+/*************************************************************************************************************************************************
+* 函数名称：GetWearDetectionResult
+* 作    者：sahar.hu
+* 创建日期：2025.12.19
+* 功能说明：佩戴检测取结果
+* 输入参数：无
+* 输出参数：无
+* 返 回 值：无
+*************************************************************************************************************************************************
+*/
+void GetWearDetectionResult(unsigned char *uWearStatus)
 {
-	return tFeatureInfo.uWearStatus;
+	uWearStatus[0] = tFeatureInfo[0].uWearStatus;
+	uWearStatus[1] = tFeatureInfo[1].uWearStatus;
 }
