@@ -31,9 +31,9 @@ if [ -n "$VERSION" ]; then
     if [ $# -gt 1 ]; then
         OUTPUT_FILE="$2"
     else
-        # 输出到 bin 目录，文件名包含版本信息
-        mkdir -p "$BIN_DIR"
-        OUTPUT_FILE="$BIN_DIR/${VERSION}_resource_pack.bin"
+        # 输出到 bin/<V1|V2> 目录
+        mkdir -p "$BIN_DIR/$VERSION"
+        OUTPUT_FILE="$BIN_DIR/$VERSION/resource_pack.bin"
     fi
 else
     # 兼容旧的使用方式：直接指定配置文件
@@ -52,10 +52,10 @@ else
     if [ $# -gt 1 ]; then
         OUTPUT_FILE="$2"
     else
-        # 如果检测到版本，输出到 bin 目录
+        # 如果检测到版本，输出到 bin/<V1|V2> 目录
         if [ -n "$VERSION" ]; then
-            mkdir -p "$BIN_DIR"
-            OUTPUT_FILE="$BIN_DIR/${VERSION}_resource_pack.bin"
+            mkdir -p "$BIN_DIR/$VERSION"
+            OUTPUT_FILE="$BIN_DIR/$VERSION/resource_pack.bin"
         else
             OUTPUT_FILE="${2:-$PARENT_DIR/resource_pack.bin}"
         fi
@@ -133,20 +133,18 @@ echo "$PACK_LOG"
 # 提取最终输出文件名（如果脚本输出了）
 ORIGINAL_FINAL_OUTPUT="$(echo "$PACK_LOG" | grep -E '^OUTPUT_FILE_FINAL=' | tail -n 1 | cut -d= -f2-)"
 if [ -n "$ORIGINAL_FINAL_OUTPUT" ]; then
-    # 如果最终输出文件不在 bin 目录，需要移动到 bin 目录
-    if [[ "$ORIGINAL_FINAL_OUTPUT" != "$BIN_DIR"/* ]]; then
+    # 如果最终输出文件不在目标 bin 目录，需要移动
+    TARGET_BIN_DIR="$BIN_DIR"
+    if [ -n "$VERSION" ]; then
+        TARGET_BIN_DIR="$BIN_DIR/$VERSION"
+    fi
+    if [[ "$ORIGINAL_FINAL_OUTPUT" != "$TARGET_BIN_DIR"/* ]]; then
         FINAL_FILENAME="$(basename "$ORIGINAL_FINAL_OUTPUT")"
-        if [ -n "$VERSION" ]; then
-            # 如果文件名不包含版本信息，添加版本前缀
-            if [[ "$FINAL_FILENAME" != "${VERSION}_"* ]]; then
-                FINAL_FILENAME="${VERSION}_${FINAL_FILENAME}"
-            fi
-        fi
-        FINAL_OUTPUT_FILE="$BIN_DIR/$FINAL_FILENAME"
+        FINAL_OUTPUT_FILE="$TARGET_BIN_DIR/$FINAL_FILENAME"
         
         # 如果原文件存在，移动到新位置
         if [ -f "$ORIGINAL_FINAL_OUTPUT" ]; then
-            mkdir -p "$BIN_DIR"
+            mkdir -p "$TARGET_BIN_DIR"
             mv "$ORIGINAL_FINAL_OUTPUT" "$FINAL_OUTPUT_FILE" 2>/dev/null || true
             OUTPUT_FILE="$FINAL_OUTPUT_FILE"
         else
@@ -175,7 +173,7 @@ if [ $PACK_EXIT_CODE -eq 0 ]; then
         echo "  - 版本: $VERSION"
         echo "  - 查看配置: cat $CONFIG_FILE"
         echo "  - 修改资源: vim $CONFIG_FILE"
-        echo "  - 输出目录: $BIN_DIR"
+        echo "  - 输出目录: $BIN_DIR/$VERSION"
     else
         echo "💡 提示:"
         echo "  - 查看配置: cat $CONFIG_FILE"

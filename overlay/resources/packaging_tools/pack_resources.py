@@ -13,6 +13,8 @@ import struct
 import hashlib
 import re
 import ast
+import shutil
+import subprocess
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
 from pathlib import Path
@@ -209,6 +211,46 @@ def parse_img_res_define_header(header_file: str) -> Tuple[Optional[int], Option
     - IMG_RES_VERSION_CURRENT
     - IMG_RES_NAME_PREFIX
     """
+    def _preprocess_expand_macros(
+        src_header: str, macro_names: List[str], include_dirs: List[str]
+    ) -> Dict[str, str]:
+        """
+        使用宿主机 C 预处理器“展开”宏得到最终值。
+
+        注意：`gcc -E -dD/-dM` 会保留“宏原始定义”，不一定展开宏套宏。
+        这里改为通过 stdin 喂一个“探针”翻译单元，让预处理器对每个宏做一次文本展开：
+        - 输出形如：MACRO_IMG_RES_VERSION_CURRENT=100
+        - 输出形如：MACRO_IMG_RES_NAME_PREFIX="V3"
+        """
+        compiler = shutil.which("gcc") or shutil.which("cc")
+        if not compiler:
+            raise RuntimeError("no C preprocessor found (gcc/cc)")
+
+        cmd = [compiler, "-E", "-P", "-xc", "-"]
+        for inc in include_dirs:
+            cmd.extend(["-I", inc])
+
+        src_header_abs = str(Path(src_header).resolve())
+        probe_lines = [f'#include "{src_header_abs}"']
+        for name in macro_names:
+            probe_lines.append(f"MACRO_{name}={name}")
+        probe = "\n".join(probe_lines) + "\n"
+
+        try:
+            out = subprocess.check_output(cmd, input=probe, text=True, stderr=subprocess.STDOUT)
+        except Exception as e:
+            raise RuntimeError(f"preprocess failed: {e}") from e
+
+        result: Dict[str, str] = {}
+        for line in out.splitlines():
+            m = re.match(r"^\s*MACRO_([A-Za-z_]\w*)=(.+?)\s*$", line)
+            if not m:
+                continue
+            name = m.group(1)
+            if name in macro_names:
+                result[name] = m.group(2).strip()
+        return result
+
     with open(header_file, "r", encoding="utf-8", errors="ignore") as f:
         raw = f.read()
 
@@ -222,7 +264,19 @@ def parse_img_res_define_header(header_file: str) -> Tuple[Optional[int], Option
     version_current = None
     m = re.search(r'^\s*#define\s+IMG_RES_VERSION_CURRENT\s+(.+?)\s*$', raw, flags=re.MULTILINE)
     if m:
-        version_current = _safe_eval_int(m.group(1))
+        expr = m.group(1).strip()
+        try:
+            version_current = _safe_eval_int(expr)
+        except Exception:
+            # 新版 resource_info.h 可能是间接宏（例如 ROOT_RES_VERSION），需要预处理器展开
+            header_dir = str(Path(header_file).resolve().parent)
+            include_dirs = [header_dir]
+            prod_info = find_file_upwards(header_dir, "boards/product_info.h")
+            if prod_info:
+                include_dirs.append(str(Path(prod_info).resolve().parent))
+            defines = _preprocess_expand_macros(header_file, ["IMG_RES_VERSION_CURRENT"], include_dirs)
+            if "IMG_RES_VERSION_CURRENT" in defines:
+                version_current = _safe_eval_int(defines["IMG_RES_VERSION_CURRENT"])
 
     name_prefix = None
     m = re.search(r'^\s*#define\s+IMG_RES_NAME_PREFIX\s+(.+?)\s*$', raw, flags=re.MULTILINE)
@@ -234,7 +288,24 @@ def parse_img_res_define_header(header_file: str) -> Tuple[Optional[int], Option
             val = val[1:-1].strip()
         if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
             val = val[1:-1]
-        name_prefix = val.strip() or None
+        val = val.strip()
+        # 新版 resource_info.h 可能是间接宏（例如 ROOT_DEVICE_NAME），用预处理器展开得到最终字符串
+        if val and re.fullmatch(r"[A-Za-z_]\w*", val):
+            header_dir = str(Path(header_file).resolve().parent)
+            include_dirs = [header_dir]
+            prod_info = find_file_upwards(header_dir, "boards/product_info.h")
+            if prod_info:
+                include_dirs.append(str(Path(prod_info).resolve().parent))
+            defines = _preprocess_expand_macros(header_file, ["IMG_RES_NAME_PREFIX"], include_dirs)
+            if "IMG_RES_NAME_PREFIX" in defines:
+                v = defines["IMG_RES_NAME_PREFIX"].strip()
+                if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
+                    v = v[1:-1]
+                name_prefix = v.strip() or None
+            else:
+                name_prefix = val or None
+        else:
+            name_prefix = val or None
 
     return header_size, version_current, name_prefix
 
@@ -273,9 +344,9 @@ def make_versioned_output_path(
     prefix = (name_prefix or IMG_RES_NAME_PREFIX_DEFAULT).strip()
     
     # 将版本号转换为 VXX.XX 格式
-    # 版本号是16位，高8位是主版本号，低8位是次版本号
-    major_version = (version_hex >> 8) & 0xFF
-    minor_version = version_hex & 0xFF
+    # 版本号约定：major*100 + minor（与 product_info.h 保持一致）
+    major_version = int(version_hex) // 100
+    minor_version = int(version_hex) % 100
     ver_str = f"V{major_version:02d}.{minor_version:02d}"
     
     filename = f"{prefix}_{date_str}_{ver_str}_{md5_short}_RES.bin"

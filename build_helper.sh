@@ -278,21 +278,31 @@ do_rename_and_archive() {
 	local target_dir="$SHARE_DIR/$prefix_dir"
 	mkdir -p "$target_dir" || die "无法创建版本目录: $target_dir"
 
-	# 根据 UI 版本拷贝最新资源（V3_UI_V1 -> V01.xx；V3_UI_V2 -> V02.xx）
-	# 通过 make 展开 V3_UI_VERSION，避免只读到 $(V3_UI_V1) 这种递归表达式
-	local ui_version ui_major res_dir res_file
-	ui_version=$(make -C "$PROJECT_DIR" -f GNUmakefile --no-print-directory -s \
-		--eval 'print_ui:; @echo $(V3_UI_VERSION)' print_ui 2>/dev/null || true)
-	ui_version=${ui_version//$'\r'/}
-	if [[ ! "${ui_version:-}" =~ ^[0-9]+$ ]]; then
-		ui_version="1"
-	fi
-	ui_major=$(printf "%02d" "$ui_version")
-	res_dir="$PROJECT_DIR/overlay/resources/bin"
+	# 同一版本目录下，先清理旧归档文件（全部 .bin），避免残留多份（日期/哈希不同导致文件名不同）
+	rm -f "$target_dir"/*.bin 2>/dev/null || true
+
+	# 根据 ROOT_RES_PATH/ROOT_RES_VERSION 拷贝资源（V1 -> bin/V1; V2 -> bin/V2）
+	# ROOT_RES_VERSION 定义为 major*100 + minor，例如 100 -> V01.00
+	local res_path res_version res_major res_minor res_major2 res_minor2 res_dir res_file
+	res_path=$(grep -E '^#define[[:space:]]+ROOT_RES_PATH[[:space:]]+' "$info_file" | awk '{print $3}' | tail -n1 || true)
+	res_path=${res_path//\"/}
+	[[ -n "${res_path:-}" ]] || res_path="V1"
+
+	res_version=$(grep -E '^#define[[:space:]]+ROOT_RES_VERSION[[:space:]]+' "$info_file" \
+		| sed -E 's/.*\(([0-9]+)\).*/\1/; t; s/.*[[:space:]]+([0-9]+).*/\1/' \
+		| tail -n1 || true)
+	[[ -n "${res_version:-}" ]] || res_version="0"
+
+	res_major=$((10#$res_version / 100))
+	res_minor=$((10#$res_version % 100))
+	res_major2=$(printf "%02d" "$res_major")
+	res_minor2=$(printf "%02d" "$res_minor")
+
+	res_dir="$PROJECT_DIR/overlay/resources/bin/$res_path"
 	res_file=""
 	if [[ -d "$res_dir" ]]; then
-		# 取该大版本最新的资源 bin（按 mtime）
-		res_file=$(ls -1t "$res_dir"/*_V${ui_major}.*_RES.bin 2>/dev/null | awk 'NR==1{print; exit}' || true)
+		# 取该版本号最新的资源 bin（按 mtime）
+		res_file=$(ls -1t "$res_dir"/*_V${res_major2}.${res_minor2}_*_RES.bin 2>/dev/null | awk 'NR==1{print; exit}' || true)
 	fi
 
 	# 拷贝并重命名（存在则覆盖）
@@ -321,10 +331,10 @@ do_rename_and_archive() {
 
 	if [[ -n "${res_file:-}" && -s "$res_file" ]]; then
 		cp -av "$res_file" "$target_dir/"
-		echo "RES 已归档(UI V${ui_major}): $target_dir/$(basename -- "$res_file")"
+		echo "RES 已归档(${res_path} V${res_major2}.${res_minor2}): $target_dir/$(basename -- "$res_file")"
 		copied_any=true
 	else
-		echo "未找到 RES 资源(UI V${ui_major}): $res_dir/*_V${ui_major}.*_RES.bin"
+		echo "未找到 RES 资源(${res_path} V${res_major2}.${res_minor2}): $res_dir/*_V${res_major2}.${res_minor2}_*_RES.bin"
 	fi
 
 	if [[ "$copied_any" == false ]]; then
