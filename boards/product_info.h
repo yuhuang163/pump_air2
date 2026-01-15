@@ -77,8 +77,14 @@ typedef enum {
  * major版本表示固件支持的资源版本. 
  * minor表示资源差异化的版本.
 */
-#define ROOT_RES_MAJOR_VERSION                         (01)
-#define ROOT_RES_MINOR_VERSION                         (01)
+#if V3_UI_VERSION == V3_UI_V2
+#define ROOT_RES_PATH                                  "V2" /// 资源路径
+#else
+#define ROOT_RES_PATH                                  "V1" /// 资源路径
+#endif
+#define ROOT_RES_VERSION                               (100) 
+#define ROOT_RES_MAJOR_VERSION                         (ROOT_RES_VERSION / 100)
+#define ROOT_RES_MINOR_VERSION                         (ROOT_RES_VERSION % 100)
 
 /**
  * 算法采测版本号:
