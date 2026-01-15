@@ -140,7 +140,8 @@ static int is_on_running(void)
 static void sensor_manager_internal_dispatch_thread(const void *args)
 {
     uint8_t msg = 0;
-    uint32_t log_time = 0;
+    uint16_t log_time = 0;
+    uint32_t start_time = get_timestamp();
     thread_context_t *thd = (thread_context_t *)args;
     sensor_wrapper_data_t sensor_data = {0};
     sensor_manager_context_t *obj = thiz;
@@ -154,8 +155,10 @@ static void sensor_manager_internal_dispatch_thread(const void *args)
             obj->hook->sensor_thread_route(obj, &sensor_data);
         }
         log_time++;
-        if (log_time % 500 == 0) {
-            LOG_SENSOR("sensor polling: %d", log_time);
+        if (log_time >= 500) {
+            LOG_SENSOR("sensor polling: %d, time: %d", log_time, get_timestamp_ms(start_time));
+            start_time = get_timestamp();
+            log_time = 0;
         }
     }
 }
