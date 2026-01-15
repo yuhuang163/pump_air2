@@ -103,8 +103,8 @@ int sys_config_tlvs_read_firmware_version(comm_protocol_builder_t *builder, comm
             // 假设 sw_version = 主版本*10 + 次版本
             uint16_t sw_ver = ver_info->sw_version;
             version[0] = 0x00;                // byte0: 高位或保留
-            version[1] = (sw_ver / 10) % 100; // byte1: 主版本号 (0-99)
-            version[2] = sw_ver % 10;         // byte2: 次版本号 (0-9)
+            version[1] = sw_ver / 100; // byte1: 主版本号 (0-99)
+            version[2] = sw_ver % 100;         // byte2: 次版本号 (0-99)
         }
     }
 

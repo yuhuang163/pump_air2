@@ -899,7 +899,7 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     ack_data[data_len++] = ctx->priv.ver_info.sys_local_protocol_id;
     ack_data[data_len++] = ctx->priv.ver_info.soc_version;
     ack_data[data_len++] = ctx->priv.ver_info.hw_version;
-    ack_data[data_len++] = ctx->priv.ver_info.sw_version / 10 % 10;
+    ack_data[data_len++] = ctx->priv.ver_info.sw_version / 100;
     ack_data[data_len++] = ctx->priv.sys_info.pump_info.custom_steps_parameter.id.dat[0];//custom_mode_id;
     ack_data[data_len++] = ctx->priv.sys_info.pump_info.custom_steps_parameter.id.dat[1];//custom_mode_id;
     ack_data[data_len++] = ctx->priv.sys_info.pump_info.custom_steps_parameter.id.dat[2];//custom_mode_id;
@@ -913,7 +913,7 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     ack_data[data_len++] = handler_ctx->encrypt_status;//encrypt_status;
     ack_data[data_len++] = handler_ctx->encrypt_key;//encrypt_key;
 #endif
-    ack_data[data_len++] = ctx->priv.ver_info.sw_version % 10;
+    ack_data[data_len++] = ctx->priv.ver_info.sw_version % 100;
     LOG_SRV(" Sending device info ACK (data len: %d)", data_len);
    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_DEV_INFO, data_len, ack_data);
 }
