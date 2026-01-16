@@ -69,8 +69,8 @@ typedef enum {
 /**
  * 正式版本从100-900
 */
-#define ROOT_FIRMWARE_VERSION                          100
-#define ROOT_FW_VERSION_STR                            "100"
+#define ROOT_FIRMWARE_VERSION                          102
+#define ROOT_FW_VERSION_STR                            "102"
 
 /**
  * 资源版本号定义(major*100 + minor)
