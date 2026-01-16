@@ -12,6 +12,13 @@
 * DEFINES
 *****************************************************************************************
 */
+#define IS_SUPPORT_RES_DEBUG_LOG        (0) 
+
+#if IS_SUPPORT_RES_DEBUG_LOG
+#define LOG_RES_DEBUG(format, args...)   LOG_RES(format, ##args)
+#else
+#define LOG_RES_DEBUG(format, args...)
+#endif  
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -32,8 +39,33 @@ static resource_manager_context_t *thiz = NULL;
 /// 检查资源包版本是否兼容
 static bool img_res_version_compatible(uint16_t ver)
 {
-    /// 主版本号相同则兼容 (比较高8位)
-    return ((ver >> 8) == (IMG_RES_VERSION_CURRENT >> 8));
+    const uint16_t cur = (uint16_t)IMG_RES_VERSION_CURRENT;
+    const uint16_t cur_major = cur / 100;
+    const uint16_t cur_minor = cur % 100;
+
+    const uint16_t ver_major_new = ver / 100;
+    const uint16_t ver_minor_new = ver % 100;
+
+    const uint16_t ver_major_legacy = ver >> 8;
+    const uint16_t ver_minor_legacy = ver & 0xFF;
+
+    LOG_RES_DEBUG("img_res_version_compatible: ver=%u(cur=%u) new=%u.%02u legacy=%u.%02u cur=%u.%02u",
+            (unsigned)ver, (unsigned)cur,
+            (unsigned)ver_major_new, (unsigned)ver_minor_new,
+            (unsigned)ver_major_legacy, (unsigned)ver_minor_legacy,
+            (unsigned)cur_major, (unsigned)cur_minor);
+
+    // New encoding: major matches
+    if (ver_major_new == cur_major) {
+        return true;
+    }
+
+    // Legacy encoding: accept only if major+minor exactly match current
+    if (ver_major_legacy == cur_major && ver_minor_legacy == cur_minor) {
+        return true;
+    }
+
+    return false;
 }
 
 /// 检查魔数是否有效
@@ -205,24 +237,24 @@ static void img_res_dump_header(const img_res_head_wrapper_t *w)
         return;
     }
 
-    LOG_RES("IMG RES @0x%08X (partition: %s)", (uint32_t)PICTURE_DATA_INT_START_ADDR, PARTITION_PICTURE_DATA_INT_NAME);
-    LOG_RES("partition range: [0x%08X, 0x%08X) size=0x%08X",
+    LOG_RES_DEBUG("IMG RES @0x%08X (partition: %s)", (uint32_t)PICTURE_DATA_INT_START_ADDR, PARTITION_PICTURE_DATA_INT_NAME);
+    LOG_RES_DEBUG("partition range: [0x%08X, 0x%08X) size=0x%08X",
             (uint32_t)PICTURE_DATA_INT_START_ADDR,
             (uint32_t)PICTURE_DATA_INT_END_ADDR,
             (uint32_t)((uint32_t)PICTURE_DATA_INT_END_ADDR - (uint32_t)PICTURE_DATA_INT_START_ADDR));
-
-    LOG_RES("head.magic   = 0x%08X", (unsigned)w->head.magic);
-    LOG_RES("head.crc16   = 0x%04X", (unsigned)w->head.crc16);
-    LOG_RES("head.flags   = 0x%04X", (unsigned)w->head.flags);
-    LOG_RES("head.type    = %u", (unsigned)w->head.type);
-    LOG_RES("head.lang_id = %u", (unsigned)w->head.lang_id);
-    LOG_RES("head.version = 0x%04X", (unsigned)w->head.version);
-    LOG_RES("head.count   = %u", (unsigned)w->head.res_count);
-    LOG_RES("head.total   = 0x%08X (%u)", (unsigned)w->head.total_size, (unsigned)w->head.total_size);
-    LOG_RES("header_fixed_size (build) = %u", (unsigned)IMG_RES_HEADER_FIXED_SIZE);
-
+    LOG_RES_DEBUG("head.magic   = 0x%08X", (unsigned)w->head.magic);
+    LOG_RES_DEBUG("head.crc16   = 0x%04X", (unsigned)w->head.crc16);
+    LOG_RES_DEBUG("head.flags   = 0x%04X", (unsigned)w->head.flags);
+    LOG_RES_DEBUG("head.type    = %u", (unsigned)w->head.type);
+    LOG_RES_DEBUG("head.lang_id = %u", (unsigned)w->head.lang_id);
+    LOG_RES_DEBUG("head.version = 0x%04X", (unsigned)w->head.version);
+    LOG_RES_DEBUG("head.count   = %u", (unsigned)w->head.res_count);
+    LOG_RES_DEBUG("head.total   = 0x%08X (%u)", (unsigned)w->head.total_size, (unsigned)w->head.total_size);
+    LOG_RES_DEBUG("header_fixed_size (build) = %u", (unsigned)IMG_RES_HEADER_FIXED_SIZE);
+#if IS_SUPPORT_RES_DEBUG_LOG
     LOG_HEX("img_md5_head", w->md5_head, IMG_RES_MD5_SIZE);
     LOG_HEX("img_md5_body", w->md5_body, IMG_RES_MD5_SIZE);
+#endif
 }
 
 static int img_res_validate_and_dump(uint32_t base_addr)
@@ -366,7 +398,7 @@ static int img_res_validate_and_dump(uint32_t base_addr)
                                  (uint32_t)dump_n * (uint32_t)sizeof(img_res_obj_info_t));
         if (ret == 0) {
             for (uint16_t i = 0; i < dump_n; i++) {
-                LOG_RES("obj[%u]: id=%u crc16=0x%04X wh=%ux%u off=0x%08X size=%u xy=(%u,%u)",
+                LOG_RES_DEBUG("obj[%u]: id=%u crc16=0x%04X wh=%ux%u off=0x%08X size=%u xy=(%u,%u)",
                         (unsigned)i,
                         (unsigned)infos[i].img_id,
                         (unsigned)infos[i].crc16,
