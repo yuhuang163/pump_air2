@@ -106,9 +106,9 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
         .user_data = proc,
 
     };
-    ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
     proc->current_ui_type = PUMP_UI_TYPE_SPEED;
+    ui->hook->ui_animation_play_init(ui, play_info);
 }
 
 /*

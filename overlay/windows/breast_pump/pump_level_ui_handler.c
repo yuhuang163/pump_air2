@@ -102,9 +102,9 @@ static void show_pump_level_ui(ui_proc_pump_t *proc)
         .display_remove_cb = pump_level_ui_display_remove,
         .user_data = proc,
     };
-    ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
     proc->current_ui_type = PUMP_UI_TYPE_LEVEL;
+    ui->hook->ui_animation_play_init(ui, play_info);
 }
 
 /*

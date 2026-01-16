@@ -104,9 +104,9 @@ static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
         .display_remove_cb = breastfeeding_mode_ui_display_remove,
         .user_data = proc,
     };
-    ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
     proc->current_ui_type = PUMP_UI_TYPE_BREASTFEEDING_MODE;
+    ui->hook->ui_animation_play_init(ui, play_info);
 }
 
 /*
