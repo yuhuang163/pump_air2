@@ -52,6 +52,8 @@ void init_user_log_filter(void);
 uint32_t get_log_filter(void);
 uint32_t get_timestamp(void);
 uint32_t get_timestamp_ms(uint32_t time_tick);
+void set_log_ouput_level(uint16_t level);
+uint16_t get_log_output_level(void);
 
 /// log level define
 typedef enum {

@@ -9,6 +9,7 @@
 #include "ble_manager_api.h"      // IWYU pragma: keep
 #include "persist_storage.h"      // IWYU pragma: keep
 #include "cmsis_os_api.h"         // IWYU pragma: keep
+#include "root_log_define.h"      // IWYU pragma: keep
 /*
 * DEFINES
 *****************************************************************************************
@@ -87,6 +88,7 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
     // TODO: 实现产测模式进入/退出逻辑
     if (mode == 1) {
         /* 进入产测模式 */
+        set_log_ouput_level(US_LOG_LEVEL_NONE);
         tests_ctx->tests_manager_set_current_mode(TST_FACTORY_TYPE);
         tests_ctx->set_factory_tests_event_process(FAC_TST_ENTER_EVENT, 0, 0, NULL);
         //唤醒电源管理模块
@@ -104,6 +106,7 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
             }
         } else {
             /* 退出产测模式 */
+            set_log_ouput_level(US_LOG_LEVEL_VERBOSE);
             tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
             tests_ctx->set_factory_tests_event_process(FAC_TST_EXIT_EVENT, 0, 0, NULL);
             /* 关闭测试窗口 */
