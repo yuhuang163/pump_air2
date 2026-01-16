@@ -179,6 +179,15 @@ do_build_all() {
 	echo "固件+Bootloader 编译完成，总用时: $(duration_since "$t0")"
 }
 
+do_rebuild_all() {
+	local t0=$(date +%s)
+	echo "开始重新编译 固件+Bootloader（清理 + 编译，不拷贝）..."
+	do_clean_firmware
+	do_clean_bootloader
+	do_build_all
+	echo "固件+Bootloader 重新编译完成，总用时: $(duration_since "$t0")"
+}
+
 do_bear_build() {
 	local t0=$(date +%s)
 	echo "开始使用 bear 编译（生成编译数据库）..."
@@ -355,7 +364,7 @@ show_menu() {
 	6) 生成 OTA（并拷贝）
 	7) 仅拷贝产物到共享目录（固件+Bootloader+OTA）
 	8) 重命名并归档产物（APP/BOOT/OTA/RES）
-	9) 编译 固件+Bootloader（不拷贝）
+	9) 重新编译 固件+Bootloader（清理 + 编译，不拷贝）
 0) 退出
 ---------------------------------------------
 目标共享目录: $SHARE_DIR
@@ -427,7 +436,7 @@ main() {
 				do_rename_and_archive
 				;;
 			9)
-				do_build_all
+				do_rebuild_all
 				;;
 			0)
 				echo "已退出"; exit 0 ;;
