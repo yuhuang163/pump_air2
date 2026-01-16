@@ -180,7 +180,13 @@ do { \
     u_free(log_str);\
 } while (0)
 
-
+#define LOG_PASS(format, args...) \
+do { \
+    if (get_log_output_level() < US_LOG_LEVEL_INFO) { \
+        break; \
+    } \
+    PRINT_LOG(format, ##args); \
+} while(0)
 
 #else /// LOG_OUT_SUPPORT
 
@@ -214,6 +220,8 @@ do { \
 #define LOGI(format, args...) do { } while(0)
 #define LOGD(format, args...) do { } while(0)
 #define LOGV(format, args...) do { } while(0)
+#define LOG_HEX(tag, data, size) do { } while(0)
+#define LOG_PASS(format, args...) do { } while(0)
 
 #endif /// LOG_OUT_SUPPORT
 
