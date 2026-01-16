@@ -16,6 +16,7 @@
 #define HTR3316_RETRY_COUNT                 (3)
 #define HTR3316_DEV_ADDR                    (0x5B)
 #define LED_ABNORMAL_MAX_COUNT              (10)
+#define LED_LUX_MAX                         (100)
 
 typedef struct {
     const uint8_t *data;
@@ -32,29 +33,28 @@ static uint8_t led_time_is_running = 0;
 static led_status_t led_status[LED_TOTAL_SIZE];
 static thread_context_t s_led_device_thd;
 static os_timer_id s_led_timer_id;
-
 static const uint8_t led1_address[] = {
-    0x24, 0x25
+    0x26, 0x27, 0x28   /// PUMP_START_BL
 };
 
 static const uint8_t led2_address[] = {
-    0x26, 0x27, 0x28
+    0x2B, 0x20  /// PUMP_MODE_BL
 };
 
 static const uint8_t led3_address[] = {
-    0x29, 0x2A
+    0x21, 0x22, 0x23   /// PUMP_FREQ_SET_BL
 };
 
 static const uint8_t led4_address[] = {
-    0x2B, 0x20
+    0x2C, 0x2D        /// PUMP_BREASTFEEDING_BL
 };
 
 static const uint8_t led5_address[] = {
-    0x21, 0x22, 0x23
+    0x24, 0x25  /// PUMP_LEFT_CONTROL_BL
 };
 
 static const uint8_t led6_address[] = {
-    0x2C, 0x2D
+    0x29, 0x2A  /// PUMP_RIGHT_CONTROL_BL
 };
 
 static const led_address_data_t led_address_data[LED_TOTAL_SIZE] = {
@@ -134,14 +134,38 @@ static void led_extension_onoff_set(uint8_t index, uint8_t onoff)
         return;
     }
 
-    uint8_t level = onoff == LED_STATUS_ON ? 0x80 : 0x00;
+    uint8_t level = onoff == LED_STATUS_ON ? LED_LUX_MAX : 0x00;
     i2c_master_data_t i2c_data = {
         .dev_address = HTR3316_DEV_ADDR,
-        .reg_addr = led_address_data[index].data[0],
+        .reg_addr = 0,
         .data = &level,
         .len = 1,
     };
-    led_extension_write_nbyte(&i2c_data);
+
+    for (uint8_t i = 0; i < led_address_data[index].size; i++) {
+        i2c_data.reg_addr = led_address_data[index].data[i];
+        led_extension_write_nbyte(&i2c_data);
+    }
+}
+
+static void led_extension_level_set(uint8_t index, uint8_t level)
+{
+    if(index >= LED_TOTAL_SIZE) {
+        LOGE("index is out of range: %d", index);
+        return;
+    }
+
+    i2c_master_data_t i2c_data = {
+        .dev_address = HTR3316_DEV_ADDR,
+        .reg_addr = 0,
+        .data = &level,
+        .len = 1,
+    };
+ 
+    for (uint8_t i = 0; i < led_address_data[index].size; i++) {
+        i2c_data.reg_addr = led_address_data[index].data[i];
+        led_extension_write_nbyte(&i2c_data);
+    }
 }
 
 static void led_blink_handle(uint8_t index)
@@ -197,14 +221,26 @@ static void led_onoff_set(uint8_t index, led_onoff_t onoff)
         return;
     }
     led_status[index].mode = LED_MODE_ONOFF; 
+    led_status[index].un.onoff.status = onoff.status;
     led_extension_onoff_set(index, onoff.status);
 }
 
 static void led_level_set(uint8_t index, led_luminous_t luminous)
 {
-    led_onoff_t onoff = {0};
-    onoff.status = luminous.level == 0 ? 0 : 1;
-    led_onoff_set(index, onoff);
+    uint8_t level = luminous.level > LED_LEVEL_MAX ? LED_LEVEL_MAX : luminous.level;
+    level = level * LED_LUX_MAX / LED_LEVEL_MAX;
+    LOG_PBUS("led level: %d, level: %d", luminous.level, level);
+    if (index == PUMP_LED_ALL_ID) {
+        for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
+            led_status[i].mode = LED_MODE_LEVEL; 
+            led_status[i].un.luminous.level = level;
+            led_extension_level_set(i, level);
+        }
+        return;
+    }
+    led_status[index].mode = LED_MODE_LEVEL; 
+    led_status[index].un.luminous.level = level;
+    led_extension_level_set(index, level);
 }
 
 static void led_blink_set(uint8_t index, led_blink_t blink)
