@@ -43,7 +43,7 @@ extern "C" {
 /// public
 extern uint16_t g_log_level_set;
 extern uint32_t g_log_filter;
-
+uint16_t get_log_output_level(void);
 uint64_t platform_get_utc_time_ms(void);
 uint32_t platform_get_utc_time(void);
 int platform_get_tid(void);
@@ -165,6 +165,9 @@ typedef enum{
 
 #define LOG_HEX(tag, data, size)  \
 do { \
+    if (get_log_output_level() < US_LOG_LEVEL_INFO) { \
+        break; \
+    } \
     uint32_t lenght = (size * 3) + 8;\
     if (lenght < 512) { lenght = 512;}\
     char *log_str = u_malloz(lenght);\

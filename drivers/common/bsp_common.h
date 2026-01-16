@@ -50,9 +50,13 @@ typedef enum {
     BSP_ERR_NO_MEM = 0x09                 /**< No memory. */
 } bsp_status_e;
 
+uint16_t get_log_output_level(void);
 #if BSP_LOG_HEX_SUPPORT
 #define BSP_LOG_HEX(tag, data, size)  \
 do { \
+    if (get_log_output_level() < US_LOG_LEVEL_INFO) { \
+        break; \
+    } \
     uint32_t lenght = (size * 3) + 8;\
     if (lenght < 512) { lenght = 512;}\
     char *log_str = u_malloz(lenght);\
@@ -71,6 +75,9 @@ do { \
 #if BSP_LOG_SUPPORT
 #define BSP_LOG(tag, format,...)  \
 do { \
+    if (get_log_output_level() < US_LOG_LEVEL_INFO) { \
+        break; \
+    } \
     PRINT_LOG("[%d][%d]:%s:", platform_get_utc_time(), get_timestamp_ms(0),tag); \
     PRINT_LOG(format,##__VA_ARGS__); \
     PRINT_LOG("\r\n"); \
