@@ -82,7 +82,7 @@ static uint8_t get_charge_battery_img_id(uint8_t battery_percent)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t battery_percent, uint8_t is_charging)
+int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t battery_percent, uint8_t is_charging)
 {
     uint8_t battery_img_id = RESOURCE_ID_HOME_UNCHARGE_BATTERY_50;
     if (is_charging == 0) {
@@ -92,16 +92,17 @@ void battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t bat
         battery_img_id = get_charge_battery_img_id(battery_percent);
         common_ui_img_resource_init(thiz, battery_img_id, &battery_icon_info);
     }
-    EXCEPTION_CHECK_VOID(battery_icon_info.data);
+    EXCEPTION_CHECK_INT(battery_icon_info.data);
     if (battery_icon_img == NULL || !lv_obj_is_valid(battery_icon_img)) {
         battery_icon_img = lv_image_create(root);
-        EXCEPTION_CHECK_VOID(battery_icon_img);
+        EXCEPTION_CHECK_INT(battery_icon_img);
     }
     lv_fs_path_ex_t battery_icon_img_path;
     lv_fs_make_path_from_buffer(&battery_icon_img_path, LV_FS_MEMFS_LETTER, battery_icon_info.data,
         battery_icon_info.size, "baj");
     lv_image_set_src(battery_icon_img, (const void *)&battery_icon_img_path);
     lv_obj_align(battery_icon_img, LV_ALIGN_TOP_LEFT, 185 + 5, 40);
+    return 0;
 }
 
 void battery_icon_deinit(ui_manager_context_t *thiz)

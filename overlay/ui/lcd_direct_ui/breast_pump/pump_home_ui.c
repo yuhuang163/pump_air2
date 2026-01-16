@@ -92,6 +92,16 @@ typedef struct {
     lv_obj_t * mode_text;
     res_img_info_t mode_icon_info;
     res_img_info_t background_info;
+    uint8_t force_update;
+    uint8_t is_connected;
+    uint8_t percent;
+    uint8_t is_charging;
+    uint8_t mode;
+    uint8_t speed;
+    uint8_t left_level;
+    uint8_t right_level;
+    uint16_t hold_time;
+    uint16_t animation_index;
 } pump_home_display_info_t;
 
 /*
@@ -193,8 +203,49 @@ static void pump_home_bg_update(ui_manager_context_t *thiz)
     }
 }
 
-static void pump_home_time_update(ui_manager_context_t *thiz, uint8_t minutes, uint8_t seconds)
+static void pump_home_ble_update(ui_manager_context_t *thiz, ble_manager_context_t *ble)
 {
+    EXCEPTION_CHECK_VOID(ble);
+    uint8_t is_connected = ble->ble_is_connected();
+    if (pump_info->is_connected == is_connected && pump_info->force_update == false) {
+        return;
+    }
+
+    if (ble_ui_update(thiz, pump_info->root, is_connected) != 0) {
+        return;
+    }
+    pump_info->is_connected = is_connected;
+}
+
+static void pump_home_battery_update(ui_manager_context_t *thiz, battery_manager_context_t *battery)
+{
+    EXCEPTION_CHECK_VOID(battery);
+    uint8_t percent = battery->get_battery_percent();
+    uint8_t is_charging = battery->is_charge_plug_in();
+    if (pump_info->percent == percent && 
+        pump_info->is_charging == is_charging &&
+        pump_info->force_update == false) {
+        return;
+    }
+
+    if (battery_icon_update(thiz, pump_info->root, percent, is_charging) != 0) {
+        return;
+    }
+    
+    pump_info->percent = percent;
+    pump_info->is_charging = is_charging;
+}
+
+static void pump_home_time_update(ui_manager_context_t *thiz, breast_pump_manager_context_t *pump)
+{
+    EXCEPTION_CHECK_VOID(pump);
+    const pump_result_info_t *result = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
+    uint16_t hold_time = (result == NULL) ? 0 : (result->work_valid_time / 1000);
+    if (pump_info->hold_time == hold_time && pump_info->force_update == false) {
+        return;
+    }
+
+    uint8_t minutes = hold_time / 60, seconds = hold_time % 60;
     if (pump_info->time_colon == NULL || !lv_obj_is_valid(pump_info->time_colon)) {
         pump_info->time_colon = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->time_colon);
@@ -225,18 +276,19 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint8_t minutes, u
     lv_obj_set_style_text_color(pump_info->time_second, lv_color_hex(PUMP_TEXT_BLACK_COLOR), 0);
     lv_obj_set_style_text_font(pump_info->time_second, &lv_font_roboto_81_medium, 0);
     lv_obj_align(pump_info->time_second, LV_ALIGN_TOP_LEFT, 196, 168);
+    pump_info->hold_time = hold_time;
 }
 
-static void pump_home_left_level_label_update(ui_manager_context_t *thiz, uint8_t level, uint8_t is_selected)
+static int pump_home_left_level_label_update(ui_manager_context_t *thiz, uint8_t level, uint8_t is_selected)
 {
     if (pump_info->left_level_label == NULL || !lv_obj_is_valid(pump_info->left_level_label)) {
         pump_info->left_level_label = lv_obj_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->left_level_label);
+        EXCEPTION_CHECK_INT(pump_info->left_level_label);
     }
 
     if (pump_info->left_level_text == NULL || !lv_obj_is_valid(pump_info->left_level_text)) {
         pump_info->left_level_text = lv_label_create(pump_info->left_level_label);
-        EXCEPTION_CHECK_VOID(pump_info->left_level_text);
+        EXCEPTION_CHECK_INT(pump_info->left_level_text);
     }
     lv_obj_clear_flag(pump_info->left_level_label, LV_OBJ_FLAG_SCROLLABLE);   /// 不要滚动条
     lv_obj_set_size(pump_info->left_level_label, 57, 38); /// 设置容器尺寸
@@ -254,13 +306,14 @@ static void pump_home_left_level_label_update(ui_manager_context_t *thiz, uint8_
     lv_obj_set_style_text_font(pump_info->left_level_text, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_center(pump_info->left_level_text); /// 文字居中
     lv_obj_align(pump_info->left_level_label, LV_ALIGN_TOP_LEFT, 66 + 4, 102);    /// 设置左档位标签位置
+    return 0;
 }
 
-static void pump_home_left_level_arc_update(ui_manager_context_t *thiz, uint8_t level)
+static int pump_home_left_level_arc_update(ui_manager_context_t *thiz, uint8_t level)
 {
     if (pump_info->left_level_arc == NULL || !lv_obj_is_valid(pump_info->left_level_arc)) {
         pump_info->left_level_arc = lv_arc_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->left_level_arc);
+        EXCEPTION_CHECK_INT(pump_info->left_level_arc);
     }
     lv_obj_set_size(pump_info->left_level_arc, 310, 310);
     lv_obj_center(pump_info->left_level_arc);
@@ -274,31 +327,45 @@ static void pump_home_left_level_arc_update(ui_manager_context_t *thiz, uint8_t 
     } else {
         end_angle = ((212 - 160) * level / 15) + 160;
     }
-    lv_arc_set_angles(pump_info->left_level_arc, 160, end_angle);
-    /* 背景圆弧 */
+    lv_arc_set_angles(pump_info->left_level_arc, 160, end_angle); /// 设置圆弧角度
     lv_obj_set_style_arc_color(pump_info->left_level_arc,
-        lv_color_hex(PUMP_ARC_UNSEL_COLOR), LV_PART_MAIN);
-    lv_obj_set_style_arc_width(pump_info->left_level_arc, 10, LV_PART_MAIN);
+        lv_color_hex(PUMP_ARC_UNSEL_COLOR), LV_PART_MAIN); /// 设置背景圆弧颜色
+    lv_obj_set_style_arc_width(pump_info->left_level_arc, 10, LV_PART_MAIN); /// 设置背景圆弧宽度
+    lv_obj_set_style_arc_color(pump_info->left_level_arc,
+        lv_color_hex(PUMP_ARC_SEL_COLOR), LV_PART_INDICATOR); /// 设置深色前景圆弧颜色
+    lv_obj_set_style_arc_width(pump_info->left_level_arc, 10, LV_PART_INDICATOR); /// 设置深色前景圆弧宽度
+    lv_obj_remove_style(pump_info->left_level_arc, NULL, LV_PART_KNOB); /// 去掉旋钮
 
-    /* 深色前景圆弧 */
-    lv_obj_set_style_arc_color(pump_info->left_level_arc,
-        lv_color_hex(PUMP_ARC_SEL_COLOR), LV_PART_INDICATOR);
-    lv_obj_set_style_arc_width(pump_info->left_level_arc, 10, LV_PART_INDICATOR);
-    
-    /* 去掉旋钮 */
-    lv_obj_remove_style(pump_info->left_level_arc, NULL, LV_PART_KNOB);
+    return 0;
 }
 
-static void pump_home_right_level_label_update(ui_manager_context_t *thiz, uint8_t level, uint8_t is_selected)
+static void pump_home_left_level_update(ui_manager_context_t *thiz, uint8_t level, uint8_t is_selected)
+{
+    if (pump_info->left_level == level && pump_info->force_update == false) {
+        return;
+    }
+    int ret = 0;
+    ret = pump_home_left_level_arc_update(thiz, level);
+    if (ret != 0) {
+        return;
+    }
+    ret = pump_home_left_level_label_update(thiz, level, is_selected);
+    if (ret != 0) {
+        return;
+    }
+    pump_info->left_level = level;
+}
+
+static int pump_home_right_level_label_update(ui_manager_context_t *thiz, uint8_t level, uint8_t is_selected)
 {
     if (pump_info->right_level_label == NULL || !lv_obj_is_valid(pump_info->right_level_label)) {
         pump_info->right_level_label = lv_obj_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->right_level_label);
+        EXCEPTION_CHECK_INT(pump_info->right_level_label);
     }
 
     if (pump_info->right_level_text == NULL || !lv_obj_is_valid(pump_info->right_level_text)) {
         pump_info->right_level_text = lv_label_create(pump_info->right_level_label);
-        EXCEPTION_CHECK_VOID(pump_info->right_level_text);
+        EXCEPTION_CHECK_INT(pump_info->right_level_text);
 
     }
     lv_obj_clear_flag(pump_info->right_level_label, LV_OBJ_FLAG_SCROLLABLE);   /// 不要滚动条
@@ -310,20 +377,20 @@ static void pump_home_right_level_label_update(ui_manager_context_t *thiz, uint8
     lv_obj_set_style_radius(pump_info->right_level_label, 19, 0);   /// 高度 38 → 圆角设 19（或更大）
     char level_value[4] = {0};
     sprintf(level_value, "R%d", level);
-    // LOG_UI("right_level_label: %d/%s, is_selected: %d", level, level_value, is_selected);
     lv_label_set_text(pump_info->right_level_text, level_value);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_info->right_level_text,
          lv_color_hex(is_selected ? PUMP_TEXT_UNSEL_COLOR : PUMP_TEXT_SEL_COLOR), 0);
     lv_obj_set_style_text_font(pump_info->right_level_text, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_center(pump_info->right_level_text); /// 文字居中
     lv_obj_align(pump_info->right_level_label, LV_ALIGN_TOP_LEFT, 236 + 2, 102);    /// 设置右档位标签位置
+    return 0;
 }
 
-static void pump_home_right_level_arc_update(ui_manager_context_t *thiz, uint8_t level)
+static int pump_home_right_level_arc_update(ui_manager_context_t *thiz, uint8_t level)
 {
     if (pump_info->right_level_arc == NULL || !lv_obj_is_valid(pump_info->right_level_arc)) {
         pump_info->right_level_arc = lv_arc_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->right_level_arc);
+        EXCEPTION_CHECK_INT(pump_info->right_level_arc);
     }
     lv_obj_set_size(pump_info->right_level_arc, 310, 310);
     lv_obj_center(pump_info->right_level_arc);
@@ -337,23 +404,42 @@ static void pump_home_right_level_arc_update(ui_manager_context_t *thiz, uint8_t
     } else {
         end_angle = ((380 - 328) * (15 - level) / 15) + 328;
     }
-    lv_arc_set_angles(pump_info->right_level_arc, end_angle, 380);
-    /* 背景圆弧 */
+    lv_arc_set_angles(pump_info->right_level_arc, end_angle, 380); /// 设置圆弧角度
     lv_obj_set_style_arc_color(pump_info->right_level_arc,
-         lv_color_hex(PUMP_ARC_UNSEL_COLOR), LV_PART_MAIN);
+         lv_color_hex(PUMP_ARC_UNSEL_COLOR), LV_PART_MAIN); /// 设置背景圆弧颜色
     lv_obj_set_style_arc_width(pump_info->right_level_arc, 10, LV_PART_MAIN);
-
-    /* 深色前景圆弧 */
     lv_obj_set_style_arc_color(pump_info->right_level_arc,
-         lv_color_hex(PUMP_ARC_SEL_COLOR), LV_PART_INDICATOR);
+         lv_color_hex(PUMP_ARC_SEL_COLOR), LV_PART_INDICATOR); /// 设置深色前景圆弧颜色
     lv_obj_set_style_arc_width(pump_info->right_level_arc, 10, LV_PART_INDICATOR);
-    
-    /* 去掉旋钮 */
-    lv_obj_remove_style(pump_info->right_level_arc, NULL, LV_PART_KNOB);
+    lv_obj_remove_style(pump_info->right_level_arc, NULL, LV_PART_KNOB); /// 去掉旋钮
+
+    return 0;
 }
+
+static void pump_home_right_level_update(ui_manager_context_t *thiz, uint8_t level, uint8_t is_selected)
+{
+    if (pump_info->right_level == level && pump_info->force_update == false) {
+        return;
+    }
+    int ret = 0;
+    ret = pump_home_right_level_arc_update(thiz, level);
+    if (ret != 0) {
+        return;
+    }
+    ret = pump_home_right_level_label_update(thiz, level, is_selected);
+    if (ret != 0) {
+        return;
+    }
+    pump_info->right_level = level;
+}
+
 
 static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t speed)
 {
+    if (pump_info->speed == speed && pump_info->force_update == false) {
+        return;
+    }
+
     if (pump_info->speed_label == NULL || !lv_obj_is_valid(pump_info->speed_label)) {
         pump_info->speed_label = lv_obj_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->speed_label);
@@ -380,12 +466,18 @@ static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t spe
     lv_obj_set_style_text_font(pump_info->speed_label_text, &lv_font_roboto_21_medium, 0);  /// 设置字体
     lv_obj_center(pump_info->speed_label_text); /// 文字居中
     lv_obj_align(pump_info->speed_label, LV_ALIGN_TOP_LEFT, 131 + 2, 102);    /// 设置右档位标签位置
+
+    pump_info->speed = speed;
 }
 
 static void pump_home_mode_label_update(ui_manager_context_t *thiz, uint8_t mode_index)
 {
     if (mode_index >= HOME_MODE_MAX_COUNT) {
         mode_index = HOME_MODE_MAX_COUNT - 1;
+    }
+
+    if (pump_info->mode == mode_index && pump_info->force_update == false) {
+        return;
     }
 
     if (pump_info->mode_label == NULL || !lv_obj_is_valid(pump_info->mode_label)) {
@@ -428,6 +520,27 @@ static void pump_home_mode_label_update(ui_manager_context_t *thiz, uint8_t mode
     lv_image_set_src(pump_info->mode_icon, (const void *)&mode_icon_img_path);
     lv_obj_align(pump_info->mode_icon, LV_ALIGN_TOP_LEFT, 
         home_mode_infos[mode_index].icon_x, home_mode_infos[mode_index].icon_y);    /// 设置icon位置
+
+    pump_info->mode = mode_index;
+}
+
+static void pump_setting_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc->pump);
+    EXCEPTION_CHECK_VOID(proc->motor);
+    EXCEPTION_CHECK_VOID(proc->st);
+    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    pump_setting_t setting;
+    uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
+    uint8_t mode = proc->pump->get_breast_pump_mode();
+    uint8_t is_selected = control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? true : false;
+    pump_home_left_level_update(thiz, setting.level[0], is_selected); /// 更新左档位
+    is_selected = control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT ? true : false;
+    pump_home_right_level_update(thiz, setting.level[1], is_selected); /// 更新右档位
+    pump_home_speed_label_update(thiz, setting.speed); /// 更新速度
+    pump_home_mode_label_update(thiz, mode); /// 更新模式
 }
 
 /*
@@ -451,9 +564,10 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
         pump_info = (pump_home_display_info_t *)u_malloz(sizeof(pump_home_display_info_t));
         EXCEPTION_CHECK_VOID(pump_info);
     }
-    // thiz->priv.fps_count = 0;
-    // thiz->priv.fps_start_time = get_timestamp();
     pump_home_init();  
+    thiz->priv.fps_count = 0;
+    thiz->priv.fps_start_time = get_timestamp();
+    pump_info->force_update = true;
 #endif
 }
 
@@ -498,39 +612,16 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(pump_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->pump);
-    EXCEPTION_CHECK_INT(proc->motor);
-    EXCEPTION_CHECK_INT(proc->ble);
-    EXCEPTION_CHECK_INT(proc->battery);
-    EXCEPTION_CHECK_INT(proc->st);
-    const pump_result_info_t *result = proc->pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
     // pump_home_bg_update(thiz);
-    ble_ui_update(thiz, pump_info->root, proc->ble->ble_is_connected());
-    battery_icon_update(thiz, pump_info->root, 
-        proc->battery->get_battery_percent(), proc->battery->is_charge_plug_in());
-    uint16_t hold_time = 0;
-    if (result != NULL) {
-        hold_time = result->work_valid_time / 1000;
-    }
-    pump_home_time_update(thiz, hold_time / 60, hold_time % 60);
-    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-    proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
-    pump_setting_t setting;
-    uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
-    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
-    uint8_t mode = proc->pump->get_breast_pump_mode();
-    pump_home_left_level_label_update(thiz, setting.level[0], 
-        control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? true : false);
-    pump_home_left_level_arc_update(thiz, setting.level[0]);
-    pump_home_right_level_label_update(thiz, setting.level[1], 
-        control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT ? true : false);
-    pump_home_right_level_arc_update(thiz, setting.level[1]);
-    pump_home_speed_label_update(thiz, setting.speed);
-    pump_home_mode_label_update(thiz, mode);     
+    pump_home_ble_update(thiz, proc->ble);
+    pump_home_battery_update(thiz, proc->battery);
+    pump_home_time_update(thiz, proc->pump);
+    pump_setting_ui_update(thiz, proc);
     thiz->priv.fps_count++;
+    pump_info->force_update = false; 
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> pump home fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> pump 12 home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
         
     }

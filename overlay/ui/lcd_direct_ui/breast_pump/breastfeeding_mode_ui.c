@@ -8,6 +8,7 @@
 #include "ui_manager.h"   // IWYU pragma: keep
 #include "window_screen_pump.h" // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
+#include <stdint.h>
 
 /*
 * DEFINES
@@ -22,6 +23,8 @@
 typedef struct {
     lv_obj_t * root;
     res_img_info_t icon_infos;
+    uint8_t force_update;
+    uint8_t mode;
 } bf_mode_display_info_t;
 
 static bf_mode_display_info_t *bf_mode_info;
@@ -42,45 +45,45 @@ const static uint16_t breastfeeding_icon_ids[BREASTFEEDING_MODE_MAX_COUNT] = {
 *****************************************************************************************
 */
 
-static void breastfeeding_mode_img_update(ui_manager_context_t *thiz, uint8_t mode_index)
+static int breastfeeding_mode_img_update(ui_manager_context_t *thiz, uint8_t mode)
 {
-    if (mode_index >= BREASTFEEDING_MODE_MAX_COUNT) {
-        return;
-    }
-
     if (bf_mode_info->root == NULL || !lv_obj_is_valid(bf_mode_info->root)) {
         bf_mode_info->root = lv_image_create(lv_screen_active());
+        EXCEPTION_CHECK_INT(bf_mode_info->root);
     }
-
-#if 0
-    const uint16_t img_id = breastfeeding_icon_ids[mode_index];
-    if (s_breastfeeding_last_img_id == img_id && bf_mode_info->icon_infos.data &&
-    bf_mode_info->icon_infos.size) {
-        return;
+    
+    uint8_t mode_index = 0;
+    if (mode < BREAST_PUMP_CUSTOM_MODE || mode > BREAST_PUMP_LACTATION_START_MODE) {
+        mode_index = 0;
+        LOGE("mode is invalid: %d", mode);
+    } else {
+        mode_index = mode - BREAST_PUMP_CUSTOM_MODE;
     }
-
-    /* Drop cache of previous image to avoid cache growth when switching. */
-    if (bf_mode_info->root && lv_obj_is_valid(bf_mode_info->root)) {
-        const void * old_src = lv_image_get_src(bf_mode_info->root);
-        if (old_src) {
-            lv_image_cache_drop(old_src);
-        }
-    }
-    common_ui_img_resource_init(thiz, img_id, &bf_mode_info->icon_infos);
-#else
     common_ui_img_resource_init(thiz, breastfeeding_icon_ids[mode_index], 
         &bf_mode_info->icon_infos);
-#endif
-
-    EXCEPTION_CHECK_VOID(bf_mode_info->icon_infos.data);
+    EXCEPTION_CHECK_INT(bf_mode_info->icon_infos.data);
     lv_fs_path_ex_t breastfeeding_img_path;
     lv_fs_make_path_from_buffer(&breastfeeding_img_path, LV_FS_MEMFS_LETTER, 
         bf_mode_info->icon_infos.data, bf_mode_info->icon_infos.size, "baj");
     lv_image_set_src(bf_mode_info->root, breastfeeding_img_path.path);
     lv_obj_align(bf_mode_info->root, LV_ALIGN_CENTER, 0, 0);
+    return 0;
 }
 
+static void breastfeeding_mode_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    uint8_t mode = proc->pump->get_breast_pump_mode();
+    if (bf_mode_info->mode == mode && bf_mode_info->force_update == false) {
+        return;
+    }
 
+    if (breastfeeding_mode_img_update(thiz, mode) != 0) {
+        return;
+    }
+    bf_mode_info->mode = mode;
+}
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -94,6 +97,7 @@ void ui_display_breastfeeding_mode_prepare(ui_manager_context_t *thiz)
     }
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
+    bf_mode_info->force_update = true;
 }
 
 void ui_display_breastfeeding_mode_remove(ui_manager_context_t *thiz)
@@ -112,17 +116,8 @@ int ui_display_breastfeeding_mode(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc->pump);
-    uint8_t mode = proc->pump->get_breast_pump_mode();
-    if (mode == BREAST_PUMP_CUSTOM_MODE) {
-        breastfeeding_mode_img_update(thiz, 0);
-    } else if (mode == BREAST_PUMP_PP_MILK_TRACK_MODE) {
-        breastfeeding_mode_img_update(thiz, 1);
-    } else if (mode == BREAST_PUMP_MILK_BOOST_MODE) {
-        breastfeeding_mode_img_update(thiz, 2);
-    } else {
-        breastfeeding_mode_img_update(thiz, 3);
-    }
+    breastfeeding_mode_ui_update(thiz, proc);
+    bf_mode_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();

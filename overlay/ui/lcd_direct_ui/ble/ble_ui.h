@@ -15,7 +15,7 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t is_connected);
+int ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t is_connected);
 void ble_ui_deinit(ui_manager_context_t *thiz);
 #ifdef __cplusplus
 }

@@ -45,6 +45,8 @@ typedef struct ui_display_speed_info {
     lv_obj_t * root_text;
     lv_obj_t * label[SPEED_MAX_COUNT];
     lv_obj_t * label_texts[SPEED_MAX_COUNT];
+    uint8_t force_update;
+    uint8_t speed;
 } speed_display_info_t;
 
 typedef struct {
@@ -102,6 +104,10 @@ static void pump_speed_root_init(void)
 
 static void pump_speed_root_text_update(ui_manager_context_t *thiz)
 {
+    if (speed_info->force_update == false) {
+        return;
+    }
+
     if (speed_info->root_text == NULL || !lv_obj_is_valid(speed_info->root_text)) {
         speed_info->root_text = lv_label_create(speed_info->root);
         EXCEPTION_CHECK_VOID(speed_info->root_text);
@@ -137,16 +143,14 @@ static void pump_home_bg_update(void)
 }
 #endif
 
-static void pump_speed_lable_update(ui_manager_context_t *thiz, bool is_selected, uint8_t speed_index)
+static int pump_speed_lable_update(ui_manager_context_t *thiz, uint8_t speed, uint8_t speed_index)
 {
-    if (speed_index >= SPEED_MAX_COUNT) {
-        return;
-    }
-
     if (speed_info->label[speed_index] == NULL || !lv_obj_is_valid(speed_info->label[speed_index])) {
         speed_info->label[speed_index] = lv_obj_create(speed_info->root);
-        EXCEPTION_CHECK_VOID(speed_info->label[speed_index]);
+        EXCEPTION_CHECK_INT(speed_info->label[speed_index]);
     }
+
+    bool is_selected = (speed == (BREAST_PUMP_SPEED_LOW + speed_index)) ? true : false;
     lv_obj_clear_flag(speed_info->label[speed_index], LV_OBJ_FLAG_SCROLLABLE);    /// 不要滚动条
     lv_obj_set_size(speed_info->label[speed_index], 222, 68); /// 设置容器尺寸
     lv_obj_set_style_border_width(speed_info->label[speed_index], 0, 0);          /// 无边框
@@ -171,7 +175,7 @@ static void pump_speed_lable_update(ui_manager_context_t *thiz, bool is_selected
     if (speed_info->label_texts[speed_index] == NULL ||
          !lv_obj_is_valid(speed_info->label_texts[speed_index])) {
         speed_info->label_texts[speed_index] = lv_label_create(speed_info->root);
-        EXCEPTION_CHECK_VOID(speed_info->label_texts[speed_index]);
+        EXCEPTION_CHECK_INT(speed_info->label_texts[speed_index]);
     }
     lv_label_set_text(speed_info->label_texts[speed_index], speed_label_infos[speed_index].name);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(speed_info->label_texts[speed_index], 
@@ -179,6 +183,28 @@ static void pump_speed_lable_update(ui_manager_context_t *thiz, bool is_selected
     lv_obj_set_style_text_font(speed_info->label_texts[speed_index], &lv_font_roboto_25_medium, 0);  /// 设置字体
     lv_obj_align(speed_info->label_texts[speed_index], LV_ALIGN_TOP_LEFT, 
         speed_label_infos[speed_index].label_text_x, speed_label_infos[speed_index].label_text_y);    /// 设置label文字位置
+    
+    return 0;
+}
+
+static void pump_speed_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    EXCEPTION_CHECK_VOID(proc->motor);
+    pump_setting_t setting;
+    uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
+    if (speed_info->speed == setting.speed && speed_info->force_update == false) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < SPEED_MAX_COUNT; i++) {
+        if (pump_speed_lable_update(thiz, setting.speed, i) != 0) {
+            return;
+        }
+    }
+    speed_info->speed = setting.speed;
 }
 
 /*
@@ -195,6 +221,7 @@ void ui_display_pump_speed_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     pump_speed_root_init();
+    speed_info->force_update = true;
 }
 
 void ui_display_pump_speed_remove(ui_manager_context_t *thiz)
@@ -210,20 +237,13 @@ int ui_display_pump_speed(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_UINT(speed_info);
     EXCEPTION_CHECK_INT(speed_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->pump);
-    EXCEPTION_CHECK_INT(proc->motor);
 #if IS_SUPPORT_SPEED_COMP_BG
     pump_home_bg_update();
 #endif
-    pump_setting_t setting;
-    uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
-    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
     pump_speed_root_text_update(thiz);
-    pump_speed_lable_update(thiz, setting.speed == BREAST_PUMP_SPEED_LOW ? true : false, 0);
-    pump_speed_lable_update(thiz, setting.speed == BREAST_PUMP_SPEED_MID ? true : false, 1);
-    pump_speed_lable_update(thiz, setting.speed == BREAST_PUMP_SPEED_HIGH ? true : false, 2);
+    pump_speed_ui_update(thiz, proc);
     thiz->priv.fps_count++;
+    speed_info->force_update = false;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOG_UI("===> pump speed fps: %d", thiz->priv.fps_count);

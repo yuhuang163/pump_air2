@@ -67,6 +67,8 @@ typedef struct {
     lv_obj_t * label_texts[MODE_MAX_COUNT];
     lv_obj_t * label_icon[MODE_MAX_COUNT];
     res_img_info_t label_icon_infos[MODE_MAX_COUNT];
+    uint8_t force_update;
+    uint8_t mode;
 } pump_mode_display_info_t;
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -163,6 +165,10 @@ static void pump_home_bg_update(void)
 
 static void pump_mode_root_text_update(ui_manager_context_t *thiz)
 {
+    if (mode_info->force_update == false) {
+        return;
+    }
+
     if (mode_info->root_text == NULL || !lv_obj_is_valid(mode_info->root_text)) {
         mode_info->root_text = lv_label_create(mode_info->root);
         EXCEPTION_CHECK_VOID(mode_info->root_text);
@@ -173,16 +179,15 @@ static void pump_mode_root_text_update(ui_manager_context_t *thiz)
     lv_obj_align(mode_info->root_text, LV_ALIGN_TOP_LEFT, 150 + 3, 39 + 4); /// 设置文字位置
 }
 
-static void pump_mode_lable_update(ui_manager_context_t *thiz, bool is_selected, uint8_t mode_index)
+static int pump_mode_lable_update(ui_manager_context_t *thiz, uint8_t mode, uint8_t mode_index)
 {
-    if (mode_index >= MODE_MAX_COUNT) {
-        return;
-    }
-
     if (mode_info->label[mode_index] == NULL || !lv_obj_is_valid(mode_info->label[mode_index])) {
         mode_info->label[mode_index] = lv_obj_create(mode_info->root);
-        EXCEPTION_CHECK_VOID(mode_info->label[mode_index]);
+        EXCEPTION_CHECK_INT(mode_info->label[mode_index]);
     }
+    
+    bool is_selected = (mode == (BREAST_PUMP_STIMULATION_MODE + mode_index)) ? true : false;
+
     lv_obj_clear_flag(mode_info->label[mode_index], LV_OBJ_FLAG_SCROLLABLE);    /// 不要滚动条
     lv_obj_set_size(mode_info->label[mode_index], 222, 68); /// 设置容器尺寸
     lv_obj_set_style_border_width(mode_info->label[mode_index], 0, 0);          /// 无边框
@@ -208,7 +213,7 @@ static void pump_mode_lable_update(ui_manager_context_t *thiz, bool is_selected,
     if (mode_info->label_texts[mode_index] == NULL ||
          !lv_obj_is_valid(mode_info->label_texts[mode_index])) {
         mode_info->label_texts[mode_index] = lv_label_create(mode_info->root);
-        EXCEPTION_CHECK_VOID(mode_info->label_texts[mode_index]);
+        EXCEPTION_CHECK_INT(mode_info->label_texts[mode_index]);
     }
     lv_label_set_text(mode_info->label_texts[mode_index], mode_label_infos[mode_index].name);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(mode_info->label_texts[mode_index], 
@@ -220,21 +225,21 @@ static void pump_mode_lable_update(ui_manager_context_t *thiz, bool is_selected,
     if (mode_info->label_icon[mode_index] == NULL ||
          !lv_obj_is_valid(mode_info->label_icon[mode_index])) {
         mode_info->label_icon[mode_index] = lv_image_create(mode_info->root);
-        EXCEPTION_CHECK_VOID(mode_info->label_icon[mode_index]);
+        EXCEPTION_CHECK_INT(mode_info->label_icon[mode_index]);
     }
 
     lv_fs_path_ex_t mode_icon_img_path;
     if (is_selected) {
         common_ui_img_resource_init(thiz, mode_icon_selected[mode_index],
             &mode_info->label_icon_infos[mode_index]);
-        EXCEPTION_CHECK_VOID(mode_info->label_icon_infos[mode_index].data);
+        EXCEPTION_CHECK_INT(mode_info->label_icon_infos[mode_index].data);
         lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER,
             mode_info->label_icon_infos[mode_index].data,
             mode_info->label_icon_infos[mode_index].size, "baj");
     } else {
         common_ui_img_resource_init(thiz, mode_icon_unselected[mode_index],
             &mode_info->label_icon_infos[mode_index]);
-        EXCEPTION_CHECK_VOID(mode_info->label_icon_infos[mode_index].data);
+        EXCEPTION_CHECK_INT(mode_info->label_icon_infos[mode_index].data);
         lv_fs_make_path_from_buffer(&mode_icon_img_path, LV_FS_MEMFS_LETTER, 
             mode_info->label_icon_infos[mode_index].data,
             mode_info->label_icon_infos[mode_index].size, "baj");
@@ -242,6 +247,24 @@ static void pump_mode_lable_update(ui_manager_context_t *thiz, bool is_selected,
     lv_image_set_src(mode_info->label_icon[mode_index], (const void *)&mode_icon_img_path);
     lv_obj_align(mode_info->label_icon[mode_index], LV_ALIGN_TOP_LEFT,
         mode_label_infos[mode_index].icon_x, mode_label_infos[mode_index].icon_y);    /// 设置icon位置
+    return 0;
+}
+
+static void pump_mode_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    uint8_t mode = proc->pump->get_breast_pump_mode();
+    if (mode_info->mode == mode && mode_info->force_update == false) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < MODE_MAX_COUNT; i++) {
+        if (pump_mode_lable_update(thiz, mode, i) != 0) {
+            return;
+        }
+    }
+    mode_info->mode = mode;
 }
 
 /*
@@ -258,6 +281,7 @@ void ui_display_pump_mode_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     pump_mode_root_init();
+    mode_info->force_update = true;
 }
 
 void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
@@ -280,16 +304,11 @@ int ui_display_pump_mode(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(mode_info);
     EXCEPTION_CHECK_INT(mode_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->pump);
 #if IS_SUPPORT_MODE_COMP_BG
     pump_home_bg_update();
 #endif
-    uint8_t mode = proc->pump->get_breast_pump_mode();
     pump_mode_root_text_update(thiz);
-    pump_mode_lable_update(thiz, mode == BREAST_PUMP_STIMULATION_MODE ? true : false, 0);
-    pump_mode_lable_update(thiz, mode == BREAST_PUMP_LACTATION_MODE ? true : false, 1);
-    pump_mode_lable_update(thiz, mode == BREAST_PUMP_MIX_MODE ? true : false, 2);
+    pump_mode_ui_update(thiz, proc);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
