@@ -135,7 +135,7 @@ static void ui_animation_play_init(struct ui_manager_context *thiz, ui_play_info
         ani->display_remove_cb(thiz);
         lv_unlock();
         LOG_UI("==> ui remove tag: %s", ani->tag);
-        lv_refr_now(NULL);
+        // lv_refr_now(NULL);
     } 
     thiz->play_animation_lock(play_info.tag);
     ani->played_count = 0;
@@ -188,7 +188,7 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
         lv_lock();
         ani->display_remove_cb(thiz);
         lv_unlock();
-        lv_refr_now(NULL);
+        // lv_refr_now(NULL);
     }
     thiz->play_animation_lock(NULL);
     memset(ani, 0, sizeof(ui_animation_play_t));
