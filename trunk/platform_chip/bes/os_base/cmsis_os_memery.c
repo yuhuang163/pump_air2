@@ -210,6 +210,9 @@ uint32_t u_heap_free_size_psram_get(int is_psram_nc)
 
 void u_heap_info_output(void)
 {
+    if (get_log_output_level() < US_LOG_LEVEL_INFO) {
+        return;
+    }
 #if PSRAM_ENABLE
     multi_heap_info_t info;
     heap_get_info(u_heap, &info);
