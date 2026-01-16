@@ -195,66 +195,14 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
     thiz->play_animation_unlock(NULL);
 }
 
-static void set_black_background_cb(hdr_post_args_t *args)
-{
-    // ui_manager_context_t *thiz = (ui_manager_context_t *)args->user_data;
-    // EXCEPTION_CHECK_VOID(thiz);
-    // LOG_UI("==>set black background");
-    // lv_obj_t *scr = lv_screen_active();
-    // lv_obj_set_style_bg_color(scr, lv_color_black(), LV_PART_MAIN);
-    // lv_refr_now(NULL);
-    // LOG_UI("==>set black background done");
-}
-
 static void ui_thread_init_route(struct ui_manager_context *thiz)
 {
     CREATE_MSG_TYPE_QUEUE(&thiz->priv.ui_hdr_thd.msg_id, 1, sizeof(uint8_t));
     thiz->priv.lvgl_initialized = true;
     LOG_UI("==>lvgl init done");
-    // POST_TASK_HANDLER_DELAYED_ARG1(set_black_background_cb, 100, thiz, "set_black_background_cb");
 }
 
-static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
-{
-    ui_manager_context_t *ui = context;
-    EXCEPTION_CHECK_VOID(ui);
-    LOG_UI("broadcast id: %d, arg1: %d, arg2: %d", id.code, arg1, arg2);
-    switch (id.code) {
-        case ID_BROADCAST_PM_WAKEUP_BY_USER:
-            if (ui->priv.ui_backlight_val != 100) {
-                ui->hook->set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_SET_BLACKLIGHT_BY_USER:
-            if (ui->priv.ui_backlight_val != 100) {
-                ui->hook->set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
-            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
-                ui->hook->set_ui_backlight(ui, 0);
-            } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
-                ui->hook->set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_PM_STATE_CHANGE: 
-            if (arg1 == ID_SYS_PM_SUSPEND) {
-                ui->priv.is_playing_ui_animation = false;
-            }
-            break;
-
-        default:
-            break;
-    }
-}
-
-static bool is_ui_backlight_on(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_BOOL(thiz);
-    return thiz->priv.ui_backlight_val > 0 ? true : false;
-}
-
-static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
+static void set_ui_panel_backlight(ui_manager_context_t *thiz, uint16_t val)
 {
     EXCEPTION_CHECK_VOID(thiz);
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
@@ -264,12 +212,24 @@ static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
         LOGE("system power off, ignore set ui backlight.");
         return;
     }
-    /// 设置面板背光
+
     if (thiz->priv.panel_dev) {
         DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_SET_BL, &val);
         thiz->priv.ui_backlight_val = val;
     }
-    /// 设置LED背光
+}
+
+static void set_ui_key_backlight(ui_manager_context_t *thiz, uint16_t val)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
+    EXCEPTION_CHECK_VOID(pm);
+
+    if (pm->is_system_power_on() == 0) {
+        LOGE("system power off, ignore set ui backlight.");
+        return;
+    }
+
     if (thiz->priv.led_dev) {
         led_status_msg_t msg = {
             .led_index = PUMP_LED_ALL_ID,
@@ -324,22 +284,61 @@ static void set_led_onoff(ui_manager_context_t *thiz, led_onoff_info_t onoff_inf
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
+static void lcd_ready_callback(int type, int status)
+{
+    EXCEPTION_CHECK_VOID(ui_ctx);
+    if (status) { 
+        lv_refr_now(NULL);
+    }
+}
+
+static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
+{
+    ui_manager_context_t *ui = context;
+    EXCEPTION_CHECK_VOID(ui);
+    LOG_UI("broadcast id: %d, arg1: %d, arg2: %d", id.code, arg1, arg2);
+    switch (id.code) {
+        case ID_BROADCAST_PM_WAKEUP_BY_USER:
+            if (ui->priv.ui_backlight_val != 100) {
+                set_ui_panel_backlight(ui, 100);
+            }
+            break;
+        case ID_BROADCAST_SET_BLACKLIGHT_BY_USER:
+            if (ui->priv.ui_backlight_val != 100) {
+                set_ui_key_backlight(ui, 100);
+            }
+            break;
+        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
+            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+                set_ui_panel_backlight(ui, 0);
+                set_ui_key_backlight(ui, 0);
+            } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
+                set_ui_panel_backlight(ui, 100);
+                set_ui_key_backlight(ui, 100);
+            }
+            break;
+        case ID_BROADCAST_PM_STATE_CHANGE: 
+            if (arg1 == ID_SYS_PM_SUSPEND) {
+                ui->priv.is_playing_ui_animation = false;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
 static int on_post_ui_init_route(struct ui_manager_context *ctx)
 {
     return 0;
 }
 
 static int on_perpare_ui_init_route(struct ui_manager_context *thiz)
-{
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    EXCEPTION_CHECK_INT(pbus);
-    thiz->priv.led_dev = (struct rt_device_node *)pbus->find_device(ID_DEVICE_LED);
-    
-    #if IS_SUPPORT_LVGL
-    /// 初始化LVGL标志为false，等待ui_thread_init_route完成后设置为true
+{    
     thiz->priv.lvgl_initialized = false;
-    #endif
-    
+    if (thiz->priv.panel_dev) {
+        DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_ADD_READY_CB, lcd_ready_callback);
+    }
     ui_ctx = thiz;
     return 0;
 }
@@ -358,8 +357,6 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->ui_thread_init_route = ui_thread_init_route;
     ctx->hook->lvgl_display_handler = lvgl_display_handler;
     ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
-    ctx->hook->set_ui_backlight = set_ui_backlight;
-    ctx->hook->is_ui_backlight_on = is_ui_backlight_on;
     ctx->hook->set_led_blink = set_led_blink;
     ctx->hook->set_led_level = set_led_level;
     ctx->hook->set_led_onoff = set_led_onoff;

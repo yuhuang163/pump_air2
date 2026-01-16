@@ -18,14 +18,16 @@
 #elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
 #define LCD_POWER_ON               1
 #define LCD_POWER_OFF              0
-#define IS_SUPPORT_LCD_BL          0
-#define IS_SUPPORT_LCD_POWER       1
+#define IS_SUPPORT_LCD_BL          1
+#define IS_SUPPORT_LCD_POWER       0
 #else
 #define LCD_POWER_ON     1
 #define LCD_POWER_OFF    0
 #define IS_SUPPORT_LCD_BL          0
 #define IS_SUPPORT_LCD_POWER       1
 #endif
+
+#define LCD_LCD_BL_PWM_FREQ       1000
 
 typedef struct {
     enum HAL_GPIO_PIN_T pin;
@@ -81,14 +83,27 @@ static void bsp_add_lcd_ready_callback(void (*callback)(int type, int status))
 static void bsp_lcd_backlight_control(uint8_t level)
 {
 #if IS_SUPPORT_LCD_BL
-    hal_pwm_set_duty(LCD_LCD_BL_PWM_ID, level);
+    uint8_t duty = level > 100 ? 100 : level;
+    if (level == 0) {
+        hal_pwm_disable(LCD_LCD_BL_PWM_ID);
+        return;
+    }
+
+    struct HAL_PWM_CFG_T pwm_cfg = {
+        .freq = LCD_LCD_BL_PWM_FREQ,
+        .ratio = duty,
+        .inv = false,
+        .sleep_on = false,
+    };
+    hal_pwm_enable(LCD_LCD_BL_PWM_ID, &pwm_cfg);
+    LOG_PBUS("lcd backlight duty: %d", duty);
 #endif
 }
 
 static void bsp_lcd_backlight_init(void)
 {
 #if IS_SUPPORT_LCD_BL
-    
+    LCD_LCD_BL_PWM_IMUX();
 #endif
 }
 
@@ -96,6 +111,8 @@ static int lcd_dev_open(struct rt_device_node *dev)
 {
     int ret = 0;
     lcd_power_init();
+    bsp_lcd_backlight_init();
+    bsp_lcd_backlight_control(0);
     lcd_power_control(true);
     msleep(10);
     ret = bsp_lcd_init();
@@ -136,6 +153,7 @@ static int lcd_dev_suspend(struct rt_device_node *dev)
 {
     lcd_device_is_ready = false;
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+    bsp_lcd_backlight_control(0);
     lcd_power_control(false);
     bsp_lcd_deinit();
 #endif
@@ -148,10 +166,10 @@ static int lcd_dev_suspend(struct rt_device_node *dev)
 static int lcd_dev_resume(struct rt_device_node *dev)
 {
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+    bsp_lcd_backlight_control(0);
     lcd_power_control(true);
     msleep(10);
     bsp_lcd_init();
-    bsp_lcd_backlight_init();
 #endif
     lcd_device_is_ready = true;
     if (s_lcd_ready_callback) {

@@ -87,7 +87,7 @@ static void on_ui_broadcast_receiver(broadcast_mask_id_t id, void *context, int 
 static int on_post_ui_init(void *self)
 {
     ui_manager_context_t *ui = (ui_manager_context_t *)self;
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+
 #if IS_SUPPORT_MODULE_RES
     thiz->priv.res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
     if (!thiz->priv.res) {
@@ -95,9 +95,7 @@ static int on_post_ui_init(void *self)
         return -1;
     }
 #endif
-    if (pbus) {
-        thiz->priv.panel_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
-    }
+
     /// 调用外部钩子.
     if (thiz->hook->on_post_init_route) {
         thiz->hook->on_post_init_route(thiz);
@@ -119,6 +117,12 @@ static int on_post_ui_init(void *self)
 static int on_perpare_ui_init(void *self)
 {
     thiz = self;
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    if (pbus) {
+        thiz->priv.panel_dev = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
+        thiz->priv.led_dev = pbus->find_device(ID_DEVICE_LED);
+    }
+
     if (thiz->hook->on_perpare_init_route) {
         thiz->hook->on_perpare_init_route(thiz);
     }
