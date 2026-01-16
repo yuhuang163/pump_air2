@@ -708,8 +708,8 @@ static void pm_wakeup(pm_wakeup_reason_e reason)
         }
     } else {
         if (thiz->priv.wakeup_reason == PM_WAKEUP_REASON_IOT && reason != PM_WAKEUP_REASON_IOT) {
-            LOG_PM("IOT唤醒状态下点亮背光 reason: %s", reason_str);
-            SEND_BROADCAST_ARGS0(ID_BROADCAST_SET_BLACKLIGHT_BY_USER);
+            // LOG_PM("IOT唤醒状态下点亮背光 reason: %s", reason_str);
+            // SEND_BROADCAST_ARGS0(ID_BROADCAST_SET_BLACKLIGHT_BY_USER);
             thiz->priv.wakeup_reason = reason;
         } else {
             LOG_PM("pm_suspend: pm_state: %d, is_enter_suspend: %d", thiz->priv.pm_state, thiz->priv.is_enter_suspend);

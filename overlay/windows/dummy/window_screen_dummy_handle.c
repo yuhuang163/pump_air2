@@ -142,10 +142,6 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, DUMMY_SYSTEM_POWER_OFF_TASK_NAME);
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
-        if (ui && ui->hook && ui->hook->set_ui_backlight) {
-            ui->hook->set_ui_backlight(ui, 0);
-            LOG_WM("%s window set backlight off", PAGE_NAME_STR);
-        }
     }
     return 0;
 }

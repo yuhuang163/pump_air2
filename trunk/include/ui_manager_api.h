@@ -142,8 +142,6 @@ typedef struct ui_manager_context {
         void (*ui_animation_play_init)(struct ui_manager_context *thiz, ui_play_info_t play_info);
         void (*ui_animation_play_deinit)(struct ui_manager_context *thiz);
         void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
-        void (*set_ui_backlight)(struct ui_manager_context *thiz, uint16_t val);
-        bool (*is_ui_backlight_on)(struct ui_manager_context *thiz);
         void (*set_led_blink)(struct ui_manager_context *thiz, led_blink_info_t blink_info);
         void (*set_led_level)(struct ui_manager_context *thiz, led_level_info_t level_info);
         void (*set_led_onoff)(struct ui_manager_context *thiz, led_onoff_info_t onoff_info);

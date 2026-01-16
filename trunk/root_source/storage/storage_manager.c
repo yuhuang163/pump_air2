@@ -212,9 +212,6 @@ static int factory_reset(factory_reset_type_e is_reboot)
         LOG_STORE("reset done,but not reboot.");
         return 1;
     } else {
-        if (ui && ui->hook && ui->hook->set_ui_backlight) {
-            ui->hook->set_ui_backlight(ui, 0);
-        }
         wm->set_window_switch_forbid(wm, 1);
         wm->set_system_is_restting_device(wm, 1);  
         thiz->flash_protect(true); /// 禁止flash读写操作.

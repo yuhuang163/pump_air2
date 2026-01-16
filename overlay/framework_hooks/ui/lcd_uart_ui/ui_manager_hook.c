@@ -107,52 +107,6 @@ static void ui_thread_init_route(struct ui_manager_context *thiz)
     START_TIMER(thiz->priv.lv_timer, LVGL_TIME_TICK_PERIOD);
 }
 
-static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
-{
-    ui_manager_context_t *ui = context;
-    EXCEPTION_CHECK_VOID(ui);
-    LOG_UI("broadcast id: %d, arg1: %d, arg2: %d", id.code, arg1, arg2);
-    switch (id.code) {
-        case ID_BROADCAST_PM_WAKEUP_BY_USER:
-            if (ui->priv.ui_backlight_val != 100) {
-                ui->hook->set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_SET_BLACKLIGHT_BY_USER:
-            if (ui->priv.ui_backlight_val != 100) {
-                ui->hook->set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
-            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
-                ui->hook->set_ui_backlight(ui, 0);
-            } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
-                ui->hook->set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_PM_STATE_CHANGE: 
-            if (arg1 == ID_SYS_PM_SUSPEND) {
-                ui->priv.is_playing_ui_animation = false;
-                STOP_TIMER(ui->priv.lv_timer);
-                ui->priv.lv_tick_timer_running = false;
-            } else {
-                STOP_TIMER(ui->priv.lv_timer);
-                START_TIMER(ui->priv.lv_timer, LVGL_TIME_TICK_PERIOD);
-                ui->priv.lv_tick_timer_running = true;
-            }
-            break;
-
-        default:
-            break;
-    }
-}
-
-static bool is_ui_backlight_on(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_BOOL(thiz);
-    return thiz->priv.ui_backlight_val > 0 ? true : false;
-}
-
 static void set_ui_backlight(ui_manager_context_t *thiz, uint16_t val)
 {
     EXCEPTION_CHECK_VOID(thiz);
@@ -223,16 +177,53 @@ static void set_led_onoff(ui_manager_context_t *thiz, led_onoff_info_t onoff_inf
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
+static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
+{
+    ui_manager_context_t *ui = context;
+    EXCEPTION_CHECK_VOID(ui);
+    LOG_UI("broadcast id: %d, arg1: %d, arg2: %d", id.code, arg1, arg2);
+    switch (id.code) {
+        case ID_BROADCAST_PM_WAKEUP_BY_USER:
+            if (ui->priv.ui_backlight_val != 100) {
+                set_ui_backlight(ui, 100);
+            }
+            break;
+        case ID_BROADCAST_SET_BLACKLIGHT_BY_USER:
+            if (ui->priv.ui_backlight_val != 100) {
+                set_ui_backlight(ui, 100);
+            }
+            break;
+        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
+            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+                set_ui_backlight(ui, 0);
+            } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
+                set_ui_backlight(ui, 100);
+            }
+            break;
+        case ID_BROADCAST_PM_STATE_CHANGE: 
+            if (arg1 == ID_SYS_PM_SUSPEND) {
+                ui->priv.is_playing_ui_animation = false;
+                STOP_TIMER(ui->priv.lv_timer);
+                ui->priv.lv_tick_timer_running = false;
+            } else {
+                STOP_TIMER(ui->priv.lv_timer);
+                START_TIMER(ui->priv.lv_timer, LVGL_TIME_TICK_PERIOD);
+                ui->priv.lv_tick_timer_running = true;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
 static int on_post_ui_init_route(struct ui_manager_context *ctx)
 {
     return 0;
 }
 
 static int on_perpare_ui_init_route(struct ui_manager_context *thiz)
-{
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    EXCEPTION_CHECK_INT(pbus);
-    thiz->priv.led_dev = (struct rt_device_node *)pbus->find_device(ID_DEVICE_LED);    
+{ 
     ui_ctx = thiz;
     return 0;
 }
@@ -251,8 +242,6 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->ui_thread_init_route = ui_thread_init_route;
     ctx->hook->lvgl_display_handler = lvgl_display_handler;
     ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
-    ctx->hook->set_ui_backlight = set_ui_backlight;
-    ctx->hook->is_ui_backlight_on = is_ui_backlight_on;
     ctx->hook->set_led_blink = set_led_blink;
     ctx->hook->set_led_level = set_led_level;
     ctx->hook->set_led_onoff = set_led_onoff;
