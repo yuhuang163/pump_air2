@@ -59,7 +59,7 @@ POSSIBLY_UNUSED static void knob_b_irq_callback(enum HAL_GPIO_PIN_T pin)
         PRINT_LOG("offset: %d\r\n", s_knob_offset);
 #endif
         s_knob_left_count++;
-        bsp_irq_msg_send(INT_NUM_KNOB_LEFT);
+        bsp_irq_msg_send(INT_NUM_KNOB_RIGHT);    /// 顺时针
         s_knob_direction = 0;
     } else if (hal_gpio_pin_get_val(KNOB_A_PIN) == 1 && s_knob_direction == 2) {
         s_knob_offset = s_knob_b_trigger_time - s_knob_a_trigger_time;
@@ -67,7 +67,7 @@ POSSIBLY_UNUSED static void knob_b_irq_callback(enum HAL_GPIO_PIN_T pin)
         PRINT_LOG("offset: %d\r\n", s_knob_offset);
 #endif
         s_knob_right_count++;
-        bsp_irq_msg_send(INT_NUM_KNOB_RIGHT);
+        bsp_irq_msg_send(INT_NUM_KNOB_LEFT);    /// 逆时针
         s_knob_direction = 0;
     } else {
         s_knob_offset = s_knob_b_trigger_time - s_knob_a_trigger_time;
