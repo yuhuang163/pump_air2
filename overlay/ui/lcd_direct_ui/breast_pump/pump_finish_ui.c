@@ -26,23 +26,16 @@ typedef struct {
 
 typedef struct {
     lv_obj_t * root;
-#if IS_SUPPORT_COMPLETE_TIP_COMP_BG
-    lv_obj_t * background;
-#endif
     lv_obj_t * icon;
     lv_obj_t * texts[COMPLETE_TIP_TEXT_COUNT];
     res_img_info_t icon_info;
+    uint8_t force_update;
 } complete_tip_display_info_t;
 
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-#if IS_SUPPORT_COMPLETE_TIP_COMP_BG
-static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
-    #include "comparison_png2txt/pump_finish_comp_360x360.txt"
-};
-#endif
 
 static complete_tip_display_info_t *finish_info;
 
@@ -74,32 +67,6 @@ static void pump_complete_tip_root_init(void)
     lv_obj_clear_flag(finish_info->root, LV_OBJ_FLAG_CLICKABLE);           /// 让 root 不吃事件，防止挡子控件
     lv_obj_clear_flag(finish_info->root, LV_OBJ_FLAG_SCROLLABLE);          /// 禁止滚动
 }
-
-#if IS_SUPPORT_COMPLETE_TIP_COMP_BG
-static void pump_complete_tip_bg_update(void)
-{
-    static uint8_t status = 0;
-    static uint32_t start_time = 0;
-    if (finish_info->background == NULL || !lv_obj_is_valid(finish_info->root)) {
-        finish_info->background = lv_image_create(finish_info->root);
-    }
-    lv_fs_path_ex_t bg_img_path;
-    if (status == 0) {
-        lv_obj_add_flag(finish_info->background, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_clear_flag(finish_info->background, LV_OBJ_FLAG_HIDDEN);
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, complete_tip_bg_data,
-            sizeof(complete_tip_bg_data), "png");
-        lv_image_set_src(finish_info->background, (const void *)&bg_img_path);
-        lv_obj_align(finish_info->background, LV_ALIGN_CENTER, 0, 0);
-    }
-
-    if (get_timestamp() - start_time > 1000) {
-        start_time = get_timestamp();
-        status = (status == 0) ? 1 : 0;
-    }
-}
-#endif
 
 static void pump_complete_tip_label_update(ui_manager_context_t *thiz)
 {
@@ -145,6 +112,7 @@ void ui_display_pump_complete_tip_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     pump_complete_tip_root_init();
+    finish_info->force_update = true;
 }
 
 void ui_display_pump_complete_tip_remove(ui_manager_context_t *thiz)
@@ -164,12 +132,12 @@ int ui_display_pump_complete_tip(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(finish_info);
     EXCEPTION_CHECK_INT(finish_info->root);
-#if IS_SUPPORT_COMPLETE_TIP_COMP_BG
-    pump_complete_tip_bg_update();
-#endif
-    pump_complete_tip_label_update(thiz);
-    for (uint8_t i = 0; i < COMPLETE_TIP_TEXT_COUNT; i++) {
-        pump_complete_tip_texts_update(thiz, i);
+    if (finish_info->force_update == true) {
+        pump_complete_tip_label_update(thiz);
+        for (uint8_t i = 0; i < COMPLETE_TIP_TEXT_COUNT; i++) {
+            pump_complete_tip_texts_update(thiz, i);
+        }
+        finish_info->force_update = false;
     }
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

@@ -33,6 +33,7 @@ typedef struct {
     lv_obj_t * texts[AIRPLANE_MODE_TEXT_COUNT];
     res_img_info_t lock_icon_info;
     res_img_info_t button_icon_info;
+    uint8_t force_update;
 } airplane_mode_display_info_t;
 
 /*
@@ -145,6 +146,24 @@ static void pump_texts_update(ui_manager_context_t *thiz, uint8_t index)
         airplane_mode_text_infos[index].text_x, airplane_mode_text_infos[index].text_y);
 }
 
+static void airplane_mode_ui_update(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_VOID(airplane_mode_info);
+    if (airplane_mode_info->force_update == false) {
+        return;
+    }
+    EXCEPTION_CHECK_VOID(airplane_mode_info->root);
+#if IS_SUPPORT_AIRPLANE_MODE_COMP_BG
+    airplane_mode_bg_update();
+#endif
+    pump_lock_icon_update(thiz);
+    pump_button_icon_update(thiz);
+    for (uint8_t i = 0; i < AIRPLANE_MODE_TEXT_COUNT; i++) {
+        pump_texts_update(thiz, i);
+    }
+    airplane_mode_info->force_update = false;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -159,6 +178,7 @@ void ui_display_airplane_mode_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     airplane_mode_root_init();
+    airplane_mode_info->force_update = true;
 }
 
 void ui_display_airplane_mode_remove(ui_manager_context_t *thiz)
@@ -177,16 +197,7 @@ void ui_display_airplane_mode_remove(ui_manager_context_t *thiz)
 int ui_display_airplane_mode_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(airplane_mode_info);
-    EXCEPTION_CHECK_INT(airplane_mode_info->root);
-#if IS_SUPPORT_AIRPLANE_MODE_COMP_BG
-    airplane_mode_bg_update();
-#endif
-    pump_lock_icon_update(thiz);
-    pump_button_icon_update(thiz);
-    for (uint8_t i = 0; i < AIRPLANE_MODE_TEXT_COUNT; i++) {
-        pump_texts_update(thiz, i);
-    }
+    airplane_mode_ui_update(thiz);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();

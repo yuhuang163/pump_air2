@@ -15,7 +15,7 @@ extern "C" {
 #include "input_key_code.h" // IWYU pragma: keep
 
 #if IS_SUPPORT_LVGL
-#define HOME_ANIMATION_FREQ                 (12)
+#define HOME_ANIMATION_FREQ                 (25)
 #else
 #define HOME_ANIMATION_FREQ                 (5)
 #endif

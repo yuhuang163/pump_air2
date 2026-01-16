@@ -817,6 +817,7 @@ static lv_draw_buf_t *logo_bg_snapshot = NULL;  /// 背景快照，避免重复�
 
 #endif
 
+static uint8_t logo_force_update = false;
 static lv_obj_t *logo_root;
 static res_img_info_t logo_img_info;
 static uint32_t start_time = 0;
@@ -1035,6 +1036,7 @@ void ui_display_logo_prepare(ui_manager_context_t *thiz)
 #endif
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
+    logo_force_update = true;
 }
 
 void ui_display_logo_remove(ui_manager_context_t *thiz)
@@ -1064,7 +1066,10 @@ int ui_display_logo_process(ui_manager_context_t *thiz)
 #elif IS_SUPPORT_BAJ_TEST
     system_test_baj_process(thiz);
 #else
-    sys_logo_label_update(thiz);
+    if (logo_force_update == true) {
+        logo_force_update = false;
+        sys_logo_label_update(thiz);
+    }   
 #endif
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

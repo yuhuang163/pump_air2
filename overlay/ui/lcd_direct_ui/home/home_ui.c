@@ -30,7 +30,6 @@ typedef struct {
 } home_content_info_t;
 
 typedef struct {  
-    uint8_t page_index;  
     lv_obj_t * root;
 #if IS_SUPPORT_HOME_COMP_BG
     lv_obj_t * background;
@@ -40,6 +39,11 @@ typedef struct {
     lv_obj_t * icon;
     lv_obj_t * text;
     res_img_info_t icon_info;
+    uint8_t force_update;
+    uint8_t is_connected;
+    uint8_t percent;
+    uint8_t is_charging;
+    uint8_t page_index;  
 } home_display_info_t;
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -131,33 +135,67 @@ static void home_bg_update(ui_manager_context_t *thiz)
 }
 #endif
 
-static void home_icon_image_update(ui_manager_context_t *thiz, uint8_t page_index)
+static void home_ble_update(ui_manager_context_t *thiz, ble_manager_context_t *ble)
+{
+    EXCEPTION_CHECK_VOID(ble);
+    uint8_t is_connected = ble->ble_is_connected();
+    if (home_info->is_connected == is_connected && home_info->force_update == false) {
+        return;
+    }
+
+    if (ble_ui_update(thiz, home_info->root, is_connected) != 0) {
+        return;
+    }
+    home_info->is_connected = is_connected;
+}
+
+static void home_battery_update(ui_manager_context_t *thiz, battery_manager_context_t *battery)
+{
+    EXCEPTION_CHECK_VOID(battery);
+    uint8_t percent = battery->get_battery_percent();
+    uint8_t is_charging = battery->is_charge_plug_in();
+    if (home_info->percent == percent && 
+        home_info->is_charging == is_charging &&
+        home_info->force_update == false) {
+        return;
+    }
+
+    if (battery_icon_update(thiz, home_info->root, percent, is_charging) != 0) {
+        return;
+    }
+    
+    home_info->percent = percent;
+    home_info->is_charging = is_charging;
+}
+
+static int home_icon_image_update(ui_manager_context_t *thiz, uint8_t page_index)
 {
     if (home_info->icon == NULL || !lv_obj_is_valid(home_info->root)) {
         home_info->icon = lv_image_create(home_info->root);
-        EXCEPTION_CHECK_VOID(home_info->icon);
+        EXCEPTION_CHECK_INT(home_info->icon);
     }
 
     if (page_index == HOME_PAGE_GUIDE_QRCODE) {
         lv_obj_add_flag(home_info->icon, LV_OBJ_FLAG_HIDDEN);
-        return;
     } else {
         lv_obj_clear_flag(home_info->icon, LV_OBJ_FLAG_HIDDEN);
+        common_ui_img_resource_init(thiz, home_content_infos[page_index].img_id, &home_info->icon_info);
+        EXCEPTION_CHECK_INT(home_info->icon_info.data);
+        lv_fs_path_ex_t complete_tip_img_path;
+        lv_fs_make_path_from_buffer(&complete_tip_img_path, LV_FS_MEMFS_LETTER,
+            home_info->icon_info.data, home_info->icon_info.size, "baj");
+        lv_image_set_src(home_info->icon, complete_tip_img_path.path);
+        lv_obj_align(home_info->icon, LV_ALIGN_TOP_LEFT, 
+            home_content_infos[page_index].icon_x, home_content_infos[page_index].icon_y);
     }
-    common_ui_img_resource_init(thiz, home_content_infos[page_index].img_id, &home_info->icon_info);
-    EXCEPTION_CHECK_VOID(home_info->icon_info.data);
-    lv_fs_path_ex_t complete_tip_img_path;
-    lv_fs_make_path_from_buffer(&complete_tip_img_path, LV_FS_MEMFS_LETTER,
-        home_info->icon_info.data, home_info->icon_info.size, "baj");
-    lv_image_set_src(home_info->icon, complete_tip_img_path.path);
-    lv_obj_align(home_info->icon, LV_ALIGN_TOP_LEFT, 
-        home_content_infos[page_index].icon_x, home_content_infos[page_index].icon_y);
+    return 0;
 }
 
-static void home_text_update(ui_manager_context_t *thiz, uint8_t page_index)
+static int home_text_update(ui_manager_context_t *thiz, uint8_t page_index)
 {
     if (home_info->text == NULL || !lv_obj_is_valid(home_info->text)) {
         home_info->text = lv_label_create(home_info->root);
+        EXCEPTION_CHECK_INT(home_info->text);
     }
 
     if (page_index >= HOME_CONTENT_COUNT) {
@@ -180,15 +218,15 @@ static void home_text_update(ui_manager_context_t *thiz, uint8_t page_index)
         lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, 
             home_content_infos[page_index].text_x, home_content_infos[page_index].text_y);
     }
-
+    return 0;
 }
 
-static void home_qrcode_update(ui_manager_context_t *thiz, uint8_t page_index)
+static int home_qrcode_update(ui_manager_context_t *thiz, uint8_t page_index)
 {  
     ///  创建容器包裹二维码（用于添加边框和内边距效果）
     if (home_info->qrcode_container == NULL || !lv_obj_is_valid(home_info->qrcode_container)) {
         home_info->qrcode_container = lv_obj_create(home_info->root);
-        EXCEPTION_CHECK_VOID(home_info->qrcode_container);
+        EXCEPTION_CHECK_INT(home_info->qrcode_container);
         ///  设置容器尺寸
         lv_obj_set_size(home_info->qrcode_container, 126, 126);
         ///  设置容器背景颜色为白色
@@ -205,7 +243,7 @@ static void home_qrcode_update(ui_manager_context_t *thiz, uint8_t page_index)
     
     if (home_info->qrcode == NULL || !lv_obj_is_valid(home_info->qrcode)) {
         home_info->qrcode = lv_qrcode_create(home_info->qrcode_container);
-        EXCEPTION_CHECK_VOID(home_info->qrcode);
+        EXCEPTION_CHECK_INT(home_info->qrcode);
     }
     
     if (page_index != HOME_PAGE_GUIDE_QRCODE) {
@@ -219,6 +257,31 @@ static void home_qrcode_update(ui_manager_context_t *thiz, uint8_t page_index)
         lv_obj_center(home_info->qrcode);
         lv_obj_align(home_info->qrcode_container, LV_ALIGN_TOP_LEFT, 117 + 4, 85);
     }
+    return 0;
+}
+
+static void home_ui_update(ui_manager_context_t *thiz, uint8_t page_index)
+{
+    if (home_info->force_update == false && home_info->page_index == page_index) {
+        return;
+    }
+    int ret = home_qrcode_update(thiz, page_index);
+    if (ret != 0) {
+        LOG_UI("===> home qrcode update failed");
+        return;
+    }
+    ret = home_icon_image_update(thiz, page_index);
+    if (ret != 0) {
+        LOG_UI("===> home icon image update failed");
+        return;
+    }
+    ret = home_text_update(thiz, page_index);
+    if (ret != 0) {
+        LOG_UI("===> home text update failed");
+        return;
+    }
+    home_info->page_index = page_index;
+    // LOG_UI("===> home update success, page_index: %d", page_index);
 }
 
 /*
@@ -235,6 +298,7 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     home_ui_root_init();
+    home_info->force_update = true;
 }
 
 void ui_display_home_remove(ui_manager_context_t *thiz)
@@ -254,19 +318,14 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(home_info->root);
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->ble);
-    EXCEPTION_CHECK_INT(proc->battery);
 #if IS_SUPPORT_HOME_COMP_BG
     home_bg_update(thiz);
 #endif
-    uint8_t page_index = proc->page_index;
-    ble_ui_update(thiz, home_info->root, proc->ble->ble_is_connected());
-    battery_icon_update(thiz, home_info->root, proc->battery->get_battery_percent(),
-        proc->battery->is_charge_plug_in());
-    home_qrcode_update(thiz, page_index);
-    home_icon_image_update(thiz, page_index);
-    home_text_update(thiz, page_index);
+    home_ble_update(thiz, proc->ble);
+    home_battery_update(thiz, proc->battery);
+    home_ui_update(thiz, proc->page_index);
     thiz->priv.fps_count++;
+    home_info->force_update = false;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOG_UI("===> home fps: %d", thiz->priv.fps_count);

@@ -47,6 +47,10 @@ typedef struct {
 #if IS_SUPPORT_SCAN_QRCODE_TIP
     lv_obj_t * text;
 #endif
+    uint8_t force_update;
+    uint8_t is_connected;
+    uint8_t percent;
+    uint8_t is_charging;
 } product_tests_home_display_info_t;
 
 /*
@@ -70,6 +74,9 @@ static product_tests_home_display_info_t *tests_info = NULL;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static int product_tests_mac_name_update(ui_manager_context_t *thiz, uint8_t *mac_addr);
+static int product_tests_qrcode_update(ui_manager_context_t *thiz, uint8_t *mac_addr);
+
 static void product_tests_ui_root_init(void)
 {
     if (tests_info->root == NULL || !lv_obj_is_valid(tests_info->root)) {
@@ -85,11 +92,55 @@ static void product_tests_ui_root_init(void)
     lv_obj_clear_flag(tests_info->root, LV_OBJ_FLAG_SCROLLABLE);          /// 禁止滚动
 }
 
+
+static void product_tests_ble_update(ui_manager_context_t *thiz, ble_manager_context_t *ble)
+{
+    EXCEPTION_CHECK_VOID(ble);
+    uint8_t is_connected = ble->ble_is_connected();
+    if (tests_info->is_connected == is_connected && tests_info->force_update == false) {
+        return;
+    }
+
+    if (ble_ui_update(thiz, tests_info->root, is_connected) != 0) {
+        return;
+    }
+    tests_info->is_connected = is_connected;
+
+    /// 更新mac名称和二维码
+    if (tests_info->force_update == false) {
+        return;
+    }
+    uint8_t mac_addr[6] = {0};
+    ble->get_mac_addr(mac_addr);
+    product_tests_mac_name_update(thiz, mac_addr);
+    product_tests_qrcode_update(thiz, mac_addr);
+}
+
+static void product_tests_battery_update(ui_manager_context_t *thiz, battery_manager_context_t *battery)
+{
+    EXCEPTION_CHECK_VOID(battery);
+    uint8_t percent = battery->get_battery_percent();
+    uint8_t is_charging = battery->is_charge_plug_in();
+    if (tests_info->percent == percent && 
+        tests_info->is_charging == is_charging &&
+        tests_info->force_update == false) {
+        return;
+    }
+
+    if (battery_icon_update(thiz, tests_info->root, percent, is_charging) != 0) {
+        return;
+    }
+    
+    tests_info->percent = percent;
+    tests_info->is_charging = is_charging;
+}
+
 #if IS_SUPPORT_SCAN_QRCODE_TIP
-static void product_tests_text_update(ui_manager_context_t *thiz)
+static int product_tests_text_update(ui_manager_context_t *thiz)
 {
     if (tests_info->text == NULL || !lv_obj_is_valid(tests_info->text)) {
         tests_info->text = lv_label_create(tests_info->root);
+        EXCEPTION_CHECK_INT(tests_info->text);
     }
 
     lv_label_set_text(tests_info->text, product_tests_content_infos[0].name);
@@ -100,13 +151,16 @@ static void product_tests_text_update(ui_manager_context_t *thiz)
     lv_obj_set_style_text_align(tests_info->text, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
     lv_obj_align(tests_info->text, LV_ALIGN_TOP_LEFT, 
         product_tests_content_infos[0].text_x, product_tests_content_infos[0].text_y);
+    
+    return 0;
 }
 #endif
 
-static void product_tests_mac_name_update(ui_manager_context_t *thiz, uint8_t *mac_addr)
+static int product_tests_mac_name_update(ui_manager_context_t *thiz, uint8_t *mac_addr)
 {
     if (tests_info->mac_name == NULL || !lv_obj_is_valid(tests_info->mac_name)) {
         tests_info->mac_name = lv_label_create(tests_info->root);
+        EXCEPTION_CHECK_INT(tests_info->mac_name);
     }
     
     char mac_name[16] = {0};
@@ -118,15 +172,17 @@ static void product_tests_mac_name_update(ui_manager_context_t *thiz, uint8_t *m
     // lv_obj_set_style_text_align(tests_info->mac_name, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
     lv_obj_align(tests_info->mac_name, LV_ALIGN_TOP_LEFT, 
         PRODUCT_TESTS_HOME_MAC_NAME_X, PRODUCT_TESTS_HOME_MAC_NAME_Y);
+
+    return 0;
 }
 
-static void product_tests_qrcode_update(ui_manager_context_t *thiz, uint8_t *mac_addr)
+static int product_tests_qrcode_update(ui_manager_context_t *thiz, uint8_t *mac_addr)
 {      
     lv_color_t bg_color = lv_palette_lighten(LV_PALETTE_LIGHT_BLUE, 5);
     lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
     if (tests_info->qrcode == NULL || !lv_obj_is_valid(tests_info->qrcode)) {
         tests_info->qrcode = lv_qrcode_create(tests_info->root);
-        EXCEPTION_CHECK_VOID(tests_info->qrcode);
+        EXCEPTION_CHECK_INT(tests_info->qrcode);
     }
     
     lv_qrcode_set_size(tests_info->qrcode, PRODUCT_TESTS_HOME_QRCODE_SIZE);
@@ -139,6 +195,8 @@ static void product_tests_qrcode_update(ui_manager_context_t *thiz, uint8_t *mac
     lv_qrcode_update(tests_info->qrcode, qr_str, strlen(qr_str));
     lv_obj_center(tests_info->qrcode);
     lv_obj_align(tests_info->qrcode, LV_ALIGN_TOP_LEFT, PRODUCT_TESTS_HOME_QRCODE_X, PRODUCT_TESTS_HOME_QRCODE_Y);
+
+    return 0;
 }
 
 /*
@@ -155,6 +213,7 @@ void ui_display_product_tests_home_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     product_tests_ui_root_init();
+    tests_info->force_update = true;
 }
 
 void ui_display_product_tests_home_remove(ui_manager_context_t *thiz)
@@ -174,19 +233,10 @@ int ui_display_product_tests_home_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(tests_info);
     EXCEPTION_CHECK_INT(tests_info->root);
     ui_proc_product_test_t *proc = (ui_proc_product_test_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc->ble);
-    EXCEPTION_CHECK_INT(proc->battery);
-    ble_ui_update(thiz, tests_info->root, proc->ble->ble_is_connected());
-    battery_icon_update(thiz, tests_info->root, proc->battery->get_battery_percent(),
-            proc->battery->is_charge_plug_in());
-    uint8_t mac_addr[6] = {0};
-    proc->ble->get_mac_addr(mac_addr);
-    product_tests_qrcode_update(thiz, mac_addr);
-#if IS_SUPPORT_SCAN_QRCODE_TIP
-    product_tests_text_update(thiz);
-#endif
-    product_tests_mac_name_update(thiz, mac_addr);
+    product_tests_ble_update(thiz, proc->ble);
+    product_tests_battery_update(thiz, proc->battery);
     thiz->priv.fps_count++;
+    tests_info->force_update = false;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOG_UI("===> product_tests home fps: %d", thiz->priv.fps_count);
