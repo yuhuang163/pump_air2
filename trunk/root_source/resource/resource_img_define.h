@@ -53,7 +53,7 @@ typedef struct img_res_head_desc {
     uint16_t flags;           /// 标志位(bit0:是否压缩, bit1-15:保留)
     uint16_t type;            /// 资源包类型(img_res_type_e)
     uint16_t lang_id;         /// 语言ID(img_res_lang_type_e)
-    uint16_t version;         /// 资源版本(格式: 0xMMmm, MM=主版本, mm=次版本)
+    uint16_t version;         /// 资源版本（推荐: major*100 + minor，与 ROOT_RES_VERSION 一致）
     uint16_t res_count;       /// 资源个数(最多支持 (32KB-64)/20 = 1636个)
     uint32_t total_size;      /// 整个资源包的总大小(字节)
     uint32_t reserved[4];     /// 预留字段(16字节)

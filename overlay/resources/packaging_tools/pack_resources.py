@@ -22,7 +22,7 @@ from pathlib import Path
 # 常量定义（与C头文件保持一致）
 IMG_RES_MAGIC = 0x52534547  # "GESR"
 IMG_RES_HEADER_FIXED_SIZE = 64 * 1024  # 默认值（优先从 resource_id_define.h 的 IMG_RES_HEADER_FIXED_SIZE 宏解析）
-IMG_RES_VERSION_CURRENT = 0x0100  # v1.0
+IMG_RES_VERSION_CURRENT = 100  # v1.00 (major*100 + minor)
 IMG_RES_MD5_SIZE = 16
 IMG_RES_NAME_PREFIX_DEFAULT = "V0"  # 默认文件名前缀（优先从 resource_id_define.h 的 IMG_RES_NAME_PREFIX 宏解析）
 
@@ -335,7 +335,7 @@ def make_versioned_output_path(
     格式: V3_20260112_V01.01_xxxxx_RES.bin
     - 前缀: IMG_RES_NAME_PREFIX（例如 V3）
     - 日期: YYYYMMDD
-    - 版本: VXX.XX 格式（例如 0x0100 -> V01.00, 0x0101 -> V01.01）
+    - 版本: VXX.XX 格式（例如 100 -> V01.00, 101 -> V01.01）
     - MD5: 使用 body_md5 的前8位（内容变化更敏感，便于区分产物）
     """
     p = Path(base_output_file)
