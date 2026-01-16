@@ -136,14 +136,11 @@ static void adaptive_dimming_polling_thread(void *user_data)
     if (adaptive_dimming_duty_calculate(lux_avg, &refresh_duty) == 0) {
         return;
     }
-    led_status_msg_t msg = {
+    night_light_pwm_duty_set_msg_t msg = {
         .led_index = NIGHT_LIGHT_LED_ID_0,
-        .led_status = {
-            .mode = LED_MODE_LEVEL,
-            .un.luminous.level = refresh_duty,
-        },
+        .pwm_duty = refresh_duty,
     };
-    night_light->ioctl(night_light, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
+    night_light->ioctl(night_light, OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET, (void *)&msg);
 }
 
 /*
