@@ -44,12 +44,12 @@ static uint16_t s_key_mask[TOUCH_KEY_NUM] = {
     0x0004, /// 左按键
     0x0010, /// 右按键
 #elif V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2
-0x0001, /// 频段键
-0x0010, /// 右按键
-0x0008, /// 启动键
-0x0004, /// 左按键
-0x8000, /// 追奶键
-0x0002, /// 模式键
+    0x0001, /// 频段键
+    0x0010, /// 右按键
+    0x0008, /// 启动键
+    0x0004, /// 左按键
+    0x8000, /// 追奶键
+    0x0002, /// 模式键
 #else
     0x0002, /// 启动键
     0x0004, /// 模式键
@@ -241,8 +241,8 @@ POSSIBLY_UNUSED static int sc09b_is_ready(void)
 
 POSSIBLY_UNUSED static int sc09b_chip_init(void)
 {
-    bsp_key_sensitivity_set(0, SC09B_SEN_6);
-    bsp_key_sensitivity_set(1, SC09B_SEN_6);
+    // bsp_key_sensitivity_set(0, SC09B_SEN_6);
+    // bsp_key_sensitivity_set(1, SC09B_SEN_6);
     // sc09b_reference_cap_config();
     return BSP_OK;
 }
