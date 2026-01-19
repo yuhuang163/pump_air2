@@ -30,18 +30,19 @@
 #if IS_SUPPORT_PRESSURE_TEST  
 static int run_led_test_cb(void)
 {
-    static uint8_t led_level = 0;
-    LOG_PBUS("===> run led test!!!!! level: %d", led_level);
+    static uint8_t led_status = LED_STATUS_OFF;
+    LOG_PBUS("===> run led test!!!!! status: %d", led_status);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
     led_status_msg_t msg = {
         .led_index = PUMP_LED_ALL_ID,
         .led_status = {
-            .mode = LED_MODE_LEVEL,
-            .un.luminous.level = led_level,
+            .mode = LED_MODE_ONOFF,
+            .un.onoff.status = led_status,
         },
     };
     led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    led_status = led_status == LED_STATUS_OFF ? LED_STATUS_ON : LED_STATUS_OFF;
     return 1000;
 }
 
@@ -140,9 +141,9 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
     // reboot_system_test_cb();
     // run_pump_test_cb();
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, lcd_data_send_test_cb(), "pressure_test:continue");
-    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, run_led_test_cb(), "pressure_test:continue"); 
+    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, run_led_test_cb(), "pressure_test:continue"); 
     // motor_debug_policy_test_cb();
-    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
+    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
     // light_sensor_test();
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test:continue");
 }
