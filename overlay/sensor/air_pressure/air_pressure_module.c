@@ -31,7 +31,6 @@ static void dispatch_air_pressure_client(sensor_wrapper_data_t *sensor_data, voi
 {
     sensor_evt_client_node_t *node = (sensor_evt_client_node_t *)user_data;
     EXCEPTION_CHECK_VOID(node);
-    // LOG_SENSOR("node->report_type=%d", node->report_type);
     if (thiz->priv.polling_cnt - node->old_cnt >= node->step) {
         node->old_cnt = thiz->priv.polling_cnt;
         node->cb(node->user_data, (uint8_t *)sensor_data, sizeof(sensor_wrapper_data_t));
@@ -60,6 +59,11 @@ static void set_air_pressure_sampling_interval(uint16_t interval)
 {
     if (thiz->priv.sampling_interval != interval) {
         thiz->priv.sampling_interval = interval;
+        DEVICE_IOCTL_HAS_RET(thiz->priv.dev, OP_CODE_AIR_PRESSURE_IS_SUPPORT_AIR_PRESSURE, support_air_pressure);
+        if (support_air_pressure <= 0) {
+            LOG_SENSOR("air pressure is not supported, skip set sampling interval");
+            return;
+        }
         sensor_manager_context_t *ctx = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
         EXCEPTION_CHECK_VOID(ctx);
         ctx->remove_sensor_task(air_pressure_polling_handler);
@@ -77,6 +81,11 @@ static int on_post_air_pressure_init(void *ptr)
     EXCEPTION_CHECK_INT(pbus);
     thiz->priv.dev = pbus->find_device(ID_DEVICE_AIR_PRESSURE);
     thiz->priv.sampling_interval = AIR_PRESSURE_POLLING_PERIOD;
+    DEVICE_IOCTL_HAS_RET(thiz->priv.dev, OP_CODE_AIR_PRESSURE_IS_SUPPORT_AIR_PRESSURE, support_air_pressure);
+    if (support_air_pressure <= 0) {
+        LOG_SENSOR("air pressure is not supported, skip init");
+        return 0;
+    }
     ctx->add_sensor_task(ctx, SENSOR_TASK_ID_AIR_PRESSURE_POLLING, thiz->priv.sampling_interval,
         AIR_PRESSURE_EVT_POLLING, air_pressure_polling_handler, dispatch_air_pressure_client);
     return 0;
