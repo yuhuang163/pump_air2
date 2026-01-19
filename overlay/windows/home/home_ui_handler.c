@@ -41,11 +41,6 @@ static void home_display_completed_cb(hdr_post_args_t *args)
     return;
 }
 
-static void home_ui_before_policy(ui_manager_context_t *ui, int index)
-{
-
-}
-
 static void home_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_home_process(ui);
@@ -59,7 +54,6 @@ static void home_animation_progress_cb(void *user_data, int index, ui_ani_progre
         case ANI_TIMER_DRAW_FINISH:
             break;
         case ANI_TIMER_DRAW_BEFORE:
-            home_ui_before_policy(ui, index);
             break;
         case ANI_TIMER_DRAW_AFTER:
             home_ui_after_policy(ui, index);
@@ -108,8 +102,8 @@ void start_home_ui_animation(ui_proc_home_t *proc)
         .display_remove_cb = home_ui_display_remove,
         .user_data = proc,
     };
-    ui->hook->ui_animation_play_init(ui, play_info);
     proc->last_progress_ani_time = get_timestamp();
+    ui->hook->ui_animation_play_init(ui, play_info);
     proc->current_ui_type = HOME_UI_TYPE_HOME;
 }
 
