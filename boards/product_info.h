@@ -63,8 +63,8 @@ typedef enum {
 /**
  * 芯片平台从10-90
 */
-#define ROOT_SOC_PLAT                                 10
-#define ROOT_SOC_PLAT_STR                            "10"
+#define ROOT_SOC_PLAT                                  10
+#define ROOT_SOC_PLAT_STR                              "10"
 
 /**
  * 正式版本从100-900
