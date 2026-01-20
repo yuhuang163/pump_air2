@@ -19,6 +19,7 @@
 #define BLE_IMG_TEST_SHELL_CMD                 "#imgTest"
 #define BLE_ALGO_SAMPLING_DATA_SHELL_CMD       "#algoSmp"
 #define BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD   "#algoSmpIntvl"
+#define BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD     "#LightAdaptive"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -32,6 +33,7 @@ static void ble_shell_forbid_sleep(const uint8_t *param, uint16_t len);
 static void ble_shell_img_test(const uint8_t *param, uint16_t len);
 static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len);
 static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len);
+static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len);
 static const ble_factory_shell_t shell_list[] = {
     {BLE_PUMP_POLICY_SHELL_CMD,   ble_shell_pump_policy},
     {BLE_PUMP_CTRL_SHELL_CMD,     ble_shell_pump_ctrl},
@@ -41,6 +43,7 @@ static const ble_factory_shell_t shell_list[] = {
     {BLE_IMG_TEST_SHELL_CMD,      ble_shell_img_test},
     {BLE_ALGO_SAMPLING_DATA_SHELL_CMD, ble_shell_algo_sampling_control},
     {BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD, ble_shell_algo_sampling_interval},
+    {BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD, ble_shell_night_light_adaptive},
 };
 
 /*
@@ -185,6 +188,32 @@ static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len)
     sscanf((const char *)param, "%d", &interval);
     LOG_BLE("shell algo sampling interval %d", interval);
     algo->hook->algo_change_sampling_interval(algo, interval);
+}
+
+static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len)
+{
+    int adaptive = 0;
+    sscanf((const char *)param, "%d", &adaptive);
+    LOG_BLE("shell night light adaptive %d", adaptive);
+    algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+    if (algo && algo->hook && algo->hook->set_adaptive_dimming_state) {
+        algo->hook->set_adaptive_dimming_state(adaptive);
+        if (adaptive > 0) {
+            return;
+        }
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        EXCEPTION_CHECK_VOID(pbus);
+        rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
+        EXCEPTION_CHECK_VOID(led_dev);
+        led_status_msg_t msg = {
+            .led_index = NIGHT_LIGHT_LED_ID_0,
+            .led_status = {
+                .mode = LED_MODE_LEVEL,
+                .un.luminous.level = 0,
+            },
+        };
+        led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
+    }
 }
 
 /*

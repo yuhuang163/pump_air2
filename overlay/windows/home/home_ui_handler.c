@@ -32,6 +32,7 @@ static void home_display_completed_cb(hdr_post_args_t *args)
     LOG_UI("home play finish.\n");
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_VOID(wm);
+    wm->set_window_guidance_deployed_flag(true);
     if (wm->is_current_window(wm, ID_WINDOW_HOME) == 0) {
         return;
     }
