@@ -12,7 +12,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define STORAGE_RAM_SYNC_FLASH_INTERVAL_MS    (20 * 1000)  /// 20s
+#define STORAGE_RAM_SYNC_FLASH_INTERVAL_MS    (10 * 1000)  /// 20s
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -267,7 +267,7 @@ static void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, in
                 LOG_STORE("-->system shutdown");
                 POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 0, st, "persist_store_task4");
             } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
-#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
                 POST_TASK_HANDLER_DELAYED_ARG1(storage_ram_sync_flash_cb, STORAGE_RAM_SYNC_FLASH_INTERVAL_MS, st, "ram_sync_flash_task");
 #endif
             }
