@@ -218,7 +218,7 @@ static void dispatch_sensor_task_client(sensor_manager_context_t *obj, sensor_wr
         uint32_t elapsed = current_time - node->last_exec_time;
         if (elapsed >= node->polling_period) {
             if (node->cb) {
-                node->cb(&sensor_data); /// 执行回调.
+                node->cb(sensor_data); /// 执行回调.
             }
             node->last_exec_time = current_time; /// 更新执行时间.
         }
