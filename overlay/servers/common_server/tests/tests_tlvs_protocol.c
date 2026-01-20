@@ -89,6 +89,11 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
     if (mode == 1) {
         /* 进入产测模式 */
         set_log_ouput_level(US_LOG_LEVEL_NONE);
+        //关闭自适应夜灯
+        algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+        EXCEPTION_CHECK_INT(algo);
+        algo->hook->set_adaptive_dimming_state(false);
+
         tests_ctx->tests_manager_set_current_mode(TST_FACTORY_TYPE);
         tests_ctx->set_factory_tests_event_process(FAC_TST_ENTER_EVENT, 0, 0, NULL);
         //唤醒电源管理模块
@@ -107,6 +112,11 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
         } else {
             /* 退出产测模式 */
             set_log_ouput_level(US_LOG_LEVEL_VERBOSE);
+            //开启自适应夜灯
+            algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+            EXCEPTION_CHECK_INT(algo);
+            algo->hook->set_adaptive_dimming_state(true);
+             
             tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
             tests_ctx->set_factory_tests_event_process(FAC_TST_EXIT_EVENT, 0, 0, NULL);
             /* 关闭测试窗口 */

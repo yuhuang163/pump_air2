@@ -89,7 +89,7 @@ extern "C" {
 /// 支持电池直采
 #define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (0)
 /// 支持UART
-#define IS_SUPPORT_DEVICE_UART                           (0)
+#define IS_SUPPORT_DEVICE_UART                           (1)
 /// 支持光传感器
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (1)
 /// 支持资源管理
