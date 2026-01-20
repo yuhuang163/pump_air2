@@ -160,7 +160,10 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         .first_status = LED_STATUS_OFF,
         .finish_status = LED_STATUS_ON,
     };
-
+    /// 隐藏空气泄漏弹窗提示.
+    if (proc->is_air_leakage_popup_show == true) {
+        proc->hide_air_leakage_popup_wm = true;
+    }
     switch (keycode) {
         case KEY_CODE_POWER:
             switch_pump_night_light_ui(proc, proc->pump);
@@ -401,6 +404,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    proc->algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "pump_screen";

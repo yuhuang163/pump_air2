@@ -82,7 +82,7 @@ typedef enum {
 #else
 #define ROOT_RES_PATH                                  "V1" /// 资源路径
 #endif
-#define ROOT_RES_VERSION                               (100) 
+#define ROOT_RES_VERSION                               (101) 
 #define ROOT_RES_MAJOR_VERSION                         (ROOT_RES_VERSION / 100)
 #define ROOT_RES_MINOR_VERSION                         (ROOT_RES_VERSION % 100)
 
