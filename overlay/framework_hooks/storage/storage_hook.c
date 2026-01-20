@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "handler_post.h"
 #include "persist_storage.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "factory_persist_data.h"
