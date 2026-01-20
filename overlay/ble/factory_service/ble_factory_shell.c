@@ -20,6 +20,7 @@
 #define BLE_ALGO_SAMPLING_DATA_SHELL_CMD       "#algoSmp"
 #define BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD   "#algoSmpIntvl"
 #define BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD     "#LightAdaptive"
+#define BLE_LCD_BACKLIGHT_SHELL_CMD            "#lcdBk"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -34,6 +35,7 @@ static void ble_shell_img_test(const uint8_t *param, uint16_t len);
 static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len);
 static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len);
 static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len);
+static void ble_shell_lcd_backlight(const uint8_t *param, uint16_t len);
 static const ble_factory_shell_t shell_list[] = {
     {BLE_PUMP_POLICY_SHELL_CMD,   ble_shell_pump_policy},
     {BLE_PUMP_CTRL_SHELL_CMD,     ble_shell_pump_ctrl},
@@ -44,6 +46,7 @@ static const ble_factory_shell_t shell_list[] = {
     {BLE_ALGO_SAMPLING_DATA_SHELL_CMD, ble_shell_algo_sampling_control},
     {BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD, ble_shell_algo_sampling_interval},
     {BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD, ble_shell_night_light_adaptive},
+    {BLE_LCD_BACKLIGHT_SHELL_CMD, ble_shell_lcd_backlight},
 };
 
 /*
@@ -215,6 +218,18 @@ static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len)
         led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
     }
 }
+
+static void ble_shell_lcd_backlight(const uint8_t *param, uint16_t len)
+{
+    int backlight = 0;
+    sscanf((const char *)param, "%d", &backlight);
+    LOG_BLE("shell lcd backlight Percentage %d", backlight);
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    EXCEPTION_CHECK_VOID(pbus);
+    rt_device_node_t *lcd = pbus->find_device(ID_DEVICE_DISPLAY_PANEL);
+    lcd->ioctl(lcd, OP_CODE_PANEL_SET_BL, (void *)&backlight);
+}
+
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
