@@ -635,11 +635,11 @@ int bsp_motor_stop(void *args)
             run_time[count] = get_timestamp() - start_time;
             count++;
         } else {
-            PRINT_LOG("run_time %d: ", TICKS_TO_MS(run_time[0]));
+            BSP_LOG_PASS("run_time %d: ", TICKS_TO_MS(run_time[0]));
             for (uint8_t i = 0; i < 20; i++) {
-                PRINT_LOG("%d ", run_time[i]);
+                BSP_LOG_PASS("%d ", run_time[i]);
             }
-            PRINT_LOG("\r\n");
+            BSP_LOG_PASS("\r\n");
             count = 0;
         }
     }
