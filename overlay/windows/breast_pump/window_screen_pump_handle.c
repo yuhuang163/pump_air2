@@ -137,16 +137,6 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         .do_work = proc->pump->is_on_working()
     };
 
-#if 0
-    const char *key_name = NULL;
-    if (proc->key && proc->key->hook && proc->key->hook->get_key_code_name) {
-        key_name = proc->key->hook->get_key_code_name(keycode);
-    } else {
-        key_name = "@unknow";
-    }
-    LOG_WM("%s, keyevent:%d/%d, pump working: %d.", key_name, keycode, keytype, pump_info.do_work);
-#endif
-
     if (proc->goto_charge_ui_flag != 0) {
         LOG_WM("goto charge ui, ignore key event.");
         return 0;
@@ -160,10 +150,13 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         .first_status = LED_STATUS_OFF,
         .finish_status = LED_STATUS_ON,
     };
-    /// 隐藏空气泄漏弹窗提示.
+
+#if IS_SUPPORT_AIR_LEAKAGE_WARNING
     if (proc->is_air_leakage_popup_show == true) {
-        proc->hide_air_leakage_popup_wm = true;
+        proc->hide_air_leakage_popup_wm = true;     /// 隐藏空气泄漏弹窗提示.
     }
+#endif
+
     switch (keycode) {
         case KEY_CODE_POWER:
             switch_pump_night_light_ui(proc, proc->pump);
@@ -238,10 +231,9 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             break;
 
         default:
-            // LOG_WM("unknow keycode: %d, ignore.", keycode);
+            LOG_WM("unknow keycode: %d, ignore.", keycode);
             break;
     }
-    // LOG_WM("keyevent#EXIT: %d: %d", keycode, keytype);
 
     return 0;
 }

@@ -98,12 +98,14 @@ typedef struct {
     lv_obj_t * mode_label;
     lv_obj_t * mode_icon;
     lv_obj_t * mode_text;
+    res_img_info_t mode_icon_info;
+    res_img_info_t background_info;
+#if IS_SUPPORT_AIR_LEAKAGE_WARNING
     lv_obj_t * air_leakage_label;
     lv_obj_t * air_leakage_text[AIR_LEAKAGE_TEXT_COUNT];
     lv_obj_t * air_leakage_icon;
-    res_img_info_t mode_icon_info;
-    res_img_info_t background_info;
     res_img_info_t air_leakage_icon_info;
+#endif
     uint8_t force_update;
     uint8_t is_connected;
     uint8_t percent;
@@ -114,8 +116,10 @@ typedef struct {
     uint8_t right_level;
     uint16_t hold_time;
     uint16_t animation_index;
+#if IS_SUPPORT_AIR_LEAKAGE_WARNING
     uint8_t hide_air_leakage_popup_wm;
     algo_breast_pump_data_t algo_data;
+#endif
 } pump_home_display_info_t;
 
 /*
@@ -544,6 +548,7 @@ static void pump_home_mode_label_update(ui_manager_context_t *thiz, uint8_t mode
     pump_info->mode = mode_index;
 }
 
+#if IS_SUPPORT_AIR_LEAKAGE_WARNING
 static void pump_home_air_leakage_label_update(ui_manager_context_t *thiz)
 {
     /// 更新空气泄漏标签
@@ -652,6 +657,7 @@ static void pump_home_air_leakage_update(ui_manager_context_t *thiz, ui_proc_pum
     pump_home_air_leakage_icon_update(thiz);
     LOG_UI("show air leakage popup"); /// 显示空气泄漏弹窗提示.
 }
+#endif
 
 static void pump_setting_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
 {
@@ -714,7 +720,9 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     pump_home_battery_update(thiz, proc->battery);
     pump_home_time_update(thiz, proc->pump);
     pump_setting_ui_update(thiz, proc);
+#if IS_SUPPORT_AIR_LEAKAGE_WARNING
     pump_home_air_leakage_update(thiz, proc);
+#endif
     thiz->priv.fps_count++;
     pump_info->force_update = false; 
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

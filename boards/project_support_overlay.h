@@ -98,6 +98,8 @@ extern "C" {
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
 /// 支持硬件版本自适应
 #define IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE             (0)
+/// 支持漏气提醒
+#define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
 #elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (1)
@@ -115,6 +117,8 @@ extern "C" {
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
 /// 支持硬件版本自适应
 #define IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE             (1)
+/// 支持漏气提醒
+#define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
 #else
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (0)
@@ -130,6 +134,8 @@ extern "C" {
 #define IS_SUPPORT_MODULE_RES                            (0)
 /// 支持自适应背光  
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
+/// 支持漏气提醒
+#define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
 #endif
 
 #ifdef __cplusplus
