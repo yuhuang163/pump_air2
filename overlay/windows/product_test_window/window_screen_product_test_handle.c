@@ -80,7 +80,7 @@ static void product_test_ui_common_cb(hdr_post_args_t *args)
             if (args->arg2 > 0) {
                 proc->tests_mode = PRODUCT_TEST_LCD_COLOR_MODE;
                 LOG_WM("show lcd color test ui");
-                show_lcd_color_test_ui(proc);
+                // show_lcd_color_test_ui(proc);
             } else {
                 proc->tests_mode = PRODUCT_TEST_HOME_MODE;
                 LOG_WM("show home test ui");
@@ -101,13 +101,6 @@ static int product_test_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint1
     ui_proc_product_test_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->key);
-    const char *key_name = NULL;
-    if (proc->key && proc->key->hook && proc->key->hook->get_key_code_name) {
-        key_name = proc->key->hook->get_key_code_name(keycode);
-    } else {
-        key_name = "@unknow";
-    }
-    LOG_WM("%s, keyevent#ENTER: %d/%d.", key_name, keycode, keytype);
     switch (proc->tests_mode) {
         case PRODUCT_TEST_HOME_MODE:
             product_home_test_keyevent_cb(proc, keycode, keytype);
@@ -118,7 +111,7 @@ static int product_test_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint1
         default:
             break;
     }
-    LOG_WM("keyevent, EXIT: %d: %d", keycode, keytype);
+    LOG_WM("current_ui_type: %d, tests_mode: %d", proc->current_ui_type, proc->tests_mode);
 
     return 0;
 }
@@ -136,6 +129,7 @@ static void product_test_broadcast_receive_cb(broadcast_mask_id_t id, void *cont
     switch (id.code) {
         case ID_BROADCAST_FACTORY_TEST_CMD:
             if (arg1 == TST_LCD_COLOR_TYPE) {
+                LOG_WM("lcd color test onoff:%d", arg2);
                 POST_TASK_HANDLER_NO_DELAY_ARG2(product_test_ui_common_cb, proc,
                     PRODUCT_TEST_LCD_COLOR, arg2, PRODUCT_TEST_LCD_COLOR_TASK_NAME);
             }
@@ -175,7 +169,8 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         /// 根据当前测试模式显示UI
         if (current_mode == TST_LCD_COLOR_TYPE) {
             proc->tests_mode = PRODUCT_TEST_LCD_COLOR_MODE;
-            show_lcd_color_test_ui(proc);
+            // show_lcd_color_test_ui(proc);
+            show_product_home_test_ui(proc); /// 临时首页默认home
         } else {
             proc->tests_mode = PRODUCT_TEST_HOME_MODE;
             show_product_home_test_ui(proc);

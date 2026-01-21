@@ -9,6 +9,7 @@
 * DEFINES
 *****************************************************************************************
 */
+#define GOTO_LCD_COLOR_TEST_TASK_NAME                  "goto_lcd_color_test"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -55,6 +56,13 @@ static void lcd_color_test_ui_display_remove(void *user_data)
     ui_display_lcd_color_test_remove(ui);
 }
 
+static void goto_lcd_color_test_policy(hdr_post_args_t *args)
+{
+    ui_proc_product_test_t *proc = (ui_proc_product_test_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    show_lcd_color_test_ui(proc);
+}
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -76,37 +84,39 @@ void show_lcd_color_test_ui(ui_proc_product_test_t *proc)
         .display_remove_cb = lcd_color_test_ui_display_remove,
         .user_data = proc,
     };
-    proc->lcd_color = 0xFFFFFF;
+    // proc->lcd_color = 0xFFFFFF;
     proc->last_progress_ani_time = get_timestamp();
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->current_ui_type = PRODUCT_TEST_UI_TYPE_LCD_COLOR;
 }
 
+void lcd_color_test_ui_hdr_remove(void)
+{
+    REMOVE_TASK_HANDLER_DIRECTLY(GOTO_LCD_COLOR_TEST_TASK_NAME);
+}
+
 void lcd_color_test_keyevent_cb(ui_proc_product_test_t *proc, uint16_t keycode, uint16_t keytype)
 {
     switch (keycode) {
+        default:
         case KEY_CODE_POWER:
-            break;
-        case KEY_CODE_START:
-            proc->lcd_color = 0xFF0000;
-            break;
         case KEY_CODE_MODE:
-            proc->lcd_color = 0x000000;
-            break;
         case KEY_CODE_FREQUENCY:
-            proc->lcd_color = 0xFFFF00;
-            break;
         case KEY_CODE_BREASTFEEDING:
-            proc->lcd_color = 0x0000FF;
-            break;
-        case KEY_CODE_LEFT_CONTROL:
-            proc->lcd_color = 0xFFFFFF;
-            break;
-        case KEY_CODE_RIGHT_CONTROL:
+            LOG_WM("unknow keycode: %d, ignore.", keycode);
+            return;
+        case KEY_CODE_START:
             proc->lcd_color = 0x00FF00;
             break;
-        default:
-            LOG_WM("unknow keycode: %d, ignore.", keycode);
+        case KEY_CODE_LEFT_CONTROL:
+            proc->lcd_color = 0xFF0000;
             break;
+        case KEY_CODE_RIGHT_CONTROL:
+            proc->lcd_color = 0x0000FF;
+            break;
+    }
+
+    if (proc->current_ui_type != PRODUCT_TEST_UI_TYPE_LCD_COLOR) {
+        POST_TASK_HANDLER_NO_DELAY(goto_lcd_color_test_policy, proc, GOTO_LCD_COLOR_TEST_TASK_NAME);
     }
 }
