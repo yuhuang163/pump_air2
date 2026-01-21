@@ -111,7 +111,7 @@ static int charge_read_nbyte(i2c_master_data_t *data)
     return BSP_ERROR;
 }
 
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
 static void charge_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
     uint8_t msg = 0;
@@ -156,7 +156,7 @@ static void charge_power_gpio_init(void)
     };
     hal_iomux_init(&pinmux, 1);
     hal_gpio_pin_set_dir(CHARGE_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
     pinmux.pin = (enum HAL_IOMUX_PIN_T)CHARGE_SLEEP_PIN;
     hal_iomux_init(&pinmux, 1);
     hal_gpio_pin_set_dir(CHARGE_SLEEP_PIN, HAL_GPIO_DIR_OUT, 1);
@@ -171,7 +171,7 @@ static void charge_power_control(bool enable)
 
 static void charge_sleep_control(bool enable)
 {
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
     GPIO_PIN_CTRL(CHARGE_SLEEP_PIN, enable ? 0 : 1);
     LOG_PBUS("charge_sleep_control: %d", enable);
 #endif
@@ -379,7 +379,7 @@ static void charge_chip_init(void)
         LOGE("charge vbat config failed, ret: %d", ret);
         return;
     }
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     charge_irq_control(true);
 #endif
     LOG_PBUS("charge chip init success");
@@ -500,7 +500,7 @@ int get_charge_full_debounce(void)
 int bsp_charge_init(void)
 {
     int ret = BSP_OK;
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
+#if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     charge_irq_init();
 #endif
     charge_power_gpio_init();

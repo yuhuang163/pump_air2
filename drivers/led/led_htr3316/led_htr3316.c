@@ -366,9 +366,9 @@ void bsp_led_resume(void)
         LOGE("chip id error");
         return;
     }
-    led_htr3316_init();
     s_led_is_ready = true;
     s_led_abnormal_count = 0;
+    led_htr3316_init();
     START_TIMER(s_led_timer_id, LED_THREAD_POLL_INTERVAL);
 }
 

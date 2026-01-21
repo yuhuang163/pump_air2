@@ -80,27 +80,7 @@ extern "C" {
 #else
 #define IS_SUPPORT_LVGL                                  (0)
 #endif
-
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1)
-/// 支持PD充电
-#define IS_SUPPORT_PD_CHARGE                             (1)
-/// 支持旋钮
-#define IS_SUPPORT_DEVICE_KNOB                           (1)
-/// 支持电池直采
-#define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (0)
-/// 支持UART
-#define IS_SUPPORT_DEVICE_UART                           (1)
-/// 支持光传感器
-#define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (1)
-/// 支持资源管理
-#define IS_SUPPORT_MODULE_RES                            (1)
-/// 支持自适应背光  
-#define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
-/// 支持硬件版本自适应
-#define IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE             (0)
-/// 支持漏气提醒
-#define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
-#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (1)
 /// 支持旋钮
@@ -121,19 +101,21 @@ extern "C" {
 #define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
 #else
 /// 支持PD充电
-#define IS_SUPPORT_PD_CHARGE                             (0)
+#define IS_SUPPORT_PD_CHARGE                             (1)
 /// 支持旋钮
-#define IS_SUPPORT_DEVICE_KNOB                           (0)
+#define IS_SUPPORT_DEVICE_KNOB                           (1)
 /// 支持电池直采
-#define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (1)
+#define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (0)
 /// 支持UART
 #define IS_SUPPORT_DEVICE_UART                           (1)
 /// 支持光传感器
-#define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
+#define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (1)
 /// 支持资源管理
-#define IS_SUPPORT_MODULE_RES                            (0)
+#define IS_SUPPORT_MODULE_RES                            (1)
 /// 支持自适应背光  
-#define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
+#define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
+/// 支持硬件版本自适应
+#define IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE             (1)
 /// 支持漏气提醒
 #define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
 #endif
