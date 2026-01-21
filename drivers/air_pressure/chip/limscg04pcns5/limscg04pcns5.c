@@ -228,7 +228,7 @@ static float temperature_result_get(uint8_t index)
     int16_t temp_raw_data = (int16_t)((reg_data[0] << 8) | reg_data[1]);
     float temp = temp_raw_data > 0 ? (temp_raw_data / 128.0f) : ((temp_raw_data & 0x7FFF) / 128.0f - 256.0f);
 #if LIMS_LOG_DEBUG
-    PRINT_LOG("temp: %f, raw: %d\r\n", temp, temp_raw_data);
+    BSP_LOG_PASS("temp: %f, raw: %d\r\n", temp, temp_raw_data);
 #endif
     return temp;
 }
@@ -343,7 +343,7 @@ int bsp_read_air_pressure_status(void *args)
     }
     start_air_pressure_conversion(LIMS_PRESSURE_DATA);
 #if LIMS_LOG_DEBUG
-    PRINT_LOG("4 time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
+    BSP_LOG_PASS("4 time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
         get_timestamp_ms(start_time), out_status[0].pressure, 
         out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
 #endif
