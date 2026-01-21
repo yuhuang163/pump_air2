@@ -97,7 +97,6 @@ CFG_LVGL_SNAPSHOT_ENABLE := 1
 
 # 硬件版本
 V3_2710IMP_HARDWARE_V1 ?= 0
-V3_2710IMC_HARDWARE_V1 ?= 1
 V3_2710IMC_HARDWARE_V2 ?= 2
 V3_HARDWARE_VERSION ?= $(V3_2710IMC_HARDWARE_V2)
 
@@ -248,13 +247,8 @@ DRIVERS_ADC_INC_FLAGS := \
 # 气压传感器驱动头文件
 DRIVERS_AIR_PRESSURE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/air_pressure
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
-DRIVERS_AIR_PRESSURE_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d
-else
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V2))
 DRIVERS_AIR_PRESSURE_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/air_pressure/chip/limscg04pcns5
-endif
-endif	
+
 
 # 光传感器驱动头文件
 DRIVERS_LIGHT_SENSOR_INC_FLAGS := \
@@ -272,10 +266,7 @@ DRIVERS_BASE_INC_FLAGS := \
 DRIVERS_BATTERY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/battery \
 	-I$(PROJECT_ROOT)/drivers/battery/charge
-
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_BATTERY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/battery/charge_pd
-endif
 
 # BLE 驱动头文件
 DRIVERS_BLE_INC_FLAGS := \
@@ -316,19 +307,12 @@ DRIVERS_IMU_INC_FLAGS := \
 DRIVERS_KEY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/key \
 	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
-endif
 
 # LCD 驱动头文件
 DRIVERS_LCD_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/lcd 
-	
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi
-else
-DRIVERS_LCD_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart
-endif
 
 # LED 驱动头文件
 DRIVERS_LED_INC_FLAGS := \
@@ -368,11 +352,8 @@ DRIVERS_INC_FLAGS := \
 	$(DRIVERS_LED_INC_FLAGS) \
 	$(DRIVERS_MOTOR_INC_FLAGS) \
 	$(DRIVERS_UART_INC_FLAGS) \
+	$(DRIVERS_LIGHT_SENSOR_INC_FLAGS) \
 	$(DRIVERS_WIFI_INC_FLAGS)
-
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
-DRIVERS_INC_FLAGS += $(DRIVERS_LIGHT_SENSOR_INC_FLAGS)
-endif	
 
 # 基础模块头文件
 BASE_INC_FLAGS := \
@@ -427,9 +408,7 @@ SENSOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 SENSOR_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/sensor/light_sensor
-endif	
 
 # 音频模块头文件
 AUDIO_INC_FLAGS := \
@@ -640,7 +619,6 @@ CONFIG_LV_THEME_DEFAULT_DARK ?= 1
 CPPFLAGS += -DCONFIG_LV_THEME_DEFAULT_DARK=$(CONFIG_LV_THEME_DEFAULT_DARK)
 
 # 硬件版本
-CPPFLAGS += -DV3_2710IMC_HARDWARE_V1=$(V3_2710IMC_HARDWARE_V1)
 CPPFLAGS += -DV3_2710IMC_HARDWARE_V2=$(V3_2710IMC_HARDWARE_V2)
 CPPFLAGS += -DV3_2710IMP_HARDWARE_V1=$(V3_2710IMP_HARDWARE_V1)
 CPPFLAGS += -DV3_HARDWARE_VERSION=$(V3_HARDWARE_VERSION)
@@ -677,10 +655,8 @@ endif
 # PWM IOMUX 相关宏定义
 CPPFLAGS += -DPWM2_IOMUX_INDEX=$(PWM2_IOMUX_INDEX)
 CPPFLAGS += -DPWM3_IOMUX_INDEX=$(PWM3_IOMUX_INDEX)
-ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2))
 CPPFLAGS += -DPWM4_IOMUX_INDEX=$(PWM4_IOMUX_INDEX)
 CPPFLAGS += -DPWM5_IOMUX_INDEX=$(PWM5_IOMUX_INDEX)
-endif
 
 # LITTLEFS 相关宏定义
 CPPFLAGS += -DLITTLEFS_SECTION_SIZE=$(LITTLEFS_SECTION_SIZE)
@@ -775,13 +751,8 @@ DRIVERS_ADC_SRCS := \
 # 气压传感器驱动源码
 DRIVERS_AIR_PRESSURE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) 
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
-DRIVERS_AIR_PRESSURE_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d/*.c)
-else 
-ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V2))
 DRIVERS_AIR_PRESSURE_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/limscg04pcns5/*.c)
-endif
-endif
+
 
 # 音频驱动源码
 DRIVERS_AUDIO_SRCS := \
@@ -796,9 +767,7 @@ DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_BATTERY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/battery/charge_pd/*.c)
-endif
 
 # BLE 驱动源码
 DRIVERS_BLE_SRCS := \
@@ -843,32 +812,19 @@ DRIVERS_IMU_SRCS := \
 DRIVERS_KEY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c)
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/knob/*.c)
-endif
 
 # LCD 驱动源码
 DRIVERS_LCD_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/lcd/*.c) 
-	
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
+
 DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_bes_qspi/*.c)
-else
-DRIVERS_LCD_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/lcd/interface/lcd_uart/*.c)
-endif
 
 # LED 驱动源码
 DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
-
-ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1))
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
-else ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2))
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_htr3316/*.c)
-else
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c)
-endif
 
 # 电机驱动源码C
 DRIVERS_MOTOR_SRCS := \
@@ -904,10 +860,7 @@ DRIVERS_SRCS := \
 	$(DRIVERS_MOTOR_SRCS) \
 	$(DRIVERS_UART_SRCS) \
 	$(DRIVERS_WIFI_SRCS)
-
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 DRIVERS_SRCS += $(DRIVERS_LIGHT_SENSOR_SRCS)
-endif	
 
 # 基础模块源码
 BASE_MODULE_SRCS := \
@@ -958,9 +911,7 @@ SENSOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c)
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2)),)
 SENSOR_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/sensor/light_sensor/*.c)
-endif	
 
 # 音频模块源码
 AUDIO_MODULE_SRCS := \
@@ -1135,12 +1086,9 @@ EXTRA_OBJS := $(patsubst $(PROJECT_ROOT)/%.c,$(O)/extra/%.o,$(filter %.c,$(EXTRA
 
 .PHONY: all extra sdk sdk_only clean allclean help print-vars firmware bootloader
 
-# PWM V2 硬件版本特定参数（仅在 V3_2710IMC_HARDWARE_V2 时传递）
 PWM_V2_PARAMS :=
-ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2))
 PWM_V2_PARAMS += PWM4_IOMUX_INDEX=$(PWM4_IOMUX_INDEX)
 PWM_V2_PARAMS += PWM5_IOMUX_INDEX=$(PWM5_IOMUX_INDEX)
-endif
 
 all: extra sdk
 
