@@ -149,6 +149,22 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
 }
 #endif
 
+void get_night_light_info_test(void)
+{
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(st);
+    night_light_info_t night_light_info = {0};
+    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+    LOG_PBUS("===> get night light info test!!!!! night_light_info: %d, %d, %d", night_light_info.onoff, night_light_info.level, night_light_info.adaptive);
+    if (1 == night_light_info.adaptive) {
+        algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+        EXCEPTION_CHECK_VOID(algo);
+        EXCEPTION_CHECK_VOID(algo->hook->set_adaptive_dimming_state);
+        algo->hook->set_adaptive_dimming_state(0);
+    }
+}
+
+
 /*
  * GLOBAL FUNCTION DEFINITIONS
  *****************************************************************************************
@@ -157,6 +173,7 @@ int run_user_thread_dispatch(void)
 {
 #if IS_SUPPORT_PRESSURE_TEST  
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 2000, "pressure_test");
+    get_night_light_info_test(); //开机默认关闭adaptive dimming状态
 #endif
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     if (wm) {
