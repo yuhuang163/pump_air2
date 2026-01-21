@@ -21,6 +21,7 @@
 #define BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD   "#algoSmpIntvl"
 #define BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD     "#LightAdaptive"
 #define BLE_LCD_BACKLIGHT_SHELL_CMD            "#lcdBk"
+#define BLE_LED_NIGHT_LIGHT_SHELL_CMD          "#ledNightLight"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -36,6 +37,7 @@ static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len);
 static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len);
 static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len);
 static void ble_shell_lcd_backlight(const uint8_t *param, uint16_t len);
+static void ble_shell_led_night_light(const uint8_t *param, uint16_t len);
 static const ble_factory_shell_t shell_list[] = {
     {BLE_PUMP_POLICY_SHELL_CMD,   ble_shell_pump_policy},
     {BLE_PUMP_CTRL_SHELL_CMD,     ble_shell_pump_ctrl},
@@ -47,6 +49,7 @@ static const ble_factory_shell_t shell_list[] = {
     {BLE_ALGO_SAMPLING_INTERVAL_SHELL_CMD, ble_shell_algo_sampling_interval},
     {BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD, ble_shell_night_light_adaptive},
     {BLE_LCD_BACKLIGHT_SHELL_CMD, ble_shell_lcd_backlight},
+   {BLE_LED_NIGHT_LIGHT_SHELL_CMD, ble_shell_led_night_light},
 };
 
 /*
@@ -230,6 +233,20 @@ static void ble_shell_lcd_backlight(const uint8_t *param, uint16_t len)
     lcd->ioctl(lcd, OP_CODE_PANEL_SET_BL, (void *)&backlight);
 }
 
+static void ble_shell_led_night_light(const uint8_t *param, uint16_t len)
+{
+    int night_light = 0;
+    sscanf((const char *)param, "%d", &night_light);
+    LOG_BLE("shell led night light pwm duty %d", night_light);
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    EXCEPTION_CHECK_VOID(pbus);
+    rt_device_node_t *led = pbus->find_device(ID_DEVICE_LED);
+    night_light_pwm_duty_set_msg_t msg = {
+        .led_index = NIGHT_LIGHT_LED_ID_0,
+        .pwm_duty = night_light,
+    };
+    led->ioctl(led, OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET, (void *)&night_light);
+}
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
