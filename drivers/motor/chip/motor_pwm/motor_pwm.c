@@ -368,7 +368,11 @@ static int8_t bsp_motor_pwm_gradual_change_start(motor_para_t *motor_para, motor
         motor_para_t *motor = (motor_para_t *)motor_para;
         struct HAL_PWM_CFG_T pwm_cfg = {
             .freq = motor->un.pwm.freq,
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+            .ratio = motor->un.pwm.duty > 90 ? 100 : PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
+#else
             .ratio = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
+#endif
             .inv = false,
             .sleep_on = false,
         };
