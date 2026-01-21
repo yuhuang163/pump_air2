@@ -74,6 +74,7 @@ void show_product_home_test_ui(ui_proc_product_test_t *proc);
 void product_home_test_ui_hdr_remove(void);
 void product_home_test_keyevent_cb(ui_proc_product_test_t *proc, uint16_t keycode, uint16_t keytype);
 void show_lcd_color_test_ui(ui_proc_product_test_t *proc);
+void lcd_color_test_ui_hdr_remove(void);
 void lcd_color_test_keyevent_cb(ui_proc_product_test_t *proc, uint16_t keycode, uint16_t keytype);
 #ifdef __cplusplus
 }

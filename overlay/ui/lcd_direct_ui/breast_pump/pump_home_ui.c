@@ -719,7 +719,7 @@ int ui_display_pump_home_screen(ui_manager_context_t *thiz)
     pump_info->force_update = false; 
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> pump 12 home fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> pump home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
         
     }
