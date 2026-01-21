@@ -46,7 +46,8 @@ extern "C" {
 /// 杂项线程深度
 #define MISC_THREAD_STACKSIZE                          (TASK_SIZE_DEFAULT * 2 + 0)
 /// 挂起线程深度
-#define PM_SUSPEND_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 2 + 0)
+// pm_suspend_thd stack is tight during suspend/resume path; leave headroom to avoid RTX stack underflow/overflow.
+#define PM_SUSPEND_THREAD_STACKSIZE                    (TASK_SIZE_DEFAULT * 4 + 0)
 /// 冻结线程深度 
 #define PM_FREEZE_THREAD_STACKSIZE                     (TASK_SIZE_DEFAULT * 2 + 0)
 /// 中断线程深度
