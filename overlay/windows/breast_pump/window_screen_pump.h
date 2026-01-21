@@ -117,8 +117,10 @@ typedef struct {
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     ui_pump_info_t info; /// 当前泵奶信息.
     pump_setting_t setting; /// 当前泵奶设置信息.
+#if IS_SUPPORT_AIR_LEAKAGE_WARNING
     uint8_t is_air_leakage_popup_show; /// 是否显示空气泄漏弹窗提示.
     uint8_t hide_air_leakage_popup_wm; /// 是否隐藏空气泄漏弹窗提示.
+#endif
 } ui_proc_pump_t;
 
 /*
