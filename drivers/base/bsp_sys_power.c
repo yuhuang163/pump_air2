@@ -2,9 +2,12 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "hal_bootmode.h"
+#include "pmu.h"
 #include "bsp_config.h"
 #include "bsp_common.h" // IWYU pragma: keep
 #include "bsp_internal.h" // IWYU pragma: keep
+
 
 /*
 * DEFINES
@@ -84,6 +87,12 @@ static void sys_power_gpio_control(bool enable)
 #if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
     GPIO_PIN_CTRL(SYS_POWER_PIN, enable ? 1 : 0);
     LOG_PBUS("sys_power_gpio_control: %d", enable);
+#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)   
+    if (enable == false) {
+        LOG_PBUS("shutdown system");
+        hal_sw_bootmode_clear(HAL_SW_BOOTMODE_REBOOT);
+        pmu_shutdown();
+    }
 #endif
 }
 
@@ -127,6 +136,8 @@ static int sys_power_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, voi
         case OP_CODE_POWER_CONTROL: 
 #if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
             EXCEPTION_CHECK_INT(temp);
+            sys_power_gpio_control(temp[0] > 0 ? true : false);
+#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)   
             sys_power_gpio_control(temp[0] > 0 ? true : false);
 #else
             return -1;
