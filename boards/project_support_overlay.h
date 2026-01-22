@@ -54,9 +54,6 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_FS                             (0)
 #define IS_SUPPORT_DEVICE_WIFI                           (0)
 
-/// 日志功能
-#define IS_SUPPORT_LOG_OUT                               (1)
-#define IS_SUPPORT_LOG_COLOR                             (0)
 /// 叠图功能
 #define IS_SUPPORT_OVERLAY_IMG                           (1)
 #define IS_SUPPORT_ASYNC_RESET_UI_PLAY_INFO              (1)

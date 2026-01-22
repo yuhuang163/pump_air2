@@ -258,9 +258,8 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
         LOG_WM("user_pause ignore.");
         return;
     }
-    LOG_WM("receive broadcast, code: %lx, code_v2: %lx, flag: %d, status: %d, mode: %ld,\
-            working: %d, arg1: %d, arg2: %d.", id.code, id.code_v2, proc->is_mode_changed_by_device,
-            pump_status, pump_mode, pump_working, arg1, arg2);
+    LOG_WM("code: %lx, code_v2: %lx, flag: %d, status: %d, mode: %ld, working: %d, arg1: %d, arg2: %d.",
+         id.code, id.code_v2, proc->is_mode_changed_by_device, pump_status, pump_mode, pump_working, arg1, arg2);
     switch (id.code) {
         case ID_BROADCAST_BREAST_PUMP_STATE_CHANGE: 
             if (arg1 == BREAST_PUMP_BROADCAST_MODE_CHANGE) {
