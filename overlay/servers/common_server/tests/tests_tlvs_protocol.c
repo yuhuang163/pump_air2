@@ -747,7 +747,10 @@ int tests_tlvs_bt_signaling_test(comm_protocol_builder_t *builder, comm_protocol
 
     if (mode == 1) {
         /* 进入蓝牙信令测试模式 */
-        platform_bt_enter_signalingtest_mode(); // 此函数会设置启动模式并重启
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        rt_device_node_t *ble_dev = pbus->find_device(ID_DEVICE_BLE);
+        DEVICE_IOCTL_ARGS_NO_RET(ble_dev, OP_CODE_BLE_TEST_ENTER_SIGNALINGTEST_MODE, NULL);
+        
         result = 0x01; // 成功（实际会在重启后生效）
     } else {
         /* 退出蓝牙信令测试模式 */
@@ -779,7 +782,10 @@ int tests_tlvs_bt_nosignaling_test(comm_protocol_builder_t *builder, comm_protoc
 
     if (mode == 1) {
         /* 进入蓝牙非信令测试模式 */
-        platform_bt_enter_nosignalingtest_mode(); // 此函数会设置启动模式并重启
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        rt_device_node_t *ble_dev = pbus->find_device(ID_DEVICE_BLE);
+        DEVICE_IOCTL_ARGS_NO_RET(ble_dev, OP_CODE_BLE_TEST_ENTER_NOSIGNALINGTEST_MODE, NULL);
+
         result = 0x01; // 成功（实际会在重启后生效）
     } else {
         /* 退出蓝牙非信令测试模式 */
@@ -812,13 +818,18 @@ int tests_tlvs_bt_xtal_calib_test(comm_protocol_builder_t *builder, comm_protoco
     if (mode == 1) {
         /* 进入蓝牙校频测试模式 */
         // 调用校频测试函数
-        if (platform_bt_xtal_calib_proc_start() == 0) {
-            result = 0x01; // 成功
-        }
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        rt_device_node_t *ble_dev = pbus->find_device(ID_DEVICE_BLE);
+        DEVICE_IOCTL_ARGS_NO_RET(ble_dev, OP_CODE_BLE_TEST_XTAL_CALIB_PROC_START, NULL);
+        result = 0x01; // 成功
+        
     } else {
         /* 退出蓝牙校频测试模式 */
         // TODO: 实现退出逻辑
-        platform_bt_xtal_calib_end();
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        rt_device_node_t *ble_dev = pbus->find_device(ID_DEVICE_BLE);
+        DEVICE_IOCTL_ARGS_NO_RET(ble_dev, OP_CODE_BLE_TEST_XTAL_CALIB_END, NULL);
+
         result = 0x01; // 默认成功
     }
 
@@ -853,7 +864,9 @@ int tests_tlvs_set_trim_value(comm_protocol_builder_t *builder, comm_protocol_se
         
         LOG_SRV("tests_tlvs_set_trim_value: trim_value=0x%08X (%u)", trim_value, trim_value);
         
-        platform_bt_xtal_calib_set(trim_value);
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        rt_device_node_t *ble_dev = pbus->find_device(ID_DEVICE_BLE);
+        DEVICE_IOCTL_ARGS_NO_RET(ble_dev, OP_CODE_BLE_TEST_XTAL_CALIB_SET, &trim_value);
         result = 0x01; // 成功
     } else {
         LOGE("tests_tlvs_set_trim_value: invalid data_len=%d, expected=%d", data_len, TESTS_TRIM_VALUE_LENGTH);
@@ -881,14 +894,16 @@ int tests_tlvs_get_trim_value(comm_protocol_builder_t *builder, comm_protocol_se
     uint8_t response[TESTS_TRIM_VALUE_LENGTH] = {0};
     /// Trim值存储
     uint32_t trim_value = 0;
-    platform_bt_xtal_calib_get(&trim_value);
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    rt_device_node_t *ble_dev = pbus->find_device(ID_DEVICE_BLE);
+    DEVICE_IOCTL_ARGS_NO_RET(ble_dev, OP_CODE_BLE_TEST_XTAL_CALIB_GET, &trim_value);
     // 将trim值转换为小端序字节数组
     response[0] = (uint8_t)(trim_value & 0xFF);
     response[1] = (uint8_t)((trim_value >> 8) & 0xFF);
     response[2] = (uint8_t)((trim_value >> 16) & 0xFF);
     response[3] = (uint8_t)((trim_value >> 24) & 0xFF);
 
-    LOG_SRV("tests_tlvs_get_trim_value: trim_value=0x%08X (%u)", trim_value);
+    LOG_SRV("tests_tlvs_get_trim_value: trim_value=0x%08X", trim_value);
     LOG_HEX("get_trim_value_response", response, TESTS_TRIM_VALUE_LENGTH);
 
     comm_protocol_tlv_node_t tlv_node = {
@@ -1069,7 +1084,10 @@ int tests_tlvs_get_rssi(comm_protocol_builder_t *builder, comm_protocol_service_
 
     if (rssi_type == 0x00) {
         // 获取BLE RSSI
-        if (platform_bt_get_rssi_value(&rssi_value) == 0) {
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        rt_device_node_t *ble_dev = pbus->find_device(ID_DEVICE_BLE);
+        uint8_t ret = DEVICE_IOCTL_ARGS(ble_dev, OP_CODE_BLE_TEST_GET_RSSI_VALUE, &rssi_value);
+        if (ret == 0) {
             LOG_SRV("tests_tlvs_get_rssi: BLE RSSI=%d", rssi_value);
         } else {
             LOG_SRV("tests_tlvs_get_rssi: BLE RSSI获取失败");
