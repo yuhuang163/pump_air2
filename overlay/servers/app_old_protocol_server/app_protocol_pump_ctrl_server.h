@@ -25,6 +25,7 @@ typedef enum {
     APP_OLD_COMM_LEFT_CT       = 0x00,
     APP_OLD_COMM_RIGHT_CT      = 0x01,
     APP_OLD_COMM_ALL_CT        = 0x02,
+    APP_OLD_COMM_INVALID_CT    = 0x03,
 } app_old_commd_l_r_ctrl_e;
 
 // Breast pumping mode definitions

@@ -334,13 +334,13 @@ uint8_t app_old_comm_set_nommal_pump_level(app_old_comm_pump_ctrl *app_old_comm_
 
     pump_ctx->get_breast_pump_setting(&setting, time_index);
 
-    if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT+1) {
+    if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT) {
         if (app_old_comm_pump_ctrl_date->normal_pump_level >= 0) {
             setting.level[0] = app_old_comm_pump_ctrl_date->normal_pump_level;
             LOG_SRV("APP_OLD_COMM_LEFT_CT pump level %d",setting.level[0]);
             app_broadcast_pump_level_to_window(setting.level[0] ,OLD_BROADCAST_LEFT_CT);
         }
-    } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT+1) {
+    } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT) {
         if (app_old_comm_pump_ctrl_date->normal_pump_level <= BREAST_PUMP_LEVEL_15) {
             setting.level[1] = app_old_comm_pump_ctrl_date->normal_pump_level;
             LOG_SRV("APP_OLD_COMM_RIGHT_CT pump level %d",setting.level[1]);
@@ -392,9 +392,9 @@ uint8_t app_old_comm_set_pump_control_type(app_old_comm_pump_ctrl *app_old_comm_
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_UINT(storage_ctx);
     uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-    if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT+1) {
+    if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT) {
         control_type = BREAST_PUMP_CONTROL_TYPE_LEFT;
-    } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT+1) {
+    } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT) {
         control_type = BREAST_PUMP_CONTROL_TYPE_RIGHT;
     } else {
         control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
@@ -429,13 +429,13 @@ uint8_t app_old_comm_set_custom_pump_level(app_old_comm_pump_ctrl *app_old_comm_
 
     pump_ctx->get_breast_pump_setting(&setting, time_index);
 
-    if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT+1) {
+    if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT) {
         if (app_old_comm_pump_ctrl_date->user_define_pump_level >= 0) {
             setting.level[0] = app_old_comm_pump_ctrl_date->user_define_pump_level;
             LOG_SRV("APP_OLD_COMM_LEFT_CT pump level %d",setting.level[0]);
             app_broadcast_pump_level_to_window(setting.level[0] ,OLD_BROADCAST_LEFT_CT);
         }
-    } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT+1) {
+    } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT) {
         if (app_old_comm_pump_ctrl_date->user_define_pump_level <= BREAST_PUMP_LEVEL_15) {
             setting.level[1] = app_old_comm_pump_ctrl_date->user_define_pump_level;
             LOG_SRV("APP_OLD_COMM_RIGHT_CT pump level %d",setting.level[1]);
