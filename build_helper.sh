@@ -15,6 +15,32 @@ die() {
 	exit 1
 }
 
+md5_fold4_hex_from_file() {
+	# 计算文件 MD5（16 字节），将整个 MD5 折叠为 4 字节校验值（8 hex）
+	# 折叠规则（按字节 XOR）：
+	#   out[i] = md5[i] ^ md5[i+4] ^ md5[i+8] ^ md5[i+12]   (i=0..3)
+	# 说明：该规则使用“整个 MD5”生成 4B，便于在 Windows 侧复算并验证。
+	local f="$1"
+	[[ -s "$f" ]] || die "文件不存在或为空，无法计算 MD5: $f"
+
+	local md5hex
+	md5hex=$(md5sum "$f" | awk '{print $1}')
+	[[ ${#md5hex} -eq 32 ]] || die "md5sum 输出异常: $md5hex (file=$f)"
+
+	local -a v=()
+	for i in {0..15}; do
+		local b="${md5hex:$((i * 2)):2}"
+		v[$i]=$((16#$b))
+	done
+
+	local o0=$((v[0] ^ v[4] ^ v[8] ^ v[12]))
+	local o1=$((v[1] ^ v[5] ^ v[9] ^ v[13]))
+	local o2=$((v[2] ^ v[6] ^ v[10] ^ v[14]))
+	local o3=$((v[3] ^ v[7] ^ v[11] ^ v[15]))
+
+	printf "%02x%02x%02x%02x\n" "$o0" "$o1" "$o2" "$o3"
+}
+
 duration_since() {
 	local start_ts=$1
 	local end_ts=$(date +%s)
@@ -317,30 +343,46 @@ do_rename_and_archive() {
 	# 拷贝并重命名（存在则覆盖）
 	local copied_any=false
 	if [[ -s "$app_in" ]]; then
-		cp -av "$app_in" "$target_dir/${prefix_file}_APP.bin"
-		echo "APP 已归档: $target_dir/${prefix_file}_APP.bin"
+		local app_md5
+		app_md5=$(md5_fold4_hex_from_file "$app_in")
+		cp -av "$app_in" "$target_dir/${prefix_file}_${app_md5}_APP.bin"
+		echo "APP 已归档: $target_dir/${prefix_file}_${app_md5}_APP.bin"
 		copied_any=true
 	else
 		echo "未找到 APP 产物: $app_in"
 	fi
 	if [[ -s "$boot_in" ]]; then
-		cp -av "$boot_in" "$target_dir/${prefix_file}_BOOT.bin"
-		echo "BOOT 已归档: $target_dir/${prefix_file}_BOOT.bin"
+		local boot_md5
+		boot_md5=$(md5_fold4_hex_from_file "$boot_in")
+		cp -av "$boot_in" "$target_dir/${prefix_file}_${boot_md5}_BOOT.bin"
+		echo "BOOT 已归档: $target_dir/${prefix_file}_${boot_md5}_BOOT.bin"
 		copied_any=true
 	else
 		echo "未找到 Bootloader 产物: $boot_in"
 	fi
 	if [[ -s "$ota_in" ]]; then
-		cp -av "$ota_in" "$target_dir/${prefix_file}_OTA.bin"
-		echo "OTA 已归档: $target_dir/${prefix_file}_OTA.bin"
+		local ota_md5
+		ota_md5=$(md5_fold4_hex_from_file "$ota_in")
+		cp -av "$ota_in" "$target_dir/${prefix_file}_${ota_md5}_OTA.bin"
+		echo "OTA 已归档: $target_dir/${prefix_file}_${ota_md5}_OTA.bin"
 		copied_any=true
 	else
 		echo "未找到 OTA 产物: $ota_in"
 	fi
 
 	if [[ -n "${res_file:-}" && -s "$res_file" ]]; then
-		cp -av "$res_file" "$target_dir/"
-		echo "RES 已归档(${res_path} V${res_major2}.${res_minor2}): $target_dir/$(basename -- "$res_file")"
+		local res_md5
+		res_md5=$(md5_fold4_hex_from_file "$res_file")
+		local res_base res_out
+		res_base=$(basename -- "$res_file")
+		if [[ "$res_base" == *_RES.bin ]]; then
+			res_out="${res_base%_RES.bin}_${res_md5}_RES.bin"
+		else
+			# 兜底：直接在扩展名前追加
+			res_out="${res_base%.bin}_${res_md5}.bin"
+		fi
+		cp -av "$res_file" "$target_dir/$res_out"
+		echo "RES 已归档(${res_path} V${res_major2}.${res_minor2}): $target_dir/$res_out"
 		copied_any=true
 	else
 		echo "未找到 RES 资源(${res_path} V${res_major2}.${res_minor2}): $res_dir/*_V${res_major2}.${res_minor2}_*_RES.bin"
@@ -363,7 +405,7 @@ show_menu() {
 	5) 清理 Bootloader
 	6) 生成 OTA（并拷贝）
 	7) 仅拷贝产物到共享目录（固件+Bootloader+OTA）
-	8) 重命名并归档产物（APP/BOOT/OTA/RES）
+	8) 重命名并归档产物（APP/BOOT/OTA/RES，文件名追加 MD5 折叠 4B/8hex）
 	9) 重新编译 固件+Bootloader（清理 + 编译，不拷贝）
 0) 退出
 ---------------------------------------------
