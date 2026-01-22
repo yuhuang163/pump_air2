@@ -244,7 +244,8 @@ DRIVERS_BLE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/ble \
 	-I$(PROJECT_ROOT)/drivers/ble/services \
 	-I$(PROJECT_ROOT)/drivers/ble/advs \
-	-I$(PROJECT_ROOT)/drivers/ble/connect
+	-I$(PROJECT_ROOT)/drivers/ble/connect \
+	-I$(PROJECT_ROOT)/drivers/ble/ble_test
 
 # 通用驱动头文件
 DRIVERS_COMMON_INC_FLAGS := \
@@ -684,7 +685,8 @@ DRIVERS_BLE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/ble/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/ble/advs/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/ble/connect/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/ble/services/*.c)
+	$(wildcard $(PROJECT_ROOT)/drivers/ble/services/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/ble/ble_test/*.c)
 
 # 通用驱动源码
 DRIVERS_COMMON_SRCS := \
