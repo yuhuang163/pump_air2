@@ -61,10 +61,9 @@ static void system_power_event_cb(hdr_post_args_t *args)
     power_manager_context_t *pm = args->user_data;
     EXCEPTION_CHECK_VOID(pm);
     switch (action) {
-        case HDR_ACTION_POWER_ON_DETECT: {
+        case HDR_ACTION_POWER_ON_DETECT:
             LOG_PM("%s", args->name);
             key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
-
             if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
 #if IS_SUPPORT_MODULE_BATTERY
                 battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
@@ -73,12 +72,12 @@ static void system_power_event_cb(hdr_post_args_t *args)
                     platform_is_startup_caused_by_reboot()) {
                     pm->priv.is_power_on_timeout_detect = 0;   
                     pm->system_power_control(true);
-                    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
+                    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
                 } else {
                     #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
                         pm->priv.is_power_on_timeout_detect = 0;   
                         pm->system_power_control(true);
-                        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
+                        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
                     #else
                         pm->system_power_control(false); /// 非充电状态下进行开机超时检测.
                     #endif
@@ -87,7 +86,7 @@ static void system_power_event_cb(hdr_post_args_t *args)
                 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
                     pm->priv.is_power_on_timeout_detect = 0;   
                     pm->system_power_control(true);
-                    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
+                    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
                 #else
                     pm->system_power_control(false); /// 非充电状态下进行开机超时检测.
                 #endif
@@ -95,35 +94,27 @@ static void system_power_event_cb(hdr_post_args_t *args)
             } else {
                 pm->priv.is_power_on_timeout_detect = 0;   
                 pm->system_power_control(true);
-                SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_ON);
+                SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
             }
-        }
-        break;
-
-        case HDR_ACTION_POWER_ON_INVALID: {
+            break;
+        case HDR_ACTION_POWER_ON_INVALID: 
             LOG_UI("%s", args->name);
             pm->priv.is_power_on_timeout_detect = 0;
             REMOVE_TASK_HANDLER_DIRECTLY(POWER_ON_DETECT_TASK_NAME);
             pm->system_power_control(false);
-        }
-        break;
-
-        case HDR_ACTION_POWER_OFF: {
+            break;
+        case HDR_ACTION_POWER_OFF: 
             LOG_PM("%s", args->name);
             pm->priv.allow_shutdown_or_standby = 0;
             pm->system_power_control(false);
-        }
-        break;
-
-        case HDR_ACTION_SYS_STANDBY: {
+            break;
+        case HDR_ACTION_SYS_STANDBY: 
             LOG_PM("%s", args->name);
             pm->priv.is_goto_sys_standby = true;
-            SEND_BROADCAST_ARGS0(ID_BROADCAST_REQ_PM_SUSPEND_BY_USER);
-        }
-        break;
-
+            SEND_BROADCAST_ARGS1(ID_BROADCAST_REQ_PM_SUSPEND, PM_BROADCAST_USER_REQUEST_SUSPEND);
+            break;
         default:
-        break;
+            break;
     }
 }
 
@@ -184,8 +175,8 @@ static int on_power_broadcast_receive_route(broadcast_mask_id_t id, void *contex
     power_manager_context_t *ctx = context;
     EXCEPTION_CHECK_INT(ctx);
     switch (id.code) {
-        case ID_BROADCAST_SYS_POWER_STATE_CHANGE: {
-            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+        case ID_BROADCAST_SYS_STATE_CHANGE: {
+            if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
                 LOG_PM("--> system power off"); /// 1000ms 后关机.
                 POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 1000, HDR_ACTION_POWER_OFF,
                     ctx, POWER_OFF_TASK_NAME);

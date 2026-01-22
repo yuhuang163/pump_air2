@@ -183,20 +183,10 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
     EXCEPTION_CHECK_VOID(ui);
     LOG_UI("broadcast id: %d, arg1: %d, arg2: %d", id.code, arg1, arg2);
     switch (id.code) {
-        case ID_BROADCAST_PM_WAKEUP_BY_USER:
-            if (ui->priv.ui_backlight_val != 100) {
-                set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_SET_BLACKLIGHT_BY_USER:
-            if (ui->priv.ui_backlight_val != 100) {
-                set_ui_backlight(ui, 100);
-            }
-            break;
-        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
-            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+        case ID_BROADCAST_SYS_STATE_CHANGE:
+            if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
                 set_ui_backlight(ui, 0);
-            } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
+            } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
                 set_ui_backlight(ui, 100);
             }
             break;

@@ -75,9 +75,9 @@ static void set_pm_state_progress(const char *tag, int state, int t0)
         thiz->priv.pm_state_change_progress = tmp;
         const char *s = print_wakeup_state((pm_wakeup_state_e)tmp);
         if (t0 > 0) {
-            LOG_PM("(%s)New pm_state: %s, time escaped: %d ms", tag, s, t0);
+            LOG_PM("New pm_state: %s, time escaped: %d ms", tag, s, t0);
         } else {
-            LOG_PM("(%s)New pm_state: %s", tag, s);
+            LOG_PM("New pm_state: %s", tag, s);
         }
     }
 }
@@ -164,7 +164,7 @@ static void pm_suspend_check_handler(power_manager_context_t *ctx)
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     log_interval++;
     if (wm && wm->is_on_window_dispatch(wm)) {
-        LOG_PM("on_window_dispatch, ignore");
+        LOG_PM("%s window dispatch, ignore.", wm->to_window_name(wm->get_current_window_id()));
         return;
     }
 
@@ -176,8 +176,9 @@ static void pm_suspend_check_handler(power_manager_context_t *ctx)
     int tmp = ctx->priv.suspend_counter;
     if (tmp > 0) {
         if (log_interval % 10 == 0) {
-            LOG_PM("I will goto suspend after: %ds pm_state_change_progress: %s", 
-                tmp, print_wakeup_state((pm_wakeup_state_e)ctx->priv.pm_state_change_progress));
+            LOG_PM("%ds after goto suspend, pm_state: %s current window: %s", 
+                tmp, print_wakeup_state((pm_wakeup_state_e)ctx->priv.pm_state_change_progress),
+                wm->to_window_name(wm->get_current_window_id()));
         }
         set_suspend_counter("suspend_timer", (--tmp), false);
     } else {
@@ -306,23 +307,20 @@ static void on_pm_broadcast_receive(broadcast_mask_id_t id,
     }
 
     switch (id.code) {
-        case ID_BROADCAST_REQ_PM_SUSPEND_BY_USER: {
-            if (arg2 == SUSPEND_BY_BLE) {
-            } else if (arg2 == SUSPEND_BY_FAC) {
+        case ID_BROADCAST_REQ_PM_SUSPEND:
+            if (reason == PM_BROADCAST_FACTORY_REQUEST_SUSPEND) {
                 pm_goto_suspend_by_factory();
             } else {
                 pm_goto_suspend_by_user();
             }
             return;
-        }
-        case ID_BROADCAST_SYS_POWER_STATE_CHANGE: {
-            ctx->enable_pmu_sleep("SYS_POWER_STATE_CHANGE", false);
+        case ID_BROADCAST_SYS_STATE_CHANGE: 
+            if (reason == SYSTEM_BROADCAST_POWER_ON || reason == SYSTEM_BROADCAST_POWER_OFF) {
+                ctx->enable_pmu_sleep("SYS_POWER_STATE_CHANGE", false);
+            } else if (reason == SYSTEM_BROADCAST_BOOT_COMPLETED) {
+                start_suspend_timer(ctx);
+            }
             return;
-        }
-        case ID_BROADCAST_SYS_BOOT_COMPLETED: {
-            start_suspend_timer(ctx);
-            return;
-        }
         default:
             break;
     }
@@ -500,10 +498,8 @@ static int on_post_pm_init(void *ptr)
     ctx->priv.pm_bcd = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.pm_bcd->context = ctx;
     ctx->priv.pm_bcd->name = "power_ctx";
-    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_PM_WAKEUP_BY_USER;
-    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_REQ_PM_SUSPEND_BY_USER;
-    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
-    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
+    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_REQ_PM_SUSPEND;
+    ctx->priv.pm_bcd->id.code |= ID_BROADCAST_SYS_STATE_CHANGE;
     ctx->priv.pm_bcd->receiver_cb = on_pm_broadcast_receive;
     register_broadcast_receiver(ctx->priv.pm_bcd);
     /// 注册按键唤醒.
@@ -693,7 +689,7 @@ static void pm_wakeup(pm_wakeup_reason_e reason)
             thiz->priv.wakeup_reason = reason;
             dispatch_pm_event(thiz, ID_SYS_PM_RESUME);
         } else {
-            LOG_PM("ignore->reason(%s), pm_state_change_progress: %d, pm_state: %d, " \
+            LOG_PM("ignore->reason(%s), pm progress: %d, pm_state: %d, " \
                 "is_enter_suspend: %d, suspend_counter: %d, pmu_sleep_enable: %d, " \
                 "user_set_to_sleep: %d, is_back_ground_wakeup: %d,", 
                 reason_str, 
@@ -709,7 +705,6 @@ static void pm_wakeup(pm_wakeup_reason_e reason)
     } else {
         if (thiz->priv.wakeup_reason == PM_WAKEUP_REASON_IOT && reason != PM_WAKEUP_REASON_IOT) {
             // LOG_PM("IOT唤醒状态下点亮背光 reason: %s", reason_str);
-            // SEND_BROADCAST_ARGS0(ID_BROADCAST_SET_BLACKLIGHT_BY_USER);
             thiz->priv.wakeup_reason = reason;
         } else {
             LOG_PM("pm_suspend: pm_state: %d, is_enter_suspend: %d", thiz->priv.pm_state, thiz->priv.is_enter_suspend);

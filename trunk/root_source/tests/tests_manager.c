@@ -280,14 +280,8 @@ static void on_product_tests_receiver(broadcast_mask_id_t id, void *context, int
 
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
-            {
-
-            }
             break;
-        case ID_BROADCAST_UPDATE_BATTERY_INFO:
-            {
-
-            }
+        case ID_BROADCAST_BATTERY_STATE_CHANGE:
             break;
         default:
             break;
@@ -341,10 +335,9 @@ static int on_post_tests_init(void *self)
     ctx->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.bcd->context = ctx;
     ctx->priv.bcd->name = "product_test_thread";
-    ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
-    ctx->priv.bcd->id.code |= ID_BROADCAST_UPDATE_BATTERY_INFO;
-    ctx->priv.bcd->id.code |= ID_BROADCAST_BREAST_PUMP_FINISH;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_BREAST_PUMP_STATE_CHANGE;
     ctx->priv.bcd->receiver_cb = on_product_tests_receiver;
     register_broadcast_receiver(ctx->priv.bcd);
 

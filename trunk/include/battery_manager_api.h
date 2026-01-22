@@ -21,6 +21,16 @@ extern "C" {
 #define LOW_BAT_PERCENTAGE                20
 #endif
 
+typedef enum {
+    BATTERY_BROADCAST_CHARGE_PLUG_IN = 100, /// 充电插头插入.
+    BATTERY_BROADCAST_CHARGE_PLUG_OUT,      /// 充电插头拔出.
+    BATTERY_BROADCAST_CHARGE_STATE_CHANGE,  /// 充电状态改变.
+    BATTERY_BROADCAST_LOW_BATTERY,          /// 低电量.
+    BATTERY_BROADCAST_EMPTY_BATTERY,        /// 空电量.
+    BATTERY_BROADCAST_CAPACITY_CHANGE,      /// 电量容量改变.
+    BATTERY_BROADCAST_ID_MAX,
+} battery_broadcast_id_e;
+
 /// 描述充电相关
 typedef void (*on_charge_state_change_fptr)(void *wm, charge_state_e new_state);
 typedef void (*on_battery_state_change_fptr)(void *wm, int is_low_battery);

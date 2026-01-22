@@ -47,7 +47,7 @@ static void airplane_mode_timeout_cb(hdr_post_args_t *args)
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_VOID(wm);
     LOG_WM("airplane mode timeout, goto pump window.");
-    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
+    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_OFF);
 }
 
 static void airplane_mode_exit_cb(hdr_post_args_t *args)
@@ -71,14 +71,12 @@ static void on_airplane_mode_window_receive(broadcast_mask_id_t id, void *contex
     ui_proc_airplane_mode_t *proc = (ui_proc_airplane_mode_t *)context;
     EXCEPTION_CHECK_VOID(proc);
     switch (id.code) {
-        case ID_BROADCAST_PM_STATE_CHANGE: {
-        }
-        break;
-        case ID_BROADCAST_CHARGE_STATE_CHANGE: {
+        case ID_BROADCAST_PM_STATE_CHANGE: 
             break;
-        }
+        case ID_BROADCAST_BATTERY_STATE_CHANGE: 
+            break;
         default:
-        break;
+            break;
     }
 }
 
@@ -176,7 +174,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
-    proc->receiver.id.code |= ID_BROADCAST_CHARGE_STATE_CHANGE;
+    proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;
     proc->receiver.context = proc;
     proc->receiver.name = "airplane_mode_screen";
     proc->receiver.receiver_cb = on_airplane_mode_window_receive;

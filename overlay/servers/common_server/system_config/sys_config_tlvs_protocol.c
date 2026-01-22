@@ -178,7 +178,7 @@ int sys_config_tlvs_device_shutdown(comm_protocol_builder_t *builder, comm_proto
 
     // TODO: 实现设备关机逻辑
     // 可能需要延时关机，先发送应答后再关机 ，使用广播发送关机命令，已经使用延时投递关机命令
-    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
+    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_OFF);
 
     comm_protocol_tlv_node_t tlv_node = {
         .type = SYS_CONFIG_TLV_DEVICE_SHUTDOWN,

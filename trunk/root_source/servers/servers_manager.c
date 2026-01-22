@@ -36,14 +36,8 @@ static void on_servers_manager_receiver(broadcast_mask_id_t id, void *context, i
 
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
-            {
-
-            }
             break;
-        case ID_BROADCAST_UPDATE_BATTERY_INFO:
-            {
-
-            }
+        case ID_BROADCAST_BATTERY_STATE_CHANGE:
             break;
         default:
             break;
@@ -63,12 +57,10 @@ static int on_post_servers_init(void *ptr)
     ctx->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.bcd->context = ctx;
     ctx->priv.bcd->name = "product_protocol_thread";
-    ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
     ctx->priv.bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
-    ctx->priv.bcd->id.code |= ID_BROADCAST_UPDATE_BATTERY_INFO;
-    ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
-    ctx->priv.bcd->id.code |= ID_BROADCAST_BLE_CONNECT_STATE_CHANGE;
-    ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_BOOT_COMPLETED;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_SYS_STATE_CHANGE;
+    ctx->priv.bcd->id.code |= ID_BROADCAST_BLE_STATE_CHANGE;
     ctx->priv.bcd->receiver_cb = on_servers_manager_receiver;
     register_broadcast_receiver(ctx->priv.bcd);
     LOG_SRV("on_post_servers_init");

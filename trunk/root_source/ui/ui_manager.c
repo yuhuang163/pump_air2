@@ -104,9 +104,7 @@ static int on_post_ui_init(void *self)
     ui->priv.m_bcd.context = ui;
     ui->priv.m_bcd.name = "ui_manager";
     ui->priv.m_bcd.id.code |= ID_BROADCAST_PM_STATE_CHANGE;
-    ui->priv.m_bcd.id.code |= ID_BROADCAST_PM_WAKEUP_BY_USER;
-    ui->priv.m_bcd.id.code |= ID_BROADCAST_SET_BLACKLIGHT_BY_USER;
-    ui->priv.m_bcd.id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
+    ui->priv.m_bcd.id.code |= ID_BROADCAST_SYS_STATE_CHANGE;
     ui->priv.m_bcd.receiver_cb = on_ui_broadcast_receiver;
     register_broadcast_receiver(&ui->priv.m_bcd);
     RUN_NEW_THREAD(&thiz->priv.ui_hdr_thd, "ui_hdr_thd", 

@@ -93,15 +93,17 @@ static void on_charge_window_receive(broadcast_mask_id_t id, void *context, int 
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE: 
             break;
-        case ID_BROADCAST_CHARGE_STATE_CHANGE:
-            if (arg1 != CHARGE_STATE_CHARGING && arg1 != CHARGE_STATE_FULL) {
-                proc->goto_pump_window_flag = 1;
-                POST_TASK_HANDLER_NO_DELAY_ARG1(charge_ui_common_cb, proc, 
-                    CHARGE_HDR_EXIT_CHARGE_POLICY, EXIT_CHARGE_POLICY_TASK_NAME);
-            } else {
-                if (proc->goto_pump_window_flag == 1) {
-                    proc->goto_pump_window_flag = 0;
-                    REMOVE_TASK_HANDLER_DIRECTLY(EXIT_CHARGE_POLICY_TASK_NAME);
+        case ID_BROADCAST_BATTERY_STATE_CHANGE:
+            if (arg1 == BATTERY_BROADCAST_CHARGE_STATE_CHANGE) {
+                if (arg2 != CHARGE_STATE_CHARGING && arg2 != CHARGE_STATE_FULL) {
+                    proc->goto_pump_window_flag = 1;
+                    POST_TASK_HANDLER_NO_DELAY_ARG1(charge_ui_common_cb, proc, 
+                        CHARGE_HDR_EXIT_CHARGE_POLICY, EXIT_CHARGE_POLICY_TASK_NAME);
+                } else {
+                    if (proc->goto_pump_window_flag == 1) {
+                        proc->goto_pump_window_flag = 0;
+                        REMOVE_TASK_HANDLER_DIRECTLY(EXIT_CHARGE_POLICY_TASK_NAME);
+                    }
                 }
             }
             break;      
@@ -204,7 +206,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
-    proc->receiver.id.code |= ID_BROADCAST_CHARGE_STATE_CHANGE;
+    proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;
     proc->receiver.context = proc;
     proc->receiver.name = "charge_screen";
     proc->receiver.receiver_cb = on_charge_window_receive;

@@ -55,7 +55,7 @@ static void system_power_off_cb(hdr_post_args_t *args)
     uint32_t current_time = platform_get_utc_time();
     if (current_time - proc->enter_dummy_time > DUMMY_IDLE_POWER_OFF_TIME) {
         LOG_WM("system power off");
-        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
+        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_OFF);
         return;
     }
     POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, 
@@ -92,7 +92,7 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
     ui_proc_dummy_t *proc = (ui_proc_dummy_t *)context;
     EXCEPTION_CHECK_VOID(proc);
     switch (id.code) {
-        case ID_BROADCAST_PM_STATE_CHANGE: {
+        case ID_BROADCAST_PM_STATE_CHANGE:
             LOG_WM("received PM_STATE_CHANGE.");
             if (pm_state != ID_SYS_PM_RESUME) {
                 LOG_WM("ignore: %d\n", wakeup_reason);
@@ -100,14 +100,11 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
             }
             LOG_WM("PM_RESUME, wakeup_reason: %d.", wakeup_reason);
             wakup_enter_new_window_policy(proc, wakeup_reason);
-        }
-        break;
-        case ID_BROADCAST_CHARGE_STATE_CHANGE: {
-            LOG_WM("received CHARGE_STATE_CHANGE.");
             break;
-        }
+        case ID_BROADCAST_BATTERY_STATE_CHANGE:
+            break;
         default:
-        break;
+            break;
     }
 }
 
@@ -197,7 +194,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->tests = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
-    proc->receiver.id.code |= ID_BROADCAST_CHARGE_STATE_CHANGE;
+    proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;
     proc->receiver.context = proc;
     proc->receiver.name = "dummy_screen";
     proc->receiver.receiver_cb = on_dummy_window_receive;

@@ -66,7 +66,8 @@ static void polling_battery_status(void *user_data)
     int bat_per = DEVICE_READ(thiz->priv.battery);
     LOG_MISC("#now bat percent: %d, is_low_battery: %d, is_plug: %d", 
         bat_per, thiz->priv.low_battery, thiz->priv.is_plug_state_changed);
-    SEND_BROADCAST_ARGS2(ID_BROADCAST_UPDATE_BATTERY_INFO, thiz->priv.low_battery, bat_per);   /// 发送电池状态广播.
+    SEND_BROADCAST_ARGS2(ID_BROADCAST_BATTERY_STATE_CHANGE, 
+        thiz->priv.low_battery ? BATTERY_BROADCAST_LOW_BATTERY : BATTERY_BROADCAST_CAPACITY_CHANGE, bat_per);   /// 发送电池状态广播.
 }
 
 #if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
@@ -124,7 +125,8 @@ static void polling_charge_status(void *user_data)
             }
         }
     }
-    SEND_BROADCAST_ARGS1(ID_BROADCAST_CHARGE_STATE_CHANGE, chage_state);  /// 发送充电状态广播.
+    SEND_BROADCAST_ARGS2(ID_BROADCAST_BATTERY_STATE_CHANGE, BATTERY_BROADCAST_CHARGE_STATE_CHANGE,
+        chage_state);  /// 发送充电状态广播.
 }
 
 static void charge_irq_callback(uint8_t *data)

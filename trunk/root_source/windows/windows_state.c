@@ -75,7 +75,7 @@ static void window_boot_completed(window_manager_context_t *wm)
     EXCEPTION_CHECK_VOID(wm);
     if (!wm->priv.system_is_ready) {
         wm->priv.system_is_ready = 1;
-        SEND_BROADCAST_ARGS0(ID_BROADCAST_SYS_BOOT_COMPLETED);
+        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_BOOT_COMPLETED);
     }
 }
 

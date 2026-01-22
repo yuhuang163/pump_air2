@@ -83,8 +83,6 @@ struct rt_device_node;
 typedef struct window_manager_context {
 /// private:
     struct __window_manager_private {
-        struct resource_manager_context *res; /// 资源管理器
-        struct storage_manager_context *st; /// 存储管理器
         thread_context_t window_dispatch_thd; /// 窗口调度线程
         multi_func_msg_data_t new_msg; /// 新消息
         uint16_t go_back_history_flag; /// 回退历史标志

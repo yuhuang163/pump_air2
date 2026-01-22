@@ -216,12 +216,12 @@ static int window_switch(window_manager_context_t *wm, multi_func_msg_data_t *ms
     bool is_bg = msg->union_body.extra.is_background == 0x01;
     uint32_t t0 = 0;
 
-    #if IS_SUPPORT_DEVICE_FS
+#if IS_SUPPORT_DEVICE_FS
     if (!pbus->fs_ready()) {
         LOG_WM("fs not ready, ignore: %d", new_window_id);
         return -1;
     }
-    #endif
+#endif
 
     if (wm->priv.window_switch_forbid) {
         LOG_WM("forbid window switch, ignore");
@@ -247,10 +247,6 @@ static int window_switch(window_manager_context_t *wm, multi_func_msg_data_t *ms
             if (pm->is_on_suspend_gotoing()) {
                 LOG_WM("pm on_suspend_gotoing, ignore: %d", new_window_id);
                 return -5;
-            }
-
-            if (wm->system_is_ready(wm)) {
-                SEND_BROADCAST_ARGS1(ID_BROADCAST_PM_WAKEUP_BY_USER, PM_WAKEUP_REASON_ENTER_NEW_SCREEN);
             }
         }
         
@@ -419,9 +415,10 @@ static void window_boot_completed_cb(hdr_post_args_t *args)
     window_manager_context_t *wm = (window_manager_context_t *)args->user_data;
     EXCEPTION_CHECK_VOID(wm);
 #if IS_SUPPORT_MODULE_RES
-    if (wm->priv.res) {
+    resource_manager_context_t *res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
+    if (res) {
         LOG_WM("wait res ready");
-        wm->priv.res->wait_init_completed(wm->priv.res);
+        res->wait_init_completed(res);
     }
 #endif
     wm->window_boot_completed(wm);
@@ -440,12 +437,6 @@ static void window_boot_completed_cb(hdr_post_args_t *args)
 static void window_scheduling_start(void)
 {
     window_manager_context_t *wm = thiz;
-#if IS_SUPPORT_MODULE_RES
-    if (wm->priv.res) {
-        LOG_WM("wait res ready");
-        wm->priv.res->wait_init_completed(wm->priv.res);
-    }
-#endif
     uint32_t delay_time = BOOT_LONG_PRESS_TIME - get_timestamp_ms(0);
     if (delay_time > BOOT_LONG_PRESS_TIME || delay_time == 0) {
         delay_time = 500;
@@ -641,8 +632,7 @@ static int on_post_wm_init(void *ptr)
     wm->priv.bcd->context = wm;
     wm->priv.bcd->name = "window_manager";
     wm->priv.bcd->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
-    wm->priv.bcd->id.code |= ID_BROADCAST_PM_WAKEUP_BY_USER;
-    wm->priv.bcd->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
+    wm->priv.bcd->id.code |= ID_BROADCAST_SYS_STATE_CHANGE;
     wm->priv.bcd->id.code |= ID_BROADCAST_AIRPLANE_MODE_STATE_CHANGE;
     wm->priv.bcd->receiver_cb = on_wm_receive_internal;
     register_broadcast_receiver(wm->priv.bcd);
@@ -655,8 +645,6 @@ static int on_post_wm_init(void *ptr)
 static int on_perpare_wm_init(void *self)
 {
     window_manager_context_t *wm = self;
-    wm->priv.res = (resource_manager_context_t *)find_module(ID_MODULE_RES);
-    wm->priv.st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     return 0;
 }
 
