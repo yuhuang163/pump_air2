@@ -262,36 +262,32 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
             working: %d, arg1: %d, arg2: %d.", id.code, id.code_v2, proc->is_mode_changed_by_device,
             pump_status, pump_mode, pump_working, arg1, arg2);
     switch (id.code) {
-        case ID_BROADCAST_BREAST_PUMP_MODE_CHANGE: {
-            /// 监测APP端切换模式动作，同步手柄端
-            if (!proc->is_mode_changed_by_device) {
-                /// 泵奶中切换模式，4秒后进入计时界面
-                if (pump_working && PUMP_IS_GOING(pump_status)) {
-                    REMOVE_ALL_HANDER_TASK();
-                    LOG_WM("start pump state change task after %ds", PUMP_MODE_CHANGE_TIMEOUT);
-                    POST_TASK_HANDLER_DELAYED_ARG5(pump_ui_common_cb, PUMP_MODE_CHANGE_TIMEOUT,
-                            PUMP_HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_TASK_NAME);
+        case ID_BROADCAST_BREAST_PUMP_STATE_CHANGE: 
+            if (arg1 == BREAST_PUMP_BROADCAST_MODE_CHANGE) {
+                if (!proc->is_mode_changed_by_device) {
+                    if (pump_working && PUMP_IS_GOING(pump_status)) {
+                        REMOVE_ALL_HANDER_TASK();
+                        LOG_WM("start pump state change task after %ds", PUMP_MODE_CHANGE_TIMEOUT);
+                        POST_TASK_HANDLER_DELAYED_ARG5(pump_ui_common_cb, PUMP_MODE_CHANGE_TIMEOUT,
+                                PUMP_HDR_ACTION_CHANGE_PUMP_STATUS, LOOP_SHOW_PUMPING, proc, PUMP_STATE_CHANGE_TASK_NAME);
+                    }
+                    proc->ui_show_state = LOOP_SHOW_SWITCH_MODE;
+                    proc->is_mode_changed_by_app = true;  /// 监测APP端切换模式动作，同步手柄端
+                    if (proc->pm) {
+                        proc->pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ); /// 接收到APP事件之后仅刷新进入休眠时间
+                    }
+                } else {
+                    proc->is_mode_changed_by_device = false;
+                    proc->is_mode_changed_by_app = false;
                 }
-                proc->ui_show_state = LOOP_SHOW_SWITCH_MODE;
-                proc->is_mode_changed_by_app = true;
-                if (proc->pm) {
-                    proc->pm->pm_wakeup(PM_WAKEUP_REASON_BLE_REQ); /// 接收到APP事件之后仅刷新进入休眠时间
-                }
-            } else {
-                proc->is_mode_changed_by_device = false;
-                proc->is_mode_changed_by_app = false;
+            } else if (arg1 == BREAST_PUMP_BROADCAST_COMPLETED) {
+                POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, PUMP_HDR_ACTION_PUMP_COMPLETE, 
+                    proc, PUMP_COMPLETE_TASK_NAME);
+                LOG_WM("pump finish, post pump complete task.");
             }
             break;
-        }
-        case ID_BROADCAST_BREAST_PUMP_FINISH: {
-            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, PUMP_HDR_ACTION_PUMP_COMPLETE, 
-                proc, PUMP_COMPLETE_TASK_NAME);
-            LOG_WM("pump finish, post pump complete task.");
-        }
-        break;
-
         default:
-        break;
+            break;
     }
 }
 
@@ -400,9 +396,8 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "pump_screen";
-    proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_MODE_CHANGE;
-    proc->receiver.id.code |= ID_BROADCAST_SYS_PERSIST_INFO_SAVE;
-    proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_FINISH;
+    proc->receiver.id.code |= ID_BROADCAST_BREAST_PUMP_STATE_CHANGE;
+    proc->receiver.id.code |= ID_BROADCAST_PERSIST_INFO_UPDATE;
     proc->receiver.receiver_cb = on_pump_ui_broadcast_receive_cb;
     register_broadcast_receiver(&proc->receiver);
     /// 配置泵奶管理器.

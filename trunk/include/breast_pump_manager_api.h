@@ -17,6 +17,17 @@ extern "C" {
 #define SETTING_PUMP_TIME_MAX                        (3600000)  /// app设置的单次泵奶时间最大值 1小时
 
 typedef enum {
+    BREAST_PUMP_BROADCAST_MODE_CHANGE = 100,  /// 模式切换.
+    BREAST_PUMP_BROADCAST_COMPLETED,          /// 泵奶已完成.
+    BREAST_PUMP_BROADCAST_CONFIG_CHANGE,      /// 配置改变.
+    BREAST_PUMP_BROADCAST_STATE_CHANGE,       /// 状态改变.
+    BREAST_PUMP_BROADCAST_PUMP_LEVEL_CHANGE,  /// 泵奶档位改变.
+    BREAST_PUMP_BROADCAST_PUMP_SPEED_CHANGE,  /// 泵奶速度改变.
+    
+    BREAST_PUMP_BROADCAST_ID_MAX, 
+} breast_pump_broadcast_id_e;
+
+typedef enum {
     RESULT_PUMP_TIMEOUT = -3,
     RESULT_PUMP_FINISH = -2,
     RESULT_PUMP_MOTOR_SHAKE = -1,

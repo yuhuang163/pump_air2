@@ -915,8 +915,7 @@ int tests_tlvs_standby_mode(comm_protocol_builder_t *builder, comm_protocol_serv
 
     if (mode == 1) {
         /* 进入待机模式 */
-        SEND_BROADCAST_ARGS2(ID_BROADCAST_REQ_PM_SUSPEND_BY_USER, 0,
-                             SUSPEND_BY_FAC);
+        SEND_BROADCAST_ARGS1(ID_BROADCAST_REQ_PM_SUSPEND, PM_BROADCAST_FACTORY_REQUEST_SUSPEND);
         result = 0x01; // 成功
     } else {
         /* 退出待机模式 */

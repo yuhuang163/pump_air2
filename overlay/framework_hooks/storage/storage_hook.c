@@ -262,18 +262,18 @@ static void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, in
                     STORAGE_RAM_SYNC_FLASH_INTERVAL_MS, st, STORAGE_RAM_SYNC_FLASH_TASK_NAME);
             }
             break;
-        case ID_BROADCAST_SYS_PERSIST_INFO_SAVE:
-                PRIV_DATA_TO_USER_DATA_V2(user_data, pdata, pump_result_info_t);
+        case ID_BROADCAST_PERSIST_INFO_UPDATE:
+                PRIV_DATA_TO_USER_DATA(user_data, pdata, pump_result_info_t);
                 if (user_data) {
                     LOG_STORE("-->save insert_one");
                     POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 1, user_data, STORAGE_PERSIST_TASK_POLICY1_NAME);
                 }
             break;
-        case ID_BROADCAST_SYS_POWER_STATE_CHANGE:
-            if (arg1 == ID_BROADCAST_SYS_POWER_OFF) {
+        case ID_BROADCAST_SYS_STATE_CHANGE:
+            if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
                 LOG_STORE("-->system shutdown");
                 POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 0, 0, st, STORAGE_PERSIST_TASK_POLICY1_NAME);
-            } else if (arg1 == ID_BROADCAST_SYS_POWER_ON) {
+            } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
                 POST_TASK_HANDLER_DELAYED_ARG1(storage_ram_sync_flash_cb, 
                     STORAGE_RAM_SYNC_FLASH_INTERVAL_MS, st, STORAGE_RAM_SYNC_FLASH_TASK_NAME);
             }

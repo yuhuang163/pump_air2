@@ -35,10 +35,11 @@ typedef enum {
 } system_pm_state_e;
 
 typedef enum {
-    SUSPEND_BY_WIN = 100,
-    SUSPEND_BY_BLE,
-    SUSPEND_BY_FAC,
-} pm_suspend_source_e;
+    PM_BROADCAST_USER_REQUEST_SUSPEND = 100, /// 用户请求进入休眠状态.
+    PM_BROADCAST_BLE_REQUEST_SUSPEND, /// 蓝牙请求进入休眠状态.
+    PM_BROADCAST_FACTORY_REQUEST_SUSPEND, /// 工厂请求进入休眠状态.
+    PM_BROADCAST_ID_MAX,
+} pm_broadcast_id_e;
 
 struct broadcast_obj;
 typedef struct power_manager_context {

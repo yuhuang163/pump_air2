@@ -47,20 +47,18 @@ static int on_algo_receiver_route(broadcast_mask_id_t id, void *context, int arg
 {
     algo_manager_context_t *ctx = context;
     switch (id.code) {
-        case ID_BROADCAST_SYS_BOOT_COMPLETED:
-            {
+        case ID_BROADCAST_SYS_STATE_CHANGE:
+            if (arg1 == SYSTEM_BROADCAST_BOOT_COMPLETED) {
                 LOG_ALGO("algo_inited");
                 POST_TASK_HANDLER_DELAYED_ARG1(hdr_broadcast_sys_boot_completed, 0, ctx, "algo_fusion");
             }
             break;
-        case ID_BROADCAST_PM_STATE_CHANGE: 
-            {
-                if (arg1 == ID_SYS_PM_SUSPEND) {
-                    LOG_ALGO("algo cannot use");
-                } else {
-                    if (ctx->priv.algo_inited == 1) {
-                        root_algo_reset(ctx);
-                    }
+        case ID_BROADCAST_PM_STATE_CHANGE:             
+            if (arg1 == ID_SYS_PM_SUSPEND) {
+                LOG_ALGO("algo cannot use");
+            } else {
+                if (ctx->priv.algo_inited == 1) {
+                    root_algo_reset(ctx);
                 }
             }
             break;

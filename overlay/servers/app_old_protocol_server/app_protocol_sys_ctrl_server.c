@@ -130,7 +130,7 @@ void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
             LOG_SRV("CMD-poweroff, but charging, not power off");
             return;
         }
-        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_POWER_STATE_CHANGE, ID_BROADCAST_SYS_POWER_OFF);
+        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_OFF);
     } else if (ctrl_cmd == APP_OLD_COMM_SYS_REBOOT) {
         LOG_SRV("CMD-softreset");
     } else if (ctrl_cmd == APP_OLD_COMM_SYS_OTA) {

@@ -175,9 +175,9 @@ static int on_post_storage_init(void *ptr)
     ctx->priv.mbdc = u_malloz(sizeof(broadcast_obj_t));
     ctx->priv.mbdc->context = ctx;
     ctx->priv.mbdc->name = "storage_ctx";
-    ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_PERSIST_INFO_SAVE;
+    ctx->priv.mbdc->id.code |= ID_BROADCAST_PERSIST_INFO_UPDATE;
     ctx->priv.mbdc->id.code |= ID_BROADCAST_PM_STATE_CHANGE;
-    ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_POWER_STATE_CHANGE;
+    ctx->priv.mbdc->id.code |= ID_BROADCAST_SYS_STATE_CHANGE;
     ctx->priv.mbdc->receiver_cb = on_storage_broadcast_receive;
     register_broadcast_receiver(ctx->priv.mbdc);
     /// 钩子参数初始化

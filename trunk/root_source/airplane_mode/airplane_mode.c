@@ -82,9 +82,15 @@ static void on_aiplane_mode_receive_internal(broadcast_mask_id_t id, void *conte
     }
     /// 广播监听泵状态改变.
     if (id.code == ID_BROADCAST_BREAST_PUMP_STATE_CHANGE) {
-        airplane->priv.is_breast_pump_working = arg1;
-        LOG_AIR("is_brush_working: %d, brush_state: %d", arg1, arg2);
-    }
+        if (arg1 == BREAST_PUMP_BROADCAST_STATE_CHANGE) {
+            if (arg2 == BREAST_PUMP_CONTINUE || arg2 == BREAST_PUMP_START || arg2 == BREAST_PUMP_FACTORY) {
+                airplane->priv.is_breast_pump_working = 1;
+            } else {
+                airplane->priv.is_breast_pump_working = 0;
+            }
+            LOG_AIR("is_breast_pump_working: %d", airplane->priv.is_breast_pump_working);
+        }
+    } 
 }
 
 static int on_post_airplane_init(void *ptr)

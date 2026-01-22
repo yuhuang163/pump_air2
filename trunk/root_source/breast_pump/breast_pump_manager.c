@@ -48,7 +48,7 @@ static void notify_breast_pump_completed(void)
     if (need_save) {
         pump_result_info_t *pumping_info = breast_pump_obj->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
         // USER_DATA_TO_PRIV_DATA(pumping_info, pdata);
-        // SEND_BROADCAST_ARGS4_EXTRA(ID_BROADCAST_SYS_PERSIST_INFO_SAVE, 1, pdata, sizeof(pdata));
+        // SEND_BROADCAST_ARGS4_EXTRA(ID_BROADCAST_PERSIST_INFO_UPDATE, 1, pdata, sizeof(pdata));
         // memset(pumping_info, 0, sizeof(pump_result_info_t));
         LOG_PMP("save success, work valid time: %lu", pumping_info->work_valid_time);
     }
@@ -173,7 +173,7 @@ static void set_breast_pump_mode(uint32_t mode)
         LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
             breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
     }
-    SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_MODE_CHANGE, m_info->mode, 1);
+    SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_MODE_CHANGE, m_info->mode);
     //通知app
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
@@ -295,8 +295,7 @@ static void set_breast_pump_status(int status)
                     m_info->step_index = 0;
                     break;
             }
-            SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, m_info->do_work,
-                breast_pump_obj->get_breast_pump_status_async());
+            SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_STATE_CHANGE, status);
         }
     }
     //通知app
@@ -402,7 +401,7 @@ static void make_progress(void)
         notify_id = hook->make_progress_route(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
         if (notify_id == RESULT_PUMP_FINISH && get_timestamp_ms(notify_time) > 2000) {
             notify_time = get_timestamp();
-            SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_FINISH, 0);
+            SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_COMPLETED);
         }
     }
 }
