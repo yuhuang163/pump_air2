@@ -181,7 +181,7 @@
 #endif
 
 #ifndef I2C1_IOMUX_INDEX
-#define I2C1_IOMUX_INDEX                    20
+#define I2C1_IOMUX_INDEX                    0
 #endif
 
 #ifndef I2C2_IOMUX_INDEX
