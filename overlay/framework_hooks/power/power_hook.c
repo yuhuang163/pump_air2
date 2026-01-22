@@ -35,10 +35,10 @@
 */
 static bool is_prohibit_pm_suspend(struct power_manager_context *ctx)
 {
+#if IS_SUPPORT_MODULE_BATTERY
     EXCEPTION_CHECK_BOOL(ctx);
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_BOOL(wm);
-#if IS_SUPPORT_MODULE_BATTERY
     battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     EXCEPTION_CHECK_BOOL(battery);
     if (battery->is_charge_plug_in() > 0) {
@@ -61,11 +61,11 @@ static void system_power_event_cb(hdr_post_args_t *args)
     power_manager_context_t *pm = args->user_data;
     EXCEPTION_CHECK_VOID(pm);
     switch (action) {
+#if IS_SUPPORT_MODULE_BATTERY
         case HDR_ACTION_POWER_ON_DETECT:
             LOG_PM("%s", args->name);
             key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
             if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
-#if IS_SUPPORT_MODULE_BATTERY
                 battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
                 if ((battery && (battery->is_charge_plug_in() > 0 || 
                     battery->get_charge_status() == CHARGE_STATE_ERROR)) ||  /// 充电芯片异常允许插电开机
@@ -74,23 +74,8 @@ static void system_power_event_cb(hdr_post_args_t *args)
                     pm->system_power_control(true);
                     SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
                 } else {
-                    #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
-                        pm->priv.is_power_on_timeout_detect = 0;   
-                        pm->system_power_control(true);
-                        SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
-                    #else
-                        pm->system_power_control(false); /// 非充电状态下进行开机超时检测.
-                    #endif
-                }
-#else
-                #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V1 || V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
-                    pm->priv.is_power_on_timeout_detect = 0;   
-                    pm->system_power_control(true);
-                    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
-                #else
                     pm->system_power_control(false); /// 非充电状态下进行开机超时检测.
-                #endif
-#endif
+                }
             } else {
                 pm->priv.is_power_on_timeout_detect = 0;   
                 pm->system_power_control(true);
@@ -103,6 +88,7 @@ static void system_power_event_cb(hdr_post_args_t *args)
             REMOVE_TASK_HANDLER_DIRECTLY(POWER_ON_DETECT_TASK_NAME);
             pm->system_power_control(false);
             break;
+#endif
         case HDR_ACTION_POWER_OFF: 
             LOG_PM("%s", args->name);
             pm->priv.allow_shutdown_or_standby = 0;
@@ -129,19 +115,20 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
         ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER); /// 唤醒电源管理器.
         return 0;
     }
+
+#if IS_SUPPORT_MODULE_BATTERY
     /// 开机按键超时检测, 如果超时, 则进入关机状态.
     if (keytype == KEY_EVENT_UP && ctx->priv.is_power_on_timeout_detect == 1) {
-#if IS_SUPPORT_MODULE_BATTERY
         battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
         if (battery && battery->is_charge_plug_in() > 0) {
                 LOG_PM("charging. ignore");
                 return 0;
         }
-#endif
         POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 10, HDR_ACTION_POWER_ON_INVALID,
             ctx, POWER_ON_INVALID_TASK_NAME);
         return 0;
     }
+#endif
     /// 允许关机/待机标志设置.
     if (ctx->priv.allow_shutdown_or_standby == 0 && keytype == KEY_EVENT_DOWN) {
         ctx->priv.allow_shutdown_or_standby = ctx->is_system_power_on(); /// 允许关机/待机标志.
@@ -160,6 +147,7 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
 {
     EXCEPTION_CHECK_INT(ctx);
     ctx->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+#if IS_SUPPORT_MODULE_BATTERY
     uint32_t timeout_ms = POWER_ON_TIMEOUT_MS;
     if (timeout_ms > POWER_ON_TIMEOUT_MS_DEFAULT) {
         timeout_ms = 100;
@@ -167,6 +155,7 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
     ctx->priv.is_power_on_timeout_detect = 1;
     POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, POWER_ON_TIMEOUT_MS, HDR_ACTION_POWER_ON_DETECT,
         ctx, POWER_ON_DETECT_TASK_NAME);
+#endif
     return 0;
 }
 
