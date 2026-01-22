@@ -442,11 +442,29 @@ static void charge_thread_timer_handle(void *arg)
 }
 
 /*
- * GLOBAL FUNCTION DEFINITIONS
- *****************************************************************************************
- */
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
+void charge_vbus_init(void)
+{
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        (enum HAL_IOMUX_PIN_T)CHARGE_PD_INT_PIN,  
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_PULLUP_ENABLE,
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(CHARGE_PD_INT_PIN,  HAL_GPIO_DIR_IN,  1);
+}
+
 bool vbus_is_plug_in(void)
 {
+#if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
+    uint8_t hardware_version = get_hardware_version();
+    if (hardware_version == PRODUCT_INFO_V3) {
+        return hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0 ? true : false;
+    }
+#endif
     return s_charge_status.plug_in;
 }
 

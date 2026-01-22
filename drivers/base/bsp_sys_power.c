@@ -8,7 +8,6 @@
 #include "bsp_common.h" // IWYU pragma: keep
 #include "bsp_internal.h" // IWYU pragma: keep
 
-
 /*
 * DEFINES
 *****************************************************************************************

@@ -140,6 +140,7 @@ typedef struct {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
+void charge_vbus_init(void);
 bool vbus_is_plug_in(void);
 int bsp_charge_init(void);
 int bsp_charge_resume(void);
