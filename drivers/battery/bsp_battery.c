@@ -447,6 +447,7 @@ static int battery_dev_open(struct rt_device_node *dev)
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
     uint8_t hardware_version = get_hardware_version();
     if (hardware_version == PRODUCT_INFO_V3) {
+        charge_vbus_init();
         LOG_PBUS("battery init skip, hardware version is v3");
         return BSP_OK;
     }
