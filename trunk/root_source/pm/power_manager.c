@@ -142,7 +142,7 @@ static int pm_check_wakelock(power_manager_context_t *ctx)
         if (node->timeout_s > 0) {
             ret = 1;
             if (++counter % 5 == 0) {
-                LOGW("LOG_PM Current has wakelock(%s), block suspend(%d).",
+                LOGW("Current has wakelock(%s), block suspend(%d).",
                     node->caller, node->timeout_s);
             }
             break;

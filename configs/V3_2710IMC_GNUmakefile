@@ -95,6 +95,9 @@ CFG_LVGL_ENABLE := 1
 # LVGL snapshot开关
 CFG_LVGL_SNAPSHOT_ENABLE := 1
 
+# 外部flash开关
+CFG_EXTERNAL_FLASH_ENABLE := 1
+
 # 硬件版本
 V3_2710IMP_HARDWARE_V1 ?= 0
 V3_2710IMC_HARDWARE_V1 ?= 1
@@ -198,6 +201,7 @@ SDK_HAL_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/hal \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/ana \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/bt \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/spi_flash \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc
 
 # SDK 服务头文件
@@ -628,6 +632,16 @@ endif
 # LVGL snapshot开关
 ifeq ($(CFG_LVGL_SNAPSHOT_ENABLE),1)
 CPPFLAGS += -DLVGL_SNAPSHOT
+endif
+
+# 外部flash开关
+ifeq ($(CFG_EXTERNAL_FLASH_ENABLE),1)
+SPI_FLASH1 := 1
+ENABLE_FLASH1 := 1
+SPI_IOMUX_4WIRE := 1
+CPPFLAGS += -DSPI_FLASH1=$(SPI_FLASH1)
+CPPFLAGS += -DENABLE_FLASH1=$(ENABLE_FLASH1)
+CPPFLAGS += -DSPI_IOMUX_4WIRE=$(SPI_IOMUX_4WIRE)
 endif
 
 # LVGL 日志级别配置
@@ -1304,10 +1318,14 @@ firmware:
 		DISPLAY_LCD=st77916 \
 		DISPLAY_RST_PIN=$(DISPLAY_RST_PIN) \
 		DISPLAY_TE_PIN=$(DISPLAY_TE_PIN) \
+		SPI_FLASH1=$(CFG_EXTERNAL_FLASH_ENABLE) \
+		ENABLE_FLASH1=$(CFG_EXTERNAL_FLASH_ENABLE) \
+		SPI_IOMUX_4WIRE=$(CFG_EXTERNAL_FLASH_ENABLE) \
 		GRAPH_MODULE=1 \
 		CHIP_HAS_GRABOX=1 \
 		VUSB_ON=$(VUSB_ON) \
 		DEBUG_PORT=1 \
+		DEBUG=1 \
 		all
 
 # Bootloader 构建（默认参数）

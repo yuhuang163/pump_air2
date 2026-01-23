@@ -706,6 +706,7 @@ int main(void)
 #endif
 
 #if CFG_CUSTOM_APP
+    hal_trace_set_log_level(TR_LEVEL_DEBUG);
     pmu_power_key_hw_reset_enable(10);
     platform_log_init();
 #else
