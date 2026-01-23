@@ -122,7 +122,7 @@ static int init_system_ver_info(storage_manager_context_t *ctx)
     memset(info, 0, sizeof(sec_sys_ver_t));
     info->sys_local_protocol_id = ROOT_BLE_PROTOCOL_VERSION;
     info->sys_peer_app_protocol_id = 0;
-    info->sys_product_id = DEFAULT_PID_CODE;
+    info->sys_product_id = ROOT_PRODUCT_ID;
     info->ui_res_id = 101;
 
     info->sw_version = ROOT_FIRMWARE_VERSION;

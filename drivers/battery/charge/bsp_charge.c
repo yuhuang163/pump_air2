@@ -460,8 +460,7 @@ void charge_vbus_init(void)
 bool vbus_is_plug_in(void)
 {
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-    uint8_t hardware_version = get_hardware_version();
-    if (hardware_version == PRODUCT_INFO_V3) {
+    if (is_v3_hardware_version()) {
         return hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0 ? true : false;
     }
 #endif

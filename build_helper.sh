@@ -48,6 +48,46 @@ duration_since() {
 	printf "%ds" "$dt"
 }
 
+resolve_root_device_name() {
+	# 从 boards/product_info.h 解析 ROOT_DEVICE_NAME（优先使用预处理器展开，适配 ROOT_PRODUCT_ID 等间接宏）
+	# 输出示例：V3 / V3Pro
+	local info_file="${1:-$PROJECT_DIR/boards/product_info.h}"
+	if [[ -f "$info_file" ]]; then
+		local compiler
+		compiler=$(command -v gcc || command -v cc || true)
+		if [[ -n "${compiler:-}" ]]; then
+			local out
+			out=$(
+				printf '#include "%s"\nROOT_DEVICE_NAME\n' "$info_file" \
+					| "$compiler" -E -P -xc -I "$PROJECT_DIR/boards" -I "$PROJECT_DIR" - 2>/dev/null \
+					| awk 'NF{print; exit}' \
+					| tr -d '\r'
+			) || true
+			# 去掉引号（ROOT_DEVICE_NAME 是字符串宏）
+			out=${out#\"}
+			out=${out%\"}
+			if [[ -n "${out:-}" && "$out" != "ROOT_DEVICE_NAME" ]]; then
+				printf "%s" "$out"
+				return 0
+			fi
+		fi
+	fi
+
+	# 回退：按 ROOT_PRODUCT_ID 简单映射（兼容旧脚本逻辑）
+	local root_id_token product_id
+	root_id_token=$(grep -E '^#define[[:space:]]+ROOT_PRODUCT_ID[[:space:]]+' "$info_file" | awk '{print $3}' | tail -n1 || true)
+	product_id="0"
+	case "$root_id_token" in
+		ROOT_PRODUCT_V3PRO_ID|1) product_id="1" ;;
+		ROOT_PRODUCT_V3_ID|0|*) product_id="0" ;;
+	esac
+	if [[ "$product_id" == "1" ]]; then
+		printf "%s" "V3Pro"
+	else
+		printf "%s" "V3"
+	fi
+}
+
 resolve_make_vars() {
 	# 若在构建阶段已指定，直接采用，避免误判
 	if [[ -n "${FORCED_OUTPUT_DIR}" && -n "${FORCED_TARGET_NAME}" ]]; then
@@ -260,24 +300,9 @@ do_rename_and_archive() {
 	local info_file="$PROJECT_DIR/boards/product_info.h"
 	[[ -f "$info_file" ]] || die "未找到产品信息文件: $info_file"
 
-	# 解析 ROOT_PRODUCT_ID 数值
-	local root_id_token
-	root_id_token=$(grep -E '^#define[[:space:]]+ROOT_PRODUCT_ID[[:space:]]+' "$info_file" | awk '{print $3}' | tail -n1 || true)
-	local product_id="0"
-	case "$root_id_token" in
-		PRODUCT_INFO_V3PRO_VALUE|1) product_id="1" ;;
-		PRODUCT_INFO_V3_VALUE|0|*) product_id="0" ;;
-	esac
-
-	# 设备名（未做复杂预处理，仅处理 PRO -> Pro）
-	local device_name
-	if [[ "$product_id" == "1" ]]; then
-		device_name="V3PRO"
-	else
-		device_name="V3"
-	fi
 	local device_title
-	device_title=$(echo "$device_name" | sed -E 's/PRO$/Pro/')
+	device_title=$(resolve_root_device_name "$info_file")
+	[[ -n "${device_title:-}" ]] || device_title="V3"
 
 	# 类型字母（ROOT_FIRMWARE_TYPE）
 	local type_char
@@ -293,6 +318,15 @@ do_rename_and_archive() {
 	major=$(printf "%02d" "$major")
 	minor=$(printf "%02d" "$minor")
 
+	# 硬件版本（ROOT_HARDWARE_VERSION）：10 -> H01.0（major=1, minor=0）
+	local hw_version hw_major hw_minor hw_major2 hw_tag
+	hw_version=$(grep -E '^#define[[:space:]]+ROOT_HARDWARE_VERSION[[:space:]]+' "$info_file" | awk '{print $3}' | tail -n1 || true)
+	[[ -n "${hw_version:-}" ]] || hw_version="0"
+	hw_major=$((10#$hw_version / 10))
+	hw_minor=$((10#$hw_version % 10))
+	# 显示规则：硬件主版本不补零（H01.0 -> H1.0；H00.2 -> H0.2）
+	hw_tag="H${hw_major}.${hw_minor}"
+
 	# 日期与 git 短哈希
 	local today
 	today=$(date +%Y%m%d)
@@ -307,8 +341,10 @@ do_rename_and_archive() {
 	# 目标文件名（文件用点分 01.01；目录用下划线 01_01）
 	local version_dot="${major}.${minor}"
 	local version_us="${major}_${minor}"
-	local prefix_file="${device_title}_${today}_${type_char}${version_dot}_${git_hash}"
-	local prefix_dir="ROOT_${device_title}_${type_char}${version_us}"
+	# 文件名前缀增加 Lute_；目录 ROOT_ 前缀改为 Lute_
+	# 在软件版本后追加硬件版本号（用 _ 分隔）：..._P01.04_H01.0_<git>
+	local prefix_file="Lute_${device_title}_${today}_${type_char}${version_dot}_${hw_tag}_${git_hash}"
+	local prefix_dir="Lute_${device_title}_${type_char}${version_us}"
 
 	local target_dir="$SHARE_DIR/$prefix_dir"
 	mkdir -p "$target_dir" || die "无法创建版本目录: $target_dir"
@@ -336,8 +372,14 @@ do_rename_and_archive() {
 	res_dir="$PROJECT_DIR/overlay/resources/bin/$res_path"
 	res_file=""
 	if [[ -d "$res_dir" ]]; then
-		# 取该版本号最新的资源 bin（按 mtime）
-		res_file=$(ls -1t "$res_dir"/*_V${res_major2}.${res_minor2}_*_RES.bin 2>/dev/null | awk 'NR==1{print; exit}' || true)
+		# 取该版本号、且与当前设备匹配（V3 / V3Pro）最新的资源 bin（按 mtime）
+		# 资源文件名格式（pack_resources.py）：<ROOT_DEVICE_NAME>_YYYYMMDD_Vxx.xx_<md5>_RES.bin
+		shopt -s nullglob
+		local candidates=("$res_dir"/${device_title}_*_V${res_major2}.${res_minor2}_*_RES.bin)
+		shopt -u nullglob
+		if ((${#candidates[@]})); then
+			res_file=$(ls -1t "${candidates[@]}" 2>/dev/null | awk 'NR==1{print; exit}' || true)
+		fi
 	fi
 
 	# 拷贝并重命名（存在则覆盖）
@@ -373,13 +415,22 @@ do_rename_and_archive() {
 	if [[ -n "${res_file:-}" && -s "$res_file" ]]; then
 		local res_md5
 		res_md5=$(md5_fold4_hex_from_file "$res_file")
+		# RES：仅追加 Lute 前缀 + 硬件版本号，不覆盖资源自身的日期/版本等字段
 		local res_base res_out
 		res_base=$(basename -- "$res_file")
 		if [[ "$res_base" == *_RES.bin ]]; then
-			res_out="${res_base%_RES.bin}_${res_md5}_RES.bin"
+			# 例：V3_20260120_V01.01_8e7a2e66_RES.bin -> Lute_V3_20260120_V01.01_H01.0_8e7a2e66_<md5>_RES.bin
+			# 规则：硬件版本追加在资源版本号之后（Vxx.xx_Hxx.x）
+			local res_nores="${res_base%_RES.bin}"
+			if [[ "$res_nores" =~ ^(.*_V[0-9]{2}\.[0-9]{2})_(.*)$ ]]; then
+				res_out="Lute_${BASH_REMATCH[1]}_${hw_tag}_${BASH_REMATCH[2]}_${res_md5}_RES.bin"
+			else
+				# 若未匹配到资源版本号段，则退化为直接在末尾追加
+				res_out="Lute_${res_nores}_${hw_tag}_${res_md5}_RES.bin"
+			fi
 		else
 			# 兜底：直接在扩展名前追加
-			res_out="${res_base%.bin}_${res_md5}.bin"
+			res_out="Lute_${res_base%.bin}_${hw_tag}_${res_md5}.bin"
 		fi
 		cp -av "$res_file" "$target_dir/$res_out"
 		echo "RES 已归档(${res_path} V${res_major2}.${res_minor2}): $target_dir/$res_out"

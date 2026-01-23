@@ -27,7 +27,7 @@ void charge_pd_event_handler(void);
 uint16_t bsp_knob_get_count(uint8_t index);
 #endif
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-int get_hardware_version(void);
+int is_v3_hardware_version(void);
 #endif
 #ifdef __cplusplus
 }
