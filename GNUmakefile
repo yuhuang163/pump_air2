@@ -1325,7 +1325,6 @@ firmware:
 		CHIP_HAS_GRABOX=1 \
 		VUSB_ON=$(VUSB_ON) \
 		DEBUG_PORT=1 \
-		DEBUG=1 \
 		all
 
 # Bootloader 构建（默认参数）
