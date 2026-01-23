@@ -21,7 +21,7 @@ int ble_test_xtal_calib_proc_start(void);
 unsigned char ble_test_xtal_calib_set(uint32_t fcap);
 unsigned char ble_test_xtal_calib_get(uint32_t *fcap);
 unsigned char ble_test_xtal_calib_end(void);
-int ble_test_get_rssi_value(int32_t *rssi);
+unsigned char ble_test_get_rssi_value(int32_t *rssi);
 
 #ifdef __cplusplus
 }
