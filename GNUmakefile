@@ -201,6 +201,7 @@ SDK_HAL_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/hal \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/ana \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/bt \
+	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/drivers/spi_flash \
 	-I$(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/platform/cmsis/inc
 
 # SDK 服务头文件
@@ -1324,6 +1325,7 @@ firmware:
 		CHIP_HAS_GRABOX=1 \
 		VUSB_ON=$(VUSB_ON) \
 		DEBUG_PORT=1 \
+		DEBUG=1 \
 		all
 
 # Bootloader 构建（默认参数）
