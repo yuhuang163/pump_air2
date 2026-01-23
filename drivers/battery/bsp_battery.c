@@ -2,12 +2,8 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include <stdint.h>
-#include <stdlib.h>
 #include "bsp_common.h"
 #include "bsp_battery_internal.h"
-#include "cmsis_os_api.h"
-#include "root_common.h"
 
 /*
 * DEFINES
@@ -445,8 +441,7 @@ static int battery_voltage_poll(void)
 static int battery_dev_open(struct rt_device_node *dev)
 {
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-    uint8_t hardware_version = get_hardware_version();
-    if (hardware_version == PRODUCT_INFO_V3) {
+    if (is_v3_hardware_version()) {
         charge_vbus_init();
         LOG_PBUS("battery init skip, hardware version is v3");
         return BSP_OK;
@@ -524,7 +519,7 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
         #endif
         case OP_CODE_BAT_IS_SUPPORT_BATTERY:
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-            if (get_hardware_version() == PRODUCT_INFO_V3) {
+            if (is_v3_hardware_version()) {
                 return false;
             }
 #endif
@@ -538,8 +533,7 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
 static int battery_dev_suspend(struct rt_device_node *dev)
 {
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-    uint8_t hardware_version = get_hardware_version();
-    if (hardware_version == PRODUCT_INFO_V3) {
+    if (is_v3_hardware_version()) {
         LOG_PBUS("battery suspend skip, hardware version is v3");
         return BSP_OK;
     }
@@ -558,8 +552,7 @@ static int battery_dev_suspend(struct rt_device_node *dev)
 static int battery_dev_resume(struct rt_device_node *dev)
 {
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-    uint8_t hardware_version = get_hardware_version();
-    if (hardware_version == PRODUCT_INFO_V3) {
+    if (is_v3_hardware_version()) {
         LOG_PBUS("battery resume skip, hardware version is v3");
         return BSP_OK;
     }

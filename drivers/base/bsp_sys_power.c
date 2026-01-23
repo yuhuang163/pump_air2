@@ -19,7 +19,7 @@
 */
 static rt_device_node_t *node = NULL;
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-static uint8_t s_hardware_version = PRODUCT_INFO_V3PRO;
+static bool s_hardware_version = false;
 #endif
 
 /*
@@ -108,7 +108,7 @@ static int sys_power_dev_open(struct rt_device_node *dev)
     sys_power_gpio_init();
     peripheral_power_gpio_init();
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-    s_hardware_version = hardware_version_check() > 0 ? PRODUCT_INFO_V3PRO : PRODUCT_INFO_V3;
+    s_hardware_version = hardware_version_check();
 #endif
     return 0;
 }
@@ -163,9 +163,9 @@ static int sys_power_dev_resume(struct rt_device_node *dev)
 *****************************************************************************************
 */
 #if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-int get_hardware_version(void)
+int is_v3_hardware_version(void)
 {
-    return s_hardware_version;
+    return s_hardware_version > 0 ? false : true;
 }
 #endif
 

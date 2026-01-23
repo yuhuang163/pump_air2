@@ -18,7 +18,7 @@
 
 #define IS_SUPPORT_OLD_ADV_DATA          1
 
-#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
+#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 #define ADV_MAC_OFFSET 8
 #define RSP_MAC_OFFSET 8
 #else
@@ -32,12 +32,12 @@
 *****************************************************************************************
 */
 #if IS_SUPPORT_OLD_ADV_DATA
-#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
+#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 static uint8_t s_adv_rsp_data_set[] = {
     0x0A,                              /// length
     0xFF,                              /// manufacturer type 1
     0xAA,                              /// ROOT company flag
-    DEFAULT_PID_CODE,                  /// pump product code
+    ROOT_PRODUCT_ID,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
     0x03,
@@ -49,7 +49,7 @@ static uint8_t s_adv_data_set[] = {
     0x0A,                              /// length
     0xFF,                              /// manufacturer type 1
     0xAA,                              /// ROOT company flag
-    DEFAULT_PID_CODE,                  /// pump product code
+    ROOT_PRODUCT_ID,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
     0x03,
@@ -61,7 +61,7 @@ static uint8_t s_adv_rsp_data_set[] = {
     0x0A,                              /// length
     0xFF,                              /// manufacturer type 1
     0xAA,                              /// ROOT company flag
-    DEFAULT_PID_CODE,                  /// pump product code
+    ROOT_PRODUCT_ID,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
     0x03,
@@ -73,7 +73,7 @@ static uint8_t s_adv_data_set[] = {
     0x0A,                              /// length
     0xFF,                              /// manufacturer type 1
     0xAA,                              /// ROOT company flag
-    DEFAULT_PID_CODE,                  /// pump product code
+    ROOT_PRODUCT_ID,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
     0x03,
@@ -82,7 +82,7 @@ static uint8_t s_adv_data_set[] = {
 };
 #endif
 #else
-#if (ROOT_PRODUCT_ID == PRODUCT_INFO_V3PRO_VALUE)
+#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 static uint8_t s_adv_data_set[] = {
     0x0D,                               // length
     BES_GAP_AD_TYPE_COMPLETE_NAME,      // type
