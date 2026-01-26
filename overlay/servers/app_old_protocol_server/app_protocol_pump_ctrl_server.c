@@ -41,6 +41,33 @@ static app_old_comm_pump_ctrl pump_ctrl_data_temp = {0};
 *****************************************************************************************
 */
 
+uint8_t app_old_comm_get_adaptive_dimming_switch(void)
+{
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_UINT(st);
+    night_light_info_t night_light_info = {0};
+    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+    return night_light_info.adaptive;
+}
+
+uint8_t app_old_comm_get_night_light_level(void)
+{
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_UINT(st);
+    night_light_info_t night_light_info = {0};
+    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+    return night_light_info.level;
+}
+
+uint8_t app_old_comm_get_night_light_onoff(void)
+{
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_UINT(st);
+    night_light_info_t night_light_info = {0};
+    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
+    return night_light_info.onoff;
+}
+
 uint8_t app_old_comm_get_sys_status(void)
 {
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
@@ -707,7 +734,9 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_o
     report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(id); //normal speed //频次（0-低 1-中 2-高）（1字节）
     report_data[data_len++] = 0x00; //预留
     report_data[data_len++] = 0x00; //预留
-
+    report_data[data_len++] = app_old_comm_get_night_light_onoff();
+    report_data[data_len++] = app_old_comm_get_night_light_level();
+    report_data[data_len++] = app_old_comm_get_adaptive_dimming_switch();
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_STATUS, data_len, report_data);
 }
 
@@ -738,6 +767,9 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT); //normal speed
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = 0x00; //预留
+    ack_data[data_len++] = app_old_comm_get_night_light_onoff();
+    ack_data[data_len++] = app_old_comm_get_night_light_level();
+    ack_data[data_len++] = app_old_comm_get_adaptive_dimming_switch();
     LOG_SRV(" Sending device status ACK (data len: %d)", data_len);
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_STATUS, data_len, ack_data);
 }
