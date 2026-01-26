@@ -7,6 +7,8 @@
 #include "breast_pump_mode.h"
 #include "pump_mode_default_config.h"
 #include "app_protocol_broadcast_to_window.h"
+#include "breast_pump_persist_data.h"
+#include "time_utils.h"
 /*
 * DEFINES
 *****************************************************************************************
@@ -965,3 +967,115 @@ void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab)
     app_broadcast_pump_status_to_window(BREAST_PUMP_IDLE,OLD_BROADCAST_ALL_CT);
 }
  
+void app_old_comm_handle_get_record_num_req(uint8_t cal, uint8_t *cab)
+{
+    LOG_SRV(" Handling get record number request");
+    
+    storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(ctx);
+    
+    breast_pump_data_head_t pump_data_head = {0};
+    int ret = ctx->get_store_ram_val(STORE_ID_BREAST_PUMP_DATA_HEAD, 0, 0, &pump_data_head);
+    if (ret != 0) {
+        LOGE("Failed to get pump data head, ret: %d", ret);
+        pump_data_head.num = 0;  /// 失败时返回0
+    }
+    
+    /// 将记录数量转换为2字节（低字节在前，高字节在后）
+    uint8_t ack_data[2] = {0};
+    uint16_t record_num = (uint16_t)pump_data_head.num;
+    ack_data[0] = (uint8_t)(record_num & 0xFF);        /// 低字节
+    ack_data[1] = (uint8_t)((record_num >> 8) & 0xFF); /// 高字节
+    
+    LOG_SRV(" Record number: %d (0x%02X 0x%02X)", record_num, ack_data[0], ack_data[1]);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_RECORD_NUM, 2, ack_data);
+}
+
+void app_old_comm_handle_get_record_data_req(uint8_t cal, uint8_t *cab)
+{
+    LOG_SRV(" Handling get record data request");
+    
+    EXCEPTION_CHECK_VOID(cab);
+    if (cal < 2) {
+        LOG_SRV(" Invalid data length for GET_RECORD_DATA (expected >= 2, got %d)", cal);
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_RECORD_DATA, 0, NULL);
+        return;
+    }
+    
+    /// 解析记录索引（2字节，低字节在前）
+    uint16_t num = 0;
+    num |= cab[0];
+    num |= (uint16_t)(cab[1] << 8);
+    
+    LOG_SRV(" Request record index: %d", num);
+    
+    storage_manager_context_t *ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(ctx);
+    
+    /// 获取泵奶数据头
+    breast_pump_data_head_t pump_data_head = {0};
+    int ret = ctx->get_store_ram_val(STORE_ID_BREAST_PUMP_DATA_HEAD, 0, 0, &pump_data_head);
+    if (ret != 0) {
+        LOGE("Failed to get pump data head, ret: %d", ret);
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_RECORD_DATA, 0, NULL);
+        return;
+    }
+    
+    /// 验证索引范围（num从1开始，1表示最新的记录）
+    if (num == 0 || num > pump_data_head.num) {
+        LOG_SRV(" Record index out of range: %d (total: %d)", num, pump_data_head.num);
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_RECORD_DATA, 0, NULL);
+        return;
+    }
+    
+    /// 计算循环缓冲区中的实际索引（从tail往前倒推，num=1表示最新的记录）
+    /// 统一使用循环缓冲区公式，避免未满情况下的负数问题
+    /// num=1 -> tail (最新), num=2 -> tail-1, ..., num=num -> head (最旧)
+    uint8_t body_index = (pump_data_head.tail + ROOT_BREAST_PUMP_DATA_BODY_NUM - (num - 1)) % ROOT_BREAST_PUMP_DATA_BODY_NUM;
+    
+    /// 读取泵奶数据体
+    pump_result_info_t pump_data_body = {0};
+    store_func_args_t args = {
+        .ctx = ctx,
+        .arg1 = body_index,
+        .arg2 = 0,
+        .val = &pump_data_body,
+    };
+    ret = read_pump_data_body_from_flash(args);
+    if (ret != 0) {
+        LOGE("Failed to read pump data body, ret: %d, index: %d", ret, body_index);
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_RECORD_DATA, 0, NULL);
+        return;
+    }
+    
+    /// 转换为BLE记录格式
+    app_old_comm_pump_ble_record_t record = {0};
+    utc_time_t utc_time = {0};
+    timestamp_to_utc_time(pump_data_body.timestamp, &utc_time);
+    
+    /// 填充日期信息
+    record.date.year = utc_time.year % 100;
+    record.date.month = utc_time.month;
+    record.date.day = utc_time.day;
+    
+    /// 填充时钟时间
+    record.work.clock.hour = utc_time.hour;
+    record.work.clock.minute = utc_time.minute;
+    record.work.clock.second = utc_time.second;
+    
+    /// 填充工作记录信息
+    record.work.mod = pump_data_body.mode;
+    record.work.lvl = 0;  /// TODO: 需要从pump_data_body中获取级别信息
+    record.work.time = (uint16_t)(pump_data_body.work_total_time / 1000);  /// 转换为秒
+    record.work.left = 0;   /// TODO: 需要从pump_data_body中获取左侧奶量
+    record.work.right = 0;  /// TODO: 需要从pump_data_body中获取右侧奶量
+    
+    LOG_SRV(" Record data: date=%04d-%02d-%02d, time=%02d:%02d:%02d, mode=%d, duration=%d s", 
+            utc_time.year + 2000, utc_time.month, utc_time.day,
+            utc_time.hour, utc_time.minute, utc_time.second,
+            record.work.mod, record.work.time);
+    
+    /// 发送响应（11字节：3字节日期 + 8字节工作记录）
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_RECORD_DATA, 
+                                                sizeof(app_old_comm_pump_ble_record_t), (uint8_t *)&record);
+}

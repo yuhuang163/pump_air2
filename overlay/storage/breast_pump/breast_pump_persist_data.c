@@ -99,27 +99,6 @@ int read_pump_info_from_flash(store_func_args_t args)
     return ret;
 }
 
-int write_pump_data_head_to_flash(store_func_args_t args)
-{
-    int ret = 0;
-    EXCEPTION_CHECK_INT(args.ctx);
-    breast_pump_data_head_t *pump_data_head = (breast_pump_data_head_t *)args.val;
-    EXCEPTION_CHECK_INT(pump_data_head);
-    breast_pump_data_head_storage_t *store_pump_data_head = u_malloz(sizeof(breast_pump_data_head_storage_t));
-    EXCEPTION_CHECK_INT(store_pump_data_head);
-    store_pump_data_head->magic = STORAGE_BREAST_PUMP_DATA_HEAD_MAGIC_NUM;
-    memcpy(&store_pump_data_head->pump_data_head, pump_data_head, sizeof(breast_pump_data_head_t));
-    store_pump_data_head->crc = CRC16(&store_pump_data_head->pump_data_head, sizeof(breast_pump_data_head_t));
-    ret = user_database_put(args.ctx, PERSIST_KEY_BREAST_PUMP_DATA_HEAD, (uint8_t *)store_pump_data_head,
-                sizeof(breast_pump_data_head_storage_t));
-    if (ret != 0) {
-        LOGE("write pump data head failure! ret: %d", ret);
-    }
-    u_free(store_pump_data_head);
-
-    return ret;
-}
-
 int write_pump_buried_info_to_flash(store_func_args_t args)
 {
     int ret = 0;
@@ -176,6 +155,27 @@ int read_pump_buried_info_from_flash(store_func_args_t args)
     return ret;
 }
 
+int write_pump_data_head_to_flash(store_func_args_t args)
+{
+    int ret = 0;
+    EXCEPTION_CHECK_INT(args.ctx);
+    breast_pump_data_head_t *pump_data_head = (breast_pump_data_head_t *)args.val;
+    EXCEPTION_CHECK_INT(pump_data_head);
+    breast_pump_data_head_storage_t *store_pump_data_head = u_malloz(sizeof(breast_pump_data_head_storage_t));
+    EXCEPTION_CHECK_INT(store_pump_data_head);
+    store_pump_data_head->magic = STORAGE_BREAST_PUMP_DATA_HEAD_MAGIC_NUM;
+    memcpy(&store_pump_data_head->pump_data_head, pump_data_head, sizeof(breast_pump_data_head_t));
+    store_pump_data_head->crc = CRC16(&store_pump_data_head->pump_data_head, sizeof(breast_pump_data_head_t));
+    ret = user_database_put(args.ctx, PERSIST_KEY_BREAST_PUMP_DATA_HEAD, (uint8_t *)store_pump_data_head,
+                sizeof(breast_pump_data_head_storage_t));
+    if (ret != 0) {
+        LOGE("write pump data head failure! ret: %d", ret);
+    }
+    u_free(store_pump_data_head);
+
+    return ret;
+}
+
 void reset_pump_data_head(storage_manager_context_t *ctx, breast_pump_data_head_t *pump_data_head)
 {
     EXCEPTION_CHECK_VOID(ctx);
@@ -202,8 +202,9 @@ int read_pump_data_head_from_flash(store_func_args_t args)
     if (ret == 0) {
         memcpy(pump_data_head, &store_pump_data_head->pump_data_head, sizeof(breast_pump_data_head_t));
     } else {
-        memset(pump_data_head, 0, sizeof(breast_pump_data_head_t));
-        LOGE("read pump data head failure! ret: %d", ret);
+        reset_pump_data_head(args.ctx, pump_data_head);
+        //memset(pump_data_head, 0, sizeof(breast_pump_data_head_t));
+        LOGE("read pump user data head failure! ret: %d", ret);
     }
     u_free(store_pump_data_head);
 
@@ -551,6 +552,14 @@ int write_pump_buried_info_to_ram(store_func_args_t args)
     return 0;
 }
 
+int read_pump_data_head_from_ram(store_func_args_t args)
+{
+    EXCEPTION_CHECK_INT(args.ctx);
+    breast_pump_data_head_t *pump_data_head = (breast_pump_data_head_t *)args.val;
+    EXCEPTION_CHECK_INT(pump_data_head);
+    memcpy(pump_data_head, &args.ctx->priv.pump_data_head, sizeof(breast_pump_data_head_t));
+    return 0;
+}
 /// 测试刷牙数据存储
 int fill_in_pump_data_info(int num)
 {

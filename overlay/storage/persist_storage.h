@@ -14,7 +14,7 @@ extern "C" {
 
 #define ROOT_WRITE_INFO_LEN                         64
 #define ROOT_BREAST_PUMP_TIME_VALID                 30000   /// 30s
-#define ROOT_BREAST_PUMP_DATA_BODY_NUM              60      /// 按天存储，每天最多 ROOT_BREAST_PUMP_DATA_BODY_NUM / 7
+#define ROOT_BREAST_PUMP_DATA_BODY_NUM              140      /// 按天存储，每天最多 ROOT_BREAST_PUMP_DATA_BODY_NUM / 7
 #define USER_BIND_UID_LEN                           8
 #define USER_BIND_RANDOM_LEN                        6
 #define USER_BIND_AES_KEY_LEN                       16
@@ -309,6 +309,15 @@ typedef struct {
     uint16_t buried_index; /// 埋点索引
 } sys_buried_info_list_t;
 
+/// 泵奶数据头
+typedef struct {
+    uint8_t num;        /// 存储数量.
+    uint8_t head;  
+    uint8_t tail;
+    uint8_t resv;
+    uint16_t crc[ROOT_BREAST_PUMP_DATA_BODY_NUM + 1];  
+} breast_pump_data_head_t;
+
 /// 描述系统信息
 typedef struct sys_persist_info {
     sys_config_info_t config;
@@ -353,15 +362,6 @@ typedef struct factory_data_store {
     imu_cali_data_t imu;
     #endif
 } factory_data_store_t;
-
-/// 泵奶数据头
-typedef struct {
-    uint8_t num;        /// 存储数量.
-    uint8_t head;  
-    uint8_t tail;
-    uint8_t resv;
-    uint16_t crc[ROOT_BREAST_PUMP_DATA_BODY_NUM + 1];  
-} breast_pump_data_head_t;
 
 #ifdef __cplusplus
 }
