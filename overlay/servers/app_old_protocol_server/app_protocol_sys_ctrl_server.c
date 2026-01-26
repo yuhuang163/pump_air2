@@ -23,7 +23,7 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
+static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level, uint8_t adaptive_dimming_switch)
 {
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
@@ -39,7 +39,7 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
     st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
 
     // Update night light info
-    if (onoff == 2) {
+    if (adaptive_dimming_switch == 1) {
         night_light_info.adaptive = 1;
     } else {
         night_light_info.adaptive = 0;
@@ -49,7 +49,7 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level)
         algo->hook->set_adaptive_dimming_state(night_light_info.adaptive);
     }
 #endif
-    night_light_info.onoff = (onoff == 2) ? 0 : (onoff ? 1 : 0);
+    night_light_info.onoff = onoff ? 1 : 0;
     night_light_info.level = level;
 
     st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
@@ -236,16 +236,21 @@ void app_old_comm_handle_ctrl_dev_sys_status_req(uint8_t cal, uint8_t *cab)
     // Byte 6: Night light brightness level (1-10)
     sys_status.night_light_level = cab[6];
 
-    LOG_SRV(" Sys status: lang=%d, lock_time=%d, brightness=%d, massage_time=%d, night_sw=%d, night_lvl=%d\n",
+    // Byte 7: Night light brightness level (1-10)
+    sys_status.adaptive_dimming_switch = cab[7];
+
+    LOG_SRV(" Sys status: lang=%d, lock_time=%d, brightness=%d, massage_time=%d, night_sw=%d, night_lvl=%d, adaptive_dimming_sw=%d\n",
                  sys_status.sys_language_e,
                  sys_status.screem_lock_time,
                  sys_status.screem_lock_light_level,
                  sys_status.motor_Duration,
                  sys_status.night_light_switch,
-                 sys_status.night_light_level);
+                 sys_status.night_light_level,
+                 sys_status.adaptive_dimming_switch);
 
     // Apply night light settings
-    app_old_comm_set_night_light(sys_status.night_light_switch, sys_status.night_light_level);
+    app_old_comm_set_night_light(sys_status.night_light_switch, sys_status.night_light_level, sys_status.adaptive_dimming_switch);
+    //
 
     // TODO: Apply other sys_status settings (language, screen lock, brightness, massage time)
 

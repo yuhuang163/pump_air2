@@ -24,6 +24,7 @@ typedef struct {
     uint16_t motor_Duration;
     uint8_t night_light_switch;
     uint8_t night_light_level;
+    uint8_t adaptive_dimming_switch;
 } app_old_comm_sys_status_ctrl;
 
 void app_old_comm_handle_set_bind_req(uint8_t cal, uint8_t *cab);
