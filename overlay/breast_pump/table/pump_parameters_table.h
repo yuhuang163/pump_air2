@@ -112,21 +112,21 @@ static const suction_parameters_t short_suction_table[SUCTION_LEVEL_MAX] = {
 static const uint16_t long_pump_freq_table[BREAST_PUMP_LEVEL_MAX][SUCTION_SPEED_MAX] = {
     /// 低，中，高     
     {90, 100, 110}, /// level 0      
-    {78, 83,  80},  /// level 1      
-    {75, 80,  75 }, /// level 2  
-    {72, 77,  71 }, /// level 3
-    {69, 74,  67 }, /// level 4    
-    {66, 71,  64 }, /// level 5 
-    {63, 68,  61 }, /// level 6    
-    {60, 65,  58 }, /// level 7     
-    {57, 62,  56 }, /// level 8   
-    {54, 59,  54 }, /// level 9  
-    {51, 56,  52 }, /// level 10   
-    {48, 53,  50 }, /// level 11  
-    {45, 50,  48 }, /// level 12     
-    {40, 45,  46 }, /// level 13 
-    {35, 40,  44 }, /// level 14
-    {30, 35,  42 }, /// level 15 
+    {70, 75,  80},  /// level 1      
+    {65, 70,  75 }, /// level 2  
+    {71, 66,  71 }, /// level 3
+    {57, 62,  67 }, /// level 4    
+    {54, 59,  64 }, /// level 5 
+    {51, 56,  61 }, /// level 6    
+    {48, 53,  58 }, /// level 7     
+    {46, 51,  56 }, /// level 8   
+    {44, 49,  54 }, /// level 9  
+    {42, 47,  52 }, /// level 10   
+    {40, 45,  50 }, /// level 11  
+    {38, 43,  48 }, /// level 12     
+    {36, 41,  46 }, /// level 13 
+    {34, 39,  44 }, /// level 14
+    {32, 37,  42 }, /// level 15 
 };
 
 /// 短吸力度表 //按摩力表
