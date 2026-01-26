@@ -38,6 +38,9 @@ extern "C" {
 /// 开奶模式吸乳默认时长8分钟，单位：秒
 #define LACTATION_START_MODE_DEFAULT_PUMP_TIME       480 
 
+
+/// 追奶模式默认工作时长60分钟，单位：秒
+#define MILK_TRACK_MODE_DEFAULT_WORK_TIME            3600
 /// 追奶模式吸乳时长20分钟，单位：秒
 #define MILK_TRACK_MODE_PUMP_TIME_0                  1200 
 /// 追奶模式吸乳时长10分钟，单位：秒
