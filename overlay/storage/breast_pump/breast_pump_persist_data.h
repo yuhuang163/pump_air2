@@ -27,6 +27,7 @@ int read_pump_data_head_from_flash(store_func_args_t args);
 int write_pump_data_body_to_flash(store_func_args_t args);
 int read_pump_data_body_from_flash(store_func_args_t args);
 int del_pump_data_body_from_flash(store_func_args_t args);
+int read_pump_data_head_from_ram(store_func_args_t args);
 
 /// 泵奶设置信息接口
 int write_pump_setting_info_to_ram(store_func_args_t args);

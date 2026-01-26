@@ -47,9 +47,9 @@ static void notify_breast_pump_completed(void)
 
     if (need_save) {
         pump_result_info_t *pumping_info = breast_pump_obj->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
-        // USER_DATA_TO_PRIV_DATA(pumping_info, pdata);
-        // SEND_BROADCAST_ARGS4_EXTRA(ID_BROADCAST_PERSIST_INFO_UPDATE, 1, pdata, sizeof(pdata));
-        // memset(pumping_info, 0, sizeof(pump_result_info_t));
+        USER_DATA_TO_PRIV_DATA(pumping_info, pdata);
+        SEND_BROADCAST_ARGS4_EXTRA(ID_BROADCAST_PERSIST_INFO_UPDATE, 1, pdata, sizeof(pdata));
+        memset(pumping_info, 0, sizeof(pump_result_info_t));
         LOG_PMP("save success, work valid time: %lu", pumping_info->work_valid_time);
     }
 }
