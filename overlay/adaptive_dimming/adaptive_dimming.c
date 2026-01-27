@@ -116,8 +116,8 @@ static int adaptive_dimming_duty_calculate(uint16_t lux_avg, uint8_t *out_duty)
 
 static void adaptive_dimming_polling_thread(void *user_data)
 {
-    rt_device_node_t *night_light = (rt_device_node_t *)user_data;
-    EXCEPTION_CHECK_VOID(night_light);
+    ui_manager_context_t *ui = (ui_manager_context_t *)user_data;
+    EXCEPTION_CHECK_VOID(ui);
     EXCEPTION_CHECK_VOID(adaptive);
     if (!adaptive->is_adaptive_dimming) {
         return;
@@ -136,11 +136,10 @@ static void adaptive_dimming_polling_thread(void *user_data)
     if (adaptive_dimming_duty_calculate(lux_avg, &refresh_duty) == 0) {
         return;
     }
-    night_light_pwm_duty_set_msg_t msg = {
-        .led_index = NIGHT_LIGHT_LED_ID_0,
-        .pwm_duty = refresh_duty,
-    };
-    night_light->ioctl(night_light, OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET, (void *)&msg);
+    
+    if (ui->hook && ui->hook->set_led_level) {
+        ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, refresh_duty);
+    }
 }
 
 /*
@@ -173,16 +172,15 @@ void adaptive_dimming_init(void)
     EXCEPTION_CHECK_VOID(misc);
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_VOID(st);
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    EXCEPTION_CHECK_VOID(pbus);
     sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     EXCEPTION_CHECK_VOID(sensor);
-    rt_device_node_t *night_light = pbus->find_device(ID_DEVICE_LED);
+    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    EXCEPTION_CHECK_VOID(ui);
     night_light_info_t light_info = {0};
     sensor->add_sensor_evt_lisenser(sensor, LIGHT_SENSOR_EVT_POLLING, 1, on_light_sensor_data_cb);
     st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &light_info);
     adaptive->is_adaptive_dimming = light_info.adaptive;
-    misc->add_misc_task(night_light, MISC_TASK_ID_ADAPTIVE_DIMMING, 500,
+    misc->add_misc_task(ui, MISC_TASK_ID_ADAPTIVE_DIMMING, 500,
          MISC_WORK_MSG_ID_TIMER, adaptive_dimming_polling_thread);
     LOG_ALGO("adaptive_dimming_state_sync: %d", adaptive->is_adaptive_dimming);
 }

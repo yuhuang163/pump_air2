@@ -113,6 +113,8 @@ void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_report_taste_dev_status(servers_old_protocol_publish_data_id_e id, void *val);
+void app_old_comm_handle_get_record_num_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_get_record_data_req(uint8_t cal, uint8_t *cab);
 #ifdef __cplusplus
 }
 #endif

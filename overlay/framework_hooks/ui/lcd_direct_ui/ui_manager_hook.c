@@ -2,8 +2,8 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "cmsis_os_api.h"
 #include "root_common_api.h" // IWYU pragma: keep
+#include "breast_pump_manager.h" // IWYU pragma: keep
 #include "ui_img_define.h" // IWYU pragma: keep
 #include "ui_manager_api.h"
 
@@ -34,7 +34,11 @@ typedef struct {
 
 static void change_images_cb(lv_timer_t *t);
 static void reset_play_count_cb(ui_animation_play_t *play);
-
+static const uint8_t key_led_index[] = {
+    PUMP_START_BL,            /// 启动背光灯
+    PUMP_MODE_BL,             /// 模式背光灯
+    PUMP_BREASTFEEDING_BL,    /// 追奶背光灯
+};
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -293,68 +297,95 @@ static void set_ui_key_backlight(ui_manager_context_t *thiz, uint16_t val)
         .led_index = PUMP_LED_ALL_ID,
         .led_status = {
             .mode = LED_MODE_LEVEL,
-            .un.luminous.level = val > LED_LEVEL_MAX ? LED_LEVEL_MAX : val,
+            .un.luminous.level = 0,
         },
     };
-    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
     if (val == 0) {
-        return;
+        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    } else {
+        storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+        EXCEPTION_CHECK_VOID(st);
+        uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+        st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+        for (int i = 0; i < LENGTH_OF_ARRAY(key_led_index); i++) {
+            msg.led_index = key_led_index[i];
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+        }
+
+        if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
+            msg.led_index = PUMP_RIGHT_CONTROL_BL;
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+            msg.led_index = PUMP_LEFT_CONTROL_BL;
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+
+        } else if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
+            msg.led_index = PUMP_LEFT_CONTROL_BL;
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+            msg.led_index = PUMP_RIGHT_CONTROL_BL;
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+        } else {
+            msg.led_index = PUMP_LEFT_CONTROL_BL;
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+            msg.led_index = PUMP_RIGHT_CONTROL_BL;
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+        }
+        breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+        EXCEPTION_CHECK_VOID(pump);
+        uint8_t mode = pump->get_breast_pump_mode();
+        LOG_UI("mode: %d, is common mode: %d", mode, BREAST_PUMP_IS_COMMON_MODE(mode));
+        if (BREAST_PUMP_IS_COMMON_MODE(mode)) {
+            msg.led_index = PUMP_FREQ_SET_BL;
+            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+        }
     }
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_VOID(st);
-    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-    st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
-    if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
-        msg.led_index = PUMP_RIGHT_CONTROL_BL;
-        msg.led_status.mode = LED_MODE_LEVEL;
-        msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
-        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
-    } else if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
-        msg.led_index = PUMP_LEFT_CONTROL_BL;
-        msg.led_status.mode = LED_MODE_LEVEL;
-        msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
-        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
-    } 
     LOG_UI("set ui key backlight: %d", val);
 }
 
-static void set_led_blink(ui_manager_context_t *thiz, led_blink_info_t blink_info)
+static void set_led_blink(ui_manager_context_t *thiz, uint8_t led_index, uint16_t period, 
+    uint16_t blink_times, uint8_t finish_status)
 {
     EXCEPTION_CHECK_VOID(thiz);
     led_status_msg_t msg = {
-        .led_index = blink_info.led_index,
+        .led_index = led_index,
         .led_status = {
             .mode = LED_MODE_BLINK,
-            .un.blink.period = blink_info.period,
-            .un.blink.continue_time = blink_info.continue_time,
-            .un.blink.first_status = blink_info.first_status,
-            .un.blink.finish_status = blink_info.finish_status,
+            .un.blink.period = period,
+            .un.blink.times = blink_times,
+            .un.blink.finish_status = finish_status,
         },
     };
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
-static void set_led_level(ui_manager_context_t *thiz, led_level_info_t level_info)
+static void set_led_level(ui_manager_context_t *thiz, uint8_t led_index, uint8_t level)
 {
     EXCEPTION_CHECK_VOID(thiz);
     led_status_msg_t msg = {
-        .led_index = level_info.led_index,
+        .led_index = led_index,
         .led_status = {
             .mode = LED_MODE_LEVEL,
-            .un.luminous.level = level_info.level,
+            .un.luminous.level = level,
         },
     };
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
-static void set_led_onoff(ui_manager_context_t *thiz, led_onoff_info_t onoff_info)
+static void set_led_onoff(ui_manager_context_t *thiz, uint8_t led_index, uint8_t onoff)
 {
     EXCEPTION_CHECK_VOID(thiz);
     led_status_msg_t msg = {
-        .led_index = onoff_info.led_index,
+        .led_index = led_index,
         .led_status = {
             .mode = LED_MODE_ONOFF,
-            .un.onoff.status = onoff_info.onoff,
+            .un.onoff.status = onoff,
         },
     };
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
@@ -431,4 +462,6 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->set_led_blink = set_led_blink;
     ctx->hook->set_led_level = set_led_level;
     ctx->hook->set_led_onoff = set_led_onoff;
+    ctx->hook->set_ui_panel_backlight = set_ui_panel_backlight;
+    ctx->hook->set_ui_key_backlight = set_ui_key_backlight;
 }

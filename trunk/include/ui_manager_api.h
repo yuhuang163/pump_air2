@@ -76,27 +76,6 @@ typedef struct ui_animation_play {
     void (*reset_play_count_cb)(struct ui_animation_play *thiz);
 } ui_animation_play_t;
 
-/// 描述LED闪烁信息.
-typedef struct {
-    uint8_t led_index;
-    uint16_t period;
-    uint16_t continue_time;
-    uint8_t first_status;
-    uint8_t finish_status;
-} led_blink_info_t;
-
-/// 描述LED亮度信息.
-typedef struct {
-    uint8_t led_index;
-    uint8_t level;
-} led_level_info_t;
-
-/// 描述LED开关信息.
-typedef struct {
-    uint8_t led_index;
-    uint8_t onoff;
-} led_onoff_info_t;
-
 struct rt_device_node;
 struct resource_manager_context;
 typedef struct ui_manager_context {
@@ -141,10 +120,14 @@ typedef struct ui_manager_context {
         void (*lvgl_display_handler)(struct ui_manager_context *thiz);
         void (*ui_animation_play_init)(struct ui_manager_context *thiz, ui_play_info_t play_info);
         void (*ui_animation_play_deinit)(struct ui_manager_context *thiz);
-        void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
-        void (*set_led_blink)(struct ui_manager_context *thiz, led_blink_info_t blink_info);
-        void (*set_led_level)(struct ui_manager_context *thiz, led_level_info_t level_info);
-        void (*set_led_onoff)(struct ui_manager_context *thiz, led_onoff_info_t onoff_info);
+        void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, 
+            int arg1, int arg2, broadcast_priv_data_t *pdata);
+        void (*set_led_blink)(struct ui_manager_context *thiz, uint8_t led_index, uint16_t period, 
+            uint16_t blink_times, uint8_t finish_status);
+        void (*set_led_level)(struct ui_manager_context *thiz, uint8_t led_index, uint8_t level);
+        void (*set_led_onoff)(struct ui_manager_context *thiz, uint8_t led_index, uint8_t onoff);
+        void (*set_ui_panel_backlight)(struct ui_manager_context *thiz, uint16_t val);
+        void (*set_ui_key_backlight)(struct ui_manager_context *thiz, uint16_t val);
     } *hook;
 } ui_manager_context_t;
 

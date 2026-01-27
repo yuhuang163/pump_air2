@@ -34,14 +34,10 @@ static led_status_t led_status[NIGHT_LIGHT_SIZE];
 static const night_light_cfg_t night_light_cfg[NIGHT_LIGHT_SIZE] = {
     {NIGHT_LIGHT_PIN, NIGHT_LIGHT_PWM_ID, NIGHT_LIGHT_PWM_IMUX, 1000},
 };
-uint8_t night_light_pwm_duty[LED_LEVEL_MAX + 1] = {0,  10, 20, 30, 40, 50,
-    60, 70, 80, 90, 100};
 #elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
 static const night_light_cfg_t night_light_cfg[NIGHT_LIGHT_SIZE] = {
     {NIGHT_LIGHT_PIN, NIGHT_LIGHT_PWM_ID, NIGHT_LIGHT_PWM_IMUX, 1000},
 };
-uint8_t night_light_pwm_duty[LED_LEVEL_MAX + 1] = {0,  10, 20, 30, 40, 50,
-    60, 70, 80, 90, 100};
 #else
 #error "Unsupported hardware version"
 #endif
@@ -62,8 +58,7 @@ static void night_light_level_set(uint8_t index, led_luminous_t luminous)
         return;
     }
     
-    //uint8_t duty = luminous.level >= LED_LEVEL_MAX ? 100 : (luminous.level * 100 / LED_LEVEL_MAX);
-    uint8_t duty = night_light_pwm_duty[luminous.level];
+    uint8_t duty = luminous.level >= LED_LEVEL_MAX ? LED_LEVEL_MAX : luminous.level;
     struct HAL_PWM_CFG_T pwm_cfg = {
         .freq = night_light_cfg[index].freq,
         .ratio = duty,
@@ -133,43 +128,11 @@ int bsp_night_light_status_set(void *args)
     return 0;
 }
 
-int bsp_night_light_pwm_duty_set(void *args)
-{
-    night_light_pwm_duty_set_msg_t *msg = (night_light_pwm_duty_set_msg_t *)args;
-    if (msg == NULL) {
-        LOGE("msg is NULL");
-        return BSP_ERROR;
-    }
-    
-    if (msg->led_index >= NIGHT_LIGHT_SIZE) {
-        LOGE("index is out of range: %d", msg->led_index);
-        return BSP_ERROR;
-    }
-
-    if (msg->pwm_duty == 0) {
-        hal_pwm_disable(night_light_cfg[msg->led_index].id);
-        return BSP_OK;
-    }
-    
-    uint8_t duty = msg->pwm_duty;
-    struct HAL_PWM_CFG_T pwm_cfg = {
-        .freq = night_light_cfg[msg->led_index].freq,
-        .ratio = duty,
-        .inv = false,
-        .sleep_on = false,
-    };
-    led_status[msg->led_index].mode = LED_MODE_LEVEL;
-    hal_pwm_enable(night_light_cfg[msg->led_index].id, &pwm_cfg);
-    LOG_PBUS("index: %d, duty: %d", msg->led_index, duty);
-    
-    return BSP_OK;
-}
-
 int bsp_night_light_test(void)
 {
     static uint8_t level = 0;
     level++;
-    if (level > 10) {
+    if (level > LED_LEVEL_MAX) {
         level = 0;
     }
 

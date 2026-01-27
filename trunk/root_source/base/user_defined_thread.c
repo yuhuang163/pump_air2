@@ -31,15 +31,11 @@ static int run_led_test_cb(void)
     LOG_PBUS("===> run led test!!!!! status: %d", led_status);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
-    led_status_msg_t msg = {
-        .led_index = PUMP_LED_ALL_ID,
-        .led_status = {
-            .mode = LED_MODE_ONOFF,
-            .un.onoff.status = led_status,
-        },
-    };
-    led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
-    led_status = led_status == LED_STATUS_OFF ? LED_STATUS_ON : LED_STATUS_OFF;
+    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    EXCEPTION_CHECK_INT(ui);
+    EXCEPTION_CHECK_INT(ui->hook && ui->hook->set_led_onoff);
+    ui->hook->set_led_onoff(ui, PUMP_LED_ALL_ID, led_status);
+    led_status = (led_status == LED_STATUS_OFF) ? LED_STATUS_ON : LED_STATUS_OFF;
     return 1000;
 }
 
