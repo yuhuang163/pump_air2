@@ -284,22 +284,38 @@ static void set_ui_key_backlight(ui_manager_context_t *thiz, uint16_t val)
     EXCEPTION_CHECK_VOID(thiz);
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     EXCEPTION_CHECK_VOID(pm);
-
     if (pm->is_system_power_on() == 0) {
         LOGE("system power off, ignore set ui backlight.");
         return;
     }
-
-    if (thiz->priv.led_dev) {
-        led_status_msg_t msg = {
-            .led_index = PUMP_LED_ALL_ID,
-            .led_status = {
-                .mode = LED_MODE_LEVEL,
-                .un.luminous.level = val > LED_LEVEL_MAX ? LED_LEVEL_MAX : val,
-            },
-        };
-        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    EXCEPTION_CHECK_VOID(thiz->priv.led_dev);
+    led_status_msg_t msg = {
+        .led_index = PUMP_LED_ALL_ID,
+        .led_status = {
+            .mode = LED_MODE_LEVEL,
+            .un.luminous.level = val > LED_LEVEL_MAX ? LED_LEVEL_MAX : val,
+        },
+    };
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    if (val == 0) {
+        return;
     }
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(st);
+    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
+        msg.led_index = PUMP_RIGHT_CONTROL_BL;
+        msg.led_status.mode = LED_MODE_LEVEL;
+        msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
+        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    } else if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
+        msg.led_index = PUMP_LEFT_CONTROL_BL;
+        msg.led_status.mode = LED_MODE_LEVEL;
+        msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
+        thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+    } 
+    LOG_UI("set ui key backlight: %d", val);
 }
 
 static void set_led_blink(ui_manager_context_t *thiz, led_blink_info_t blink_info)
