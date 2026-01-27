@@ -70,14 +70,12 @@ static void polling_battery_status(void *user_data)
         thiz->priv.low_battery ? BATTERY_BROADCAST_LOW_BATTERY : BATTERY_BROADCAST_CAPACITY_CHANGE, bat_per);   /// 发送电池状态广播.
 }
 
-#if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
 static void polling_battery_voltage_status(void *user_data)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(thiz->priv.battery);
     DEVICE_IOCTL_NO_RET(thiz->priv.battery, OP_CODE_BAT_POLL_VOLTAGE);
 }
-#endif
 
 static void polling_charge_status(void *user_data)
 {
@@ -129,13 +127,32 @@ static void polling_charge_status(void *user_data)
         chage_state);  /// 发送充电状态广播.
 }
 
-static void charge_irq_callback(uint8_t *data)
+static void charge_event_callback(charge_event_e event)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    int misc_msg = 0;
-    
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_VOID(wm);
+    EXCEPTION_CHECK_VOID(thiz);
+    if (event == CHARGE_EVENT_ADAPTER_MISMATCH) {
+        LOG_MISC("charge event: adapter mismatch");
+        thiz->priv.is_adapter_mismatch = 1;
+        multi_func_msg_data_t __msg = {0};
+        __msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
+        LOG_WM("goto charge screen");
+        wm->dispatch_new_window_args(wm, &__msg);
+        return;
+    }
+    
+    if (thiz->priv.is_adapter_mismatch) {
+        thiz->priv.is_adapter_mismatch = 0;
+        if (wm->is_current_window(wm, ID_WINDOW_CHARGE)) {
+            multi_func_msg_data_t __msg = {0};
+            __msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+            LOG_WM("goto pump window");
+            wm->dispatch_new_window_args(wm, &__msg);
+        }
+    }
+
+    int misc_msg = 0;
     if (wm->get_current_window_id() != ID_WINDOW_CHARGE) {
         misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
         EXCEPTION_CHECK_VOID(misc);
@@ -287,10 +304,12 @@ static int on_post_battery_init(void *ptr)
             MISC_WORK_MSG_ID_TIMER | MISC_WORK_MSG_ID_CHARGE_INTERRUPT, polling_charge_status);
         misc->add_misc_task(misc, MISC_TASK_ID_BATTERY_POLLING, 1500, 
             MISC_WORK_MSG_ID_TIMER, polling_battery_status);
-#if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
         misc->add_misc_task(misc, MISC_TASK_ID_BATTERY_VOLTAGE_POLLING, 0, 
             MISC_WORK_MSG_ID_TIMER, polling_battery_voltage_status);
-#endif
+    }
+
+    if (ctx->priv.battery) {
+        DEVICE_IOCTL_ARGS_NO_RET(ctx->priv.battery, OP_CODE_BAT_ADD_CHARGE_EVENT_CALLBACK, charge_event_callback);
     }
     return 0;
 }
