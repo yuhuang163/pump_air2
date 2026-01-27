@@ -100,8 +100,8 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             info->state.run_time = get_timestamp_ms(info->state.start_time);
         #endif
             if (info->state.run_time >= info->original.pumping_time) {
-                info->state.status = SUCTION_STATUS_HOLD;
-                info->state.action = MOTOR_ACTION_PUMP_OFF;
+                info->state.status = info->original.hold_time > 0 ? SUCTION_STATUS_HOLD : SUCTION_STATUS_RELEASE;
+                info->state.action = info->original.hold_time > 0 ? MOTOR_ACTION_VALVE_ON : MOTOR_ACTION_PUMP_OFF_AND_VALVE_ON;
             #if IS_SUPPORT_RELATIVE_RUN_TIME
                 info->state.run_time = 0;
             #else
@@ -135,13 +135,32 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             info->state.run_time = get_timestamp_ms(info->state.start_time);
         #endif
             if (info->state.run_time >= info->original.valve_on_time) {
-                info->state.status = SUCTION_STATUS_SLEEP;
-                info->state.action = MOTOR_ACTION_VALVE_OFF;
-            #if IS_SUPPORT_RELATIVE_RUN_TIME
-                info->state.run_time = 0;
-            #else
-                info->state.start_time = get_timestamp();
-            #endif
+                if (info->original.sleep_time > 0) {
+                    info->state.status = SUCTION_STATUS_SLEEP;
+                    info->state.action = MOTOR_ACTION_VALVE_OFF;
+                #if IS_SUPPORT_RELATIVE_RUN_TIME
+                    info->state.run_time = 0;
+                #else
+                    info->state.start_time = get_timestamp();
+                #endif
+                } else {
+                    info->state.cycles_count++;
+                    info->state.policy_update_req = 1;
+                #if IS_SUPPORT_RELATIVE_RUN_TIME
+                    info->state.run_time = 0;
+                #else
+                    info->state.start_time = get_timestamp();
+                #endif
+                #if PUMP_DEBUG_ENABLE
+                    debug_count[pump_id]++;
+                    if (get_timestamp_ms(debug_start_time) >= 60000 && pump_id == 1) {
+                        LOG_MOTOR("no sleep time, debug count: %d/%d", debug_count[0], debug_count[1]);
+                        debug_count[0] = 0;
+                        debug_count[1] = 0;
+                        debug_start_time = get_timestamp();
+                    }
+                #endif
+                }
             }
             break;
 
