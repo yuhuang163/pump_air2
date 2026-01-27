@@ -433,7 +433,7 @@ uint8_t app_old_comm_set_pump_control_type(app_old_comm_pump_ctrl *app_old_comm_
     return true;
 }
 
-uint8_t app_old_comm_get_pump_control_type(app_old_comm_pump_ctrl *app_old_comm_pump_ctrl_date)
+uint8_t app_old_comm_get_pump_control_type(void)
 {
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_UINT(storage_ctx);
@@ -739,6 +739,7 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_o
     report_data[data_len++] = app_old_comm_get_night_light_onoff();
     report_data[data_len++] = app_old_comm_get_night_light_level();
     report_data[data_len++] = app_old_comm_get_adaptive_dimming_switch();
+    report_data[data_len++] = app_old_comm_get_pump_control_type();
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_STATUS, data_len, report_data);
 }
 
@@ -772,6 +773,7 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = app_old_comm_get_night_light_onoff();
     ack_data[data_len++] = app_old_comm_get_night_light_level();
     ack_data[data_len++] = app_old_comm_get_adaptive_dimming_switch();
+    ack_data[data_len++] = app_old_comm_get_pump_control_type();
     LOG_SRV(" Sending device status ACK (data len: %d)", data_len);
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_STATUS, data_len, ack_data);
 }
