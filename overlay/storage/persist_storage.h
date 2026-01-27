@@ -14,7 +14,7 @@ extern "C" {
 
 #define ROOT_WRITE_INFO_LEN                         64
 #define ROOT_BREAST_PUMP_TIME_VALID                 30000   /// 30s
-#define ROOT_BREAST_PUMP_DATA_BODY_NUM              140      /// 按天存储，每天最多 ROOT_BREAST_PUMP_DATA_BODY_NUM / 7
+#define ROOT_BREAST_PUMP_DATA_BODY_NUM              70      /// 按天存储，每天最多 ROOT_BREAST_PUMP_DATA_BODY_NUM / 7
 #define USER_BIND_UID_LEN                           8
 #define USER_BIND_RANDOM_LEN                        6
 #define USER_BIND_AES_KEY_LEN                       16

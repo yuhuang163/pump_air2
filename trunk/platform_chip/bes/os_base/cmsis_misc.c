@@ -261,6 +261,11 @@ int platform_flash_erase(const char *partition, uint32_t addr, uint32_t size)
     uint32_t offset = 0;
     
     if (strcmp(partition, PARTITION_FDS_NAME) == 0) {
+        /// 检测地址和大小是否4KB对齐
+        if (addr % 4096 != 0 || size % 4096 != 0) {
+            LOGE("erase failed, addr = %x, size = %x, not aligned to 4096", addr, size);
+            //return -1;
+        }
         if ((addr + size) > FDS_END_ADDR) {
             LOGE("erase failed, partition = %s, addr = %x, size = %x", partition, addr, size);
             return -1;
