@@ -47,9 +47,9 @@
  
  void lv_mem_deinit(void)
  {
-     if (!lv_custom_heap || !lv_heap_mem)
-         return;
-     heap_free(lv_custom_heap, lv_heap_mem);
+    //  if (!lv_custom_heap || !lv_heap_mem)
+    //      return;
+    //  heap_free(lv_custom_heap, lv_heap_mem);
      return; /*Nothing to deinit*/
  }
  

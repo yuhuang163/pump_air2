@@ -10,8 +10,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PUMP_DEBUG_ENABLE                        0 /// 调试开关
-#define PUMP_RUN_CHECK_ENABLE                        1 /// 调试开关
+#define PUMP_RUN_CHECK_ENABLE                        0 /// 调试开关
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -77,7 +76,7 @@ int pump_policy_del(motor_timed_policy_node_t *time_policy)
 
 int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id) 
 { 
-#if PUMP_DEBUG_ENABLE
+#if PUMP_RUN_CHECK_ENABLE
     static uint32_t debug_start_time = 0, debug_count[BREAST_PUMP_NUM] = {0};
 #endif
     // LOG_MOTOR("enter: status:%d, action:%d, req:%d, tick:%d", info->state.status, info->state.action, info->state.policy_update_req,
@@ -94,7 +93,7 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             break;
 
         case SUCTION_STATUS_GENERATE:
-        #if PUMP_DEBUG_ENABLE
+        #if PUMP_RUN_CHECK_ENABLE
             LOG_MOTOR("generate run time:%d, dest:%d", info->state.run_time, info->original.pumping_time);
         #endif
         #if IS_SUPPORT_RELATIVE_RUN_TIME
@@ -103,8 +102,8 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             info->state.run_time = get_timestamp_ms(info->state.start_time);
         #endif
             if (info->state.run_time >= info->original.pumping_time) {
-                info->state.status = SUCTION_STATUS_HOLD;
-                info->state.action = MOTOR_ACTION_PUMP_OFF;
+                info->state.status = info->original.hold_time > 0 ? SUCTION_STATUS_HOLD : SUCTION_STATUS_RELEASE;
+                info->state.action = info->original.hold_time > 0 ? MOTOR_ACTION_VALVE_ON : MOTOR_ACTION_PUMP_OFF_AND_VALVE_ON;
             #if IS_SUPPORT_RELATIVE_RUN_TIME
                 info->state.run_time = 0;
             #else
@@ -114,7 +113,7 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             break;
 
         case SUCTION_STATUS_HOLD:
-        #if PUMP_DEBUG_ENABLE
+        #if PUMP_RUN_CHECK_ENABLE
             LOG_MOTOR("hold run time:%d, dest:%d", info->state.run_time, info->original.hold_time);
         #endif
         #if IS_SUPPORT_RELATIVE_RUN_TIME
@@ -134,7 +133,7 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             break;
 
         case SUCTION_STATUS_RELEASE:
-        #if PUMP_DEBUG_ENABLE
+        #if PUMP_RUN_CHECK_ENABLE
             LOG_MOTOR("release run time:%d, dest:%d", info->state.run_time, info->original.valve_on_time);
         #endif
         #if IS_SUPPORT_RELATIVE_RUN_TIME
@@ -143,18 +142,37 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             info->state.run_time = get_timestamp_ms(info->state.start_time);
         #endif
             if (info->state.run_time >= info->original.valve_on_time) {
-                info->state.status = SUCTION_STATUS_SLEEP;
-                info->state.action = MOTOR_ACTION_VALVE_OFF;
-            #if IS_SUPPORT_RELATIVE_RUN_TIME
-                info->state.run_time = 0;
-            #else
-                info->state.start_time = get_timestamp();
-            #endif
+                if (info->original.sleep_time > 0) {
+                    info->state.status = SUCTION_STATUS_SLEEP;
+                    info->state.action = MOTOR_ACTION_VALVE_OFF;
+                #if IS_SUPPORT_RELATIVE_RUN_TIME
+                    info->state.run_time = 0;
+                #else
+                    info->state.start_time = get_timestamp();
+                #endif
+                } else {
+                    info->state.cycles_count++;
+                    info->state.policy_update_req = 1;
+                #if IS_SUPPORT_RELATIVE_RUN_TIME
+                    info->state.run_time = 0;
+                #else
+                    info->state.start_time = get_timestamp();
+                #endif
+                #if PUMP_RUN_CHECK_ENABLE
+                    debug_count[pump_id]++;
+                    if (get_timestamp_ms(debug_start_time) >= 60000 && pump_id == 1) {
+                        LOG_MOTOR("no sleep time, debug count: %d/%d", debug_count[0], debug_count[1]);
+                        debug_count[0] = 0;
+                        debug_count[1] = 0;
+                        debug_start_time = get_timestamp();
+                    }
+                #endif
+                }
             }
             break;
 
         case SUCTION_STATUS_SLEEP:
-        #if PUMP_DEBUG_ENABLE
+        #if PUMP_RUN_CHECK_ENABLE
             LOG_MOTOR("idle run time:%d, dest:%d", info->state.run_time, info->original.sleep_time);
         #endif
         #if IS_SUPPORT_RELATIVE_RUN_TIME

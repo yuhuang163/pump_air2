@@ -38,8 +38,7 @@ static uint16_t s_charge_abnormal_count = 0;
 static bool s_charge_is_ready = false;
 static charge_chip_status_t s_charge_status = {0};
 static uint8_t s_charge_full_debounce = 0;
-static void (*s_charge_irq_callback)(void *param);
-static int (*s_charge_battery_poll_callback)(void);
+static charge_event_cb s_charge_event_callback = NULL;
 static thread_context_t s_charge_device_thd  = {0};
 static os_timer_id s_charge_timer_id;
 static const char *charge_status_arr[] = {
@@ -229,6 +228,18 @@ static int charge_vbat_config(void)
     return BSP_OK;
 }
 
+static int charge_ibat_config(uint16_t current)
+{
+    uint8_t reg_data = current / BATT_CURRENT_LIMIT_SCALE;
+    i2c_master_data_t data = {
+        .dev_address = CHARGE_I2C_ADDR,
+        .reg_addr = CHARGE_IBAT_CHG_REG,
+        .data = &reg_data,
+        .len = 1,
+    };
+    return charge_write_nbyte(&data);
+}
+
 static int charge_vin_config(void)
 {
     uint8_t reg_data[2] = {0};
@@ -389,36 +400,16 @@ static void charge_device_thread(void *arg)
 {
     uint8_t msg = 0;
     uint32_t log_timer = 0;
-    uint16_t exit_delay_time = 30; /// 3000ms
-    uint16_t plug_out_count = 0;  
 
     charge_chip_init();
     charge_status_poll(&s_charge_status);
     while (1) {
         MSG_QUEUE_RECV(s_charge_device_thd.msg_id, &msg, OS_WAIT_FOREVER);
         charge_status_poll(&s_charge_status);
-        s_charge_status.charge_full = (s_charge_status.status & BAT_FULL_STATUS_POS) > 0 ? true : false;
-        if (s_charge_status.vbus < CHARGE_INPUT_VOLTAGE_LIMIT) {
-            if (s_charge_status.plug_in) {
-                plug_out_count++;
-                if (plug_out_count > 2) {     
-                    s_charge_status.plug_in = false;
-                    charge_power_control(false);
-                    LOG_PBUS("charge plug out");
-                }
-            }
-        } else {
-            plug_out_count = 0;
-            if (s_charge_status.plug_in == false) {
-                s_charge_status.plug_in = true;
-                charge_power_control(true);
-                if (s_charge_irq_callback) {
-                    s_charge_irq_callback(NULL);
-                }
-                LOG_PBUS("charge plug in");
-            }
-        }
-        
+#if IS_SUPPORT_PD_CHARGE
+        charge_pd_status_poll();
+#endif
+        s_charge_status.charge_full = (s_charge_status.status & BAT_FULL_STATUS_POS) > 0 ? true : false;        
         s_charge_status.temp = charge_ntc_temperature_get(s_charge_status.ntc_resistance);
         if (get_timestamp_ms(log_timer) > 2000) {
             log_timer = get_timestamp();
@@ -426,12 +417,6 @@ static void charge_device_thread(void *arg)
                      s_charge_status.vbus, s_charge_status.ibus, s_charge_status.vbat, s_charge_status.ibat, 
                      s_charge_status.ntc_resistance, s_charge_status.temp, s_charge_status.status);
         }
-
-    #if (IS_SUPPORT_BATTERY_DIRECT_SAMPLING == 0)
-        if (s_charge_battery_poll_callback) {
-            s_charge_battery_poll_callback();
-        }
-    #endif
     }
 }
 
@@ -467,17 +452,10 @@ bool vbus_is_plug_in(void)
     return s_charge_status.plug_in;
 }
 
-void add_charge_irq_callback(void (*cb)(void *param))
+void add_charge_event_callback(charge_event_cb cb)
 {
-    s_charge_irq_callback = cb;
+    s_charge_event_callback = cb;
 }
-
-#if (IS_SUPPORT_BATTERY_DIRECT_SAMPLING == 0)
-void add_charge_battery_poll_callback(int (*cb)(void))
-{
-    s_charge_battery_poll_callback = cb;
-}
-#endif
 
 int get_charge_state(void) 
 {
@@ -522,9 +500,6 @@ int bsp_charge_init(void)
 #endif
     charge_power_gpio_init();
     bsp_i2c_init(CHARGE_I2C_ID);
-#if IS_SUPPORT_PD_CHARGE
-    bsp_charge_pd_init();
-#endif
     s_charge_is_ready = true;
     CREATE_MSG_TYPE_QUEUE(&s_charge_device_thd.msg_id, 1, 1);
     CREATE_TIMER(&s_charge_timer_id, "charge", NULL, OS_TIMER_PERIODIC, charge_thread_timer_handle);
@@ -539,9 +514,6 @@ int bsp_charge_resume(void)
     s_charge_is_ready = true;
     s_charge_abnormal_count = 0;
     START_TIMER(s_charge_timer_id, CHARGE_THREAD_POLL_INTERVAL);
-#if IS_SUPPORT_PD_CHARGE
-    bsp_charge_pd_resume();
-#endif
     return BSP_OK;
 }
 
@@ -550,9 +522,6 @@ int bsp_charge_suspend(void)
     s_charge_is_ready = false;
     s_charge_abnormal_count = 0;
     STOP_TIMER(s_charge_timer_id);
-#if IS_SUPPORT_PD_CHARGE
-    bsp_charge_pd_suspend();
-#endif
     return BSP_OK;
 }
 
@@ -561,4 +530,19 @@ int bsp_charge_is_ready(void *args)
     uint8_t *charge_is_ready_status = (uint8_t *)args;
     *charge_is_ready_status = s_charge_is_ready;
     return BSP_OK;
+}
+
+void charge_event_internal_cb(charge_event_e event)
+{
+    if (event == CHARGE_EVENT_PLUG_IN) {
+        s_charge_status.plug_in = true;
+        charge_power_control(true);
+    } else if (event == CHARGE_EVENT_PLUG_OUT) {
+        s_charge_status.plug_in = false;
+        charge_power_control(false);
+    }
+
+    if (s_charge_event_callback) {
+        s_charge_event_callback(event);
+    } 
 }

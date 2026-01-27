@@ -112,7 +112,7 @@ extern "C" {
 /// 支持自适应背光  
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
 /// 支持硬件版本自适应
-#define IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE             (1)
+#define IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE             (0)
 /// 支持漏气提醒
 #define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
 #endif
