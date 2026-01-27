@@ -347,6 +347,8 @@ static int on_post_storage_init_route(storage_manager_context_t *ctx)
     init_system_persist_info(ctx);
     /// 加载系统版本信息
     init_system_ver_info(ctx);
+
+    //test_pump_data_write_read_complete(0);
     return 0;
 }
 

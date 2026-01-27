@@ -72,6 +72,12 @@ int write_pump_buried_info_to_flash(store_func_args_t args);
 int read_pump_buried_info_from_flash(store_func_args_t args);
 int write_pump_buried_info_to_ram(store_func_args_t args);
 
+/// 测试接口
+/// 完整的泵奶数据写入和读取测试函数
+/// @param write_count 要写入的记录数量（0表示使用默认值：测试未满和已满情况）
+/// @return 0: 成功, -1: 失败
+int test_pump_data_write_read_complete(int write_count);
+
 #ifdef __cplusplus
 }
 #endif
