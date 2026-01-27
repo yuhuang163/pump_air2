@@ -267,7 +267,8 @@ int user_database_put(storage_manager_context_t *ctx, int database_id, const uin
             // LOG_HEX("rx buf", buf, buf_len);
             if (memcmp(tmp_buf, buf, buf_len) != 0) {
                 LOGE("storage database id %d fail, retry write.", database_id);
-                ret = DEVICE_WRITE(db_dev, buf_rd, sizeof(buf_rd));
+                /// 重试写入时使用原始数据，而不是读取回来的数据
+                ret = DEVICE_WRITE(db_dev, buf_wr, sizeof(buf_wr));
             }
             u_free(tmp_buf);
         }
