@@ -179,12 +179,10 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             switch_pump_common_mode_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_FREQUENCY:
-            blink_info.led_index = PUMP_FREQ_SET_BL;
-            if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode) == 0) {
-                blink_info.first_status = LED_STATUS_ON;
-                blink_info.finish_status = LED_STATUS_OFF;
+            if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode)) {
+                blink_info.led_index = PUMP_FREQ_SET_BL;
+                proc->ui->hook->set_led_blink(proc->ui, blink_info);
             }
-            proc->ui->hook->set_led_blink(proc->ui, blink_info);
             switch_pump_frequency_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_BREASTFEEDING:
