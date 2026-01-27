@@ -26,15 +26,11 @@
 static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level, uint8_t adaptive_dimming_switch)
 {
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
     EXCEPTION_CHECK_VOID(st);
-    EXCEPTION_CHECK_VOID(pbus);
+    EXCEPTION_CHECK_VOID(ui);
     EXCEPTION_CHECK_VOID(algo);
-
-    struct rt_device_node *led_dev = pbus->find_device(ID_DEVICE_LED);
-    EXCEPTION_CHECK_VOID(led_dev);
-
     night_light_info_t night_light_info = {0};
     st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
 
@@ -53,14 +49,9 @@ static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level, uint8_t a
     night_light_info.level = level;
 
     st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-    led_status_msg_t msg = {
-        .led_index = NIGHT_LIGHT_LED_ID_0,
-        .led_status = {
-            .mode = LED_MODE_LEVEL,
-            .un.luminous.level = night_light_info.onoff ? night_light_info.level : 0,
-        },
-    };
-    led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
+    if (ui->hook && ui->hook->set_led_level) {
+        ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, night_light_info.onoff ? night_light_info.level : 0);
+    }
     LOG_SRV(" Night light set: onoff=%d, level=%d, adaptive=%d\n", night_light_info.onoff, night_light_info.level, night_light_info.adaptive);
 }
 

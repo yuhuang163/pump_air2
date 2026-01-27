@@ -35,15 +35,10 @@ INIT_WINDOW_CONTEXT();
 */
 static void factory_reset_led_blink_policy(ui_manager_context_t *ui)
 {
-   led_blink_info_t blink_info = {
-    .led_index = PUMP_LED_ALL_ID,
-    .period = 500,
-    .continue_time = 3000,
-    .first_status = LED_STATUS_OFF,
-    .finish_status = LED_STATUS_OFF,
-   };
-   LOG_UI("factory reset led blink policy");
-   ui->hook->set_led_blink(ui, blink_info);
+    EXCEPTION_CHECK_VOID(ui);
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->set_led_blink);
+    LOG_UI("factory reset led blink policy");
+    ui->hook->set_led_blink(ui, PUMP_LED_ALL_ID, 500, 3, LED_STATUS_OFF);
 }
 
 static void factory_reset_cb(hdr_post_args_t *args)

@@ -174,23 +174,24 @@ static void led_blink_handle(uint8_t index)
     if (led_status[index].mode != LED_MODE_BLINK) {
         return;
     }
+
     led_blink_t *led = &led_status[index].un.blink;
-    uint32_t off_time = get_timestamp_ms(led->start_time);
-    if (off_time >= led->continue_time && led->continue_time != 0) {
+    if (led->times_count >= led->times && led->times != 0) {
         led_status[index].mode = LED_MODE_ONOFF;
         if (led->finish_status != led->status) {
             led_extension_onoff_set(index, led->finish_status != LED_STATUS_ON ? 0 : 1);
-            // LOG_PBUS("led blink finish: %d, %d/%d", index, off_time, led->continue_time);
         }
         return;
     }
-    /// 闪烁计时
-    led->count += LED_THREAD_POLL_INTERVAL;
-    if (led->count >= led->period) {
+
+    led->period_count += LED_THREAD_POLL_INTERVAL;
+    if (led->period_count >= led->period) {
         led->status = led->status > 0 ? 0 : 1;
-        led->count = 0;
+        led->period_count = 0;
         led_extension_onoff_set(index, led->status);
-        // LOG_PBUS("led blink: %d, %d", index, led->status);
+        if (led->status == LED_STATUS_ON) {
+            led->times_count++;
+        }
     }
 }
 
@@ -233,8 +234,6 @@ static void led_onoff_set(uint8_t index, led_onoff_t onoff)
 static void led_level_set(uint8_t index, led_luminous_t luminous)
 {
     uint8_t level = luminous.level > LED_LEVEL_MAX ? LED_LEVEL_MAX : luminous.level;
-    level = level * LED_LUX_MAX / LED_LEVEL_MAX;
-    // LOG_PBUS("led level: %d, level: %d", luminous.level, level);
     if (index == PUMP_LED_ALL_ID) {
         for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
             led_status[i].mode = LED_MODE_LEVEL; 
@@ -254,22 +253,20 @@ static void led_blink_set(uint8_t index, led_blink_t blink)
     if (index == PUMP_LED_ALL_ID) {
         for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
             memcpy(&led_status[i].un.blink, &blink, sizeof(led_blink_t));
-            led_extension_onoff_set(i, blink.first_status);
-            led_status[i].un.blink.start_time = get_timestamp();
-            led_status[i].un.blink.status = led_status[i].un.blink.first_status;
-            led_status[i].un.blink.count = 0;
+            led_extension_onoff_set(i, LED_STATUS_OFF);
+            led_status[i].un.blink.period_count = 0;
+            led_status[i].un.blink.status = LED_STATUS_OFF;
+            led_status[i].un.blink.times_count = 0;
             led_status[i].mode = LED_MODE_BLINK;
         }
     } else { 
         memcpy(&led_status[index].un.blink, &blink, sizeof(led_blink_t));
-        led_extension_onoff_set(index, blink.first_status);
-        led_status[index].un.blink.start_time = get_timestamp();
-        led_status[index].un.blink.status = led_status[index].un.blink.first_status;
-        led_status[index].un.blink.count = 0;
+        led_extension_onoff_set(index, LED_STATUS_OFF);
+        led_status[index].un.blink.period_count = 0;
+        led_status[index].un.blink.status = LED_STATUS_OFF;
+        led_status[index].un.blink.times_count = 0;
         led_status[index].mode = LED_MODE_BLINK;
         MUTEX_UNLOCK(s_led_mutex_id);
-        // LOG_PBUS("led blink: %d, %d, %d/%d", 
-        //     index, blink.first_status, blink.continue_time, led_status[index].un.blink.start_time);
     }
     MUTEX_UNLOCK(s_led_mutex_id);
 }

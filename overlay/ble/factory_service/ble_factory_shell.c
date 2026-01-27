@@ -207,18 +207,12 @@ static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len)
         if (adaptive > 0) {
             return;
         }
-        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-        EXCEPTION_CHECK_VOID(pbus);
-        rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
-        EXCEPTION_CHECK_VOID(led_dev);
-        led_status_msg_t msg = {
-            .led_index = NIGHT_LIGHT_LED_ID_0,
-            .led_status = {
-                .mode = LED_MODE_LEVEL,
-                .un.luminous.level = 0,
-            },
-        };
-        led_dev->ioctl(led_dev, OP_CODE_NIGHT_LIGHT_STATUS_SET, (void *)&msg);
+        ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+        if (ui && ui->hook && ui->hook->set_led_level) {
+            ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, 0);
+        } else {
+            LOGE("shell night light adaptive: ui->hook->set_led_level is NULL");
+        }
     }
 }
 
@@ -238,14 +232,10 @@ static void ble_shell_led_night_light(const uint8_t *param, uint16_t len)
     int night_light = 0;
     sscanf((const char *)param, "%d", &night_light);
     LOG_BLE("shell led night light pwm duty %d", night_light);
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    EXCEPTION_CHECK_VOID(pbus);
-    rt_device_node_t *led = pbus->find_device(ID_DEVICE_LED);
-    night_light_pwm_duty_set_msg_t msg = {
-        .led_index = NIGHT_LIGHT_LED_ID_0,
-        .pwm_duty = night_light,
-    };
-    led->ioctl(led, OP_CODE_NIGHT_LIGHT_PWM_DUTY_SET, (void *)&night_light);
+    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    if (ui && ui->hook && ui->hook->set_led_level) {
+        ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, night_light);
+    }
 }
 
 /*
