@@ -29,7 +29,7 @@ const static uint16_t home_battery_ids[HOME_BATTERY_MAX_COUNT] = {
 };
 
 const static uint16_t home_charge_battery_ids[HOME_CHARGE_BATTERY_MAX_COUNT] = {
-    RESOURCE_ID_HOME_CHARGE_0,
+    RESOURCE_ID_HOME_UNCHARGE_LOW_POWER,
     RESOURCE_ID_HOME_CHARGE_25,
     RESOURCE_ID_HOME_CHARGE_50,
     RESOURCE_ID_HOME_CHARGE_75,
@@ -75,7 +75,7 @@ static uint8_t get_charge_battery_img_id(uint8_t battery_percent)
     } else if (battery_percent >= 2) {
         return RESOURCE_ID_HOME_CHARGE_25;
     }
-    return RESOURCE_ID_HOME_CHARGE_0;
+    return RESOURCE_ID_HOME_UNCHARGE_LOW_POWER;
 }
 
 /*

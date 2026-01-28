@@ -45,29 +45,23 @@ static app_old_comm_pump_ctrl pump_ctrl_data_temp = {0};
 
 uint8_t app_old_comm_get_adaptive_dimming_switch(void)
 {
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_UINT(st);
-    night_light_info_t night_light_info = {0};
-    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-    return night_light_info.adaptive;
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    EXCEPTION_CHECK_UINT(led && led->hook && led->hook->get_night_light_adaptive_switch);
+    return led->hook->get_night_light_adaptive_switch(led);
 }
 
 uint8_t app_old_comm_get_night_light_level(void)
 {
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_UINT(st);
-    night_light_info_t night_light_info = {0};
-    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-    return night_light_info.level;
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    EXCEPTION_CHECK_UINT(led && led->hook && led->hook->get_night_light_level);
+    return led->hook->get_night_light_level(led);
 }
 
 uint8_t app_old_comm_get_night_light_onoff(void)
 {
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_UINT(st);
-    night_light_info_t night_light_info = {0};
-    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-    return night_light_info.onoff;
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    EXCEPTION_CHECK_UINT(led && led->hook && led->hook->get_night_light_onoff);
+    return led->hook->get_night_light_onoff(led);
 }
 
 uint8_t app_old_comm_get_sys_status(void)

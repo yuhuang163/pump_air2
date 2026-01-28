@@ -33,7 +33,7 @@ typedef enum {
     RESOURCE_ID_CHARGE_PAGE_BATT_100,       /// 充电页电量100%
     RESOURCE_ID_CHARGE_PAGE_ICON,           /// 充电页充电图标
 
-    RESOURCE_ID_HOME_CHARGE_0,              /// 首页-充电电量0%
+    RESOURCE_ID_HOME_CHARGE_ICON,           /// 首页-充电图标
     RESOURCE_ID_HOME_CHARGE_25,             /// 首页-充电电量25%
     RESOURCE_ID_HOME_CHARGE_50,             /// 首页-充电电量50%
     RESOURCE_ID_HOME_CHARGE_75,             /// 首页-充电电量75%

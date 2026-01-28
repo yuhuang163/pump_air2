@@ -9,7 +9,9 @@ extern "C" {
 /*******************************************************************************
  * Include files
  ******************************************************************************/
-#include "root_common_api.h" // IWYU pragma: keep
+ #include "root_common_base.h" // IWYU pragma: keep
+ #include "broadcast_manager_api.h" // IWYU pragma: keep
+ #include "root_message.h" // IWYU pragma: keep
 
 /// 定义空电量百分比
 #ifndef EMPTY_BAT_PERCENTAGE
@@ -50,6 +52,7 @@ typedef struct battery_manager_context {
     uint8_t (*is_low_battery)(void);
     uint8_t (*is_empty_battery)(void);
     uint8_t (*get_battery_percent)(void);
+    uint8_t (*is_adapter_mismatch)(void); /// 适配器不匹配.
     void (*set_battery_ui_show_flag)(int flag);
     uint8_t (*show_battery_ui_if_need)(void *wm, int is_fg);
     void (*set_state_battery_listener)(on_battery_state_change_fptr cb);

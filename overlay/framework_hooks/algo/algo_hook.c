@@ -5,10 +5,6 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "algorithm_manager.h"  // IWYU pragma: keep
 #include "root_algo_core.h" // IWYU pragma: keep
-#if IS_SUPPORT_ADAPTIVE_DIMMING
-#include "adaptive_dimming.h" // IWYU pragma: keep
-#endif
-
 /*
 * DEFINES
 *****************************************************************************************
@@ -71,9 +67,6 @@ static int on_algo_receiver_route(broadcast_mask_id_t id, void *context, int arg
 static int on_post_algo_init_route(algo_manager_context_t *ctx)
 {
     algo_ctx = ctx;
-#if IS_SUPPORT_ADAPTIVE_DIMMING
-    adaptive_dimming_init();
-#endif
     return 0;
 }
 
@@ -92,9 +85,5 @@ void register_algo_hook(algo_manager_context_t *ctx)
     ctx->hook->algo_sampling_stop = algo_sampling_stop;
     ctx->hook->algo_sampling_is_sampling = algo_sampling_is_sampling;
     ctx->hook->algo_change_sampling_interval = algo_change_sampling_interval;
-#endif
-#if IS_SUPPORT_ADAPTIVE_DIMMING
-    ctx->hook->set_adaptive_dimming_state = set_adaptive_dimming_state;
-    ctx->hook->get_adaptive_dimming_state = get_adaptive_dimming_state;
 #endif
 }

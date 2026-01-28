@@ -40,6 +40,7 @@ extern "C" {
 #include "protocol_manager_api.h" // IWYU pragma: keep
 #include "servers_manager_api.h" // IWYU pragma: keep
 #include "battery_manager_api.h" // IWYU pragma: keep
+#include "led_manager_api.h" // IWYU pragma: keep
 
 typedef enum {
     SYSTEM_BROADCAST_POWER_OFF = 100,
@@ -71,6 +72,7 @@ typedef enum {
     ID_MODULE_IOT,
     ID_MODULE_MISC,
     ID_MODULE_BATTERY,
+    ID_MODULE_LED,
     ID_MODULE_BREAST_PUMP,
     ID_MODULE_MOTOR,
     ID_MODULE_AUDIO,

@@ -103,6 +103,7 @@ typedef struct {
     power_manager_context_t *pm;
     key_input_context_t *key;
     algo_manager_context_t *algo;
+    led_manager_context_t *led;
     broadcast_obj_t receiver;
     uint32_t margic;
     breast_pump_result_t pump_result; /// 泵奶结果.

@@ -17,23 +17,8 @@ extern "C" {
 typedef enum {
     OP_CODE_LED_STATUS_SET  = 1,
     OP_CODE_LED_STATUS_GET = 2,
-    OP_CODE_NIGHT_LIGHT_STATUS_SET  = 3,
-    OP_CODE_NIGHT_LIGHT_STATUS_GET  = 4,
     OP_CODE_LED_IS_READY = 5,
 } led_dev_op_code_e;
-
-/**
- * @brief 描述RGB LED ID
-*/
-typedef enum {
-    RGB_LED_ID_0 = 0,
-    RGB_LED_ID_1,
-    RGB_LED_ID_2,
-    RGB_LED_ID_3,
-    RGB_LED_ID_4,
-
-    RGB_ALL_LED_ID = 0xFF,
-} rgb_led_id_e;
 
 /**
  * @brief 描述吸奶器LED索引
@@ -45,19 +30,10 @@ typedef enum {
     PUMP_BREASTFEEDING_BL,    /// 追奶背光灯
     PUMP_LEFT_CONTROL_BL,     /// 左控制背光灯
     PUMP_RIGHT_CONTROL_BL,    /// 右控制背光灯
-    PUMP_BILATERRAL_CONTROL_BL,    /// 双边控制背光灯
     PUMP_LED_INDEX_MAX,
-    PUMP_LED_ALL_ID = 0xFF,
+    PUMP_LED_ALL_ID = 0x10,
+    NIGHT_LIGHT_LED = 0x11,
 } pump_led_index_e;
-
-/**
- * @brief 描述夜灯LED索引
-*/
-typedef enum {
-    NIGHT_LIGHT_LED_ID_0 = 0,
-    NIGHT_LIGHT_INDEX_MAX,
-    NIGHT_LIGHT_LED_ALL_ID = 0xFF,
-} night_light_led_index_e;
 
 /**
  * @brief 描述LED状态

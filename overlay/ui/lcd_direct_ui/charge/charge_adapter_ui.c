@@ -152,7 +152,7 @@ void ui_display_charge_adapter_screen_remove(ui_manager_context_t *thiz)
     adapter_info = NULL;
 }
 
-int ui_display_charge_adapter_screen(ui_manager_context_t *thiz)
+int ui_display_charge_adapter_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(adapter_info);

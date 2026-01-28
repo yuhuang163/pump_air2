@@ -76,7 +76,7 @@ const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
     {STORE_ID_REMIND_PUMP_MODE_CHANGE, write_pump_mode_change_remind_to_ram},
     {STORE_ID_REMIND_PUMP_FINISH, write_pump_finish_remind_to_ram},
     {STORE_ID_PUMP_CONTROL_TYPE, write_pump_control_type_to_ram},
-    {STORE_ID_SYS_NIGHT_LIGHT_INFO, write_night_light_info_to_ram},
+    {STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, write_night_light_adaptive_switch_to_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, write_airplane_mode_state_to_ram},
     {STORE_ID_BREAST_PUMP_BURY_INFO, write_pump_buried_info_to_ram},
 };
@@ -105,7 +105,7 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_REMIND_PUMP_EXCEPTION, read_pump_exception_remind_from_ram},
     {STORE_ID_REMIND_PUMP_MODE_CHANGE, read_pump_mode_change_remind_from_ram},
     {STORE_ID_REMIND_PUMP_FINISH, read_pump_finish_remind_from_ram},
-    {STORE_ID_SYS_NIGHT_LIGHT_INFO, read_night_light_info_from_ram},
+    {STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, read_night_light_adaptive_switch_from_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, read_airplane_mode_state_from_ram},
     {STORE_ID_BREAST_PUMP_DATA_HEAD, read_pump_data_head_from_ram},
 };

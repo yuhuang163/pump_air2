@@ -29,12 +29,7 @@ static int run_led_test_cb(void)
 {
     static uint8_t led_status = LED_STATUS_OFF;
     LOG_PBUS("===> run led test!!!!! status: %d", led_status);
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
-    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-    EXCEPTION_CHECK_INT(ui);
-    EXCEPTION_CHECK_INT(ui->hook && ui->hook->set_led_onoff);
-    ui->hook->set_led_onoff(ui, PUMP_LED_ALL_ID, led_status);
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     led_status = (led_status == LED_STATUS_OFF) ? LED_STATUS_ON : LED_STATUS_OFF;
     return 1000;
 }
@@ -326,7 +321,7 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
     // run_pump_test_cb();
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, lcd_data_send_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, run_led_test_cb(), "pressure_test:continue"); 
-    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, external_flash_test_cb(), "pressure_test:continue");
+    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, external_flash_test_cb(), "pressure_test:continue");
     // motor_debug_policy_test_cb();
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test:continue");
@@ -335,17 +330,7 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
 
 void get_night_light_info_test(void)
 {
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_VOID(st);
-    night_light_info_t night_light_info = {0};
-    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-    LOG_PBUS("===> get night light info test!!!!! night_light_info: %d, %d, %d", night_light_info.onoff, night_light_info.level, night_light_info.adaptive);
-    if (1 == night_light_info.adaptive) {
-        algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
-        EXCEPTION_CHECK_VOID(algo);
-        EXCEPTION_CHECK_VOID(algo->hook->set_adaptive_dimming_state);
-        algo->hook->set_adaptive_dimming_state(0);
-    }
+
 }
 
 

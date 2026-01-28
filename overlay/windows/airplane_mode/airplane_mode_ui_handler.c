@@ -106,13 +106,17 @@ void airplane_mode_led_policy(ui_proc_airplane_mode_t *proc, uint8_t status)
     uint8_t control_type = 0;
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->st);
-    EXCEPTION_CHECK_VOID(proc->ui && proc->ui->hook && proc->ui->hook->set_led_level);
+    EXCEPTION_CHECK_VOID(proc->led);
     if (status) {
-        proc->ui->hook->set_ui_key_backlight(proc->ui, 0);
-        proc->ui->hook->set_led_level(proc->ui, PUMP_START_BL, LED_LEVEL_MAX / 2);
-        proc->ui->hook->set_led_level(proc->ui, PUMP_MODE_BL, LED_LEVEL_MAX / 2);
+        if (proc->led->hook && proc->led->hook->set_key_backlight ) {
+            proc->led->hook->set_key_backlight(proc->led, 0);
+        }
+        proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX / 2);
+        proc->led->set_led_level(PUMP_MODE_BL, LED_LEVEL_MAX / 2);
     } else {
-        proc->ui->hook->set_ui_key_backlight(proc->ui, 100);
+        if (proc->led->hook && proc->led->hook->set_key_backlight) {
+            proc->led->hook->set_key_backlight(proc->led, 100);
+        }
     }
 }
 

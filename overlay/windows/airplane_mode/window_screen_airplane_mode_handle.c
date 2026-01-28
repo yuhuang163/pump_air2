@@ -172,6 +172,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     proc->pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;

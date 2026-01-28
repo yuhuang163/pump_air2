@@ -35,7 +35,7 @@ typedef enum {
 typedef enum {
     CHARGE_UI_TYPE_NONE = 0,
     CHARGE_UI_TYPE_CHARGING = 100,
-    CHARGE_UI_TYPE_UNCHARGING,
+    CHARGE_UI_TYPE_ADAPTER,
     CHARGE_UI_TYPE_MAX
 } charge_ui_type_e;
 
@@ -49,6 +49,7 @@ typedef struct {
     key_input_context_t *key;
     peripheral_bus_context_t *pbus;
     storage_manager_context_t *st;
+    led_manager_context_t *led;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
@@ -63,7 +64,8 @@ typedef struct {
 *****************************************************************************************
 */
 void show_charging_ui(ui_proc_charge_t *proc);
-void stop_charging_ui(ui_proc_charge_t *proc);
+void show_charge_adapter_ui(ui_proc_charge_t *proc);
+void stop_charge_common_ui(ui_proc_charge_t *proc);
 int switch_charge_night_light_onoff_ui(ui_proc_charge_t *proc);
 #ifdef __cplusplus
 }

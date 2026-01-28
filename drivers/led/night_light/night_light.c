@@ -51,17 +51,17 @@ static const night_light_cfg_t night_light_cfg[NIGHT_LIGHT_SIZE] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void night_light_level_set(uint8_t index, led_luminous_t luminous)
+static void night_light_level_set(uint8_t index, uint8_t level)
 {
-    if (luminous.level == 0) {
+    if (level == 0) {
         hal_pwm_disable(night_light_cfg[index].id);
         return;
-    }
-    
-    uint8_t duty = luminous.level >= LED_LEVEL_MAX ? LED_LEVEL_MAX : luminous.level;
+    } 
+
+    uint8_t duty = (level * 75 / 100) + 25; /// 25-100, 低于25灯不亮了，后期根据硬件调整
     struct HAL_PWM_CFG_T pwm_cfg = {
         .freq = night_light_cfg[index].freq,
-        .ratio = duty,
+        .ratio = duty > 100 ? 100 : duty,
         .inv = false,
         .sleep_on = false,
     };
@@ -107,43 +107,20 @@ void bsp_night_light_suspend(void)
 #endif
 }
 
-int bsp_night_light_status_set(void *args)
+int bsp_night_light_status_set(led_status_msg_t *msg)
 {
-    led_status_msg_t *msg = (led_status_msg_t *)args;
-    if (msg == NULL) {
-        LOGE("msg is NULL");
-        return BSP_ERROR;
-    }
+    EXCEPTION_CHECK_INT(msg);
     
-    if (msg->led_index >= NIGHT_LIGHT_SIZE) {
+    if (msg->led_index != NIGHT_LIGHT_LED) {
         LOGE("index is out of range: %d", msg->led_index);
         return BSP_ERROR;
     }
-
-    LOG_PBUS("index: %d, mode: %d, level: %d", msg->led_index, msg->led_status.mode, msg->led_status.un.luminous.level);
+    uint8_t index = msg->led_index - NIGHT_LIGHT_LED;
+    LOG_PBUS("index: %d, mode: %d, level: %d", index, msg->led_status.mode, msg->led_status.un.luminous.level);
     if (msg->led_status.mode == LED_MODE_LEVEL) {
-        night_light_level_set(msg->led_index, msg->led_status.un.luminous);
+        night_light_level_set(index, msg->led_status.un.luminous.level);
+    } else if (msg->led_status.mode == LED_MODE_ONOFF) {
+        night_light_level_set(index, msg->led_status.un.onoff.status > 0 ? LED_LEVEL_MAX / 2 : 0);
     }
-
     return 0;
-}
-
-int bsp_night_light_test(void)
-{
-    static uint8_t level = 0;
-    level++;
-    if (level > LED_LEVEL_MAX) {
-        level = 0;
-    }
-
-    led_status_msg_t night_light_msg = {
-        .led_index = 0,
-        .led_status = {
-            .mode = LED_MODE_LEVEL,
-            .un.luminous = {
-                .level = level,
-            },
-        },
-    };
-    return bsp_night_light_status_set(&night_light_msg);
 }

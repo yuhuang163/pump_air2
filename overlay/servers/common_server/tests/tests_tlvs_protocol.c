@@ -86,17 +86,20 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
     tests_manager_context_t *tests_ctx = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     EXCEPTION_CHECK_INT(tests_ctx);
     // TODO: 实现产测模式进入/退出逻辑
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     if (mode == 1) {
         /* 进入产测模式 */
         set_log_ouput_level(US_LOG_LEVEL_NONE);
-        //关闭自适应夜灯
-        algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
-        EXCEPTION_CHECK_INT(algo);
-        algo->hook->set_adaptive_dimming_state(false);
-
+        /// 关闭自适应夜灯
+        if (led && led->hook && led->hook->set_night_light_adaptive_switch &&
+            led->hook->set_night_light_adaptive_dimming && led->hook->set_night_light_level) {
+            led->hook->set_night_light_adaptive_switch(led, 0);
+            led->hook->set_night_light_adaptive_dimming(led, 0);
+            led->hook->set_night_light_level(led, 0);
+        }
         tests_ctx->tests_manager_set_current_mode(TST_FACTORY_TYPE);
         tests_ctx->set_factory_tests_event_process(FAC_TST_ENTER_EVENT, 0, 0, NULL);
-        //唤醒电源管理模块
+        /// 唤醒电源管理模块
         power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
         if (pm && pm->is_pm_suspend()) {
             pm->pm_wakeup(PM_WAKEUP_REASON_FACTORY_RESUME);
@@ -112,11 +115,11 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
         } else {
             /* 退出产测模式 */
             set_log_ouput_level(US_LOG_LEVEL_VERBOSE);
-            //开启自适应夜灯
-            algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
-            EXCEPTION_CHECK_INT(algo);
-            algo->hook->set_adaptive_dimming_state(true);
-             
+            /// 开启自适应夜灯
+            if (led && led->hook && led->hook->set_night_light_adaptive_switch) {
+                led->hook->set_night_light_adaptive_switch(led, 1);
+                led->hook->set_night_light_adaptive_dimming(led, 1);
+            }
             tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
             tests_ctx->set_factory_tests_event_process(FAC_TST_EXIT_EVENT, 0, 0, NULL);
             /* 关闭测试窗口 */

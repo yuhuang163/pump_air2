@@ -48,7 +48,7 @@ static void pump_speed_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void pump_speed_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_pump_speed(ui);
+    ui_display_pump_speed_process(ui);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
