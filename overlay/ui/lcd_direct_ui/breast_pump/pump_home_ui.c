@@ -708,7 +708,7 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     pump_info = NULL;
 }
 
-int ui_display_pump_home_screen(ui_manager_context_t *thiz)
+int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(pump_info);

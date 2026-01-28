@@ -286,6 +286,12 @@ static uint8_t local_battery_show_ui_if_need(void *wm, int is_fg)
     return 0;
 }
 
+static uint8_t local_is_adapter_mismatch(void)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    return thiz->priv.is_adapter_mismatch;
+}
+
 static int on_post_battery_init(void *ptr)
 {
     battery_manager_context_t *ctx = ptr;
@@ -343,6 +349,7 @@ void *register_module_for_battery_manager_new(list_head_t *list_head)
     ptr->is_low_battery = local_is_low_battery;
     ptr->is_empty_battery = is_empty_battery;
     ptr->get_battery_percent = local_get_battery_percent;
+    ptr->is_adapter_mismatch = local_is_adapter_mismatch;
     ptr->set_battery_ui_show_flag = local_set_battery_ui_show_flag;
     ptr->show_battery_ui_if_need = local_battery_show_ui_if_need;
     ptr->set_state_battery_listener = local_state_battery_listener;

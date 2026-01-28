@@ -91,7 +91,7 @@ void ui_display_pump_level_remove(ui_manager_context_t *thiz)
     level_info = NULL;
 }
 
-int ui_display_pump_level(ui_manager_context_t *thiz)
+int ui_display_pump_level_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(level_info->root);

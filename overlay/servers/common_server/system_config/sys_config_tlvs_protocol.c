@@ -2,14 +2,8 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "handler_post.h"
-#include "peripheral_bus_api.h"
-#include "root_common.h"
 #include "root_common_api.h"      // IWYU pragma: keep
 #include "common_tlvs.h"          // IWYU pragma: keep
-#include "storage_manager_api.h"  // IWYU pragma: keep
-#include "protocol_manager_api.h" // IWYU pragma: keep
-#include "ble_manager_api.h"      // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -47,15 +41,16 @@ static ble_manager_context_t *get_ble_ctx(void)
 
 static void test_led_post_task_handler(hdr_post_args_t *args)
 {
-    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-    EXCEPTION_CHECK_VOID(ui);
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    EXCEPTION_CHECK_VOID(led);
     LOG_SRV("test_led_post_task_handler");
-    if (ui->hook && ui->hook->set_led_onoff) {
-        ui->hook->set_led_onoff(ui, PUMP_LED_ALL_ID, LED_STATUS_ON);
-    }
 
-    if (ui->hook && ui->hook->set_led_level) {
-        ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, LED_LEVEL_MAX);
+    led->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_ON);
+    if (led->hook && led->hook->set_night_light_adaptive_dimming) {
+        led->hook->set_night_light_adaptive_dimming(led, 0); /// 关闭夜灯自适应调光.
+    }
+    if (led->hook && led->hook->set_night_light_level) {
+        led->hook->set_night_light_level(led, LED_LEVEL_MAX); /// 设置夜灯亮度为最大.
     }
 }
 
@@ -201,29 +196,28 @@ int sys_config_tlvs_display_test(comm_protocol_builder_t *builder, comm_protocol
     } else {
         uint8_t cmd = data[0];
         LOG_SRV("sys_config_tlvs_display_test, cmd: 0x%02x", cmd);
-
-        ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-        if (ui == NULL || ui->hook == NULL || ui->hook->set_led_onoff == NULL) {
-            LOGE("sys_config_tlvs_display_test: ui is NULL");
-            result = 0x00; // 失败
-        } else {
-            // 根据命令控制LED：0x00全灭，0x01全亮
-            if (cmd == 0x00) {
-                // 全灭
-                ui->hook->set_led_onoff(ui, PUMP_LED_ALL_ID, LED_STATUS_OFF);
-                ui->hook->set_led_onoff(ui, NIGHT_LIGHT_LED_ID_0, LED_STATUS_OFF);
-                result = 0x01; // 成功
-            } else if (cmd == 0x01) {
-                // 全亮
-                ui->hook->set_led_onoff(ui, PUMP_LED_ALL_ID, LED_STATUS_ON);
-                ui->hook->set_led_onoff(ui, NIGHT_LIGHT_LED_ID_0, LED_STATUS_ON);
-                // 100ms秒后恢复全亮状态（如果需要）
-                POST_TASK_HANDLER_DELAYED_ARG0(test_led_post_task_handler, 100, "display_test_cb");
+        led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+        // 根据命令控制LED：0x00全灭，0x01全亮
+        if (cmd == 0x00 || cmd == 0x01) {
+            if (led) {
+                led->set_led_onoff(PUMP_LED_ALL_ID, cmd == 0x00 ? LED_STATUS_OFF : LED_STATUS_ON);
+                if (led->hook && led->hook->set_night_light_adaptive_dimming) {
+                    led->hook->set_night_light_adaptive_dimming(led, 0); /// 关闭夜灯自适应调光.
+                }
+                if (led->hook && led->hook->set_night_light_level) {
+                    led->hook->set_night_light_level(led, cmd == 0x00 ? 0 : LED_LEVEL_MAX); /// 设置夜灯亮度为最大.
+                }
+                if (cmd == 0x01) {
+                    POST_TASK_HANDLER_DELAYED_ARG0(test_led_post_task_handler, 100, "display_test_cb");
+                }
                 result = 0x01; // 成功
             } else {
-                LOGE("sys_config_tlvs_display_test: invalid cmd: 0x%02x", cmd);
-                result = 0x00; // 失败：无效的命令值
+                LOGE("sys_config_tlvs_display_test: led is NULL");
+                result = 0x00; // 失败
             }
+        } else {
+            LOGE("sys_config_tlvs_display_test: invalid cmd: 0x%02x", cmd);
+            result = 0x00; // 失败：无效的命令值
         }
     }
 
@@ -251,20 +245,18 @@ int sys_config_tlvs_set_night_light(comm_protocol_builder_t *builder, comm_proto
 
     // 检查亮度范围
     if (level <= SYS_CONFIG_NIGHT_LIGHT_MAX) {
-        storage_manager_context_t *st = get_storage_ctx();
-        if (st) {
-            night_light_info_t night_light_info = {0};
-            // 更新夜灯亮度
-            night_light_info.level = level;
-            night_light_info.onoff = (level > 0) ? 1 : 0;
-            // TODO: 实际控制夜灯硬件
-            ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-            if (ui && ui->hook && ui->hook->set_led_level) {
-                ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, night_light_info.onoff ? night_light_info.level : 0);
-                result = 0x01; // 成功
-            }
+        led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+        EXCEPTION_CHECK_INT(led && led->hook);
+        if (led->hook->set_night_light_adaptive_dimming) {
+            led->hook->set_night_light_adaptive_dimming(led, 0); /// 关闭夜灯自适应调光.
+        }
+
+        if (led->hook->set_night_light_level) {
+            led->hook->set_night_light_level(led, level); /// 设置夜灯亮度.
+            result = 0x01; // 成功
         }
     }
+
     comm_protocol_tlv_node_t tlv_node = {
         .type = SYS_CONFIG_TLV_SET_NIGHT_LIGHT,
         .length = 1,

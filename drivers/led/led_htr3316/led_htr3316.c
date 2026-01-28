@@ -376,14 +376,9 @@ void bsp_led_suspend(void)
     STOP_TIMER(s_led_timer_id);
 }
 
-int bsp_led_status_set(void *args)
+int bsp_led_status_set(led_status_msg_t *msg)
 {
-    led_status_msg_t *msg = (led_status_msg_t *)args;
-    if (msg == NULL) {
-        LOGE("msg is NULL");
-        return BSP_ERROR;
-    }
-    
+    EXCEPTION_CHECK_INT(msg);
     if (msg->led_index >= LED_TOTAL_SIZE && msg->led_index != PUMP_LED_ALL_ID) {
         LOGE("index is out of range: %d", msg->led_index);
         return BSP_ERROR;

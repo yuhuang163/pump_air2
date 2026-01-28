@@ -28,12 +28,18 @@ extern "C" {
 #define IS_SUPPORT_MODULE_PROTOCOL                       (1)
 #define IS_SUPPORT_MODULE_SERVERS                        (1)
 #define IS_SUPPORT_MODULE_BATTERY                        (1)
+#define IS_SUPPORT_MODULE_LED                            (1)
 
 /// 设备支持
 #if IS_SUPPORT_MODULE_BATTERY
 #define IS_SUPPORT_DEVICE_BATTERY                        (1)
 #else
 #define IS_SUPPORT_DEVICE_BATTERY                        (0)
+#endif
+#if IS_SUPPORT_MODULE_LED
+#define IS_SUPPORT_DEVICE_LED                            (1)
+#else
+#define IS_SUPPORT_DEVICE_LED                            (0)
 #endif
 #define IS_SUPPORT_DEVICE_IRQ                            (1)
 #define IS_SUPPORT_DEVICE_FLASH                          (1)
@@ -47,7 +53,6 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_PRESSURE_KEY                   (0)
 #define IS_SUPPORT_DEVICE_AIR_PRESSURE                   (1)
 #define IS_SUPPORT_DEVICE_MOTOR                          (1)
-#define IS_SUPPORT_DEVICE_LED                            (1)
 #define IS_SUPPORT_DEVICE_AUDIO                          (0)
 #define IS_SUPPORT_DEVICE_LCD                            (1)
 #define IS_SUPPORT_DEVICE_BLE                            (1)

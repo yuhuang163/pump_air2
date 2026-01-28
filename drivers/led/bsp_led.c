@@ -40,10 +40,15 @@ static int led_dev_close(struct rt_device_node *dev)
 static int led_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *args)
 {
     switch (op_code) {
-        case OP_CODE_LED_STATUS_SET:
-            return bsp_led_status_set(args);
-        case OP_CODE_NIGHT_LIGHT_STATUS_SET:
-            return bsp_night_light_status_set(args);
+        case OP_CODE_LED_STATUS_SET: {
+            led_status_msg_t *msg = (led_status_msg_t *)args;
+            EXCEPTION_CHECK_INT(msg);
+            if (NIGHT_LIGHT_LED == msg->led_index) {
+                return bsp_night_light_status_set(args);
+            } else {
+                return bsp_led_status_set(args);
+            }
+        }
         case OP_CODE_LED_IS_READY:
             return bsp_led_is_ready(args);
         default:

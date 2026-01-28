@@ -72,7 +72,7 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     // LOG_UI("ui_display_pump_home_screen_remove");
 }
 
-int ui_display_pump_home_screen(ui_manager_context_t *thiz)
+int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -120,7 +120,7 @@ void ui_display_pump_level_remove(ui_manager_context_t *thiz)
     // LOG_UI("ui_display_pump_left_level_remove");
 }
 
-int ui_display_pump_level(ui_manager_context_t *thiz)
+int ui_display_pump_level_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -170,7 +170,7 @@ void ui_display_pump_complete_tip_remove(ui_manager_context_t *thiz)
 
 }
 
-int ui_display_pump_complete_tip(ui_manager_context_t *thiz)
+int ui_display_pump_complete_tip_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -196,7 +196,7 @@ void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 {
 }
 
-int ui_display_pump_mode(ui_manager_context_t *thiz)
+int ui_display_pump_mode_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -224,7 +224,7 @@ void ui_display_breastfeeding_mode_remove(ui_manager_context_t *thiz)
 {
 }
 
-int ui_display_breastfeeding_mode(ui_manager_context_t *thiz)
+int ui_display_breastfeeding_mode_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;
@@ -252,7 +252,7 @@ void ui_display_pump_speed_remove(ui_manager_context_t *thiz)
 {
 }
 
-int ui_display_pump_speed(ui_manager_context_t *thiz)
+int ui_display_pump_speed_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;

@@ -724,17 +724,17 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 #endif
 }
 
-int ui_display_pump_home_screen(ui_manager_context_t *thiz)
+int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
 {
 #if IS_SUPPORT_HOME_DEBUG_OTHER_PAGE
-    // ui_display_pump_left_level(thiz);
-    // ui_display_pump_mode(thiz);
-    // ui_display_breastfeeding_mode(thiz);
-    // ui_display_pump_complete_tip(thiz);
+    // ui_display_pump_left_level_process(thiz);
+    // ui_display_pump_mode_process(thiz);
+    // ui_display_breastfeeding_mode_process(thiz);
+    // ui_display_pump_complete_tip_process(thiz);
     // ui_display_airplane_mode_process(thiz);
     // ui_display_home_process(thiz);
     // ui_display_product_tests_home_process(thiz);
-    ui_display_pump_speed(thiz);
+    ui_display_pump_speed_process(thiz);
 #else
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(pump_info);

@@ -262,9 +262,7 @@ typedef struct {
 } user_bind_info_t;
 
 typedef struct {
-    uint8_t adaptive; /// 夜灯自适应开关
-    uint8_t level; /// 夜灯亮度等级
-    uint8_t onoff; /// 夜灯开关状态
+    uint8_t adaptive_switch; /// 夜灯自适应开关
 } night_light_info_t;
 
 /// 描述系统配置

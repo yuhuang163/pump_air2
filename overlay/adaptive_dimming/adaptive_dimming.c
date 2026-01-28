@@ -116,13 +116,9 @@ static int adaptive_dimming_duty_calculate(uint16_t lux_avg, uint8_t *out_duty)
 
 static void adaptive_dimming_polling_thread(void *user_data)
 {
-    ui_manager_context_t *ui = (ui_manager_context_t *)user_data;
-    EXCEPTION_CHECK_VOID(ui);
+    led_manager_context_t *led = (led_manager_context_t *)user_data;
+    EXCEPTION_CHECK_VOID(led);
     EXCEPTION_CHECK_VOID(adaptive);
-    if (!adaptive->is_adaptive_dimming) {
-        return;
-    }
-
     if (adaptive->capture_data.is_acquire_complete == 0) {
         return;
     }
@@ -136,9 +132,9 @@ static void adaptive_dimming_polling_thread(void *user_data)
     if (adaptive_dimming_duty_calculate(lux_avg, &refresh_duty) == 0) {
         return;
     }
-    
-    if (ui->hook && ui->hook->set_led_level) {
-        ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, refresh_duty);
+
+    if ( led->hook && led->hook->night_light_adaptive_level_update) {
+        led->hook->night_light_adaptive_level_update(led, refresh_duty);
     }
 }
 
@@ -146,41 +142,16 @@ static void adaptive_dimming_polling_thread(void *user_data)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void set_adaptive_dimming_state(bool state)
-{
-    EXCEPTION_CHECK_VOID(adaptive);
-    adaptive->is_adaptive_dimming = state;
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_VOID(st);
-    night_light_info_t light_info = {0};
-    light_info.adaptive = state;
-    st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &light_info);
-    last_lux_for_duty = 0;
-}
-
-bool get_adaptive_dimming_state(void)
-{
-    EXCEPTION_CHECK_BOOL(adaptive);
-    return adaptive->is_adaptive_dimming;
-}
-
 void adaptive_dimming_init(void)
 {
     adaptive = (adaptive_dimming_info_t *)u_malloz(sizeof(adaptive_dimming_info_t));
     EXCEPTION_CHECK_VOID(adaptive);
     misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     EXCEPTION_CHECK_VOID(misc);
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_VOID(st);
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    EXCEPTION_CHECK_VOID(led);
+    misc->add_misc_task(led, MISC_TASK_ID_ADAPTIVE_DIMMING, 500, MISC_WORK_MSG_ID_TIMER, adaptive_dimming_polling_thread);
     sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     EXCEPTION_CHECK_VOID(sensor);
-    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-    EXCEPTION_CHECK_VOID(ui);
-    night_light_info_t light_info = {0};
     sensor->add_sensor_evt_lisenser(sensor, LIGHT_SENSOR_EVT_POLLING, 1, on_light_sensor_data_cb);
-    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &light_info);
-    adaptive->is_adaptive_dimming = light_info.adaptive;
-    misc->add_misc_task(ui, MISC_TASK_ID_ADAPTIVE_DIMMING, 500,
-         MISC_WORK_MSG_ID_TIMER, adaptive_dimming_polling_thread);
-    LOG_ALGO("adaptive_dimming_state_sync: %d", adaptive->is_adaptive_dimming);
 }

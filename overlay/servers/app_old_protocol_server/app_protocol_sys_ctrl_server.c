@@ -25,34 +25,12 @@
 */
 static void app_old_comm_set_night_light(uint8_t onoff, uint8_t level, uint8_t adaptive_dimming_switch)
 {
-    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-    algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
-    EXCEPTION_CHECK_VOID(st);
-    EXCEPTION_CHECK_VOID(ui);
-    EXCEPTION_CHECK_VOID(algo);
-    night_light_info_t night_light_info = {0};
-    st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-
-    // Update night light info
-    if (adaptive_dimming_switch == 1) {
-        night_light_info.adaptive = 1;
-    } else {
-        night_light_info.adaptive = 0;
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    EXCEPTION_CHECK_VOID(led && led->hook);
+    if (led->hook->set_night_light_adaptive_switch) {
+        led->hook->set_night_light_adaptive_switch(led, adaptive_dimming_switch);
     }
-#if IS_SUPPORT_ADAPTIVE_DIMMING
-    if (algo->hook->set_adaptive_dimming_state) {
-        algo->hook->set_adaptive_dimming_state(night_light_info.adaptive);
-    }
-#endif
-    night_light_info.onoff = onoff ? 1 : 0;
-    night_light_info.level = level;
-
-    st->put_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_INFO, 0, 0, &night_light_info);
-    if (ui->hook && ui->hook->set_led_level) {
-        ui->hook->set_led_level(ui, NIGHT_LIGHT_LED_ID_0, night_light_info.onoff ? night_light_info.level : 0);
-    }
-    LOG_SRV(" Night light set: onoff=%d, level=%d, adaptive=%d\n", night_light_info.onoff, night_light_info.level, night_light_info.adaptive);
+    LOG_SRV(" Night light set: onoff=%d, level=%d, adaptive=%d\n", onoff, level, adaptive_dimming_switch);
 }
 
 /*

@@ -48,6 +48,7 @@ typedef struct ui_proc_airplane_mode {
     breast_pump_manager_context_t *pump;
     peripheral_bus_context_t *pbus;
     storage_manager_context_t *st;
+    led_manager_context_t *led;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.

@@ -576,9 +576,11 @@ BATTERY_MODULE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/battery \
 	-I$(PROJECT_ROOT)/trunk/root_source/battery
 
-# 自适应背光模块头文件
-ADAPTIVE_DIMMING_MODULE_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/overlay/adaptive_dimming 
+# 灯模块头文件
+LED_MODULE_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/adaptive_dimming \
+	-I$(PROJECT_ROOT)/overlay/framework_hooks/led \
+	-I$(PROJECT_ROOT)/trunk/root_source/led
 
 # 汇总所有 SDK 头文件路径
 SDK_INCLUDE_PATHS := \
@@ -601,7 +603,6 @@ SDK_INCLUDE_PATHS := \
 	$(AUDIO_INC_FLAGS) \
 	$(INPUT_KEY_INC_FLAGS) \
 	$(UI_MODULE_INC_FLAGS) \
-	$(ADAPTIVE_DIMMING_MODULE_INC_FLAGS)\
 	$(BATTERY_MODULE_INC_FLAGS) \
 	$(FONT_INC_FLAGS) \
 	$(WINDOWS_INC_FLAGS) \
@@ -614,7 +615,8 @@ SDK_INCLUDE_PATHS := \
 	$(NETWORK_INC_FLAGS) \
 	$(OTA_INC_FLAGS) \
 	$(PRODUCT_TESTS_INC_FLAGS) \
-	$(RESOURCE_INC_FLAGS) 
+	$(RESOURCE_INC_FLAGS) \
+	$(LED_MODULE_INC_FLAGS) 
 
 # 添加项目根目录和 SDK 头文件路径
 CPPFLAGS ?= -I$(PROJECT_ROOT) -I$(PROJECT_ROOT)/trunk $(SDK_INCLUDE_PATHS)
@@ -1110,9 +1112,11 @@ FRAMEWORK_HOOKS_BASE_SRCS := \
 BATTERY_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/battery/*.c)
 
-# 自适应背光模块源码
-ADAPTIVE_DIMMING_MODULE_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/overlay/adaptive_dimming/*.c)
+# 灯模块源码
+LED_MODULE_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/adaptive_dimming/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/led/*.c) \
+	$(wildcard $(PROJECT_ROOT)/trunk/root_source/led/*.c)
 
 # 汇总所有应用源码
 EXTRA_SRCS := \
@@ -1128,7 +1132,6 @@ EXTRA_SRCS := \
 	$(AUDIO_MODULE_SRCS) \
 	$(INPUT_KEY_MODULE_SRCS) \
 	$(UI_MODULE_SRCS) \
-	$(ADAPTIVE_DIMMING_MODULE_SRCS) \
 	$(BATTERY_MODULE_SRCS) \
 	$(FONT_MODULE_SRCS) \
 	$(WINDOWS_MODULE_SRCS) \
@@ -1141,7 +1144,8 @@ EXTRA_SRCS := \
 	$(NETWORK_MODULE_SRCS) \
 	$(OTA_MODULE_SRCS) \
 	$(PRODUCT_TESTS_MODULE_SRCS) \
-	$(FRAMEWORK_HOOKS_BASE_SRCS)
+	$(FRAMEWORK_HOOKS_BASE_SRCS) \
+	$(LED_MODULE_SRCS)
 
 CC := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)gcc,gcc)
 AR := $(if $(strip $(CROSS_COMPILE)),$(CROSS_COMPILE)ar,ar)

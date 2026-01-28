@@ -109,6 +109,7 @@ typedef struct ui_manager_context {
     void (*animation_play_status_update)(struct ui_manager_context *thiz, bool flag);
     void (*play_animation_lock)(const char *tag);
     void (*play_animation_unlock)(const char *tag);
+    void (*set_lcd_backlight)(struct ui_manager_context *thiz, uint16_t val);
 #if IS_SUPPORT_LVGL
     bool (*is_lvgl_initialized)(struct ui_manager_context *thiz);
 #endif
@@ -122,12 +123,6 @@ typedef struct ui_manager_context {
         void (*ui_animation_play_deinit)(struct ui_manager_context *thiz);
         void (*on_ui_broadcast_receiver_route)(broadcast_mask_id_t id, void *context, 
             int arg1, int arg2, broadcast_priv_data_t *pdata);
-        void (*set_led_blink)(struct ui_manager_context *thiz, uint8_t led_index, uint16_t period, 
-            uint16_t blink_times, uint8_t finish_status);
-        void (*set_led_level)(struct ui_manager_context *thiz, uint8_t led_index, uint8_t level);
-        void (*set_led_onoff)(struct ui_manager_context *thiz, uint8_t led_index, uint8_t onoff);
-        void (*set_ui_panel_backlight)(struct ui_manager_context *thiz, uint16_t val);
-        void (*set_ui_key_backlight)(struct ui_manager_context *thiz, uint16_t val);
     } *hook;
 } ui_manager_context_t;
 

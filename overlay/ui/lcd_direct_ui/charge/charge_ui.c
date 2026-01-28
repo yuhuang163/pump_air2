@@ -221,7 +221,7 @@ void ui_display_charge_screen_remove(ui_manager_context_t *thiz)
     charge_info = NULL;
 }
 
-int ui_display_charge_screen(ui_manager_context_t *thiz)
+int ui_display_charge_screen_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(charge_info);

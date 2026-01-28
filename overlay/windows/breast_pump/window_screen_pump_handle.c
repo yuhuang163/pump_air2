@@ -146,8 +146,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         return 0;
     }
 
-    EXCEPTION_CHECK_INT(proc->ui->hook && proc->ui->hook->set_led_blink &&
-         proc->ui->hook->set_led_onoff && proc->ui->hook->set_led_level);
+    EXCEPTION_CHECK_INT(proc->led);
 #if IS_SUPPORT_AIR_LEAKAGE_WARNING
     if (proc->is_air_leakage_popup_show == true) {
         proc->hide_air_leakage_popup_wm = true;     /// 隐藏空气泄漏弹窗提示.
@@ -159,43 +158,43 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             switch_pump_night_light_ui(proc, proc->pump);
             break;
         case KEY_CODE_START:
-            proc->ui->hook->set_led_blink(proc->ui, PUMP_START_BL, PUMP_BLINK_PERIOD, 
+            proc->led->set_led_blink(PUMP_START_BL, PUMP_BLINK_PERIOD, 
                 PUMP_BLINK_TIMES, LED_STATUS_ON);
             switch_pump_status_ui(proc, proc->pump, pump_info.status);
             break;
         case KEY_CODE_MODE:
-            proc->ui->hook->set_led_blink(proc->ui, PUMP_MODE_BL, PUMP_BLINK_PERIOD,
+            proc->led->set_led_blink(PUMP_MODE_BL, PUMP_BLINK_PERIOD,
                 PUMP_BLINK_TIMES, LED_STATUS_ON);
             if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode) == 0) {
-                proc->ui->hook->set_led_onoff(proc->ui, PUMP_FREQ_SET_BL, LED_STATUS_ON);
+                proc->led->set_led_onoff(PUMP_FREQ_SET_BL, LED_STATUS_ON);
             }
             switch_pump_common_mode_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_FREQUENCY:
             if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode)) {
-                proc->ui->hook->set_led_blink(proc->ui, PUMP_FREQ_SET_BL, PUMP_BLINK_PERIOD, 
+                proc->led->set_led_blink(PUMP_FREQ_SET_BL, PUMP_BLINK_PERIOD, 
                     PUMP_BLINK_TIMES, LED_STATUS_ON);
             }
             switch_pump_frequency_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_BREASTFEEDING:
             if (BREAST_PUMP_IS_COMMON_MODE(pump_info.mode)) {
-                proc->ui->hook->set_led_onoff(proc->ui, PUMP_FREQ_SET_BL, LED_STATUS_OFF);
+                proc->led->set_led_onoff(PUMP_FREQ_SET_BL, LED_STATUS_OFF);
             }
-            proc->ui->hook->set_led_blink(proc->ui, PUMP_BREASTFEEDING_BL, PUMP_BLINK_PERIOD, 
+            proc->led->set_led_blink(PUMP_BREASTFEEDING_BL, PUMP_BLINK_PERIOD, 
                 PUMP_BLINK_TIMES, LED_STATUS_ON);
             switch_breastfeeding_mode_ui(proc, proc->pump, &pump_info);
             break;
         case KEY_CODE_LEFT_CONTROL:
-            proc->ui->hook->set_led_blink(proc->ui, PUMP_LEFT_CONTROL_BL, PUMP_BLINK_PERIOD, 
+            proc->led->set_led_blink(PUMP_LEFT_CONTROL_BL, PUMP_BLINK_PERIOD, 
                 PUMP_LEVEL_BLINK_TIMES, LED_STATUS_ON);
-            proc->ui->hook->set_led_level(proc->ui, PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX / 2);
+            proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX / 2);
             switch_pump_control_type_ui(proc, proc->pump, 0);
             break;
         case KEY_CODE_RIGHT_CONTROL:
-            proc->ui->hook->set_led_blink(proc->ui, PUMP_RIGHT_CONTROL_BL, PUMP_BLINK_PERIOD, 
+            proc->led->set_led_blink(PUMP_RIGHT_CONTROL_BL, PUMP_BLINK_PERIOD, 
                 PUMP_LEVEL_BLINK_TIMES, LED_STATUS_ON);
-            proc->ui->hook->set_led_level(proc->ui, PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX / 2);
+            proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX / 2);
             switch_pump_control_type_ui(proc, proc->pump, 1);
             break;
         case KEY_CODE_KNOB_LEFT:
@@ -367,6 +366,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+    proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "pump_screen";

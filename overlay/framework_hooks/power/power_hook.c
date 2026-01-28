@@ -135,10 +135,16 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
         LOG_PM("allow_shutdown_or_standby: %d", ctx->priv.allow_shutdown_or_standby);
         return 0;
     }
+    
     /// 进入待机状态.
     if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_or_standby == 1) {
-        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 0, HDR_ACTION_SYS_STANDBY,
-            ctx, SYS_STANDBY_TASK_NAME);
+        battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+        if (battery && battery->is_charge_plug_in() > 0) {
+            LOG_PM("charging. ignore");
+            return 0;
+        }
+        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 0, HDR_ACTION_POWER_OFF,
+            ctx, POWER_OFF_TASK_NAME);
     }
     return 0;
 }

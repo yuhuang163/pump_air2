@@ -148,7 +148,11 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
-        show_charging_ui(proc);
+        if (proc->battery->is_adapter_mismatch()) {
+            show_charge_adapter_ui(proc);
+        } else {
+            show_charging_ui(proc);
+        }
         proc->charge_screen_on_time = get_timestamp();
         // POST_TASK_HANDLER_DELAYED_ARG2(charge_screen_off_policy, proc, 1000, 0, CHARGE_SCREEN_OFF_TASK_NAME);
     }
@@ -164,7 +168,7 @@ static int exit_event_cb(window_lift_cycle_e new_state, const struct window_cont
     switch (new_state) {
         case ID_SCR_STATE_ON_PAUSE: 
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
-            stop_charging_ui(proc);
+            stop_charge_common_ui(proc);
             unregister_broadcast_receiver(&proc->receiver);
             REMOVE_ALL_HANDER_TASK();
             if (proc->key) {
@@ -204,6 +208,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;
