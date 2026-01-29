@@ -553,13 +553,20 @@ static int on_post_breast_pump_init(void *ptr)
             /// 读取失败或值无效，使用默认模式
             ctx->priv.m_info.mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
         }
+        /// 获取泵奶设置.
+        ctx->priv.st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, ctx->priv.m_info.mode, ROOT_BREAST_PUMP_STEP_MAX, &breast_pump_obj->priv.setting);
         LOG_PMP("get pump mode: %d", ctx->priv.m_info.mode);
+        for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+            LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
+                breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
+        }
     }
     /// 获取控制类型.
     if (ctx->priv.st) {
         int store_value = 0;
         ctx->priv.st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &store_value);
         ctx->priv.m_info.control_type = store_value;
+        LOG_PMP("get pump control type: %d", ctx->priv.m_info.control_type);
     }
     /// 注册广播监听.
     ctx->priv.m_bdc.context = ctx;
