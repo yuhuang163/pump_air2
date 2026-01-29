@@ -46,8 +46,6 @@ typedef struct {
     ui_manager_context_t *ui;
     power_manager_context_t *pm;
     key_input_context_t *key;
-    peripheral_bus_context_t *pbus;
-    storage_manager_context_t *st;
     tests_manager_context_t *tests;
     led_manager_context_t *led;
     broadcast_obj_t receiver;

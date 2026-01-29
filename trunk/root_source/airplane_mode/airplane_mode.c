@@ -69,7 +69,7 @@ static int is_on_airplane_mode(void)
 
 static void set_airplane_mode(int state)
 {
-    thiz->priv.is_on = state;
+    thiz->priv.is_on = state > 0 ? true : false;
     LOG_AIR("state: %d", state);
 }
 
@@ -96,6 +96,13 @@ static void on_aiplane_mode_receive_internal(broadcast_mask_id_t id, void *conte
 static int on_post_airplane_init(void *ptr)
 {
     airplane_mode_context_t *airplane = (airplane_mode_context_t *)ptr;
+    /// 获取飞机模式状态.
+    storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    if (st) {
+        int store_val = 0;
+        st->get_store_ram_val(STORE_ID_SYS_AIRPLANE_MODE_STATE, 0, 0, &store_val);
+        airplane->priv.is_on = store_val > 0 ? true : false;
+    }
     /// 广播监听泵状态改变.
     airplane->priv.bcd = u_malloz(sizeof(broadcast_obj_t));
     airplane->priv.bcd->context = airplane;

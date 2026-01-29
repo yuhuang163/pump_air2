@@ -99,9 +99,7 @@ int ui_display_pump_level_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->pump);
     EXCEPTION_CHECK_INT(proc->motor);
-    EXCEPTION_CHECK_INT(proc->st);
-    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-    proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    uint8_t control_type = proc->pump->get_breast_pump_control_type();
     pump_setting_t setting;
     uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
     proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);

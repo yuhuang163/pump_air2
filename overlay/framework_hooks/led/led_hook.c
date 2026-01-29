@@ -54,10 +54,9 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
     if (level == 0) {
         thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
     } else {
-        storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-        EXCEPTION_CHECK_VOID(st);
-        uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-        st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+        breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+        EXCEPTION_CHECK_VOID(pump);
+        uint8_t control_type = pump->get_breast_pump_control_type();
         for (int i = 0; i < LENGTH_OF_ARRAY(key_led_index); i++) {
             msg.led_index = key_led_index[i];
             msg.led_status.un.luminous.level = LED_LEVEL_MAX;
@@ -87,8 +86,6 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
             msg.led_status.un.luminous.level = LED_LEVEL_MAX;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         }
-        breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-        EXCEPTION_CHECK_VOID(pump);
         uint8_t mode = pump->get_breast_pump_mode();
         LOG_UI("mode: %d, is common mode: %d", mode, BREAST_PUMP_IS_COMMON_MODE(mode));
         if (BREAST_PUMP_IS_COMMON_MODE(mode)) {
