@@ -198,6 +198,7 @@ typedef struct
     uint8_t is_remind_pump_finish;        /// 泵奶完成提醒
     uint8_t is_remind_exception;          /// 是否提醒泵奶异常
     uint8_t control_type;                 /// 泵奶控制类型 breast_pump_control_type_e
+    uint8_t pump_mode;                    /// 泵奶模式 breast_pump_mode_e
     pump_setting_t stimulation_setting[ROOT_BREAST_PUMP_STEP_MAX];
     pump_setting_t pump_setting[ROOT_BREAST_PUMP_STEP_MAX];
     pump_setting_t mix_setting[ROOT_BREAST_PUMP_STEP_MAX];

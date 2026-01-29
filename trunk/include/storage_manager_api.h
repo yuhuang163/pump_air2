@@ -44,6 +44,7 @@ typedef enum {
     STORE_ID_BREAST_PUMP_DATA_HEAD,         /// 吸奶器数据头
     STORE_ID_BREAST_PUMP_DATA_BODY,         /// 吸奶器数据体
     STORE_ID_BREAST_PUMP_BURY_INFO,         /// 吸奶器埋点信息
+    STORE_ID_BREAST_PUMP_MODE,              /// 吸奶器模式
     STORE_ID_SYS_CONFIG_INFO = 400,         /// 系统配置信息
     STORE_ID_SYS_TIME_ZONE,                 /// 系统时区
     STORE_ID_SYS_AP_MODE_ONOFF,             /// 系统飞航模式开关
