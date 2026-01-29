@@ -105,7 +105,6 @@ void airplane_mode_led_policy(ui_proc_airplane_mode_t *proc, uint8_t status)
 {
     uint8_t control_type = 0;
     EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->st);
     EXCEPTION_CHECK_VOID(proc->led);
     if (status) {
         if (proc->led->hook && proc->led->hook->set_key_backlight ) {

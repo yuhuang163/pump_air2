@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
-#include <stdint.h>
 #include "adaptive_dimming.h" // IWYU pragma: keep
 
 /*

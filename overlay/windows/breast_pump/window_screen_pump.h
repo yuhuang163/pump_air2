@@ -99,7 +99,6 @@ typedef struct {
     battery_manager_context_t *battery;
     ble_manager_context_t *ble;
     motor_manager_context_t *motor;
-    storage_manager_context_t *st;
     power_manager_context_t *pm;
     key_input_context_t *key;
     algo_manager_context_t *algo;

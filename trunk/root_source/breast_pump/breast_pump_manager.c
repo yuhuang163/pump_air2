@@ -164,7 +164,6 @@ static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
         };
         servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
     }
-
 }
 
 static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
@@ -406,6 +405,82 @@ static void breast_pump_remove_result_listener(on_breast_pump_result_cb_ptr cb)
     MUTEX_UNLOCK(breast_pump_obj->priv.m_lock);
 }
 
+
+static const char *get_breast_pump_status_name(uint8_t status)
+{
+    switch (status) {
+        default:
+        case BREAST_PUMP_IDLE:
+            return "#IDLE#";
+        case BREAST_PUMP_START:
+            return "#START#";
+        case BREAST_PUMP_PAUSE:
+            return "#PAUSE#";
+        case BREAST_PUMP_CONTINUE:
+            return "#CONTINUE#";
+        case BREAST_PUMP_FINISH:
+            return "#FINISH#";
+        case BREAST_PUMP_FACTORY:
+            return "#FACTORY#";
+    }
+}
+
+static const char *get_breast_pump_mode_name(uint8_t mode)
+{
+    switch (mode) {
+        default:
+            return "@unknow";
+        case BREAST_PUMP_STIMULATION_MODE:
+            return "@stimulation";
+        case BREAST_PUMP_LACTATION_MODE:
+            return "@pump";
+        case BREAST_PUMP_MIX_MODE:
+            return "@mix";
+        case BREAST_PUMP_CUSTOM_MODE:
+            return "@custom";
+        case BREAST_PUMP_PP_MILK_TRACK_MODE:
+            return "@pp_milk_track";
+        case BREAST_PUMP_MILK_BOOST_MODE:
+            return "@2+8_milk_boost";
+        case BREAST_PUMP_LACTATION_START_MODE:
+            return "@lactation_start";
+    }
+}
+
+static uint8_t get_breast_pump_step_index(void)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    return m_info->step_index;
+}
+
+static int get_breast_pump_control_type(void)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    return m_info->control_type;
+}
+
+static void set_breast_pump_control_type(uint8_t control_type)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    m_info->control_type = control_type;
+    if (breast_pump_obj->priv.st) {
+        breast_pump_obj->priv.st->put_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, control_type, 0, NULL);
+    }
+    SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_CONTROL_TYPE_CHANGE, control_type);
+    servers_manager_context_t *servers_ctx =
+        (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
+    EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
+    servers_publish_data_args_t args = {
+        .arg1 = OLD_PUBLISH_DATA_PUMP_CONTROL_TYPE_CHANGE,
+        .arg2 = 0,
+        .val = NULL,
+    };
+    servers_ctx->hook->app_old_protocol_server_data_publish(
+        APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    LOG_UI("switch pump control type: %d", control_type);
+
+}
+
 static void make_progress(void)
 {
     static uint32_t notify_time = 0;
@@ -462,8 +537,7 @@ static int on_post_breast_pump_init(void *ptr)
 {
     breast_pump_manager_context_t *ctx = ptr;
     memset(&ctx->priv.m_info , 0, sizeof(breast_pump_info_t));
-    ctx->priv.m_info.mode = BREAST_PUMP_MODE_INVALID;      
-    
+    ctx->priv.m_info.mode = BREAST_PUMP_MODE_INVALID;        
     /// 获取控制类型.
     if (ctx->priv.st) {
         uint8_t store_mode = 0;
@@ -481,7 +555,12 @@ static int on_post_breast_pump_init(void *ptr)
         }
         LOG_PMP("get pump mode: %d", ctx->priv.m_info.mode);
     }
-
+    /// 获取控制类型.
+    if (ctx->priv.st) {
+        int store_value = 0;
+        ctx->priv.st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &store_value);
+        ctx->priv.m_info.control_type = store_value;
+    }
     /// 注册广播监听.
     ctx->priv.m_bdc.context = ctx;
     ctx->priv.m_bdc.name = "breast_pump_manager";
@@ -490,7 +569,6 @@ static int on_post_breast_pump_init(void *ptr)
     register_broadcast_receiver(&ctx->priv.m_bdc);
     RUN_NEW_THREAD(&ctx->priv.breast_pump_thd, "breast_pump_thd", breast_pump_work_thread, 
         RT_PRIO_BREAST_PUMP_DISPATCH_THREAD, BST_THREAD_STACKSIZE);
-
     return 0;
 }
 
@@ -502,53 +580,6 @@ static int on_perpare_breast_pump_init(void *self)
     ctx->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
 
     return 0;
-}
-
-static const char *get_breast_pump_status_name(uint8_t status)
-{
-    switch (status) {
-        default:
-        case BREAST_PUMP_IDLE:
-            return "#IDLE#";
-        case BREAST_PUMP_START:
-            return "#START#";
-        case BREAST_PUMP_PAUSE:
-            return "#PAUSE#";
-        case BREAST_PUMP_CONTINUE:
-            return "#CONTINUE#";
-        case BREAST_PUMP_FINISH:
-            return "#FINISH#";
-        case BREAST_PUMP_FACTORY:
-            return "#FACTORY#";
-    }
-}
-
-static const char *get_breast_pump_mode_name(uint8_t mode)
-{
-    switch (mode) {
-        default:
-            return "@unknow";
-        case BREAST_PUMP_STIMULATION_MODE:
-            return "@stimulation";
-        case BREAST_PUMP_LACTATION_MODE:
-            return "@pump";
-        case BREAST_PUMP_MIX_MODE:
-            return "@mix";
-        case BREAST_PUMP_CUSTOM_MODE:
-            return "@custom";
-        case BREAST_PUMP_PP_MILK_TRACK_MODE:
-            return "@pp_milk_track";
-        case BREAST_PUMP_MILK_BOOST_MODE:
-            return "@2+8_milk_boost";
-        case BREAST_PUMP_LACTATION_START_MODE:
-            return "@lactation_start";
-    }
-}
-
-static uint8_t get_breast_pump_step_index(void)
-{
-    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
-    return m_info->step_index;
 }
 
 /*
@@ -566,6 +597,8 @@ void *register_module_for_breast_pump_new(list_head_t *list_head)
     ptr->remove_breast_pump_result_listener = breast_pump_remove_result_listener;
     ptr->get_breast_pump_mode = get_breast_pump_mode;
     ptr->set_breast_pump_mode = set_breast_pump_mode;
+    ptr->get_breast_pump_control_type = get_breast_pump_control_type;
+    ptr->set_breast_pump_control_type = set_breast_pump_control_type;
     ptr->get_breast_pump_setting = get_breast_pump_setting;
     ptr->set_breast_pump_setting = set_breast_pump_setting;
     ptr->get_breast_pump_status_async = get_breast_pump_status_async;

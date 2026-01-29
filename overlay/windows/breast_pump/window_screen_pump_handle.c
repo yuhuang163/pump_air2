@@ -270,10 +270,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     ui_proc_pump_t *proc = CONTAINER_OF(thiz, ui_proc_pump_t, w_ctx);
     EXCEPTION_CHECK_INT(proc);
     /// 获取泵奶控制类型
-    if (proc->st) {
-        proc->st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &proc->info.control_type);
-    }
-    
+    proc->info.control_type = proc->pump->get_breast_pump_control_type();
     /// 处理窗口进入事件.
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
@@ -362,7 +359,6 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     proc->motor = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
-    proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);

@@ -577,7 +577,7 @@ int write_pump_control_type_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    pump_info->control_type = *(uint8_t *)args.val;
+    pump_info->control_type = args.arg1;
     LOG_STORE_WRAP("write pump control type: %d", pump_info->control_type);
     return 0;
 }

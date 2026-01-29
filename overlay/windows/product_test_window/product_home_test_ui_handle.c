@@ -31,9 +31,7 @@ static void product_home_test_display_completed_cb(hdr_post_args_t *args)
         return;
     }
     multi_func_msg_data_t msg = {0};
-    uint8_t guide_deploy_flag = 0;
-    proc->st->get_store_ram_val(STORE_ID_SYS_GUIDE_DEPLOYED, 0, 0, &guide_deploy_flag);
-    if(guide_deploy_flag == 0) {
+    if(wm->is_window_guidance_deployed() == 0) {
         LOG_WM("goto guide screen");
         msg.union_body.extra.window_id = ID_WINDOW_HOME;
         wm->dispatch_new_window_args(wm, &msg);

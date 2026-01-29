@@ -412,8 +412,6 @@ uint8_t app_old_comm_set_nommal_pump_speed(app_old_comm_pump_ctrl *app_old_comm_
 
 uint8_t app_old_comm_set_pump_control_type(app_old_comm_pump_ctrl *app_old_comm_pump_ctrl_date)
 {
-    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_UINT(storage_ctx);
     uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
     if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_LEFT_CT) {
         control_type = BREAST_PUMP_CONTROL_TYPE_LEFT;
@@ -422,17 +420,18 @@ uint8_t app_old_comm_set_pump_control_type(app_old_comm_pump_ctrl *app_old_comm_
     } else {
         control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
     }
+    breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump);
+    pump->set_breast_pump_control_type(control_type);
     LOG_SRV("set pump control type %d", control_type);
-    storage_ctx->put_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
     return true;
 }
 
 uint8_t app_old_comm_get_pump_control_type(void)
 {
-    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_UINT(storage_ctx);
-    uint8_t control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-    storage_ctx->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &control_type);
+    breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump);
+    uint8_t control_type = pump->get_breast_pump_control_type();
     LOG_SRV("get pump control type %d", control_type);
     return control_type;
 }

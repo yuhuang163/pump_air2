@@ -46,8 +46,6 @@ typedef struct ui_proc_airplane_mode {
     power_manager_context_t *pm;
     key_input_context_t *key;
     breast_pump_manager_context_t *pump;
-    peripheral_bus_context_t *pbus;
-    storage_manager_context_t *st;
     led_manager_context_t *led;
     broadcast_obj_t receiver;
     uint32_t margic;
