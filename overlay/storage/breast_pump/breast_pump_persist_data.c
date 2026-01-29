@@ -397,49 +397,105 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->stimulation_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
+                #if IS_PUMP_STEPS_USE_SAME_SETTING
+                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                    memcpy(&pump_info->stimulation_setting[i].level[0], &setting->level[0], sizeof(uint8_t));
+                    memcpy(&pump_info->stimulation_setting[i].level[1], &setting->level[1], sizeof(uint8_t));
+                }
+                memcpy(&pump_info->stimulation_setting[mode_step].speed, &setting->speed, sizeof(uint8_t));
+                #else
                 memcpy(&pump_info->stimulation_setting[mode_step], setting, sizeof(pump_setting_t));
+                #endif
             }
             break;
         case BREAST_PUMP_LACTATION_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->pump_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
+                #if IS_PUMP_STEPS_USE_SAME_SETTING
+                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                    memcpy(&pump_info->pump_setting[i].level[0], &setting->level[0], sizeof(uint8_t));
+                    memcpy(&pump_info->pump_setting[i].level[1], &setting->level[1], sizeof(uint8_t));
+                }
+                memcpy(&pump_info->pump_setting[mode_step].speed, &setting->speed, sizeof(uint8_t));
+                #else
                 memcpy(&pump_info->pump_setting[mode_step], setting, sizeof(pump_setting_t));
+                #endif
             }
             break;
         case BREAST_PUMP_MIX_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->mix_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
+                #if IS_PUMP_STEPS_USE_SAME_SETTING
+                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                    memcpy(&pump_info->mix_setting[i].level[0], &setting->level[0], sizeof(uint8_t));
+                    memcpy(&pump_info->mix_setting[i].level[1], &setting->level[1], sizeof(uint8_t));
+                }
+                memcpy(&pump_info->mix_setting[mode_step].speed, &setting->speed, sizeof(uint8_t));
+                #else
                 memcpy(&pump_info->mix_setting[mode_step], setting, sizeof(pump_setting_t));
+                #endif
             }
             break;
         case BREAST_PUMP_CUSTOM_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->custom_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
+                #if IS_PUMP_STEPS_USE_SAME_SETTING
+                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                    memcpy(&pump_info->custom_setting[i].level[0], &setting->level[0], sizeof(uint8_t));
+                    memcpy(&pump_info->custom_setting[i].level[1], &setting->level[1], sizeof(uint8_t));
+                }
+                memcpy(&pump_info->custom_setting[mode_step].speed, &setting->speed, sizeof(uint8_t));
+                #else
                 memcpy(&pump_info->custom_setting[mode_step], setting, sizeof(pump_setting_t));
+                #endif
             }
             break;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->pp_milk_track_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
+                #if IS_PUMP_STEPS_USE_SAME_SETTING
+                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                    memcpy(&pump_info->pp_milk_track_setting[i].level[0], &setting->level[0], sizeof(uint8_t));
+                    memcpy(&pump_info->pp_milk_track_setting[i].level[1], &setting->level[1], sizeof(uint8_t));
+                }
+                memcpy(&pump_info->pp_milk_track_setting[mode_step].speed, &setting->speed, sizeof(uint8_t));
+                #else
                 memcpy(&pump_info->pp_milk_track_setting[mode_step], setting, sizeof(pump_setting_t));
+                #endif
             }
             break;
         case BREAST_PUMP_MILK_BOOST_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->milk_boost_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
+                #if IS_PUMP_STEPS_USE_SAME_SETTING
+                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                    memcpy(&pump_info->milk_boost_setting[i].level[0], &setting->level[0], sizeof(uint8_t));
+                    memcpy(&pump_info->milk_boost_setting[i].level[1], &setting->level[1], sizeof(uint8_t));
+                }
+                memcpy(&pump_info->milk_boost_setting[mode_step].speed, &setting->speed, sizeof(uint8_t));
+                #else
                 memcpy(&pump_info->milk_boost_setting[mode_step], setting, sizeof(pump_setting_t));
+                #endif
             }
             break;
         case BREAST_PUMP_LACTATION_START_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->lactation_start_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
+                #if IS_PUMP_STEPS_USE_SAME_SETTING
+                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                    memcpy(&pump_info->lactation_start_setting[i].level[0], &setting->level[0], sizeof(uint8_t));
+                    memcpy(&pump_info->lactation_start_setting[i].level[1], &setting->level[1], sizeof(uint8_t));
+                }
+                memcpy(&pump_info->lactation_start_setting[mode_step].speed, &setting->speed, sizeof(uint8_t));
+                #else
                 memcpy(&pump_info->lactation_start_setting[mode_step], setting, sizeof(pump_setting_t));
+                #endif
             }
             break;
         default:

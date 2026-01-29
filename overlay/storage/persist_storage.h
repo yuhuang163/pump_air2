@@ -27,7 +27,8 @@ extern "C" {
 #define DEVICE_UNIQUE_SN_LEN                        40
 #define DEVICE_FW_VERSION_LEN                       18
 
-#define ROOT_BREAST_PUMP_STEP_MAX                   8
+#define IS_PUMP_STEPS_USE_SAME_SETTING              1 /// 是否使用相同的设置，如果使用相同的设置，则所有步骤都使用相同的设置
+#define ROOT_BREAST_PUMP_STEP_MAX                   14
 #define FACTORY_AGE_INFO_MAX                        3   /// 老化信息最大保存3条
 #define ROOT_BREAST_PUMP_BURY_DATA_NUM            10    /// 埋点数据最大保存10条
 
@@ -120,7 +121,7 @@ typedef enum {
     BREAST_PUMP_LACTATION_MODE,        /// 吸乳模式
     BREAST_PUMP_MIX_MODE,               /// 混合模式
     BREAST_PUMP_CUSTOM_MODE,         /// 个性化模式
-    BREAST_PUMP_PP_MILK_TRACK_MODE,                   /// PP追奶模式
+    BREAST_PUMP_PP_MILK_TRACK_MODE,                   /// PP追奶模式（Power Pumping模式）
     BREAST_PUMP_MILK_BOOST_MODE,              /// 2+8奶量提升模式
     BREAST_PUMP_LACTATION_START_MODE,            /// 开奶模式
     BREAST_PUMP_MODE_MAX,
