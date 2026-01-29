@@ -130,7 +130,7 @@ static int led_extension_read_nbyte(i2c_master_data_t *data)
 
 static void led_extension_onoff_set(uint8_t index, uint8_t onoff)
 {
-    if(index >= LED_TOTAL_SIZE) {
+    if (index >= LED_TOTAL_SIZE) {
         LOGE("index is out of range: %d", index);
         return;
     }
@@ -151,7 +151,7 @@ static void led_extension_onoff_set(uint8_t index, uint8_t onoff)
 
 static void led_extension_level_set(uint8_t index, uint8_t level)
 {
-    if(index >= LED_TOTAL_SIZE) {
+    if (index >= LED_TOTAL_SIZE) {
         LOGE("index is out of range: %d", index);
         return;
     }

@@ -154,7 +154,7 @@ static int pump_speed_lable_update(ui_manager_context_t *thiz, uint8_t speed, ui
     lv_obj_clear_flag(speed_info->label[speed_index], LV_OBJ_FLAG_SCROLLABLE);    /// 不要滚动条
     lv_obj_set_size(speed_info->label[speed_index], 222, 68); /// 设置容器尺寸
     lv_obj_set_style_border_width(speed_info->label[speed_index], 0, 0);          /// 无边框
-    if(is_selected) {
+    if (is_selected) {
         lv_obj_set_style_bg_opa(speed_info->label[speed_index], LV_OPA_COVER, 0); /// 背景不透明 LV_OPA_COVER
         lv_obj_set_style_bg_color(speed_info->label[speed_index], 
             lv_color_hex(PUMP_SPEED_SEL_START_COLOR), 0);      // start

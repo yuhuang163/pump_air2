@@ -7,7 +7,6 @@
 #include "hal_timer.h"
 #include "bsp_common.h"
 #include "bsp_config.h"
-#include <stdint.h>
 #include "bsp_i2c.h"
 
 /*

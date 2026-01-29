@@ -162,7 +162,7 @@ static int pump_level_root_value_update(ui_manager_context_t *thiz, uint8_t leve
     lv_label_set_text(level_info->root_value, level_value);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(level_info->root_value, lv_color_hex(PUMP_LEVEL_VALUE_COLOR), 0);
     lv_obj_set_style_text_font(level_info->root_value, &lv_font_roboto_79_semibold, 0);  /// 设置字体
-    if(level > 9) {
+    if (level > 9) {
         lv_obj_align(level_info->root_value, LV_ALIGN_TOP_LEFT, 138, 150); /// 设置文字位置
     } else {
         lv_obj_align(level_info->root_value, LV_ALIGN_TOP_LEFT, 138 + 23, 150); /// 设置文字位置

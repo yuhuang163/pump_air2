@@ -31,7 +31,7 @@ static void product_home_test_display_completed_cb(hdr_post_args_t *args)
         return;
     }
     multi_func_msg_data_t msg = {0};
-    if(wm->is_window_guidance_deployed() == 0) {
+    if (wm->is_window_guidance_deployed() == 0) {
         LOG_WM("goto guide screen");
         msg.union_body.extra.window_id = ID_WINDOW_HOME;
         wm->dispatch_new_window_args(wm, &msg);
@@ -95,7 +95,7 @@ static void product_home_test_start_key_event_handler(ui_proc_product_test_t *pr
         current_mode = proc->tests->tests_manager_get_current_mode();
     }
 
-    if(current_mode != TST_NONE_TYPE) {
+    if (current_mode != TST_NONE_TYPE) {
         return;
     }
     POST_TASK_HANDLER_NO_DELAY(product_home_test_display_completed_cb, proc,
