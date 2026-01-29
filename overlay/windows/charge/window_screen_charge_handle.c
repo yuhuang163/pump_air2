@@ -127,7 +127,7 @@ static int on_charge_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t ke
                 CHARGE_HDR_EXIT_CHARGE_POLICY, EXIT_CHARGE_POLICY_TASK_NAME);
         }
     } else if (keytype == KEY_EVENT_CLICK) {
-        if(keycode == KEY_CODE_POWER) {
+        if (keycode == KEY_CODE_POWER) {
             switch_charge_night_light_onoff_ui(proc);
         }
         proc->charge_screen_on_time = get_timestamp();

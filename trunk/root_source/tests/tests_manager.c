@@ -26,7 +26,7 @@ static uint8_t tests_manager_set_enable(uint8_t enable)
     LOG_TEST("tests: tests_manager_is_enable");
     thiz->priv.enabled = enable;
 
-    if(enable) {
+    if (enable) {
         if (thiz->priv.tests_timer) {
             START_TIMER(thiz->priv.tests_timer, PRODUCT_TESTS_THREAD_POLLING_PERIOD);
         }

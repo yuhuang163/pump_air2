@@ -191,7 +191,7 @@ static int pump_mode_lable_update(ui_manager_context_t *thiz, uint8_t mode, uint
     lv_obj_clear_flag(mode_info->label[mode_index], LV_OBJ_FLAG_SCROLLABLE);    /// 不要滚动条
     lv_obj_set_size(mode_info->label[mode_index], 222, 68); /// 设置容器尺寸
     lv_obj_set_style_border_width(mode_info->label[mode_index], 0, 0);          /// 无边框
-    if(is_selected) {
+    if (is_selected) {
         lv_obj_set_style_bg_opa(mode_info->label[mode_index], LV_OPA_COVER, 0); /// 背景不透明 LV_OPA_COVER
         lv_obj_set_style_bg_color(mode_info->label[mode_index], 
             lv_color_hex(PUMP_MODE_SEL_START_COLOR), 0);      // start

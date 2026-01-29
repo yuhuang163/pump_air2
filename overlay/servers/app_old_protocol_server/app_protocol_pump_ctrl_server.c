@@ -177,7 +177,7 @@ uint8_t app_old_comm_get_current_custom_pump_step_mode(servers_old_protocol_publ
         time_index = 0;
     }
     //当前不是运行的不是自定义模式步骤，默认上报第一步参数,启动自定义模式从第一步开始
-    if(pump_ctx->get_breast_pump_mode() != BREAST_PUMP_CUSTOM_MODE) {
+    if (pump_ctx->get_breast_pump_mode() != BREAST_PUMP_CUSTOM_MODE) {
         time_index = 0;
     }
     //获取自定义模式参数
@@ -641,7 +641,7 @@ uint8_t app_old_comm_update_storage_custom_setting(user_def_pump_steps_data_t *p
 {
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_UINT(storage_ctx);
-    if(pump_user_defined_step_data_temp->num > ROOT_BREAST_PUMP_STEP_MAX)
+    if (pump_user_defined_step_data_temp->num > ROOT_BREAST_PUMP_STEP_MAX)
     {
        LOG_SRV(" over max step");
        return false;
