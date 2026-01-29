@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-
+#define IS_PUMP_MODE_NOT_STORE_NORMAL_MODE          1 /// 是否存储常规模式，如果存储常规模式，则存储常规模式
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -126,7 +126,7 @@ static void get_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
-        breast_pump_obj->set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT);
+        breast_pump_obj->set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT, 1);
         LOG_PMP("invalid mode, set default mode");
     } 
 
@@ -166,7 +166,7 @@ static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
     }
 }
 
-static void set_breast_pump_mode(uint32_t mode)
+static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     struct storage_manager_context *st = breast_pump_obj->priv.st;
@@ -178,6 +178,9 @@ static void set_breast_pump_mode(uint32_t mode)
     m_info->step_index = 0;
     LOG_PMP("new mode is: %d, name: %s", m_info->mode, breast_pump_obj->get_breast_pump_mode_name(m_info->mode));
     EXCEPTION_CHECK_VOID(st);
+    if (is_store_mode) {
+        st->put_store_ram_val(STORE_ID_BREAST_PUMP_MODE, 0, 0, &m_info->mode);
+    }
     st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, m_info->mode, ROOT_BREAST_PUMP_STEP_MAX, &breast_pump_obj->priv.setting);
     for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
         LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
@@ -201,7 +204,7 @@ static int get_breast_pump_mode(void)
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
         LOG_PMP("invalid, set default mode");
-        set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT);
+        set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT, 1);
     }
     return m_info->mode;
 }
@@ -534,7 +537,24 @@ static int on_post_breast_pump_init(void *ptr)
 {
     breast_pump_manager_context_t *ctx = ptr;
     memset(&ctx->priv.m_info , 0, sizeof(breast_pump_info_t));
-    ctx->priv.m_info.mode = BREAST_PUMP_MODE_INVALID;      
+    ctx->priv.m_info.mode = BREAST_PUMP_MODE_INVALID;        
+    /// 获取控制类型.
+    if (ctx->priv.st) {
+        uint8_t store_mode = 0;
+        int ret = ctx->priv.st->get_store_ram_val(STORE_ID_BREAST_PUMP_MODE, 0, 0, &store_mode);
+        if (ret == 0 && store_mode < BREAST_PUMP_MODE_MAX) {
+            #if IS_PUMP_MODE_NOT_STORE_NORMAL_MODE
+            if(store_mode == BREAST_PUMP_MIX_MODE || store_mode == BREAST_PUMP_LACTATION_MODE) {
+                store_mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+            }
+            #endif
+            ctx->priv.m_info.mode = store_mode;
+        } else {
+            /// 读取失败或值无效，使用默认模式
+            ctx->priv.m_info.mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+        }
+        LOG_PMP("get pump mode: %d", ctx->priv.m_info.mode);
+    }
     /// 获取控制类型.
     if (ctx->priv.st) {
         int store_value = 0;

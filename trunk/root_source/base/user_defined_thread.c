@@ -38,7 +38,7 @@ static void run_pump_test_cb(void)
 {
     LOG_PBUS("===> run pump test!!!!!");
     breast_pump_manager_context_t *breast_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    // breast_ctx->set_breast_pump_mode(BREAST_PUMP_PP_MILK_TRACK_MODE);
+    // breast_ctx->set_breast_pump_mode(BREAST_PUMP_PP_MILK_TRACK_MODE, 0);
     breast_ctx->set_breast_pump_status(BREAST_PUMP_CONTINUE);
 }
 

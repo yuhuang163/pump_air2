@@ -519,9 +519,9 @@ uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old_comm_p
         }
     } else //如果模式改变，则改变模式,忽略参数
     {
-        pump_ctx->set_breast_pump_mode(app_old_comm_pump_ctrl_date->pump_mode);
+        pump_ctx->set_breast_pump_mode(app_old_comm_pump_ctrl_date->pump_mode, 1);
         app_broadcast_pump_mode_to_window(app_old_comm_pump_ctrl_date->pump_mode,OLD_BROADCAST_ALL_CT);
-        //prd 模式不记忆
+        //prd 模式记忆
         LOG_SRV("app change pump_mode %d",app_old_comm_pump_ctrl_date->pump_mode);
     }
     return true;

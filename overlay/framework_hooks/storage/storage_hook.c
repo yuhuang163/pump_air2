@@ -79,6 +79,7 @@ const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
     {STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, write_night_light_adaptive_switch_to_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, write_airplane_mode_state_to_ram},
     {STORE_ID_BREAST_PUMP_BURY_INFO, write_pump_buried_info_to_ram},
+    {STORE_ID_BREAST_PUMP_MODE, write_pump_mode_to_ram},
 };
 
 const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
@@ -108,6 +109,7 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, read_night_light_adaptive_switch_from_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, read_airplane_mode_state_from_ram},
     {STORE_ID_BREAST_PUMP_DATA_HEAD, read_pump_data_head_from_ram},
+    {STORE_ID_BREAST_PUMP_MODE, read_pump_mode_from_ram},
 };
 
 static storage_manager_context_t *thiz = NULL;
