@@ -48,6 +48,7 @@ typedef struct {
     battery_manager_context_t *battery;
     key_input_context_t *key;
     led_manager_context_t *led;
+    airplane_mode_context_t *airplane;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.

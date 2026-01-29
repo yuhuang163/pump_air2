@@ -245,9 +245,10 @@ static void pump_home_battery_update(ui_manager_context_t *thiz, battery_manager
 {
     EXCEPTION_CHECK_VOID(battery);
     uint8_t percent = battery->get_battery_percent();
-    uint8_t is_charging = battery->is_charge_plug_in();
+    uint8_t is_charging = BATTERY_IS_CHARGING(battery->get_charge_status());
     if (pump_info->percent == percent && 
         pump_info->is_charging == is_charging &&
+        is_charging == false &&
         pump_info->force_update == false) {
         return;
     }
@@ -479,9 +480,9 @@ static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t spe
     lv_obj_set_style_bg_opa(pump_info->speed_label, LV_OPA_COVER, 0);    /// 背景不透明
     lv_obj_set_style_bg_color(pump_info->speed_label, lv_color_hex(PUMP_IMG_UNSEL_COLOR), 0);   /// 设置背景颜色
     lv_obj_set_style_radius(pump_info->speed_label, 19, 0);   /// 高度 38 → 圆角设 19（或更大）
-    if(speed == 0) {
+    if (speed == 0) {
         lv_label_set_text(pump_info->speed_label_text, "Comfort");  /// 设置 label 文字内容和样式
-    } else if(speed == 1) {
+    } else if (speed == 1) {
         lv_label_set_text(pump_info->speed_label_text, "Regular");  /// 设置 label 文字内容和样式
     } else {
         lv_label_set_text(pump_info->speed_label_text, "Boost");  /// 设置 label 文字内容和样式
@@ -524,7 +525,7 @@ static void pump_home_mode_label_update(ui_manager_context_t *thiz, uint8_t mode
     }
     lv_label_set_text(pump_info->mode_text, home_mode_infos[mode_index].name);  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(pump_info->mode_text, lv_color_hex(PUMP_TEXT_UNSEL_COLOR), 0);
-    if(mode_index < 3) {
+    if (mode_index < 3) {
         lv_obj_set_style_text_font(pump_info->mode_text, &lv_font_roboto_21_medium, 0);  /// 设置字体
     } else {
         lv_obj_set_style_text_font(pump_info->mode_text, &lv_font_roboto_16_medium, 0);  /// 设置字体

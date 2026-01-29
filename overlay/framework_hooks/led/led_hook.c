@@ -104,7 +104,6 @@ static void toggle_night_light(led_manager_context_t *thiz)
         LOG_UI("night light is adaptive, ignore.");
         return;
     }
-
     thiz->priv.night_light_onoff = thiz->priv.night_light_onoff > 0 ? 0 : 1;
     led_status_msg_t msg = {
         .led_index = NIGHT_LIGHT_LED,
@@ -119,6 +118,12 @@ static void toggle_night_light(led_manager_context_t *thiz)
 static void set_night_light_level(led_manager_context_t *thiz, uint8_t level)
 {
     EXCEPTION_CHECK_VOID(thiz);
+    /// 如果当前窗口为充电窗口, 禁止夜灯自适应开关.
+    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) && thiz->priv.night_light_onoff == 0) {
+        LOG_UI("in charge window, night light is off, ignore set night light level.");
+        return;
+    }
     thiz->priv.night_light_onoff = level > 0 ? 1 : 0;
     thiz->priv.night_light_level = level;
     led_status_msg_t msg = {
@@ -153,7 +158,6 @@ static void night_light_adaptive_level_update(led_manager_context_t *thiz, uint8
         }
         return;
     } 
-
     /// 夜灯开关打开, 自适应调光开关打开.
     if (thiz->priv.night_light_onoff > 0 && thiz->priv.night_light_adaptive_dimming > 0) {
         thiz->priv.night_light_level = level;
@@ -209,8 +213,6 @@ static int on_broadcast_receiver_route(broadcast_mask_id_t id, void *context, in
         case ID_BROADCAST_SYS_STATE_CHANGE:
             if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
                 set_key_backlight(thiz, 0);
-            } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
-                set_key_backlight(thiz, 100);
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 

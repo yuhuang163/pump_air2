@@ -755,7 +755,8 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
     proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
     uint8_t mode = proc->pump->get_breast_pump_mode();  
-    pump_home_battery_update(thiz, proc->battery->get_battery_percent(), proc->battery->is_charge_plug_in());
+    pump_home_battery_update(thiz, proc->battery->get_battery_percent(), 
+        BATTERY_IS_CHARGING(proc->battery->get_charge_status()));
     pump_home_time_update(thiz, hold_time);
     pump_home_left_level_update(thiz, setting.level[0]);
     pump_home_right_level_update(thiz, setting.level[1]);

@@ -68,33 +68,6 @@ static int exit_airplane_mode_route(struct airplane_mode_context *ctx, int exit_
     if (st) {
         st->put_store_ram_val(STORE_ID_SYS_AIRPLANE_MODE_STATE, 0, 0, NULL);
     }
-    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    EXCEPTION_CHECK_INT(wm);
-    multi_func_msg_data_t msg = {0};
-    if (wm->is_window_factory_test_deployed() == 0) {
-        LOG_WM("goto factory test screen");
-        msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
-        wm->dispatch_new_window_args(wm, &msg);
-        return 0;
-    }
-
-    battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
-    if (battery && battery->is_vbus_plug_in() > 0) {
-        LOG_WM("vbus plug in, goto charge screen");
-        msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
-        wm->dispatch_new_window_args(wm, &msg);
-        return 0;
-    }
-
-    if (wm->is_window_guidance_deployed() == 0) {
-        LOG_WM("goto guide screen");
-        msg.union_body.extra.window_id = ID_WINDOW_GUIDE;
-        wm->dispatch_new_window_args(wm, &msg);
-        return 0;
-    }  
-
-    msg.union_body.extra.window_id = ID_WINDOW_PUMP;
-    wm->dispatch_new_window_args(wm, &msg);
     return 0;
 }
 

@@ -151,10 +151,10 @@ typedef struct storage_manager_context {
     sec_sys_ver_t *(*get_persist_ver_info)(void);
     factory_data_store_t *(*get_factory_data)(void);
     /// 通用数据存储写读操作接口.
-    int (*put_store_val)(persist_store_id_e id, int arg1, int arg2,  void *val_in);
-    int (*get_store_val)(persist_store_id_e id, int arg1, int arg2,  void *val_out);
-    int (*del_store_val)(persist_store_id_e id, int arg1, int arg2,  void *val_in);
-    void (*put_store_ram_val)(persist_store_id_e id, int arg1, int arg2,  void *val_in);
+    int (*put_store_val)(persist_store_id_e id, int arg1, int arg2, void *val_in);
+    int (*get_store_val)(persist_store_id_e id, int arg1, int arg2, void *val_out);
+    int (*del_store_val)(persist_store_id_e id, int arg1, int arg2, void *val_in);
+    void (*put_store_ram_val)(persist_store_id_e id, int arg1, int arg2, void *val_in);
     int (*get_store_ram_val)(persist_store_id_e id, int arg1, int arg2, void *val_out);
     int (*user_database_reset)(void);
     int (*flash_protect)(int protect_enable);  /// 保护flash读写操作.

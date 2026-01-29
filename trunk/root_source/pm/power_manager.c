@@ -85,12 +85,10 @@ static void set_pm_state_progress(const char *tag, int state, int t0)
 static int get_suspend_timeout(power_manager_context_t *thiz)
 {
     int timeout = PM_SUSPEND_TIME_S;
-#if IS_SUPPORT_MODULE_BATTERY
     battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     if (battery && battery->is_empty_battery() > 0) {
         timeout = PM_SUSPEND_LOW_BAT_TIME_S;
     }
-#endif
     // LOG_PM("suspend_timeout:(%d)s", timeout);
     return timeout;
 }
@@ -658,13 +656,11 @@ static void pm_wakeup(pm_wakeup_reason_e reason)
             }
             return;
         }   
-#if IS_SUPPORT_MODULE_BATTERY
         battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
-        if (battery && battery->is_charge_plug_in() > 0) {
-            LOG_PM("charging. ignore");
+        if (battery && battery->is_vbus_plug_in() > 0) {
+            LOG_PM("vbus plug in. ignore");
             return;
         }
-#endif
     }
 
     if (external_wakeup_policy(thiz, reason) < 0) {

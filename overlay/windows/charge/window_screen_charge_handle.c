@@ -60,7 +60,16 @@ static void charge_ui_common_cb(hdr_post_args_t *args)
         case CHARGE_HDR_EXIT_CHARGE_POLICY:
             LOG_WM("%s", args->name);
             EXCEPTION_CHECK_VOID(proc->wm);
+            if (proc->led && proc->led->hook && proc->led->hook->set_key_backlight) {
+                proc->led->hook->set_key_backlight(proc->led, 100);
+            }
             multi_func_msg_data_t msg = {0};
+            if (proc->airplane && proc->airplane->is_on_airplane_mode()) {
+                LOG_WM("goto airplane mode screen");
+                msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
+                proc->wm->dispatch_new_window_args(proc->wm, &msg);
+                return;
+            }
             if (proc->wm->is_window_guidance_deployed() == 0) {
                 LOG_WM("goto guide screen");
                 msg.union_body.extra.window_id = ID_WINDOW_GUIDE;
@@ -150,13 +159,21 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
+        if (proc->led && proc->led->hook) {
+            if (proc->led->hook->set_key_backlight) {
+                proc->led->hook->set_key_backlight(proc->led, 0);
+            }
+            
+            if (proc->led->hook->set_night_light_level) {   
+                proc->led->hook->set_night_light_level(proc->led, 0);
+            }
+        }
         if (proc->battery->is_adapter_mismatch()) {
             show_charge_adapter_ui(proc);
         } else {
             show_charging_ui(proc);
         }
         proc->charge_screen_on_time = get_timestamp();
-        // POST_TASK_HANDLER_DELAYED_ARG2(charge_screen_off_policy, proc, 1000, 0, CHARGE_SCREEN_OFF_TASK_NAME);
     }
     return 0;
 }
@@ -209,6 +226,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    proc->airplane = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;

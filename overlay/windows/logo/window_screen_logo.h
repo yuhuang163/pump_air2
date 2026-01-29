@@ -39,6 +39,7 @@ typedef struct {
     ui_manager_context_t *ui;
     airplane_mode_context_t *airplane;
     battery_manager_context_t *battery;
+    led_manager_context_t *led;
     uint32_t margic; /// 窗口标识.
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     uint16_t current_ui_type; /// 当前UI类型. logo_ui_type_e
