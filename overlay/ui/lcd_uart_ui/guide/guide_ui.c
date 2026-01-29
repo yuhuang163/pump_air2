@@ -31,17 +31,17 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void ui_display_home_prepare(ui_manager_context_t *thiz)
+void ui_display_guide_prepare(ui_manager_context_t *thiz)
 {
 
 }
 
-void ui_display_home_remove(ui_manager_context_t *thiz)
+void ui_display_guide_remove(ui_manager_context_t *thiz)
 {
 
 }
 
-int ui_display_home_process(ui_manager_context_t *thiz)
+int ui_display_guide_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_UINT(thiz);
     ui_animation_play_t *ani = &thiz->priv.play_info;

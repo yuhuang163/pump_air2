@@ -23,6 +23,8 @@ extern "C" {
 #define LOW_BAT_PERCENTAGE                20
 #endif
 
+#define BATTERY_IS_CHARGING(status)       ((status) == CHARGE_STATE_CHARGING || (status) == CHARGE_STATE_FULL)
+
 typedef enum {
     BATTERY_BROADCAST_CHARGE_PLUG_IN = 100, /// 充电插头插入.
     BATTERY_BROADCAST_CHARGE_PLUG_OUT,      /// 充电插头拔出.
@@ -43,7 +45,7 @@ struct rt_device_node;
 struct broadcast_obj;
 typedef struct battery_manager_context {
 /// public:
-    uint8_t (*is_charge_plug_in)(void);
+    uint8_t (*is_vbus_plug_in)(void);
     uint8_t (*get_charge_status)(void);
     void (*set_charge_ui_show_flag)(int flag);
     uint8_t (*show_charge_ui_if_need)(void *wm, int is_fg);

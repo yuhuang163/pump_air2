@@ -33,7 +33,7 @@ static void product_home_test_display_completed_cb(hdr_post_args_t *args)
     multi_func_msg_data_t msg = {0};
     if (wm->is_window_guidance_deployed() == 0) {
         LOG_WM("goto guide screen");
-        msg.union_body.extra.window_id = ID_WINDOW_HOME;
+        msg.union_body.extra.window_id = ID_WINDOW_GUIDE;
         wm->dispatch_new_window_args(wm, &msg);
         return;
     }
