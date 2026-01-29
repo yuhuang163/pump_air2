@@ -133,11 +133,11 @@ static int external_flash_test_cb(void)
     uint32_t start_time = 0;
     switch (mode) {
         case 0:
-            ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, 4096);
-            if (ret != 0) {
-                LOGE("===> step 0 erase failed, ret: %d", ret);
-                break;
-            }
+            // ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, 4096);
+            // if (ret != 0) {
+            //     LOGE("===> step 0 erase failed, ret: %d", ret);
+            //     break;
+            // }
             for (uint8_t i = 0; i < 2; i++) {
                 ret = platform_flash_read(PARTITION_IMG_EXT_DATA_NAME, addr, buf, sizeof(buf));
                 if (ret != 0) {
@@ -152,23 +152,23 @@ static int external_flash_test_cb(void)
             break;
 
         case 1:
-            addr = 0;
-            size = 4096;
-            for (int j = 0; j < sizeof(buf); j++) {
-                buf[j] = j;
-            }
-            for (int i = 0; i < size;) {
-                uint16_t write_size = ((size - i) > sizeof(buf)) ? sizeof(buf) : (size - i);
-                ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr, buf + i, write_size);
-                if (ret != 0) {
-                    LOGE("===> step 1 write failed, ret: %d", ret);
-                    break;
-                }
-                LOGE("===> external flash test!!!!! write size: %d, addr: %d, i: %d", write_size, addr, i);
-                i += write_size;
-                addr += write_size;
-            }
-            LOGI("===> step 1 write size: %d, addr: %d", size, addr);
+            // addr = 0;
+            // size = 4096;
+            // for (int j = 0; j < sizeof(buf); j++) {
+            //     buf[j] = j;
+            // }
+            // for (int i = 0; i < size;) {
+            //     uint16_t write_size = ((size - i) > sizeof(buf)) ? sizeof(buf) : (size - i);
+            //     ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr, buf + i, write_size);
+            //     if (ret != 0) {
+            //         LOGE("===> step 1 write failed, ret: %d", ret);
+            //         break;
+            //     }
+            //     LOGE("===> external flash test!!!!! write size: %d, addr: %d, i: %d", write_size, addr, i);
+            //     i += write_size;
+            //     addr += write_size;
+            // }
+            // LOGI("===> step 1 write size: %d, addr: %d", size, addr);
             mode = 2;
             break;
         case 2:
@@ -184,11 +184,11 @@ static int external_flash_test_cb(void)
             break;
         case 3:
             addr = 0x80000;
-            ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, 0x10000);
-            if (ret != 0) {
-                LOGE("===> step 3 erase failed, ret: %d", ret);
-                break;
-            }
+            // ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, 0x10000);
+            // if (ret != 0) {
+            //     LOGE("===> step 3 erase failed, ret: %d", ret);
+            //     break;
+            // }
             ret = platform_flash_read(PARTITION_IMG_EXT_DATA_NAME, addr, buf, sizeof(buf));
             if (ret != 0) {
                 LOG_PBUS("===> step 3 read failed, ret: %d", ret);
@@ -199,14 +199,14 @@ static int external_flash_test_cb(void)
             mode = 4;
             break;
         case 4:
-            addr = 0x80000;
-            memset(buf, 0x39, sizeof(buf));
-            ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr + 0x1000, buf, sizeof(buf));
-            if (ret != 0) {
-                LOGE("===> step 4 write failed, ret: %d", ret);
-                break;
-            }
-            LOGI("===> step 4 write size: %d, addr: %d", sizeof(buf), addr + 0x1000);
+            // addr = 0x80000;
+            // memset(buf, 0x39, sizeof(buf));
+            // ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr + 0x1000, buf, sizeof(buf));
+            // if (ret != 0) {
+            //     LOGE("===> step 4 write failed, ret: %d", ret);
+            //     break;
+            // }
+            // LOGI("===> step 4 write size: %d, addr: %d", sizeof(buf), addr + 0x1000);
             mode = 5;
             break;
         case 5:
@@ -221,13 +221,13 @@ static int external_flash_test_cb(void)
             mode = 6;
             break;
         case 6:
-            addr = 0x90000;
-            ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, 4096 * 2);
-            if (ret != 0) {
-                LOGE("===> step 0 erase failed, ret: %d", ret);
-                break;
-            }
-            LOGI("===> step 6 erase size: %d, addr: %d", 4096 * 2, addr);
+            // addr = 0x90000;
+            // ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, 4096 * 2);
+            // if (ret != 0) {
+            //     LOGE("===> step 0 erase failed, ret: %d", ret);
+            //     break;
+            // }
+            // LOGI("===> step 6 erase size: %d, addr: %d", 4096 * 2, addr);
             mode = 7;
             break;
         case 7:
@@ -242,14 +242,14 @@ static int external_flash_test_cb(void)
             mode = 8;
             break;
         case 8:
-            addr = 0x90000;
-            memset(buf, 0x55, sizeof(buf));
-            ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr + 4096 + 15, buf, sizeof(buf));
-            if (ret != 0) {
-                LOGE("===> step 8 write failed, ret: %d", ret);
-                break;
-            }
-            LOGI("===> step 8 write size: %d, addr: %d", sizeof(buf), addr + 4096 + 15);
+            // addr = 0x90000;
+            // memset(buf, 0x55, sizeof(buf));
+            // ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr + 4096 + 15, buf, sizeof(buf));
+            // if (ret != 0) {
+            //     LOGE("===> step 8 write failed, ret: %d", ret);
+            //     break;
+            // }
+            // LOGI("===> step 8 write size: %d, addr: %d", sizeof(buf), addr + 4096 + 15);
             mode = 9;
             break;
         case 9:
@@ -265,33 +265,33 @@ static int external_flash_test_cb(void)
             mode = 10;
             break;
         case 10:
-            addr = 0x80000;
-            size = 0x10000;
-            start_time = get_timestamp();
-            ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, size);
-            if (ret != 0) {
-                LOGE("===> step 10 erase failed, ret: %d", ret);
-                break;
-            }
-            LOGI("===> step 10 erase size: %d, addr: %d, time: %dms", size, addr, get_timestamp_ms(start_time));
+            // addr = 0x80000;
+            // size = 0x10000;
+            // start_time = get_timestamp();
+            // ret = platform_flash_erase(PARTITION_IMG_EXT_DATA_NAME, addr, size);
+            // if (ret != 0) {
+            //     LOGE("===> step 10 erase failed, ret: %d", ret);
+            //     break;
+            // }
+            // LOGI("===> step 10 erase size: %d, addr: %d, time: %dms", size, addr, get_timestamp_ms(start_time));
             mode = 11;
             break;
         case 11:
-            addr = 0x80000;
-            memset(buf, 0xAA, sizeof(buf));
-            ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr, buf, sizeof(buf));
-            if (ret != 0) {
-                LOGE("===> step 11 write failed, ret: %d", ret);
-                break;
-            }
-            addr = 0x80000 + sizeof(buf1) - sizeof(buf);
-            memset(buf, 0xBB, sizeof(buf));
-            ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr, buf, sizeof(buf));
-            if (ret != 0) {
-                LOGE("===> step 11 write failed, ret: %d", ret);
-                break;
-            }
-            LOGI("===> step 11 write size: %d, addr: %d", sizeof(buf), addr);
+            // addr = 0x80000;
+            // memset(buf, 0xAA, sizeof(buf));
+            // ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr, buf, sizeof(buf));
+            // if (ret != 0) {
+            //     LOGE("===> step 11 write failed, ret: %d", ret);
+            //     break;
+            // }
+            // addr = 0x80000 + sizeof(buf1) - sizeof(buf);
+            // memset(buf, 0xBB, sizeof(buf));
+            // ret = platform_flash_write(PARTITION_IMG_EXT_DATA_NAME, addr, buf, sizeof(buf));
+            // if (ret != 0) {
+            //     LOGE("===> step 11 write failed, ret: %d", ret);
+            //     break;
+            // }
+            // LOGI("===> step 11 write size: %d, addr: %d", sizeof(buf), addr);
             mode = 12;
             break;
         case 12:
@@ -341,7 +341,7 @@ void get_night_light_info_test(void)
 int run_user_thread_dispatch(void)
 {
 #if IS_SUPPORT_PRESSURE_TEST  
-    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 2000, "pressure_test");
+    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 2000, "pressure_test");
     get_night_light_info_test(); //开机默认关闭adaptive dimming状态
 #endif
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
