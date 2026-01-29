@@ -51,7 +51,7 @@ static void on_destory(void)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-const window_life_cycle_t m_window_home = {0};
+const window_life_cycle_t m_window_guide = {0};
 
 
 

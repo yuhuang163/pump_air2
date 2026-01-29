@@ -57,25 +57,27 @@ static void charge_ui_common_cb(hdr_post_args_t *args)
     LOG_WM("charge_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
     int action = args->arg1;
     switch (action) {
-        case CHARGE_HDR_EXIT_CHARGE_POLICY: {
+        case CHARGE_HDR_EXIT_CHARGE_POLICY:
             LOG_WM("%s", args->name);
             EXCEPTION_CHECK_VOID(proc->wm);
             multi_func_msg_data_t msg = {0};
+            if (proc->wm->is_window_guidance_deployed() == 0) {
+                LOG_WM("goto guide screen");
+                msg.union_body.extra.window_id = ID_WINDOW_GUIDE;
+                proc->wm->dispatch_new_window_args(proc->wm, &msg);
+                return;
+            } 
             LOG_WM("goto pump window.");
             msg.union_body.extra.window_id = ID_WINDOW_PUMP;
             proc->wm->dispatch_new_window_args(proc->wm, &msg);
             proc->goto_pump_window_flag = 0;
-        }
-        break;
-        case CHARGE_HDR_SCREEN_TIMEOUT_DETECT: {
+            break;
+        case CHARGE_HDR_SCREEN_TIMEOUT_DETECT:
             LOG_WM("%s", args->name);
-        }
-        break;
-        case CHARGE_HDR_CHARGE_SCREEN_ON: {
+            break;
+        case CHARGE_HDR_CHARGE_SCREEN_ON:
             LOG_WM("%s", args->name);
-        }
-        break;
-
+            break;
         default:
             break;
     }
@@ -95,7 +97,7 @@ static void on_charge_window_receive(broadcast_mask_id_t id, void *context, int 
             break;
         case ID_BROADCAST_BATTERY_STATE_CHANGE:
             if (arg1 == BATTERY_BROADCAST_CHARGE_STATE_CHANGE) {
-                if (arg2 != CHARGE_STATE_CHARGING && arg2 != CHARGE_STATE_FULL) {
+                if (BATTERY_IS_CHARGING(arg2) == 0) {
                     proc->goto_pump_window_flag = 1;
                     POST_TASK_HANDLER_NO_DELAY_ARG1(charge_ui_common_cb, proc, 
                         CHARGE_HDR_EXIT_CHARGE_POLICY, EXIT_CHARGE_POLICY_TASK_NAME);

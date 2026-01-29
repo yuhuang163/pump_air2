@@ -1,5 +1,5 @@
-#ifndef __HOME_UI_H__
-#define __HOME_UI_H__
+#ifndef __GUIDE_UI_H__
+#define __GUIDE_UI_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,9 +15,9 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void ui_display_home_prepare(ui_manager_context_t *thiz);
-void ui_display_home_remove(ui_manager_context_t *thiz);
-int ui_display_home_process(ui_manager_context_t *thiz);
+void ui_display_guide_prepare(ui_manager_context_t *thiz);
+void ui_display_guide_remove(ui_manager_context_t *thiz);
+int ui_display_guide_process(ui_manager_context_t *thiz);
 
 #ifdef __cplusplus
 }
