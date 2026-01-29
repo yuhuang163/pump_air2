@@ -24,13 +24,26 @@ static void product_home_test_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_product_test_t *proc = (ui_proc_product_test_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->st);
     window_manager_context_t *wm = proc->wm;
     EXCEPTION_CHECK_VOID(wm);
     if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE) == 0) {
         return;
     }
-    multi_func_msg_data_t msg = {0};
+    multi_func_msg_data_t msg = {0};    
+    if (proc->battery && proc->battery->is_vbus_plug_in() > 0) {
+        LOG_WM("vbus plug in, goto charge screen");
+        msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
+        wm->dispatch_new_window_args(wm, &msg);
+        return;
+    }
+  
+    if (proc->airplane && proc->airplane->is_on_airplane_mode()) {
+        LOG_WM("goto airplane mode screen");
+        msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
+        wm->dispatch_new_window_args(wm, &msg);
+        return;
+    }
+
     if (wm->is_window_guidance_deployed() == 0) {
         LOG_WM("goto guide screen");
         msg.union_body.extra.window_id = ID_WINDOW_GUIDE;

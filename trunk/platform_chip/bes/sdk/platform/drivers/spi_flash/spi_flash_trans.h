@@ -24,7 +24,7 @@ extern "C"
 #endif
 #define SPI_CMD_SIZE            32
 #define SPI_BUFFER_SIZE         4096
-#define SPI_NORFLASH_PAGE_SIZE  256
+#define SPI_NORFLASH_PAGE_SIZE  4092
 //---------------------------------------------------------------------------
 // API
 //---------------------------------------------------------------------------

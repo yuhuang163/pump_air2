@@ -88,7 +88,7 @@ static void polling_charge_status(void *user_data)
     EXCEPTION_CHECK_VOID(pm);
     uint8_t plug_status = 0, chage_state = 0;
     chage_state = DEVICE_IOCTL(thiz->priv.battery, OP_CODE_BAT_GET_CHARGE_STATUS);
-    if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
+    if (BATTERY_IS_CHARGING(chage_state)) {
         plug_status = 1;
     } else {
         plug_status = 0;
@@ -229,13 +229,13 @@ static uint8_t is_empty_battery(void)
     return 0;
 }
 
-static uint8_t local_is_charge_plug_in(void)
+static uint8_t local_is_vbus_plug_in(void)
 {
     EXCEPTION_CHECK_UINT(thiz);
     if (thiz->priv.battery == NULL) {
         return 0;
     }
-    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_CHARGE_IS_PLUG_IN, ret);
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_VBUS_IS_PLUG_IN, ret);
     return ret > 0 ? 1 : 0;
 }
 
@@ -253,9 +253,9 @@ static uint8_t local_charge_show_ui_if_need(void *wm, int is_fg)
     multi_func_msg_data_t msg = {0};
     EXCEPTION_CHECK_UINT(wm_ctx);
     EXCEPTION_CHECK_UINT(thiz->priv.battery);
-    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_CHARGE_IS_PLUG_IN, plug_in);
-    LOG_MISC("plug_in: %d, ui_has_show: %d, is_fg: %d", plug_in, thiz->priv.charge_ui_has_show, is_fg);
-    if (plug_in && !thiz->priv.charge_ui_has_show) {
+    uint8_t is_charging = BATTERY_IS_CHARGING(thiz->get_charge_status());
+    LOG_MISC("is_charging: %d, ui_has_show: %d, is_fg: %d", is_charging, thiz->priv.charge_ui_has_show, is_fg);
+    if (is_charging && !thiz->priv.charge_ui_has_show) {
         if (!is_fg) {
             msg.union_body.extra.is_background = 0x1;
         } 
@@ -340,7 +340,7 @@ void *register_module_for_battery_manager_new(list_head_t *list_head)
     MALLOC_FOR_PTR(ptr, battery_manager_context_t);
 
     ptr->priv.battery_percent = 5;
-    ptr->is_charge_plug_in = local_is_charge_plug_in;
+    ptr->is_vbus_plug_in = local_is_vbus_plug_in;
     ptr->get_charge_status = local_get_charge_status;
     ptr->set_charge_ui_show_flag = local_set_charge_ui_show_flag;
     ptr->show_charge_ui_if_need = local_charge_show_ui_if_need;

@@ -236,7 +236,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     proc->tests = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
-    proc->st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    proc->airplane = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "product_test_brc";

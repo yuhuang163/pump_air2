@@ -31,7 +31,7 @@ static void charge_adapter_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void charge_adapter_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-    ui_display_charge_screen_process(ui);
+    ui_display_charge_adapter_process(ui);
 }
 
 static void charge_adapter_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -79,7 +79,7 @@ void show_charge_adapter_ui(ui_proc_charge_t *proc)
         return;
     }
     ui_play_info_t play_info = {
-        .tag = "charge_screen",
+        .tag = "charge_adapter_screen",
         .fps = CHARGE_ANIMATION_FREQ,
         .progress_cb = charge_adapter_progress_cb,
         .display_prepare_cb = charge_adapter_ui_display_prepare,

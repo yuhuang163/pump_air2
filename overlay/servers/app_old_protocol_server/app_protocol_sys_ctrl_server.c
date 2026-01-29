@@ -95,7 +95,7 @@ void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
             chage_state = CHARGE_STATE_CHARGING;
         }
         LOG_SRV("chage_state=%d", chage_state);
-        if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
+        if (BATTERY_IS_CHARGING(chage_state)) {
             LOG_SRV("CMD-poweroff, but charging, not power off");
             return;
         }

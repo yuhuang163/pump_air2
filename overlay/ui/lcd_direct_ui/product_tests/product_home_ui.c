@@ -120,9 +120,10 @@ static void product_tests_battery_update(ui_manager_context_t *thiz, battery_man
 {
     EXCEPTION_CHECK_VOID(battery);
     uint8_t percent = battery->get_battery_percent();
-    uint8_t is_charging = battery->is_charge_plug_in();
+    uint8_t is_charging = BATTERY_IS_CHARGING(battery->get_charge_status());
     if (tests_info->percent == percent && 
         tests_info->is_charging == is_charging &&
+        is_charging == false &&
         tests_info->force_update == false) {
         return;
     }

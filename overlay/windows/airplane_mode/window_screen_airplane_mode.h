@@ -47,11 +47,10 @@ typedef struct ui_proc_airplane_mode {
     key_input_context_t *key;
     breast_pump_manager_context_t *pump;
     led_manager_context_t *led;
+    airplane_mode_context_t *airplane;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
-    // uint8_t charging_status; /// 充电状态
-    // uint8_t battery_percent; /// 电池电量百分比
     uint16_t current_ui_type; /// 当前UI类型. airplane_mode_ui_type_e
 } ui_proc_airplane_mode_t;
 

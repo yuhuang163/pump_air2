@@ -497,7 +497,7 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
             tmp = (uint32_t *)args;
             battery_health_set((uint8_t)tmp[0]);
             return 0;
-        case OP_CODE_BAT_CHARGE_IS_PLUG_IN:
+        case OP_CODE_BAT_VBUS_IS_PLUG_IN:
             return vbus_is_plug_in();
         case OP_CODE_BAT_ADD_CHARGE_EVENT_CALLBACK:
             add_charge_event_callback((charge_event_cb)args);

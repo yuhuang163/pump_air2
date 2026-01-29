@@ -81,7 +81,7 @@ uint8_t app_old_comm_get_sys_status(void)
     int pump_mode = pump_ctx->get_breast_pump_mode();
     uint8_t sys_status = APP_OLD_COMM_SYS_STOP;
 
-    if (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL) {
+    if (BATTERY_IS_CHARGING(chage_state)) {
         LOG_SRV("APP_OLD_COMM_SYS_CHANRGE");
         sys_status = APP_OLD_COMM_SYS_CHANRGE;
     }
@@ -92,7 +92,7 @@ uint8_t app_old_comm_get_sys_status(void)
     }
 
     if ((BREAST_PUMP_START == pump_status || BREAST_PUMP_CONTINUE == pump_status)
-        && (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL)) {
+        && BATTERY_IS_CHARGING(chage_state)) {
         LOG_SRV("APP_OLD_COMM_PUMP_RUN_IN_CHARGE");
         sys_status = APP_OLD_COMM_PUMP_RUN_IN_CHARGE;
     }
@@ -104,7 +104,7 @@ uint8_t app_old_comm_get_sys_status(void)
     }
 
     if ((BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_PAUSE == pump_status || BREAST_PUMP_FINISH == pump_status)
-        && (chage_state == CHARGE_STATE_CHARGING || chage_state == CHARGE_STATE_FULL)) {
+        && BATTERY_IS_CHARGING(chage_state)) {
         LOG_SRV("APP_OLD_COMM_PUMP_STOP_IN_CHARGE");
         sys_status = APP_OLD_COMM_PUMP_STOP_IN_CHARGE;
     }

@@ -444,12 +444,7 @@ void charge_vbus_init(void)
 
 bool vbus_is_plug_in(void)
 {
-#if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-    if (is_v3_hardware_version()) {
-        return hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0 ? true : false;
-    }
-#endif
-    return s_charge_status.plug_in;
+    return hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0 ? true : false;
 }
 
 void add_charge_event_callback(charge_event_cb cb)
@@ -462,12 +457,15 @@ int get_charge_state(void)
     if (s_charge_is_ready == false) {
         return CHARGE_STATE_ERROR;
     }
-    if (s_charge_status.charge_full && s_charge_status.plug_in) {
+
+    if (s_charge_status.charge_full &&
+        s_charge_status.plug_in) {
         return CHARGE_STATE_FULL;
     } else if (s_charge_status.plug_in) {
         return CHARGE_STATE_CHARGING;
-    } 
-    return CHARGE_STATE_UNCHARGE;
+    } else {
+        return CHARGE_STATE_UNCHARGE;
+    }
 }
 
 int get_charging_temperature(void) 

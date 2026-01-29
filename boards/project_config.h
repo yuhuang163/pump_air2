@@ -110,7 +110,7 @@ extern "C" {
 /// 资源存储类型
 #define IMG_RES_STORAGE_INTERNAL_FLASH                 0
 #define IMG_RES_STORAGE_EXTERNAL_FLASH                 1
-#define V3_IMG_RES_STORAGE_TYPE                        0
+#define V3_IMG_RES_STORAGE_TYPE                        1
 
 #ifdef __cplusplus
 }

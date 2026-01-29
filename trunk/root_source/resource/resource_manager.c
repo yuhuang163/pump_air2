@@ -441,7 +441,11 @@ static int img_res_validate_and_dump(uint32_t base_addr)
     }
 
 out:
-    LOG_RES("IMG RES VALIDATION RESULT: %s", ok ? "PASS" : "FAIL");
+#if V3_IMG_RES_STORAGE_TYPE == IMG_RES_STORAGE_INTERNAL_FLASH
+    LOG_RES("internal flash img res validation result: %s", ok ? "PASS" : "FAIL");
+#else
+    LOG_RES("external flash img res validation result: %s", ok ? "PASS" : "FAIL");
+#endif
     if (infos) {
         u_free(infos);
         infos = NULL;
