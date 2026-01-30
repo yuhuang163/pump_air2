@@ -148,8 +148,6 @@ int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, battery_mana
     uint8_t battery_percent = battery->get_battery_percent();
     uint8_t is_charging = BATTERY_IS_CHARGING(battery->get_charge_status());
     uint8_t battery_img_id = RESOURCE_ID_HOME_UNCHARGE_BATTERY_50;
-    LOG_UI("battery_icon_update: battery_percent: %d, is_charging: %d, s_battery_percent: %d, s_is_charging: %d, s_force_update: %d",
-         battery_percent, is_charging, s_battery_percent, s_is_charging, s_force_update);
     if (is_charging == 0) {
         if (battery_percent < 10) {
             if (get_timestamp() - animation_refresh_time >= HOME_CHARGE_BATTERY_REFRESH_TIME || s_is_charging != is_charging) {

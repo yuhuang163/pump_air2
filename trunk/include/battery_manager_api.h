@@ -48,20 +48,17 @@ typedef struct battery_manager_context {
 /// public:
     uint8_t (*is_vbus_plug_in)(void);
     uint8_t (*get_charge_status)(void);
-    void (*set_charge_ui_show_flag)(int flag);
-    uint8_t (*show_charge_ui_if_need)(void *wm, int is_fg);
     void (*set_state_change_listener)(on_charge_state_change_fptr cb);
 
     uint8_t (*is_low_battery)(void);
     uint8_t (*is_empty_battery)(void);
     uint8_t (*get_battery_percent)(void);
     uint8_t (*is_adapter_mismatch)(void); /// 适配器不匹配.
-    void (*set_battery_ui_show_flag)(int flag);
-    uint8_t (*show_battery_ui_if_need)(void *wm, int is_fg);
     void (*set_state_battery_listener)(on_battery_state_change_fptr cb);
 /// private:
     struct __battery_private {
-        uint8_t is_plug_state_changed;
+        uint8_t is_vbus_plug_in;
+        uint8_t is_charging;
         uint8_t charge_ui_has_show;
         uint8_t battery_percent;
         uint8_t low_battery;

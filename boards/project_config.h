@@ -78,9 +78,15 @@ extern "C" {
 /// 按键设备消息队列数量定义
 #define KEY_DEVICE_MESQ_NUM                            (1)
 /// 挂起超时
+#if 1
 #define PM_SUSPEND_TIME_S                              (15 * 60) /// 15分钟
 #define PM_IDLE_TIME_S                                 (12 * 60 + 30) /// 12分钟
 #define PM_SUSPEND_LOW_BAT_TIME_S                      (15 * 60) /// 15分钟
+#else
+#define PM_SUSPEND_TIME_S                              (2 * 30) /// 1分
+#define PM_IDLE_TIME_S                                 (1 * 30) /// 30秒
+#define PM_SUSPEND_LOW_BAT_TIME_S                      (2 * 30) /// 1分
+#endif
 /// 屏幕串口消息队列数量定义
 #define LCD_UART_MESQ_NUM                              (1)
 /// 文件名长度
