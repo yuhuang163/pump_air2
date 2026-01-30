@@ -65,7 +65,7 @@ typedef enum {
 
     APP_OLD_COMM_CID_CTRL_DEV = 0xC0, // 功能控制
     APP_OLD_COMM_CID_SET_BIND = 0xC1, // 设置绑定
-    //PUMP_BLE_RGB_SET_CTRL = 0xC2, // 小夜灯灯控制
+    APP_OLD_COMM_CID_PUMP_BLE_RGB_SET_CTRL = 0xC2, // 小夜灯灯控制
     APP_OLD_COMM_CID_CTRL_DEV_STATUS = 0xC3, // 设备状态控制 主要屏幕亮度，夜灯亮度
 
     APP_OLD_COMM_CID_USER_DEFINE = 0xC4,     // 自定义模式设置
