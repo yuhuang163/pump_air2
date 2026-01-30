@@ -105,47 +105,56 @@ static uint8_t get_battery_img_id(uint8_t battery_percent)
     if (battery_percent >= 100) {
         result = RESOURCE_ID_CHARGE_PAGE_BATT_100;
     } else if (battery_percent >= 75) {
-        remainder = charge_info->charge_index % 2;
-        if (remainder == 0) {
+        if (charge_info->charge_index == 0) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_75;
+            charge_info->charge_index = 1;
         } else {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_100;
+            charge_info->charge_index = 0;
         }
     } else if (battery_percent >= 50) {
-        remainder = charge_info->charge_index % 3;
-        if (remainder == 0) {
+        if (charge_info->charge_index == 0) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_50;
-        } else if (remainder == 1) {
+            charge_info->charge_index = 1;
+        } else if (charge_info->charge_index == 1) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_75;
+            charge_info->charge_index = 2;
         } else {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_100;
+            charge_info->charge_index = 0;
         }
     } else if (battery_percent >= 25) {
-        remainder = charge_info->charge_index % 4;
-        if (remainder == 0) {
+        if (charge_info->charge_index == 0) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_25;
-        } else if (remainder == 1) {
+            charge_info->charge_index = 1;
+        } else if (charge_info->charge_index == 1) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_50;
-        } else if (remainder == 2) {
+            charge_info->charge_index = 2;
+        } else if (charge_info->charge_index == 2) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_75;
+            charge_info->charge_index = 3;
         } else {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_100;
+            charge_info->charge_index = 0;
         }
     } else {
-        remainder = charge_info->charge_index % 5;
-        if (remainder == 0) {
+        if (charge_info->charge_index == 0) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_0;
-        } else if (remainder == 1) {
+            charge_info->charge_index = 1;
+        } else if (charge_info->charge_index == 1) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_25;
-        } else if (remainder == 2) {
+            charge_info->charge_index = 2;
+        } else if (charge_info->charge_index == 2) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_50;
-        } else if (remainder == 3) {
+            charge_info->charge_index = 3;
+        } else if (charge_info->charge_index == 3) {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_75;
+            charge_info->charge_index = 4;
         } else {
             result = RESOURCE_ID_CHARGE_PAGE_BATT_100;
+            charge_info->charge_index = 0;
         }
     }
-    charge_info->charge_index++;
     return result;
 }
 

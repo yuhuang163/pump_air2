@@ -38,8 +38,11 @@ const static uint16_t home_charge_battery_ids[HOME_CHARGE_BATTERY_MAX_COUNT] = {
 
 static lv_obj_t * battery_icon_img;
 static res_img_info_t battery_icon_info;
-static uint32_t charging_refresh_time = 0;
-static uint8_t charge_index = 0;
+static uint32_t animation_refresh_time = 0;
+static uint8_t page_index = 0;
+static uint8_t s_is_charging = 0;
+static uint8_t s_battery_percent = 0;
+static uint8_t s_force_update = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -69,51 +72,59 @@ static uint8_t get_battery_img_id(uint8_t battery_percent)
 static uint8_t get_charge_battery_img_id(uint8_t battery_percent)
 {
     uint8_t result = RESOURCE_ID_HOME_EMPTY_POWER;
-    uint8_t remainder = 0;
     if (battery_percent >= 100) {
         result = RESOURCE_ID_HOME_CHARGE_100;
     } else if (battery_percent >= 75) {
-        remainder = charge_index % 2;
-        if (remainder == 0) {
+        if (page_index == 0) {
             result = RESOURCE_ID_HOME_CHARGE_75;
+            page_index = 1;
         } else {
             result = RESOURCE_ID_HOME_CHARGE_100;
+            page_index = 0;
         }
     } else if (battery_percent >= 50) {
-        remainder = charge_index % 3;
-        if (remainder == 0) {
+        if (page_index == 0) {
             result = RESOURCE_ID_HOME_CHARGE_50;
-        } else if (remainder == 1) {
+            page_index = 1;
+        } else if (page_index == 1) {
             result = RESOURCE_ID_HOME_CHARGE_75;
+            page_index = 2;
         } else {
             result = RESOURCE_ID_HOME_CHARGE_100;
+            page_index = 0;
         }
     } else if (battery_percent >= 25) {
-        remainder = charge_index % 4;
-        if (remainder == 0) {
+        if (page_index == 0) {
             result = RESOURCE_ID_HOME_CHARGE_25;
-        } else if (remainder == 1) {
+            page_index = 1;
+        } else if (page_index == 1) {
             result = RESOURCE_ID_HOME_CHARGE_50;
-        } else if (remainder == 2) {
+            page_index = 2;
+        } else if (page_index == 2) {
             result = RESOURCE_ID_HOME_CHARGE_75;
+            page_index = 3;
         } else {
             result = RESOURCE_ID_HOME_CHARGE_100;
+            page_index = 0;
         }
     } else {
-        remainder = charge_index % 5;
-        if (remainder == 0) {
+        if (page_index == 0) {
             result = RESOURCE_ID_HOME_EMPTY_POWER;
-        } else if (remainder == 1) {
+            page_index = 1;
+        } else if (page_index == 1) {
             result = RESOURCE_ID_HOME_CHARGE_25;
-        } else if (remainder == 2) {
+            page_index = 2;
+        } else if (page_index == 2) {
             result = RESOURCE_ID_HOME_CHARGE_50;
-        } else if (remainder == 3) {
+            page_index = 3;
+        } else if (page_index == 3) {
             result = RESOURCE_ID_HOME_CHARGE_75;
+            page_index = 4;
         } else {
             result = RESOURCE_ID_HOME_CHARGE_100;
+            page_index = 0;
         }
     }
-    charge_index++;
     return result;
 }
 
@@ -121,19 +132,48 @@ static uint8_t get_charge_battery_img_id(uint8_t battery_percent)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t battery_percent, uint8_t is_charging)
+void battery_icon_init(ui_manager_context_t *thiz)
 {
+    EXCEPTION_CHECK_VOID(thiz);
+    animation_refresh_time = 0;
+    page_index = 0;
+    s_is_charging = 0;
+    s_battery_percent = 255;
+    s_force_update = true;
+}
+
+int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, battery_manager_context_t *battery)
+{
+    EXCEPTION_CHECK_INT(battery);
+    uint8_t battery_percent = battery->get_battery_percent();
+    uint8_t is_charging = BATTERY_IS_CHARGING(battery->get_charge_status());
     uint8_t battery_img_id = RESOURCE_ID_HOME_UNCHARGE_BATTERY_50;
+    LOG_UI("battery_icon_update: battery_percent: %d, is_charging: %d, s_battery_percent: %d, s_is_charging: %d, s_force_update: %d",
+         battery_percent, is_charging, s_battery_percent, s_is_charging, s_force_update);
     if (is_charging == 0) {
-        battery_img_id = get_battery_img_id(battery_percent);
-        common_ui_img_resource_init(thiz, battery_img_id, &battery_icon_info);
+        if (battery_percent < 10) {
+            if (get_timestamp() - animation_refresh_time >= HOME_CHARGE_BATTERY_REFRESH_TIME || s_is_charging != is_charging) {
+                battery_img_id = page_index == 0 ? RESOURCE_ID_HOME_EMPTY_POWER : RESOURCE_ID_HOME_LOW_POWER;
+                page_index = page_index == 0 ? 1 : 0;
+                common_ui_img_resource_init(thiz, battery_img_id, &battery_icon_info);
+            } else {
+                return 0;
+            }
+        } else {
+            if (s_battery_percent != battery_percent || s_is_charging != is_charging || s_force_update == true) {
+                battery_img_id = get_battery_img_id(battery_percent);
+                common_ui_img_resource_init(thiz, battery_img_id, &battery_icon_info);
+            } else {
+                return 0;
+            }
+        }
     } else {
-        if (get_timestamp() - charging_refresh_time < HOME_CHARGE_BATTERY_REFRESH_TIME) {
+        if (get_timestamp() - animation_refresh_time >= HOME_CHARGE_BATTERY_REFRESH_TIME || s_is_charging != is_charging) {
+            battery_img_id = get_charge_battery_img_id(battery_percent);
+            common_ui_img_resource_init(thiz, battery_img_id, &battery_icon_info);
+        } else {
             return 0;
         }
-        charging_refresh_time = get_timestamp();
-        battery_img_id = get_charge_battery_img_id(battery_percent);
-        common_ui_img_resource_init(thiz, battery_img_id, &battery_icon_info);
     }
     EXCEPTION_CHECK_INT(battery_icon_info.data);
     if (battery_icon_img == NULL || !lv_obj_is_valid(battery_icon_img)) {
@@ -145,6 +185,10 @@ int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t batt
         battery_icon_info.size, "baj");
     lv_image_set_src(battery_icon_img, (const void *)&battery_icon_img_path);
     lv_obj_align(battery_icon_img, LV_ALIGN_TOP_LEFT, 185 + 5, 40);
+    s_battery_percent = battery_percent;
+    s_is_charging = is_charging;
+    animation_refresh_time = get_timestamp();
+    s_force_update = false;
     return 0;
 }
 
@@ -152,7 +196,10 @@ void battery_icon_deinit(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     battery_icon_img = NULL;
-    charging_refresh_time = 0;
-    charge_index = 0;
+    animation_refresh_time = 0;
+    page_index = 0;
+    s_is_charging = 0;
+    s_battery_percent = 0;
+    s_force_update = 0;
     common_ui_img_resource_deinit(thiz, &battery_icon_info);
 }

@@ -40,9 +40,6 @@ typedef struct {
     lv_obj_t * text;
     res_img_info_t icon_info;
     uint8_t force_update;
-    uint8_t is_connected;
-    uint8_t percent;
-    uint8_t is_charging;
     uint8_t page_index;  
 } guide_display_info_t;
 /*
@@ -134,40 +131,6 @@ static void guide_bg_update(ui_manager_context_t *thiz)
     }
 }
 #endif
-
-static void guide_ble_update(ui_manager_context_t *thiz, ble_manager_context_t *ble)
-{
-    EXCEPTION_CHECK_VOID(ble);
-    uint8_t is_connected = ble->ble_is_connected();
-    if (guide_info->is_connected == is_connected && guide_info->force_update == false) {
-        return;
-    }
-
-    if (ble_ui_update(thiz, guide_info->root, is_connected) != 0) {
-        return;
-    }
-    guide_info->is_connected = is_connected;
-}
-
-static void guide_battery_update(ui_manager_context_t *thiz, battery_manager_context_t *battery)
-{
-    EXCEPTION_CHECK_VOID(battery);
-    uint8_t percent = battery->get_battery_percent();
-    uint8_t is_charging = BATTERY_IS_CHARGING(battery->get_charge_status());
-    if (guide_info->percent == percent && 
-        guide_info->is_charging == is_charging &&
-        is_charging == false &&
-        guide_info->force_update == false) {
-        return;
-    }
-
-    if (battery_icon_update(thiz, guide_info->root, percent, is_charging) != 0) {
-        return;
-    }
-    
-    guide_info->percent = percent;
-    guide_info->is_charging = is_charging;
-}
 
 static int guide_icon_image_update(ui_manager_context_t *thiz, uint8_t page_index)
 {
@@ -299,6 +262,8 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     guide_ui_root_init();
+    battery_icon_init(thiz);
+    ble_ui_init(thiz);
     guide_info->force_update = true;
 }
 
@@ -306,6 +271,8 @@ void ui_display_guide_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(guide_info);
+    battery_icon_deinit(thiz);
+    ble_ui_deinit(thiz);
     common_ui_img_resource_deinit(thiz, &guide_info->icon_info);
     LVGL_OBJ_DELETE(guide_info->root);  /// 删除 root 时会自动删除所有子对象（包括 qrcode_container） 
     u_free(guide_info);
@@ -322,8 +289,8 @@ int ui_display_guide_process(ui_manager_context_t *thiz)
 #if IS_SUPPORT_GUIDE_COMP_BG
     guide_bg_update(thiz);
 #endif
-    guide_ble_update(thiz, proc->ble);
-    guide_battery_update(thiz, proc->battery);
+    ble_ui_update(thiz, guide_info->root, proc->ble);
+    battery_icon_update(thiz, guide_info->root, proc->battery);
     guide_ui_update(thiz, proc->page_index);
     thiz->priv.fps_count++;
     guide_info->force_update = false;
