@@ -155,6 +155,21 @@ static _Bool charge_pd_power_is_ready(void)
     return true;
 }
 
+static void charge_pd_gpio_init(void)
+{
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        (enum HAL_IOMUX_PIN_T)CHARGE_PD_I2C_CLK_PIN, 
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL,
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(CHARGE_PD_I2C_CLK_PIN, HAL_GPIO_DIR_IN, 0);
+    gpio_map.pin = (enum HAL_IOMUX_PIN_T)CHARGE_PD_I2C_DATA_PIN;
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(CHARGE_PD_I2C_DATA_PIN, HAL_GPIO_DIR_IN, 0);
+}
+
 /*
  * GLOBAL FUNCTION DEFINITIONS
  *****************************************************************************************
@@ -164,27 +179,39 @@ int bsp_charge_pd_is_ready(void *args)
     return s_charge_pd_is_ready;
 }
 
+void bsp_charge_pd_init(void)
+{
+    charge_pd_gpio_init();
+    msleep(10);
+}
+
 void charge_pd_status_poll(void)
 {
     if (hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0) {
         if (s_charge_pd_onoff == false) {
             s_charge_pd_onoff = true;
             s_charge_pd_wait_ready = 5;
+            LOG_PBUS("charge pd power on");
             bsp_i2c_init(CHARGE_PD_I2C_ID);
         }
+
         if (s_charge_pd_wait_ready > 0) {
             s_charge_pd_wait_ready --;
             if (s_charge_pd_wait_ready == 0) {
                 s_charge_pd_is_ready = charge_pd_power_is_ready();
+                LOG_PBUS("%s", s_charge_pd_is_ready ? "CHARGE_EVENT_PLUG_IN" : "CHARGE_EVENT_ADAPTER_MISMATCH");
                 charge_event_internal_cb(s_charge_pd_is_ready ? CHARGE_EVENT_PLUG_IN : CHARGE_EVENT_ADAPTER_MISMATCH);
             }
         }
+
     } else {
         if (s_charge_pd_onoff == true) {
             s_charge_pd_onoff = false;
             s_charge_pd_is_ready = false;
             bsp_i2c_deinit(CHARGE_PD_I2C_ID);
+            LOG_PBUS("%s", "CHARGE_EVENT_PLUG_OUT");
             charge_event_internal_cb(CHARGE_EVENT_PLUG_OUT);
+            charge_pd_gpio_init();
         }
     }
 }

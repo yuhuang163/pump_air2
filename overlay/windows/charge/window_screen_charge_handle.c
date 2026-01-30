@@ -15,6 +15,7 @@
 #define PAGE_STATIC_NAME                        charge
 #define PAGE_NAME_STR                           "charge"
 #define EXIT_CHARGE_POLICY_TASK_NAME            "exit_charge_policy"
+#define EXIT_CHARGE_ADAPTER_MISMATCH_TASK_NAME  "exit_charge_adapter_mismatch"
 #define CHARGE_SCREEN_TIMEOUT_DETECT_TASK_NAME  "charge_screen_timeout_detect"
 #define CHARGE_SCREEN_ON_TASK_NAME              "charge_screen_on"
 
@@ -79,7 +80,7 @@ static void charge_ui_common_cb(hdr_post_args_t *args)
             LOG_WM("goto pump window.");
             msg.union_body.extra.window_id = ID_WINDOW_PUMP;
             proc->wm->dispatch_new_window_args(proc->wm, &msg);
-            proc->goto_pump_window_flag = 0;
+            proc->exit_charge_window_flag = 0;
             break;
         case CHARGE_HDR_SCREEN_TIMEOUT_DETECT:
             LOG_WM("%s", args->name);
@@ -107,15 +108,27 @@ static void on_charge_window_receive(broadcast_mask_id_t id, void *context, int 
         case ID_BROADCAST_BATTERY_STATE_CHANGE:
             if (arg1 == BATTERY_BROADCAST_CHARGE_STATE_CHANGE) {
                 if (BATTERY_IS_CHARGING(arg2) == 0) {
-                    proc->goto_pump_window_flag = 1;
+                    proc->exit_charge_window_flag = 1;
+                    LOG_WM("post exit charge policy task");
                     POST_TASK_HANDLER_NO_DELAY_ARG1(charge_ui_common_cb, proc, 
                         CHARGE_HDR_EXIT_CHARGE_POLICY, EXIT_CHARGE_POLICY_TASK_NAME);
-                } else {
-                    if (proc->goto_pump_window_flag == 1) {
-                        proc->goto_pump_window_flag = 0;
-                        REMOVE_TASK_HANDLER_DIRECTLY(EXIT_CHARGE_POLICY_TASK_NAME);
-                    }
                 }
+            }  else if (arg1 == BATTERY_BROADCAST_CHARGE_ADAPTER_MISMATCH) {
+                LOG_WM("show charge adapter ui");
+                show_charge_adapter_ui(proc);
+            } else if (arg1 == BATTERY_BROADCAST_CHARGE_ADAPTER_MISMATCH_RECOVER) {
+                proc->exit_charge_window_flag = 1;
+                LOG_WM("post exit charge adapter mismatch task");
+                POST_TASK_HANDLER_NO_DELAY_ARG1(charge_ui_common_cb, proc, 
+                    CHARGE_HDR_EXIT_CHARGE_POLICY, EXIT_CHARGE_ADAPTER_MISMATCH_TASK_NAME);
+            } else if (arg1 == BATTERY_BROADCAST_CHARGE_PLUG_IN) {
+                if (proc->exit_charge_window_flag == 1) {
+                    proc->exit_charge_window_flag = 0;
+                    LOG_WM("remove exit charge policy task");
+                    REMOVE_TASK_HANDLER_DIRECTLY(EXIT_CHARGE_POLICY_TASK_NAME);
+                }
+            } else {
+                LOG_WM("charge window receive broadcast: %d, %d", arg1, arg2);
             }
             break;      
         default:
@@ -133,7 +146,7 @@ static int on_charge_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t ke
     ui_proc_charge_t *proc = user_data;
     if (keytype == KEY_EVENT_LONG_3S) {
         if (keycode == KEY_CODE_POWER) {
-            proc->goto_pump_window_flag = 1;
+            proc->exit_charge_window_flag = 1;
             POST_TASK_HANDLER_NO_DELAY_ARG1(charge_ui_common_cb, proc, 
                 CHARGE_HDR_EXIT_CHARGE_POLICY, EXIT_CHARGE_POLICY_TASK_NAME);
         }
@@ -174,6 +187,9 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
             show_charging_ui(proc);
         }
         proc->charge_screen_on_time = get_timestamp();
+        if (proc->pm) {
+            proc->pm->acquire_wakelock("charge_screen", -1); /// 永久持有锁.
+        }
     }
     return 0;
 }
@@ -192,6 +208,9 @@ static int exit_event_cb(window_lift_cycle_e new_state, const struct window_cont
             REMOVE_ALL_HANDER_TASK();
             if (proc->key) {
                 proc->key->remove_keyevent_handler(on_charge_keyevent_hdr);
+            }
+            if (proc->pm) {
+                proc->pm->release_wakelock("charge_screen");
             }
             break;
         case ID_SCR_STATE_ON_DESTORY:
@@ -227,6 +246,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     proc->airplane = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
+    proc->pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;

@@ -49,10 +49,11 @@ typedef struct {
     key_input_context_t *key;
     led_manager_context_t *led;
     airplane_mode_context_t *airplane;
+    power_manager_context_t *pm;
     broadcast_obj_t receiver;
     uint32_t margic;
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
-    uint8_t goto_pump_window_flag; /// 是否需要跳转到泵奶窗口.
+    uint8_t exit_charge_window_flag; /// 需要退出充电窗口标志.
     uint16_t current_ui_type; /// 当前UI类型. charge_ui_type_e
     uint8_t is_charge_screen_on; /// 是否充电动画展示中
     uint32_t charge_screen_on_time; /// 充电动画关闭时间.

@@ -53,15 +53,17 @@ static void polling_battery_status(void *user_data)
         thiz->priv.low_battery = bat_tmp;
     }
 
+#if 0
     if (!thiz->priv.is_plug_state_changed && thiz->priv.low_battery) {      
         if (thiz->priv.battery_ui_has_show == 0) {
             if (!pm->is_pm_suspend()) {
-                LOG_MISC("#show_battery_ui_if_need");
+                // LOG_MISC("#show_battery_ui_if_need");
                 // ctx->show_battery_ui_if_need(wm, false); /// 低电量提醒UI,仅在未休眠时弹出提醒.
             }
         }
         msleep(1000);
     }
+#endif
 
     int bat_per = DEVICE_READ(thiz->priv.battery);
     LOG_MISC("#now bat percent: %d, is_low_battery: %d, is_plug: %d", 
@@ -132,6 +134,7 @@ static void charge_event_callback(charge_event_e event)
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_VOID(wm);
     EXCEPTION_CHECK_VOID(thiz);
+    LOG_MISC("charge event: %d", event);
     if (event == CHARGE_EVENT_ADAPTER_MISMATCH) {
         LOG_MISC("charge event: adapter mismatch");
         thiz->priv.is_adapter_mismatch = 1;
@@ -144,12 +147,8 @@ static void charge_event_callback(charge_event_e event)
     
     if (thiz->priv.is_adapter_mismatch) {
         thiz->priv.is_adapter_mismatch = 0;
-        if (wm->is_current_window(wm, ID_WINDOW_CHARGE)) {
-            multi_func_msg_data_t __msg = {0};
-            __msg.union_body.extra.window_id = ID_WINDOW_PUMP;
-            LOG_WM("goto pump window");
-            wm->dispatch_new_window_args(wm, &__msg);
-        }
+        LOG_MISC("charge event: adapter mismatch recover");
+        SEND_BROADCAST_ARGS1(ID_BROADCAST_BATTERY_STATE_CHANGE, BATTERY_BROADCAST_CHARGE_ADAPTER_MISMATCH_RECOVER);
     }
 
     int misc_msg = 0;
