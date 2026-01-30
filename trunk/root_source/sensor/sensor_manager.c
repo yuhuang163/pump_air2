@@ -150,11 +150,11 @@ static void on_sensor_input_receiver(broadcast_mask_id_t id, void *context, int 
     sensor_manager_context_t *ctx = context;
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 LOG_SENSOR("STOP_TIMER: sensor polling_timer");
                 STOP_TIMER(ctx->priv.polling_timer);
                 ctx->priv.do_polling = 0;
-            } else {
+            } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
                 LOG_SENSOR("START_TIMER: id = 0x%lx, sensor polling_timer, delay_ms: %d",
                         id.code, SENSOR_THREAD_POLLING_PERIOD);
                 STOP_TIMER(ctx->priv.polling_timer);

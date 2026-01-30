@@ -139,7 +139,7 @@ static void on_motor_broadcast_receiver(broadcast_mask_id_t id, void *context, i
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE:
-            if (arg1 == ID_SYS_PM_RESUME) {
+            if (arg1 == PM_BROADCAST_SYS_RESUME) {
                 LOG_MOTOR("reset history_node");
             }
             break;

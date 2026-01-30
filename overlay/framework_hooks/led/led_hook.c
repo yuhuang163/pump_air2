@@ -208,6 +208,7 @@ static int get_night_light_onoff(led_manager_context_t *thiz)
 static int on_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
     led_manager_context_t *thiz = context;
+    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_INT(thiz);
     switch (id.code) {
         case ID_BROADCAST_SYS_STATE_CHANGE:
@@ -216,10 +217,20 @@ static int on_broadcast_receiver_route(broadcast_mask_id_t id, void *context, in
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 set_key_backlight(thiz, 0);
-            } else if (arg1 == ID_SYS_PM_RESUME) {
-                set_key_backlight(thiz, 100);
+            } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
+                if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0) {
+                    set_key_backlight(thiz, 100); /// 充电窗口退出, 恢复背光灯.
+                }
+            } else if (arg1 == PM_BROADCAST_SYS_IDLE) {
+                if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0) {
+                    set_key_backlight(thiz, 50); /// 充电窗口退出, 恢复背光灯.
+                }
+            } else if (arg1 == PM_BROADCAST_SYS_IDLE_RELEASE) {
+                if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0) {
+                    set_key_backlight(thiz, 100); /// 充电窗口退出, 恢复背光灯.
+                }
             }
             break;
         default:
@@ -238,7 +249,7 @@ static int on_post_init_route(led_manager_context_t *thiz)
         int tmp = 0;
         st->get_store_ram_val(STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, 0, 0, &tmp);
         thiz->priv.night_light_adaptive_switch = tmp;
-        LOG_UI("night light adaptive switch: %d", thiz->priv.night_light_adaptive_switch);
+        LOG_MISC("night light adaptive switch: %d", thiz->priv.night_light_adaptive_switch);
     }
 #if IS_SUPPORT_ADAPTIVE_DIMMING
     adaptive_dimming_init();

@@ -312,10 +312,10 @@ static void on_storage_broadcast_route(broadcast_mask_id_t id, void *context, in
     
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 REMOVE_TASK_HANDLER_DIRECTLY(STORAGE_RAM_SYNC_FLASH_TASK_NAME);
                 POST_TASK_HANDLER_DELAYED_ARG2(hdr_storage_work_cb, 500, 0, st, STORAGE_PERSIST_TASK_POLICY1_NAME);
-            } else if (arg1 == ID_SYS_PM_RESUME) {
+            } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
                 POST_TASK_HANDLER_DELAYED_ARG1(storage_ram_sync_flash_cb, 
                     STORAGE_RAM_SYNC_FLASH_INTERVAL_MS, st, STORAGE_RAM_SYNC_FLASH_TASK_NAME);
             }

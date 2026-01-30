@@ -94,7 +94,7 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
             LOG_WM("received PM_STATE_CHANGE.");
-            if (pm_state != ID_SYS_PM_RESUME) {
+            if (pm_state != PM_BROADCAST_SYS_RESUME) {
                 LOG_WM("ignore: %d\n", wakeup_reason);
                 break;
             }

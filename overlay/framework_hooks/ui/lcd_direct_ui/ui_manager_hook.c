@@ -281,10 +281,10 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 ui->priv.is_playing_ui_animation = false;
                 ui->set_lcd_backlight(ui, 0);
-            } else if (arg1 == ID_SYS_PM_RESUME) {
+            } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
                 ui->set_lcd_backlight(ui, 100);
             }
             break;

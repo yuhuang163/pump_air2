@@ -40,11 +40,11 @@ static void ble_pm_change_handler(int arg1)
         return;
     }
 
-    if (arg1 == ID_SYS_PM_RESUME) {
+    if (arg1 == PM_BROADCAST_SYS_RESUME) {
         ble_opt_adv_id_e adv = BLE_OPT_ADV_FAST;
         LOG_BLE("ble adv fast start");
         ctx->dispatch_ble_event_wrapper(ctx, BLE_MSG_SET_ADV_START, (uint8_t *)&adv, sizeof(adv));
-    } else {
+    } else if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
         LOG_BLE("ble adv stop");
         ble_opt_adv_id_e adv = BLE_OPT_ADV_STOP;
     }
