@@ -50,7 +50,7 @@ static int on_algo_receiver_route(broadcast_mask_id_t id, void *context, int arg
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE:             
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 LOG_ALGO("algo cannot use");
             } else {
                 if (ctx->priv.algo_inited == 1) {

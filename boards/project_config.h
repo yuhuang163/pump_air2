@@ -78,8 +78,9 @@ extern "C" {
 /// 按键设备消息队列数量定义
 #define KEY_DEVICE_MESQ_NUM                            (1)
 /// 挂起超时
-#define PM_SUSPEND_TIME_S                              (10000)
-#define PM_SUSPEND_LOW_BAT_TIME_S                      (10000)
+#define PM_SUSPEND_TIME_S                              (15 * 60) /// 15分钟
+#define PM_IDLE_TIME_S                                 (12 * 60 + 30) /// 12分钟
+#define PM_SUSPEND_LOW_BAT_TIME_S                      (15 * 60) /// 15分钟
 /// 屏幕串口消息队列数量定义
 #define LCD_UART_MESQ_NUM                              (1)
 /// 文件名长度
@@ -111,7 +112,8 @@ extern "C" {
 #define IMG_RES_STORAGE_INTERNAL_FLASH                 0
 #define IMG_RES_STORAGE_EXTERNAL_FLASH                 1
 #define V3_IMG_RES_STORAGE_TYPE                        1
-
+/// 支持睡眠关机
+#define IS_SUPPORT_SLEEP_POWER_OFF                     (1)
 #ifdef __cplusplus
 }
 #endif

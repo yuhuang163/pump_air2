@@ -191,11 +191,11 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 ui->priv.is_playing_ui_animation = false;
                 STOP_TIMER(ui->priv.lv_timer);
                 ui->priv.lv_tick_timer_running = false;
-            } else {
+            } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
                 STOP_TIMER(ui->priv.lv_timer);
                 START_TIMER(ui->priv.lv_timer, LVGL_TIME_TICK_PERIOD);
                 ui->priv.lv_tick_timer_running = true;

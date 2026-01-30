@@ -535,7 +535,7 @@ static void on_breast_pump_broadcast_receiver(broadcast_mask_id_t id, void *cont
     
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 LOG_PMP("PM_SUSPEND, reset breast pump result");
                 pump_result_info_t *pumping_info = breast_pump_obj->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
                 if (pumping_info) {

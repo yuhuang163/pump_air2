@@ -365,7 +365,7 @@ static void on_wm_receive_internal(broadcast_mask_id_t id, void *context, int32_
     window_manager_context_t *wm = thiz;
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE: {
-            if (arg1 == ID_SYS_PM_SUSPEND) {
+            if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 LOG_WM("pm_state : ID_SYS_PM_SUSPEND");
                 clear_window_history();
             } 
