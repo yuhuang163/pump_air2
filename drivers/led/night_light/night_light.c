@@ -67,7 +67,7 @@ static void night_light_level_set(uint8_t index, uint8_t level)
     };
     led_status[index].mode = LED_MODE_LEVEL;
     hal_pwm_enable(night_light_cfg[index].id, &pwm_cfg);
-    LOG_PBUS("index: %d, duty: %d", index, duty);
+    LOG_PBUS("index: %d, duty: %d, level: %d", index, duty, level);
 }
 
 /*
@@ -116,7 +116,7 @@ int bsp_night_light_status_set(led_status_msg_t *msg)
         return BSP_ERROR;
     }
     uint8_t index = msg->led_index - NIGHT_LIGHT_LED;
-    LOG_PBUS("index: %d, mode: %d, level: %d", index, msg->led_status.mode, msg->led_status.un.luminous.level);
+    // LOG_PBUS("index: %d, mode: %d, level: %d", index, msg->led_status.mode, msg->led_status.un.luminous.level);
     if (msg->led_status.mode == LED_MODE_LEVEL) {
         night_light_level_set(index, msg->led_status.un.luminous.level);
     } else if (msg->led_status.mode == LED_MODE_ONOFF) {

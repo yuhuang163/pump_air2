@@ -40,6 +40,7 @@ static void on_light_sensor_data_cb(void *user_data, uint8_t *data, int data_len
         if (adaptive->capture_data.index >= ADAP_DIM_DATA_SIZE) {
             adaptive->capture_data.is_acquire_complete = 1;
             adaptive->capture_data.index = 0;
+            // LOG_MISC("capture data complete");
         }
     }
 #endif
@@ -98,14 +99,14 @@ static int adaptive_dimming_duty_calculate(uint16_t lux_avg, uint8_t *out_duty)
     if (last_lux_for_duty == 0) {
         last_lux_for_duty = lux_avg;
         *out_duty = new_duty;
-        LOG_ALGO("lux_avg: %d, new_duty: %d", lux_avg, new_duty);
+        LOG_MISC("lux_avg: %d, new_duty: %d", lux_avg, new_duty);
         return 1;
     } 
     uint16_t lux_diff = (lux_avg > last_lux_for_duty) ? \
             (lux_avg - last_lux_for_duty) : (last_lux_for_duty - lux_avg);
     if (lux_diff >= hysteresis_threshold) {
-        LOG_ALGO("lux_diff: %d, hysteresis_threshold: %d, new_duty: %d",
-                lux_diff, hysteresis_threshold, new_duty);     
+        LOG_MISC("lux_diff: %d, hysteresis_threshold: %d, new_duty: %d, lux_avg: %d",
+                lux_diff, hysteresis_threshold, new_duty, lux_avg);     
         last_lux_for_duty = lux_avg;
         *out_duty = new_duty;
         return 1;
@@ -149,7 +150,7 @@ void adaptive_dimming_init(void)
     EXCEPTION_CHECK_VOID(misc);
     led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     EXCEPTION_CHECK_VOID(led);
-    misc->add_misc_task(led, MISC_TASK_ID_ADAPTIVE_DIMMING, 500, MISC_WORK_MSG_ID_TIMER, adaptive_dimming_polling_thread);
+    misc->add_misc_task(led, MISC_TASK_ID_ADAPTIVE_DIMMING, 200, MISC_WORK_MSG_ID_TIMER, adaptive_dimming_polling_thread);
     sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
     EXCEPTION_CHECK_VOID(sensor);
     sensor->add_sensor_evt_lisenser(sensor, LIGHT_SENSOR_EVT_POLLING, 1, on_light_sensor_data_cb);

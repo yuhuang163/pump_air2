@@ -498,6 +498,9 @@ int bsp_charge_init(void)
 #endif
     charge_power_gpio_init();
     bsp_i2c_init(CHARGE_I2C_ID);
+#if IS_SUPPORT_PD_CHARGE
+    bsp_charge_pd_init();
+#endif
     s_charge_is_ready = true;
     CREATE_MSG_TYPE_QUEUE(&s_charge_device_thd.msg_id, 1, 1);
     CREATE_TIMER(&s_charge_timer_id, "charge", NULL, OS_TIMER_PERIODIC, charge_thread_timer_handle);

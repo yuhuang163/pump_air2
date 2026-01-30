@@ -33,6 +33,7 @@ typedef enum {
     BATTERY_BROADCAST_EMPTY_BATTERY,        /// 空电量.
     BATTERY_BROADCAST_CAPACITY_CHANGE,      /// 电量容量改变.
     BATTERY_BROADCAST_CHARGE_ADAPTER_MISMATCH, /// 充电适配器不匹配.
+    BATTERY_BROADCAST_CHARGE_ADAPTER_MISMATCH_RECOVER, /// 充电适配器不匹配恢复.
     BATTERY_BROADCAST_ID_MAX,
 } battery_broadcast_id_e;
 

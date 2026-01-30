@@ -301,7 +301,7 @@ static void led_htr3316_init(void)
         .data = wdata,
         .len = 0,
     };
-
+   
     i2c_data.reg_addr = 0x12;
     i2c_data.data[0] = 0;
     i2c_data.len = 1;
@@ -330,18 +330,41 @@ static void led_htr3316_init(void)
     }
     LOG_PBUS("led extension init done");
 }
+
+static void led_htr3316_reset(void)
+{
+    int ret = 0;
+    uint8_t reg_value = 0;
+    i2c_master_data_t i2c_data = {
+        .dev_address = HTR3316_DEV_ADDR,
+        .reg_addr = 0x7F,
+        .data = &reg_value,
+        .len = 1,
+    };
+   
+    for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
+        ret = bsp_i2c_read_byte(LED_I2C_ID, &i2c_data);
+        if (ret == BSP_OK) {
+            break;
+        }
+        msleep(10);
+    }
+    msleep(10);
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
 int bsp_led_init(void)
 {
+    uint8_t chip_id = 0;
     if (s_led_mutex_id == NULL) {
         MUTEX_INIT(&s_led_mutex_id, led_mutex);
     }
     bsp_i2c_init(LED_I2C_ID);
-    msleep(20);
-    uint8_t chip_id = 0;
+    msleep(10);
+    led_htr3316_reset();
     led_htr3316_chip_id_get(&chip_id);
     if (chip_id != 0x23) {
         LOGE("chip id error");
@@ -358,6 +381,7 @@ int bsp_led_init(void)
 void bsp_led_resume(void)
 {
     uint8_t chip_id = 0;
+    led_htr3316_reset();
     led_htr3316_chip_id_get(&chip_id);
     if (chip_id != 0x23) {
         LOGE("chip id error");
@@ -374,6 +398,7 @@ void bsp_led_suspend(void)
     s_led_is_ready = false;
     s_led_abnormal_count = 0;
     STOP_TIMER(s_led_timer_id);
+    led_htr3316_reset();
 }
 
 int bsp_led_status_set(led_status_msg_t *msg)
