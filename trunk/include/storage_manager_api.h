@@ -88,6 +88,16 @@ typedef enum {
 struct storage_manager_context;
 
 typedef struct {
+    uint8_t is_custom_trial_mode;
+    pump_setting_t *setting;
+} store_pump_setting_value_t;
+
+typedef struct {
+    uint8_t is_custom_trial_mode;
+    uint16_t pump_time;
+} store_pump_time_value_t;
+
+typedef struct {
     struct storage_manager_context *ctx;
     int arg1;
     int arg2;

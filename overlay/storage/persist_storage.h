@@ -206,8 +206,10 @@ typedef struct
     pump_setting_t lactation_start_setting[ROOT_BREAST_PUMP_STEP_MAX];
     pump_setting_t pp_milk_track_setting[ROOT_BREAST_PUMP_STEP_MAX];
     pump_setting_t custom_setting[ROOT_BREAST_PUMP_STEP_MAX];
+    pump_setting_t custom_trial_setting[ROOT_BREAST_PUMP_STEP_MAX];/// 自定义泵奶试用设置
     user_def_pump_steps_data_t custom_steps_parameter;
     uint16_t pump_time[BREAST_PUMP_MODE_MAX];   /// 泵奶时长,单位s
+    uint16_t custom_pump_trial_time;   /// 自定义泵奶试用时长,单位s
 } sys_pump_info_t;
 
 /**
