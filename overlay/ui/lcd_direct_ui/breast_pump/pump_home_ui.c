@@ -107,9 +107,6 @@ typedef struct {
     res_img_info_t air_leakage_icon_info;
 #endif
     uint8_t force_update;
-    uint8_t is_connected;
-    uint8_t percent;
-    uint8_t is_charging;
     uint8_t mode;
     uint8_t speed;
     uint8_t left_level;
@@ -225,40 +222,6 @@ static void pump_home_bg_update(ui_manager_context_t *thiz)
         start_time = get_timestamp();
         status = (status == 0) ? 1 : 0;
     }
-}
-
-static void pump_home_ble_update(ui_manager_context_t *thiz, ble_manager_context_t *ble)
-{
-    EXCEPTION_CHECK_VOID(ble);
-    uint8_t is_connected = ble->ble_is_connected();
-    if (pump_info->is_connected == is_connected && pump_info->force_update == false) {
-        return;
-    }
-
-    if (ble_ui_update(thiz, pump_info->root, is_connected) != 0) {
-        return;
-    }
-    pump_info->is_connected = is_connected;
-}
-
-static void pump_home_battery_update(ui_manager_context_t *thiz, battery_manager_context_t *battery)
-{
-    EXCEPTION_CHECK_VOID(battery);
-    uint8_t percent = battery->get_battery_percent();
-    uint8_t is_charging = BATTERY_IS_CHARGING(battery->get_charge_status());
-    if (pump_info->percent == percent && 
-        pump_info->is_charging == is_charging &&
-        is_charging == false &&
-        pump_info->force_update == false) {
-        return;
-    }
-
-    if (battery_icon_update(thiz, pump_info->root, percent, is_charging) != 0) {
-        return;
-    }
-    
-    pump_info->percent = percent;
-    pump_info->is_charging = is_charging;
 }
 
 static void pump_home_time_update(ui_manager_context_t *thiz, breast_pump_manager_context_t *pump)
@@ -419,7 +382,6 @@ static int pump_home_right_level_arc_update(ui_manager_context_t *thiz, uint8_t 
     }
     lv_obj_set_size(pump_info->right_level_arc, 310, 310);
     lv_obj_center(pump_info->right_level_arc);
-    
     lv_arc_set_bg_angles(pump_info->right_level_arc, 328, 380);
     uint16_t end_angle = 0;
     if (level > 15) {
@@ -689,6 +651,8 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(pump_info);
     }
     pump_home_init();  
+    battery_icon_init(thiz);
+    ble_ui_init(thiz);
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     pump_info->force_update = true;
@@ -714,9 +678,8 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(pump_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
-    // pump_home_bg_update(thiz);
-    pump_home_ble_update(thiz, proc->ble);
-    pump_home_battery_update(thiz, proc->battery);
+    ble_ui_update(thiz, pump_info->root, proc->ble);
+    battery_icon_update(thiz, pump_info->root, proc->battery);
     pump_home_time_update(thiz, proc->pump);
     pump_setting_ui_update(thiz, proc);
 #if IS_SUPPORT_AIR_LEAKAGE_WARNING
