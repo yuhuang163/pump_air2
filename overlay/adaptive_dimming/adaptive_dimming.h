@@ -10,7 +10,7 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_api.h" // IWYU pragma: keep
 
-#define ADAP_DIM_DATA_SIZE                10  /// 自适应背光数据大小
+#define ADAP_DIM_DATA_SIZE                1  /// 自适应背光数据大小
 
 /// 自适应背光lux 阈值定义
 #if 0
@@ -21,12 +21,12 @@ extern "C" {
 #define ADAP_DIM_LUX_THR_BRIGHT           500     /// 较亮环境阈值 (200 <= lux < 500)
 #define ADAP_DIM_LUX_THR_VBRIGHT          1000    /// 很亮环境阈值 (500 <= lux < 1000)
 #else
-#define ADAP_DIM_LUX_MAX                  600     /// lux 最大值
+#define ADAP_DIM_LUX_MAX                  100     /// lux 最大值
 #define ADAP_DIM_LUX_THR_VDARK            10      /// 非常暗环境阈值 (lux < 10)
-#define ADAP_DIM_LUX_THR_DARK             30      /// 较暗环境阈值 (10 <= lux < 50)
-#define ADAP_DIM_LUX_THR_MEDIUM           100     /// 中等亮度环境阈值 (50 <= lux < 200)
-#define ADAP_DIM_LUX_THR_BRIGHT           300     /// 较亮环境阈值 (200 <= lux < 500)
-#define ADAP_DIM_LUX_THR_VBRIGHT          500     /// 很亮环境阈值 (500 <= lux < 1000)
+#define ADAP_DIM_LUX_THR_DARK             50      /// 较暗环境阈值 (10 <= lux < 50)
+#define ADAP_DIM_LUX_THR_MEDIUM           60     /// 中等亮度环境阈值 (50 <= lux < 200)
+#define ADAP_DIM_LUX_THR_BRIGHT           70     /// 较亮环境阈值 (200 <= lux < 500)
+#define ADAP_DIM_LUX_THR_VBRIGHT          90     /// 很亮环境阈值 (500 <= lux < 1000)
 #endif
 
 /// 自适应亮度等级定义

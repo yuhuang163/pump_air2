@@ -38,6 +38,7 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
     EXCEPTION_CHECK_VOID(thiz);
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     EXCEPTION_CHECK_VOID(pm);
+    LOG_MISC("set key backlight: %d", level);
     if (pm->is_system_power_on() == 0) {
         LOGE("system power off, ignore set ui backlight.");
         return;
@@ -54,62 +55,71 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
     if (level == 0) {
         thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
     } else {
+        if (level > LED_LEVEL_MAX) {
+            level = LED_LEVEL_MAX;
+        }
         breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
         EXCEPTION_CHECK_VOID(pump);
         uint8_t control_type = pump->get_breast_pump_control_type();
         for (int i = 0; i < LENGTH_OF_ARRAY(key_led_index); i++) {
             msg.led_index = key_led_index[i];
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            msg.led_status.un.luminous.level = level;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         }
 
         if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
             msg.led_index = PUMP_RIGHT_CONTROL_BL;
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
+            msg.led_status.un.luminous.level = level / 2;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
             msg.led_index = PUMP_LEFT_CONTROL_BL;
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            msg.led_status.un.luminous.level = level;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 
         } else if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
             msg.led_index = PUMP_LEFT_CONTROL_BL;
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX / 2;
+            msg.led_status.un.luminous.level = level / 2;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
             msg.led_index = PUMP_RIGHT_CONTROL_BL;
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            msg.led_status.un.luminous.level = level;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         } else {
             msg.led_index = PUMP_LEFT_CONTROL_BL;
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            msg.led_status.un.luminous.level = level;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
             msg.led_index = PUMP_RIGHT_CONTROL_BL;
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            msg.led_status.un.luminous.level = level;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         }
         uint8_t mode = pump->get_breast_pump_mode();
-        LOG_UI("mode: %d, is common mode: %d", mode, BREAST_PUMP_IS_COMMON_MODE(mode));
+        LOG_MISC("mode: %d, is common mode: %d", mode, BREAST_PUMP_IS_COMMON_MODE(mode));
         if (BREAST_PUMP_IS_COMMON_MODE(mode)) {
             msg.led_index = PUMP_FREQ_SET_BL;
-            msg.led_status.un.luminous.level = LED_LEVEL_MAX;
+            msg.led_status.un.luminous.level = level;
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         }
     }
-    LOG_UI("set ui key backlight: %d", level);
+    LOG_MISC("set ui key backlight: %d", level);
 }
 
 static void toggle_night_light(led_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     if (thiz->priv.night_light_adaptive_switch) {
-        LOG_UI("night light is adaptive, ignore.");
+        LOG_MISC("night light is adaptive, ignore.");
         return;
     }
-    thiz->priv.night_light_onoff = thiz->priv.night_light_onoff > 0 ? 0 : 1;
+
+    thiz->priv.night_light_onoff = thiz->priv.night_light_level > 0 ? 0 : 1;
+    if (thiz->priv.night_light_adaptive_dimming > 0 && thiz->priv.night_light_onoff > 0) {
+        LOG_MISC("night light is adaptive dimming, ignore.");
+        return;
+    }
+    
     led_status_msg_t msg = {
         .led_index = NIGHT_LIGHT_LED,
         .led_status = {
             .mode = LED_MODE_LEVEL,
-            .un.luminous.level = thiz->priv.night_light_onoff ? thiz->priv.night_light_level : 0,
+            .un.luminous.level = thiz->priv.night_light_onoff ? (LED_LEVEL_MAX / 2) : 0,
         },
     };
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
@@ -121,7 +131,7 @@ static void set_night_light_level(led_manager_context_t *thiz, uint8_t level)
     /// 如果当前窗口为充电窗口, 禁止夜灯自适应开关.
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) && thiz->priv.night_light_onoff == 0) {
-        LOG_UI("in charge window, night light is off, ignore set night light level.");
+        LOG_MISC("in charge window, night light is off, ignore set night light level.");
         return;
     }
     thiz->priv.night_light_onoff = level > 0 ? 1 : 0;
@@ -160,8 +170,8 @@ static void night_light_adaptive_level_update(led_manager_context_t *thiz, uint8
     } 
     /// 夜灯开关打开, 自适应调光开关打开.
     if (thiz->priv.night_light_onoff > 0 && thiz->priv.night_light_adaptive_dimming > 0) {
-        thiz->priv.night_light_level = level;
-        set_night_light_level(thiz, level);
+        thiz->priv.night_light_level = (level < 10) ? 10 : level;  /// 自适应调光开关打开, 最低亮度为10%.
+        set_night_light_level(thiz, thiz->priv.night_light_level);
     }
 }
 
