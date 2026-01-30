@@ -286,8 +286,14 @@ int write_pump_time_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    pump_info->pump_time[args.arg1] = (uint16_t)args.arg2;
-    LOG_STORE_WRAP("write pump mode: %d, time: %d", args.arg1, args.arg2);
+    store_pump_time_value_t *store_pump_time_value = (store_pump_time_value_t *)args.val;
+    EXCEPTION_CHECK_INT(store_pump_time_value);
+    if (store_pump_time_value->is_custom_trial_mode && args.arg1 == BREAST_PUMP_CUSTOM_MODE) {
+        pump_info->custom_pump_trial_time = (uint16_t)store_pump_time_value->pump_time;
+    } else {
+        pump_info->pump_time[args.arg1] = (uint16_t)store_pump_time_value->pump_time;
+    }
+    LOG_STORE_WRAP("write pump mode: %d, time: %d", args.arg1, store_pump_time_value->pump_time);
     return 0;
 }
 
@@ -322,10 +328,14 @@ int read_pump_time_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    LOG_STORE_WRAP("read pump mode: %d, time: %d", args.arg1, pump_info->pump_time[args.arg1]);
-    int *tmp = (int *)args.val;
+    store_pump_time_value_t *tmp = (store_pump_time_value_t *)args.val;
     EXCEPTION_CHECK_INT(tmp);
-    *tmp = pump_info->pump_time[args.arg1];
+    if (tmp->is_custom_trial_mode && args.arg1 == BREAST_PUMP_CUSTOM_MODE) {
+        tmp->pump_time = pump_info->custom_pump_trial_time;
+    } else {
+        tmp->pump_time = pump_info->pump_time[args.arg1];
+    }
+    LOG_STORE_WRAP("read pump mode: %d, time: %d", args.arg1, tmp->pump_time);
     return 0;
 }
 
@@ -387,12 +397,15 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
 {
     struct storage_manager_context *st = args.ctx;
     EXCEPTION_CHECK_INT(st);
-    pump_setting_t *setting = (pump_setting_t *)args.val;
-    EXCEPTION_CHECK_INT(setting);
+    store_pump_setting_value_t *setting_value = (store_pump_setting_value_t *)args.val;
+    EXCEPTION_CHECK_INT(setting_value);
     sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
     LOG_STORE("write pump setting info: %d, %d", args.arg1, args.arg2);
     uint8_t mode = args.arg1;
     uint8_t mode_step = args.arg2;
+    pump_setting_t *setting = setting_value->setting;
+    uint8_t is_custom_trial_mode = setting_value->is_custom_trial_mode;
+    EXCEPTION_CHECK_INT(setting);
     switch (mode) {
         case BREAST_PUMP_STIMULATION_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
@@ -440,20 +453,39 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
             }
             break;
         case BREAST_PUMP_CUSTOM_MODE:
+          if (is_custom_trial_mode) {
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
-                memcpy(pump_info->custom_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
+                memcpy(pump_info->custom_trial_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
             } else {
-                #if IS_PUMP_STEPS_USE_SAME_SETTING
-                for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
-                    pump_info->custom_setting[i].level[0] = setting->level[0];
-                    pump_info->custom_setting[i].level[1] = setting->level[1];
-                }
-                pump_info->custom_setting[mode_step].speed = setting->speed;
-                #else
-                memcpy(&pump_info->custom_setting[mode_step], setting, sizeof(pump_setting_t));
-                #endif
+#if IS_PUMP_STEPS_USE_SAME_SETTING
+              for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                pump_info->custom_trial_setting[i].level[0] = setting->level[0];
+                pump_info->custom_trial_setting[i].level[1] = setting->level[1];
+              }
+              pump_info->custom_trial_setting[mode_step].speed = setting->speed;
+#else
+              memcpy(&pump_info->custom_trial_setting[mode_step], setting,
+                     sizeof(pump_setting_t));
+#endif
             }
-            break;
+          } else {
+            if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
+              memcpy(pump_info->custom_setting, setting,
+                     sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
+            } else {
+#if IS_PUMP_STEPS_USE_SAME_SETTING
+              for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+                pump_info->custom_setting[i].level[0] = setting->level[0];
+                pump_info->custom_setting[i].level[1] = setting->level[1];
+              }
+              pump_info->custom_setting[mode_step].speed = setting->speed;
+#else
+              memcpy(&pump_info->custom_setting[mode_step], setting,
+                     sizeof(pump_setting_t));
+#endif
+            }
+          }
+          break;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
                 memcpy(pump_info->pp_milk_track_setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
@@ -511,11 +543,14 @@ int read_pump_setting_info_from_ram(store_func_args_t args)
     struct storage_manager_context *st = args.ctx;
     EXCEPTION_CHECK_INT(st);
     sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
-    pump_setting_t *setting = (pump_setting_t *)args.val;
+    store_pump_setting_value_t *setting_value = (store_pump_setting_value_t *)args.val;
+    EXCEPTION_CHECK_INT(setting_value);
+    pump_setting_t *setting = setting_value->setting;
     EXCEPTION_CHECK_INT(setting);
     LOG_STORE("read pump setting info: %d, %d", args.arg1, args.arg2);
     uint8_t mode = args.arg1;
     uint8_t mode_step = args.arg2;
+    uint8_t is_custom_trial_mode = setting_value->is_custom_trial_mode;
     switch (mode) {
         case BREAST_PUMP_STIMULATION_MODE:
             if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
@@ -539,10 +574,18 @@ int read_pump_setting_info_from_ram(store_func_args_t args)
             }
             break;
         case BREAST_PUMP_CUSTOM_MODE:
-            if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
-                memcpy(setting, pump_info->custom_setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
+            if (is_custom_trial_mode) {
+                if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
+                    memcpy(setting, pump_info->custom_trial_setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
+                } else {
+                    memcpy(setting, &pump_info->custom_trial_setting[mode_step], sizeof(pump_setting_t));
+                }
             } else {
-                memcpy(setting, &pump_info->custom_setting[mode_step], sizeof(pump_setting_t));
+                if (mode_step >= ROOT_BREAST_PUMP_STEP_MAX) {
+                    memcpy(setting, pump_info->custom_setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
+                } else {
+                    memcpy(setting, &pump_info->custom_setting[mode_step], sizeof(pump_setting_t));
+                }
             }
             break;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:

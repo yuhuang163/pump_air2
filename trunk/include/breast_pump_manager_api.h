@@ -81,6 +81,7 @@ typedef struct breast_pump_info_t {
     uint8_t mode;          /// 吸奶器模式
     uint8_t step_index;    /// 吸奶器档位索引
     uint8_t control_type;  /// 吸奶器控制类型
+    uint8_t is_custom_trial_mode;    /// custom试用模式开关
 } breast_pump_info_t;
 
 /// 吸奶结果ID
@@ -133,6 +134,8 @@ typedef struct breast_pump_manager_context {
     pump_result_info_t *(*get_breast_pump_result)(breast_pump_result_id_e result_id);
     const char *(*get_breast_pump_status_name)(uint8_t status);
     const char *(*get_breast_pump_mode_name)(uint8_t mode);
+    uint8_t (*get_is_custom_trial_mode)(void);
+    void (*set_is_custom_trial_mode)(uint8_t is_custom_trial_mode);
 
     ///  外部挂接点.
     struct __breast_pump_hook {
