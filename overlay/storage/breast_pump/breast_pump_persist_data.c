@@ -400,7 +400,7 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
     store_pump_setting_value_t *setting_value = (store_pump_setting_value_t *)args.val;
     EXCEPTION_CHECK_INT(setting_value);
     sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
-    LOG_STORE("write pump setting info: %d, %d", args.arg1, args.arg2);
+    LOG_STORE("write pump setting info: mode: %d, step: %d, is_custom_trial_mode: %d", args.arg1, args.arg2, setting_value->is_custom_trial_mode);
     uint8_t mode = args.arg1;
     uint8_t mode_step = args.arg2;
     pump_setting_t *setting = setting_value->setting;
