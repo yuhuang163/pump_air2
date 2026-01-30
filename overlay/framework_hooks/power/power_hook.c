@@ -263,6 +263,8 @@ static int on_pm_suspend_route(struct power_manager_context *ctx, int state)
         LOG_PM("is on ota_upgrade, err state.");
         return -1;
     }
+    
+#if 0
     battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     if (battery && battery->is_vbus_plug_in() > 0) {
         LOG_PM("is on vbus plug in, err state.");
@@ -272,6 +274,7 @@ static int on_pm_suspend_route(struct power_manager_context *ctx, int state)
         wm->dispatch_new_window_args(wm, &msg);
         return -1;
     }
+#endif
 
     LOG_PM("==> pm suspend");
     ctx->priv.allow_shutdown_or_standby = 0;
