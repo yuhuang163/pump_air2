@@ -174,6 +174,7 @@ typedef struct storage_manager_context {
         int (*on_post_init_route)(struct storage_manager_context *st);
         int (*on_perpare_init_route)(struct storage_manager_context *st);
         void (*on_storage_broadcast_route)(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata);
+        void (*on_power_off_force_save_route)(struct storage_manager_context *st);
     } *hook;
 
 /// private
