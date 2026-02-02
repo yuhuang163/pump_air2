@@ -537,6 +537,14 @@ void charge_event_internal_cb(charge_event_e event)
 {
     if (event == CHARGE_EVENT_PLUG_IN) {
         s_charge_status.plug_in = true;
+#if IS_SUPPORT_PD_CHARGE
+        int current = charge_pd_current_get();
+        LOG_PBUS("pd charge imax:%dmA", current);
+        if (current > BATT_INPUT_CURRENT_LIMIT) {
+            current = BATT_INPUT_CURRENT_LIMIT;
+        }
+        charge_ibat_config(current);
+#endif       
         charge_power_control(true);
     } else if (event == CHARGE_EVENT_PLUG_OUT) {
         s_charge_status.plug_in = false;

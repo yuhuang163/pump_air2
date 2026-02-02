@@ -83,6 +83,7 @@ typedef enum {
 void bsp_charge_pd_init(void);
 void charge_pd_status_poll(void);
 int bsp_charge_pd_is_ready(void *args);
+int charge_pd_current_get(void);
 #ifdef __cplusplus
 }
 #endif
