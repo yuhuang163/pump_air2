@@ -371,8 +371,9 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
     EXCEPTION_CHECK_INT(ctx);
     ctx->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
-    if ((battery && battery->is_vbus_plug_in() > 0) && platform_is_startup_caused_by_reboot()) {
-        POST_TASK_HANDLER_NO_DELAY_ARG1(system_power_event_cb, ctx, HDR_ACTION_POWER_ON_DETECT,
+    if ((battery && battery->is_vbus_plug_in() > 0) ||
+        platform_is_startup_caused_by_reboot()) {
+        POST_TASK_HANDLER_NO_DELAY_ARG1(system_power_event_cb, ctx, HDR_ACTION_POWER_ON,
             POWER_ON_VBUS_PLUG_IN_TASK_NAME);
         return 0;
     }

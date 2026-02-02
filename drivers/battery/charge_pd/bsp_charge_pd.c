@@ -118,22 +118,7 @@ static int charge_pd_version_get(void)
     return version;
 }
 
-static int charge_pd_current_get(void)
-{
-    uint8_t current = 0;
-    i2c_master_data_t data = {
-        .dev_address = CHARGE_PD_I2C_ADDR,
-        .reg_addr = CHARGE_PD_OUTPUT_CURRENT_REG,
-        .data = &current,
-        .len = 1,
-    };
-    if (charge_pd_read_nbyte(&data) != BSP_OK) {
-        return 0;
-    }
-    return current * 50; /// 50mA
-}
-
-static _Bool charge_pd_power_is_ready(void)
+static bool charge_pd_power_is_ready(void)
 {
     if (charge_pd_device_is_ready() != BSP_OK) {
         LOG_PBUS("charge pd device not ready");
@@ -145,12 +130,7 @@ static _Bool charge_pd_power_is_ready(void)
         LOG_PBUS("charge pd version too low, version: %d", version);
         return false;
     }
-    
-    int current = charge_pd_current_get();
-    if (current < 500) {
-        LOG_PBUS("charge pd current too low, current: %d mA", current);
-        return false;
-    }
+
     s_charge_pd_is_ready = true;
     return true;
 }
@@ -183,6 +163,21 @@ void bsp_charge_pd_init(void)
 {
     charge_pd_gpio_init();
     msleep(10);
+}
+
+int charge_pd_current_get(void)
+{
+    uint8_t current = 0;
+    i2c_master_data_t data = {
+        .dev_address = CHARGE_PD_I2C_ADDR,
+        .reg_addr = CHARGE_PD_OUTPUT_CURRENT_REG,
+        .data = &current,
+        .len = 1,
+    };
+    if (charge_pd_read_nbyte(&data) != BSP_OK) {
+        return 0;
+    }
+    return current * 50; /// 50mA
 }
 
 void charge_pd_status_poll(void)
