@@ -120,6 +120,9 @@ extern "C" {
 #define V3_IMG_RES_STORAGE_TYPE                        1
 /// 支持睡眠关机
 #define IS_SUPPORT_SLEEP_POWER_OFF                     (1)
+/// 支持关机强制保存
+#define IS_SUPPORT_POWER_OFF_FORCE_SAVE                (1)
+
 #ifdef __cplusplus
 }
 #endif

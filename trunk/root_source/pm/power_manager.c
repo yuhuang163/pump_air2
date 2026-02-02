@@ -656,6 +656,11 @@ static int system_power_control(bool state)
     EXCEPTION_CHECK_INT(pbus);
     rt_device_node_t *power_dev = pbus->find_device(ID_DEVICE_POWER);
     EXCEPTION_CHECK_INT(power_dev);
+#if IS_SUPPORT_POWER_OFF_FORCE_SAVE
+    if (st->hook && st->hook->on_power_off_force_save_route) {
+        st->hook->on_power_off_force_save_route(st);
+    }
+#endif
     thiz->priv.is_system_power_on = false;
     LOG_PM("system_power_off");
     st->flash_protect(true); /// 禁止flash读写操作.
