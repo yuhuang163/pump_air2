@@ -89,6 +89,7 @@ static void sys_power_gpio_control(bool enable)
 #elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)   
     if (enable == false) {
         LOG_PBUS("shutdown system");
+        msleep(50);
         hal_sw_bootmode_clear(HAL_SW_BOOTMODE_REBOOT);
         pmu_shutdown();
     }
