@@ -10,8 +10,8 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PUMP_RUN_CHECK_ENABLE                        1 /// 调试开关
-#define PUMP_RUN_CHECK_INTERVAL                      0
+#define PUMP_RUN_CHECK_ENABLE                        0 /// 调试开关
+#define PUMP_RUN_CHECK_INTERVAL                      1
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
