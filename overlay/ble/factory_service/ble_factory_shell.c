@@ -23,6 +23,8 @@
 #define BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD     "#LightAdaptive"
 #define BLE_LCD_BACKLIGHT_SHELL_CMD            "#lcdBk"
 #define BLE_LED_NIGHT_LIGHT_SHELL_CMD          "#ledNightLight"
+#define BLE_LIGHT_SENSOR_CTL_SHELL_CMD         "#LsSmpCtrl"
+#define BLE_LIGHT_SENSOR_SAMPLE_CTL_SHELL_CMD  "#LsSmpIntvl"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -39,6 +41,8 @@ static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len)
 static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len);
 static void ble_shell_lcd_backlight(const uint8_t *param, uint16_t len);
 static void ble_shell_led_night_light(const uint8_t *param, uint16_t len);
+static void ble_shell_adapte_light_sampling_control(const uint8_t *param, uint16_t len);
+static void ble_shell_adapte_light_sampling_interval(const uint8_t *param, uint16_t len);
 static const ble_factory_shell_t shell_list[] = {
     {BLE_PUMP_POLICY_SHELL_CMD,   ble_shell_pump_policy},
     {BLE_PUMP_CTRL_SHELL_CMD,     ble_shell_pump_ctrl},
@@ -51,6 +55,8 @@ static const ble_factory_shell_t shell_list[] = {
     {BLE_NIGHT_LIGHT_ADAPTIVE_SHELL_CMD, ble_shell_night_light_adaptive},
     {BLE_LCD_BACKLIGHT_SHELL_CMD, ble_shell_lcd_backlight},
    {BLE_LED_NIGHT_LIGHT_SHELL_CMD, ble_shell_led_night_light},
+   {BLE_LIGHT_SENSOR_CTL_SHELL_CMD, ble_shell_adapte_light_sampling_control},
+   {BLE_LIGHT_SENSOR_SAMPLE_CTL_SHELL_CMD, ble_shell_adapte_light_sampling_interval},
 };
 
 /*
