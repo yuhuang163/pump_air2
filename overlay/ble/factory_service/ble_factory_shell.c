@@ -6,6 +6,7 @@
 #include "ble_manager.h" // IWYU pragma: keep
 #include "ble_factory_message.h" // IWYU pragma: keep
 #include "ble_factory_shell.h" // IWYU pragma: keep
+#include "adaptive_dimming.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -233,6 +234,26 @@ static void ble_shell_led_night_light(const uint8_t *param, uint16_t len)
     if (led->hook->set_night_light_level) {
         led->hook->set_night_light_level(led, night_light); /// 设置夜灯亮度.
     }
+}
+
+static void ble_shell_adapte_light_sampling_control(const uint8_t *param, uint16_t len)
+{
+    int control_type = 0;
+    sscanf((const char *)param, "%d", &control_type);
+    LOG_BLE("shell algo sampling control");
+    if (control_type) {
+        light_sensor_sampling_start();
+    } else {
+        light_sensor_sampling_stop();
+    }
+}
+
+static void ble_shell_adapte_light_sampling_interval(const uint8_t *param, uint16_t len)
+{
+    int interval = 0;
+    sscanf((const char *)param, "%d", &interval);
+    LOG_BLE("shell algo sampling interval %d", interval);
+    light_sensor_change_sampling_interval(interval);
 }
 
 /*

@@ -14,7 +14,7 @@ extern "C" {
 #include "root_list_api.h" // IWYU pragma: keep
 
 #define PUMP_POLICY_RUN_TIME_INTERVAL            10  /// 策略运行时间间隔，单位ms
-#define IS_SUPPORT_RELATIVE_RUN_TIME             1 /// 支持相对运行时间
+#define IS_SUPPORT_RELATIVE_RUN_TIME             0 /// 支持相对运行时间
 
 /// 马达调试ID
 typedef enum {

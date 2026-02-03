@@ -2,7 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "root_common.h"
 #include "root_common_api.h" // IWYU pragma: keep
+#include "sensor_manager_api.h"
 #include "adaptive_dimming.h" // IWYU pragma: keep
 
 /*
@@ -22,16 +24,53 @@ static adaptive_dimming_info_t *adaptive = NULL;
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
+void light_sensor_sampling_start(void)
+{
+    EXCEPTION_CHECK_VOID(adaptive);
+    adaptive->is_sampling = 1;
+    LOG_MISC("light sensor sampling start");
+}
 
-/*
-* LOCAL FUNCTION DEFINITIONS
-*****************************************************************************************
-*/
+void light_sensor_sampling_stop(void)
+{
+    EXCEPTION_CHECK_VOID(adaptive);
+    adaptive->is_sampling = 0;
+    LOG_MISC("light sensor sampling stop");
+}
+
+bool light_sensor_sampling_is_sampling(void)
+{
+    EXCEPTION_CHECK_BOOL(adaptive);
+    return adaptive->is_sampling;
+}
+
+bool light_sensor_change_sampling_interval(uint16_t interval)
+{
+    EXCEPTION_CHECK_BOOL(adaptive);
+    if (interval < 10) {
+        LOG_MISC("sampling interval error");
+        return 0;
+    }
+    light_sensor_sampling_stop();
+    /// 设置采样间隔
+    sensor_manager_context_t *sensor = (sensor_manager_context_t *)find_module(ID_MODULE_SENSOR);
+    EXCEPTION_CHECK_BOOL(sensor);
+    light_sensor_context_t *light_sensor = (light_sensor_context_t *)sensor->find_sensor(ID_SENSOR_LIGHT_SENSOR);
+    EXCEPTION_CHECK_BOOL(light_sensor);
+    light_sensor->set_sampling_interval(interval);
+    light_sensor_sampling_start();
+    return true;
+}
+
 static void on_light_sensor_data_cb(void *user_data, uint8_t *data, int data_len)
 {
     EXCEPTION_CHECK_VOID(adaptive);
     EXCEPTION_CHECK_VOID(user_data);
     sensor_wrapper_data_t *sensor_data = (sensor_wrapper_data_t *)data;
+    if ( adaptive->is_sampling) {
+       //上报
+       return;
+    }
 #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
     if (adaptive->capture_data.is_acquire_complete == 0 && 
         adaptive->capture_data.index < ADAP_DIM_DATA_SIZE) {
@@ -146,6 +185,7 @@ void adaptive_dimming_init(void)
 {
     adaptive = (adaptive_dimming_info_t *)u_malloz(sizeof(adaptive_dimming_info_t));
     EXCEPTION_CHECK_VOID(adaptive);
+    adaptive->is_sampling = 0;
     misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     EXCEPTION_CHECK_VOID(misc);
     led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
