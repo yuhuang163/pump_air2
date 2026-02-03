@@ -8,6 +8,7 @@
 #include "bsp_charge.h"
 #include "bsp_ntc_map.h"
 #include "bsp_battery_internal.h"
+#include <stdint.h>
 #if IS_SUPPORT_PD_CHARGE
 #include "bsp_charge_pd.h"
 #endif
@@ -29,14 +30,20 @@
 
 #define CHARGE_ABNORMAL_MAX_COUNT           10
 #define CHARGE_THREAD_POLL_INTERVAL         100
+#define CHARGE_TEMP_POLICY_POLL_INTERVAL    3
 /*
 * LOCAL VARIABLE DEFINITIONS)
 *****************************************************************************************
 */
 static uint16_t s_charge_abnormal_count = 0;
 static bool s_charge_is_ready = false;
+static bool is_charging = false;
 static charge_chip_status_t s_charge_status = {0};
 static uint8_t s_charge_full_debounce = 0;
+static uint8_t s_charge_temp_status = 0;
+static uint16_t s_charge_temp_count = 0;
+static uint16_t s_charging_current_max = BATT_INPUT_CURRENT_LIMIT;
+static uint16_t s_charging_current = 0;
 static charge_event_cb s_charge_event_callback = NULL;
 static thread_context_t s_charge_device_thd  = {0};
 static os_timer_id s_charge_timer_id;
@@ -130,6 +137,7 @@ static void charge_power_gpio_init(void)
 static void charge_power_control(bool enable)
 {
     GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 0 : 1);
+    is_charging = enable ? true:false;
     LOG_PBUS("charge_power_control: %d", enable);
 }
 
@@ -161,7 +169,6 @@ static int charge_device_is_ready(void)
         }
         msleep(20);
     }
-
     return BSP_ERROR;
 }
 
@@ -181,6 +188,7 @@ static int charge_vbat_config(void)
     /// 设置充电电流限制
     data.reg_addr = CHARGE_IBAT_CHG_REG;
     reg_data = BATT_INPUT_CURRENT_LIMIT / BATT_CURRENT_LIMIT_SCALE; /// 1000mA
+    s_charging_current = BATT_INPUT_CURRENT_LIMIT;
     if (charge_write_nbyte(&data) != BSP_OK) {
         return BSP_ERROR;
     }
@@ -202,6 +210,7 @@ static int charge_ibat_config(uint16_t current)
         .data = &reg_data,
         .len = 1,
     };
+    s_charging_current = current;
     return charge_write_nbyte(&data);
 }
 
@@ -357,12 +366,58 @@ static void charge_chip_init(void)
     }
     LOG_PBUS("charge chip init success");
 }
+
+static void charging_temp_policy_handler(int8_t temp)
+{
+    if (temp >= CHARGE_NORMAL_TEMP_MIN && temp <= CHARGE_NORMAL_TEMP_MAX) {
+        if (s_charge_temp_status != CHARGE_TEMP_NORMAL) {
+            s_charge_temp_status = CHARGE_TEMP_NORMAL;
+            s_charge_temp_count = 0;
+        }
+        s_charge_temp_count++;
+        if (s_charge_temp_count > CHARGE_TEMP_POLICY_POLL_INTERVAL) {
+            s_charge_temp_count = 0;
+            if (s_charging_current != s_charging_current_max) {
+                charge_ibat_config(s_charging_current_max);
+                LOG_PBUS("normal current update:%dmA", s_charging_current);
+            }
+        }
+    } else if ((temp > CHARGE_DERATED_TEMP_MIN && temp< CHARGE_NORMAL_TEMP_MIN) ||
+               (temp> CHARGE_NORMAL_TEMP_MAX && temp < CHARGE_DERATED_TEMP_MAX)) {
+        if (s_charge_temp_status != CHARGE_TEMP_DERATED) {
+            s_charge_temp_status = CHARGE_TEMP_DERATED;
+            s_charge_temp_count = 0;
+        }
+        s_charge_temp_count++;
+        if (s_charge_temp_count > CHARGE_TEMP_POLICY_POLL_INTERVAL) {
+            s_charge_temp_count = 0;
+            if (s_charging_current != TEMP_ABNORMAL_CHARGING_CURRENT) {
+                charge_ibat_config(TEMP_ABNORMAL_CHARGING_CURRENT);
+                LOG_PBUS("derated current update:%dmA", s_charging_current);
+            }
+        }
+    } else {
+        if (s_charge_temp_status != CHARGE_TEMP_DISABLE) {
+            s_charge_temp_status = CHARGE_TEMP_DISABLE;
+            s_charge_temp_count = 0;
+        }
+        s_charge_temp_count++;
+        if (s_charge_temp_count > CHARGE_TEMP_POLICY_POLL_INTERVAL) {
+            s_charge_temp_count = 0;
+            if (is_charging) {
+                charge_power_control(false);
+                LOG_PBUS("temp abnormal disable charing");
+            }
+        }
+    }
+}
 #endif
 
 static void charge_device_thread(void *arg)
 {
     uint8_t msg = 0;
     uint32_t log_timer = 0;
+    uint16_t test_count = 0;
     while (1) {
         MSG_QUEUE_RECV(s_charge_device_thd.msg_id, &msg, OS_WAIT_FOREVER);
 #if IS_SUPPORT_PD_CHARGE
@@ -372,6 +427,7 @@ static void charge_device_thread(void *arg)
         charge_status_poll(&s_charge_status);
         s_charge_status.charge_full = (s_charge_status.status & BAT_FULL_STATUS_POS) > 0 ? true : false;        
         s_charge_status.temp = charge_ntc_temperature_get(s_charge_status.ntc_resistance);
+        charging_temp_policy_handler(s_charge_status.temp);
         if (get_timestamp_ms(log_timer) > 2000) {
             log_timer = get_timestamp();
             BSP_LOG("charge status", "vbus:%d mV, ibus:%d mA, vbat:%d mV, ibat:%d mA, ntc:%.2f KOhm, temp:%d C, status:0x%04X", 
@@ -475,6 +531,8 @@ int bsp_charge_resume(void)
 {
     s_charge_is_ready = true;
     s_charge_abnormal_count = 0;
+    s_charge_temp_count = 0;
+    s_charge_temp_status = CHARGE_TEMP_UNKNOW;
     START_TIMER(s_charge_timer_id, CHARGE_THREAD_POLL_INTERVAL);
     return BSP_OK;
 }
@@ -483,6 +541,8 @@ int bsp_charge_suspend(void)
 {
     s_charge_is_ready = false;
     s_charge_abnormal_count = 0;
+    s_charge_temp_count = 0;
+    s_charge_temp_status = CHARGE_TEMP_UNKNOW;
     STOP_TIMER(s_charge_timer_id);
     return BSP_OK;
 }
@@ -502,13 +562,15 @@ void charge_event_internal_cb(charge_event_e event)
         if (current > BATT_INPUT_CURRENT_LIMIT) {
             current = BATT_INPUT_CURRENT_LIMIT;
         }
-#endif 
+        s_charging_current_max = current;
         charge_ibat_config(current);
+#endif 
         s_charge_status.plug_in = true;      
         charge_power_control(true);
     } else if (event == CHARGE_EVENT_PLUG_OUT) {
         s_charge_status.plug_in = false;
         charge_power_control(false);
+
     }
 #endif
 
