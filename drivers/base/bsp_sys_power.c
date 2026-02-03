@@ -18,9 +18,6 @@
 *****************************************************************************************
 */
 static rt_device_node_t *node = NULL;
-#if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-static bool s_hardware_version = false;
-#endif
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -31,26 +28,6 @@ static bool s_hardware_version = false;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-#ifdef IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-static int hardware_version_check(void)
-{
-    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)HW_VERSION_DETECT_PIN,  
-        HAL_IOMUX_FUNC_AS_GPIO, 
-        HAL_IOMUX_PIN_VOLTAGE_VIO, 
-        HAL_IOMUX_PIN_PULLUP_ENABLE,
-    };
-    hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(HW_VERSION_DETECT_PIN,  HAL_GPIO_DIR_IN, 1);
-    if (hal_gpio_pin_get_val(HW_VERSION_DETECT_PIN)) {
-        LOG_PBUS("hardware version is v3pro");
-        return 1;
-    }
-    LOG_PBUS("hardware version is v3");
-    return 0;
-}
-#endif
-
 static void sys_power_gpio_init(void)
 {
 #if (V3_HARDWARE_VERSION == V3_2710IMP_HARDWARE_V1)
@@ -108,9 +85,6 @@ static int sys_power_dev_open(struct rt_device_node *dev)
 {
     sys_power_gpio_init();
     peripheral_power_gpio_init();
-#if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-    s_hardware_version = hardware_version_check();
-#endif
     return 0;
 }
 
@@ -163,13 +137,6 @@ static int sys_power_dev_resume(struct rt_device_node *dev)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-#if IS_SUPPORT_HARDWARE_VERSION_ADAPTIVE
-int is_v3_hardware_version(void)
-{
-    return s_hardware_version > 0 ? false : true;
-}
-#endif
-
 void *register_device_for_power(list_head_t *list_head)
 {
     node = u_malloz(sizeof(rt_device_node_t));

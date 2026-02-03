@@ -183,6 +183,7 @@ static void ble_shell_img_test(const uint8_t *param, uint16_t len)
 
 static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len)
 {
+#if IS_SUPPORT_ALGO_SAMPLING
     algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
     int control_type = 0;
     sscanf((const char *)param, "%d", &control_type);
@@ -192,15 +193,18 @@ static void ble_shell_algo_sampling_control(const uint8_t *param, uint16_t len)
     } else {
         algo->hook->algo_sampling_stop(algo);
     }
+#endif
 }
 
 static void ble_shell_algo_sampling_interval(const uint8_t *param, uint16_t len)
 {
+#if IS_SUPPORT_ALGO_SAMPLING
     algo_manager_context_t *algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
     int interval = 0;
     sscanf((const char *)param, "%d", &interval);
     LOG_BLE("shell algo sampling interval %d", interval);
     algo->hook->algo_change_sampling_interval(algo, interval);
+#endif
 }
 
 static void ble_shell_night_light_adaptive(const uint8_t *param, uint16_t len)
@@ -244,6 +248,7 @@ static void ble_shell_led_night_light(const uint8_t *param, uint16_t len)
 
 static void ble_shell_adapte_light_sampling_control(const uint8_t *param, uint16_t len)
 {
+#if IS_SUPPORT_ALGO_SAMPLING
     int control_type = 0;
     sscanf((const char *)param, "%d", &control_type);
     LOG_BLE("shell algo sampling control");
@@ -252,6 +257,7 @@ static void ble_shell_adapte_light_sampling_control(const uint8_t *param, uint16
     } else {
         light_sensor_sampling_stop();
     }
+#endif
 }
 
 static void ble_shell_adapte_light_sampling_interval(const uint8_t *param, uint16_t len)
