@@ -154,9 +154,14 @@ static void charge_pd_gpio_init(void)
  * GLOBAL FUNCTION DEFINITIONS
  *****************************************************************************************
  */
-int bsp_charge_pd_is_ready(void *args)
+int bsp_charge_pd_is_ready(void)
 {
     return s_charge_pd_is_ready;
+}
+
+int bsp_charge_pd_is_mismatch(void)
+{
+    return s_charge_pd_adapter_mismatch;
 }
 
 void bsp_charge_pd_init(void)
@@ -194,19 +199,27 @@ void charge_pd_status_poll(void)
             s_charge_pd_wait_ready --;
             if (s_charge_pd_wait_ready == 0) {
                 s_charge_pd_is_ready = charge_pd_power_is_ready();
-                LOG_PBUS("%s", s_charge_pd_is_ready ? "CHARGE_EVENT_PLUG_IN" : "CHARGE_EVENT_ADAPTER_MISMATCH");
-                charge_event_internal_cb(s_charge_pd_is_ready ? CHARGE_EVENT_PLUG_IN : CHARGE_EVENT_ADAPTER_MISMATCH);
+                if (s_charge_pd_is_ready) {
+                    s_charge_pd_adapter_mismatch = false;
+                    LOG_PBUS( "CHARGE_EVENT_PLUG_IN");
+                    charge_event_internal_cb(CHARGE_EVENT_PLUG_IN);
+                } else {
+                    s_charge_pd_adapter_mismatch = true;
+                    LOG_PBUS( "CHARGE_EVENT_ADAPTER_MISMATCH" );
+                    charge_event_internal_cb(CHARGE_EVENT_ADAPTER_MISMATCH);
+                }
             }
         }
-
     } else {
         if (s_charge_pd_onoff == true) {
             s_charge_pd_onoff = false;
             s_charge_pd_is_ready = false;
+            s_charge_pd_adapter_mismatch = false;
             bsp_i2c_deinit(CHARGE_PD_I2C_ID);
             LOG_PBUS("%s", "CHARGE_EVENT_PLUG_OUT");
             charge_event_internal_cb(CHARGE_EVENT_PLUG_OUT);
             charge_pd_gpio_init();
         }
+        // LOG_PBUS("%s", "CHARGE_EVENT_PLUG_OUT");
     }
 }
