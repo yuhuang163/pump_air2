@@ -14,7 +14,6 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_NIGHT_LIGHT_CLIMB              (1)  /// 支持爬升
-#define IS_SUPPORT_NIGHT_LIGHT_SUSPEND            (0)
 #define NIGHT_LIGHT_PERIOD                        1000
 #define NIGHT_LIGHT_TIME_PERIOD                   25
 #define NIGHT_LIGHT_LOG_DEBUG                     (1)
@@ -33,7 +32,6 @@ typedef struct {
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-static led_status_t night_light_status;
 #if IS_SUPPORT_NIGHT_LIGHT_CLIMB
 static night_light_timer_cfg_t time_info;
 #endif
@@ -73,14 +71,6 @@ static void night_light_gpio_irq_callback(enum HAL_GPIO_PIN_T pin)
         }
         hal_pwm_update_pulse_width(NIGHT_LIGHT_PWM_ID, time_info.pulse_width, NIGHT_LIGHT_PERIOD);
     }
-#if NIGHT_LIGHT_LOG_DEBUG
-    static uint16_t log_count = 0;
-    log_count++;
-    if (log_count % 1000 == 0) {
-        LOG_PBUS("duty: %d, target_duty: %d, onoff: %d", 
-            time_info.current_duty, time_info.target_duty, time_info.onoff);
-    }
-#endif
 }
 
 static void bsp_night_light_irq_control(bool enable)
@@ -161,7 +151,6 @@ static void night_light_level_set(uint8_t level)
         time_info.onoff = 1;
         time_info.current_duty = 2; /// 2 才亮灯
         time_info.pulse_width = pwm_table[time_info.current_duty];
-        night_light_status.mode = LED_MODE_LEVEL;
         hal_pwm_enable(NIGHT_LIGHT_PWM_ID, &pwm_cfg);
         bsp_night_light_irq_control(true);
         LOG_PBUS("night light on");
@@ -187,7 +176,6 @@ static void night_light_level_set(uint8_t level)
         .inv = false,
         .sleep_on = false,
     };
-    night_light_status.mode = LED_MODE_LEVEL;
     hal_pwm_enable(NIGHT_LIGHT_PWM_ID, &pwm_cfg);
     LOG_PBUS("duty: %d, level: %d", duty, level);
 }
@@ -214,29 +202,14 @@ void bsp_night_light_resume(void)
 {
     time_info.current_duty = 0;
     time_info.target_duty = 0;
-#if IS_SUPPORT_NIGHT_LIGHT_SUSPEND
     bsp_night_light_init();
-#endif
 }
 
 void bsp_night_light_suspend(void)
 {
     time_info.current_duty = 0;
     time_info.target_duty = 0;
-#if IS_SUPPORT_NIGHT_LIGHT_SUSPEND
-    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)NIGHT_LIGHT_PIN,  
-        HAL_IOMUX_FUNC_AS_GPIO, 
-        HAL_IOMUX_PIN_VOLTAGE_VIO, 
-        HAL_IOMUX_PIN_PULLUP_ENABLE
-    };
-
     hal_pwm_disable(NIGHT_LIGHT_PWM_ID);
-    gpio_map.pin = (enum HAL_IOMUX_PIN_T)NIGHT_LIGHT_PIN;
-    hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(NIGHT_LIGHT_PIN, HAL_GPIO_DIR_OUT, 0);
-    night_light_onoff = 0;
-#endif
 }
 
 int bsp_night_light_status_set(led_status_msg_t *msg)

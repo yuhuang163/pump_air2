@@ -13,6 +13,14 @@
 #define UI_ANIMATION_STOP_TIMEOUT               (1000)
 #define IS_PRINT_LVGL_MEM_MONITOR               1
 #define UI_LVGL_MSG_QUEUE_NUM                   4
+#define UI_BL_ON_LEVEL_MIN                      (20) /// 开灯最低亮度
+#define UI_BL_ON_LEVEL_RANGE                    (50) /// 开灯调节范围大小 20 - 50
+
+#if IS_SUPPORT_ADAPTIVE_DIMMING
+#define IS_UI_BACKLIGHT_ADAPTIVE                (1)
+#else
+#define IS_UI_BACKLIGHT_ADAPTIVE                (0)
+#endif
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -42,6 +50,57 @@ static void reset_play_count_cb(ui_animation_play_t *play);
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void set_backlight_level_internal(ui_manager_context_t *thiz, uint8_t level)
+{
+    EXCEPTION_CHECK_VOID(thiz && thiz->priv.panel_dev);
+    uint32_t tmp[1] = {level};
+    DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_SET_BL, &tmp);
+    thiz->priv.ui_backlight_val = level;
+    // LOG_UI("set lcd backlight:%d", level);
+}
+
+static void set_backlight_level(ui_manager_context_t *thiz, uint8_t level)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    thiz->priv.ui_backlight_onoff = level > 0 ? true : false;
+    set_backlight_level_internal(thiz, level);
+}
+
+static void set_backlight_onoff(ui_manager_context_t *thiz, bool onoff)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    thiz->priv.ui_backlight_onoff = onoff;
+    LOG_UI("lcd backlight:%d", onoff);
+#if (IS_UI_BACKLIGHT_ADAPTIVE == 0)
+    set_lcd_backlight_level_internal(thiz, onoff ? 100 : 0);
+#endif
+}
+
+#if IS_UI_BACKLIGHT_ADAPTIVE
+static void ui_backlight_adaptive_thread(void *user_data)
+{
+    ui_manager_context_t *thiz = (ui_manager_context_t *)user_data;
+    EXCEPTION_CHECK_VOID(thiz);
+    if (thiz->priv.ui_backlight_onoff == false) {
+        return;
+    }
+    set_backlight_level_internal(thiz, thiz->priv.ui_backlight_adaptive_val);
+}
+#endif
+
+static void set_backlight_adaptive_level(ui_manager_context_t *thiz, uint8_t level)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    if (level == 0) {
+        thiz->priv.ui_backlight_adaptive_val = UI_BL_ON_LEVEL_MIN;
+    } else {
+        if (level > 100) {
+            level = 100;
+        }
+        thiz->priv.ui_backlight_adaptive_val = ((level * UI_BL_ON_LEVEL_RANGE) / 100) + UI_BL_ON_LEVEL_MIN;
+    }
+}
+
 #if IS_PRINT_LVGL_MEM_MONITOR
 static void lvgl_mem_monitor_cb(void)
 {
@@ -275,20 +334,19 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
     switch (id.code) {
         case ID_BROADCAST_SYS_STATE_CHANGE:
             if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
-                ui->set_lcd_backlight(ui, 0);
+                set_backlight_onoff(ui, false);
             } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
-                ui->set_lcd_backlight(ui, 100);
+                set_backlight_onoff(ui, true);
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
                 ui->priv.is_playing_ui_animation = false;
-                ui->set_lcd_backlight(ui, 0);
+                set_backlight_onoff(ui, false);
             } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
-                ui->set_lcd_backlight(ui, 100);
+                set_backlight_onoff(ui, true);
             }
             break;
-
         default:
             break;
     }
@@ -296,6 +354,14 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
 
 static int on_post_ui_init_route(struct ui_manager_context *ctx)
 {
+    EXCEPTION_CHECK_INT(ctx);
+#if IS_UI_BACKLIGHT_ADAPTIVE
+    ctx->priv.ui_backlight_adaptive_val = UI_BL_ON_LEVEL_MIN;
+    misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
+    EXCEPTION_CHECK_INT(misc);
+    misc->add_misc_task(ctx, MISC_TASK_ID_UI_BACKLIGHT_ADAPTIVE, 100, MISC_WORK_MSG_ID_TIMER,
+        ui_backlight_adaptive_thread);
+#endif
     return 0;
 }
 
@@ -323,4 +389,7 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->ui_thread_init_route = ui_thread_init_route;
     ctx->hook->lvgl_display_handler = lvgl_display_handler;
     ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
+    ctx->hook->set_ui_backlight_onoff = set_backlight_onoff;
+    ctx->hook->set_ui_backlight_level = set_backlight_level;
+    ctx->hook->set_ui_backlight_adaptive_level = set_backlight_adaptive_level;
 }
