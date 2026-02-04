@@ -225,4 +225,5 @@ bool light_sensor_data_report(uint8_t *data)
             SERVERS_PUBLISH_DATA_LIGHT_SENSOR_SAMPLING, &args);
         light_sample_count = 0;
     }
+    return true;
 }
