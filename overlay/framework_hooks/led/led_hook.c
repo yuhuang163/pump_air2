@@ -13,7 +13,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define NIGHT_LIGHT_DEFAULT_LEVEL                     25
+#define NIGHT_LIGHT_DEFAULT_LEVEL                     5
 #define NIGHT_LIGHT_ADAPTIVE_SWITCH_LEVEL             5
 
 /*
@@ -286,7 +286,7 @@ static int on_post_init_route(led_manager_context_t *thiz)
     adaptive_dimming_init();
     misc_manager_context_t *misc = (misc_manager_context_t *)find_module(ID_MODULE_MISC);
     EXCEPTION_CHECK_INT(misc);
-    misc->add_misc_task(thiz, MISC_TASK_ID_ADAPTIVE_DIMMING, 100, MISC_WORK_MSG_ID_TIMER,
+    misc->add_misc_task(thiz, MISC_TASK_ID_NIGHT_LIGHT_ADAPTIVE, 100, MISC_WORK_MSG_ID_TIMER,
         night_light_adaptive_thread);
 #endif
     return 0;
