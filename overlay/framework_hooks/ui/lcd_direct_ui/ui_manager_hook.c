@@ -31,6 +31,10 @@ static ui_manager_context_t *ui_ctx = NULL;
 typedef enum {
     UI_LVGL_MSG_CMD_ANIM_INIT = 1,
     UI_LVGL_MSG_CMD_ANIM_DEINIT,
+    UI_LVGL_MSG_CMD_OVERLAY_INIT,
+    UI_LVGL_MSG_CMD_OVERLAY_DEINIT,
+    UI_LVGL_MSG_CMD_PM_SUSPEND,
+    UI_LVGL_MSG_CMD_PM_RESUME,
 } ui_lvgl_msg_cmd_t;
 
 typedef struct {
@@ -41,6 +45,8 @@ typedef struct {
 
 static void change_images_cb(lv_timer_t *t);
 static void reset_play_count_cb(ui_animation_play_t *play);
+static void ui_pm_suspend_on_ui_thread(struct ui_manager_context *thiz);
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -121,7 +127,8 @@ static void lvgl_mem_monitor_cb(void)
 }
 #endif
 
-static void ui_animation_play_init_on_ui_thread(struct ui_manager_context *thiz, const ui_play_info_t *play_info)
+static void ui_animation_play_init_on_ui_thread(struct ui_manager_context *thiz, 
+    const ui_play_info_t *play_info)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(play_info);
@@ -159,7 +166,6 @@ static void ui_animation_play_init_on_ui_thread(struct ui_manager_context *thiz,
     ani->reset_play_count_cb = reset_play_count_cb;
     ani->display_prepare_cb = play_info->display_prepare_cb;
     ani->display_remove_cb = play_info->display_remove_cb;
-    ani->is_play_finished = false;
     thiz->play_animation_unlock(play_info->tag);
 
     if (ani->display_prepare_cb) {
@@ -186,10 +192,11 @@ static void ui_animation_play_init_on_ui_thread(struct ui_manager_context *thiz,
 static void ui_animation_play_deinit_on_ui_thread(struct ui_manager_context *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    LOG_UI("==> ui deinit tag: %s", thiz->priv.play_info.tag);
-
+    ui_animation_play_t *ani = &thiz->priv.play_info;
+    LOG_UI("==> ui deinit tag: %s", ani->tag);
+    thiz->play_animation_lock(ani->tag);
     thiz->priv.is_playing_ui_animation = false;
-
+    thiz->play_animation_unlock(ani->tag);
     if (thiz->priv.lv_timer != NULL && lv_timer_get_paused(thiz->priv.lv_timer) == false) {
         lv_timer_t *timer_to_delete = thiz->priv.lv_timer;
         thiz->priv.lv_timer = NULL;  // 先清空，防止回调使用
@@ -198,12 +205,68 @@ static void ui_animation_play_deinit_on_ui_thread(struct ui_manager_context *thi
         LOG_UI("==>lv_timer deleted:%p", timer_to_delete);
     }
 
-    ui_animation_play_t *ani = &thiz->priv.play_info;
     if (ani->display_remove_cb) {
         lv_lock();
         ani->display_remove_cb(thiz);
         lv_unlock();
-        // lv_refr_now(NULL);
+    }
+    thiz->play_animation_lock(NULL);
+    memset(ani, 0, sizeof(ui_animation_play_t));
+    thiz->play_animation_unlock(NULL);
+}
+
+static void ui_animation_overlay_init_on_ui_thread(struct ui_manager_context *thiz,
+    const ui_play_info_t *play_info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(play_info);
+    EXCEPTION_CHECK_VOID(play_info->tag);
+
+    uint32_t period = 1000;
+    if (play_info->fps > 0) {
+        period = 1000U / (uint32_t)play_info->fps;
+    }
+    uint32_t timer_period = (period < 30) ? 30 : period;
+    LOG_UI("==>overlay:%s, period: %lu", play_info->tag, (unsigned long)timer_period);
+    ui_animation_play_t *ani = &thiz->priv.overlay_play_info;
+    if (ani->display_remove_cb) {
+        lv_lock();
+        ani->display_remove_cb(thiz);
+        lv_unlock();
+        LOG_UI("==> overlay remove tag: %s", ani->tag);
+    }
+    thiz->play_animation_lock(play_info->tag);
+    ani->played_count = 0;
+    ani->user_data = play_info->user_data;
+    ani->progress_cb = play_info->progress_cb;
+    ani->tag = (char *)play_info->tag;
+    ani->reset_play_count_cb = reset_play_count_cb;
+    ani->display_prepare_cb = play_info->display_prepare_cb;
+    ani->display_remove_cb = play_info->display_remove_cb;
+    thiz->play_animation_unlock(play_info->tag);
+
+    if (ani->display_prepare_cb) {
+        lv_lock();
+        ani->display_prepare_cb(thiz);
+        lv_unlock();
+    }
+
+    thiz->priv.is_playing_ui_overlay = true;
+}
+
+static void ui_animation_overlay_deinit_on_ui_thread(struct ui_manager_context *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    LOG_UI("==> overlay deinit tag: %s", thiz->priv.overlay_play_info.tag);
+
+    ui_animation_play_t *ani = &thiz->priv.overlay_play_info;
+    thiz->play_animation_lock(ani->tag);
+    thiz->priv.is_playing_ui_overlay = false;
+    thiz->play_animation_unlock(ani->tag);
+    if (ani->display_remove_cb) {
+        lv_lock();
+        ani->display_remove_cb(thiz);
+        lv_unlock();
     }
 
     thiz->play_animation_lock(NULL);
@@ -220,7 +283,6 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
     while (1) {
         const bool timer_running = (thiz->priv.lv_timer != NULL) &&
                                    (lv_timer_get_paused(thiz->priv.lv_timer) == false);
-
         if (timer_running) {
             ms_till_next = lv_timer_handler();
             if (ms_till_next > 10000) {
@@ -240,19 +302,26 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
             }
         }
 
-        os_status_e ret = MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id,
-                                         &msg,
+        os_status_e ret = MSG_QUEUE_RECV(thiz->priv.ui_hdr_thd.msg_id, &msg,
                                          timer_running ? ms_till_next : OS_WAIT_FOREVER);
         if (ret != 0) {
             continue;
         }
-
         switch ((ui_lvgl_msg_cmd_t)msg.cmd) {
             case UI_LVGL_MSG_CMD_ANIM_INIT:
                 ui_animation_play_init_on_ui_thread(thiz, &msg.play_info);
                 break;
             case UI_LVGL_MSG_CMD_ANIM_DEINIT:
                 ui_animation_play_deinit_on_ui_thread(thiz);
+                break;
+            case UI_LVGL_MSG_CMD_OVERLAY_INIT:
+                ui_animation_overlay_init_on_ui_thread(thiz, &msg.play_info);
+                break;
+            case UI_LVGL_MSG_CMD_OVERLAY_DEINIT:
+                ui_animation_overlay_deinit_on_ui_thread(thiz);
+                break;
+            case UI_LVGL_MSG_CMD_PM_SUSPEND:
+                ui_pm_suspend_on_ui_thread(thiz);
                 break;
             default:
                 break;
@@ -267,26 +336,34 @@ static void change_images_cb(lv_timer_t *t)
         LOG_UI("==>lv_timer is %s:%p", ui_ctx->priv.lv_timer == NULL ? "NULL" : "changed", t);
         return;
     }
-    
-    if (!ui_ctx->priv.is_playing_ui_animation) {
-        return;
-    }
-    
-    ui_animation_play_t *ani = &ui_ctx->priv.play_info;
-    EXCEPTION_CHECK_VOID(ani->tag);
-    if (ani->is_play_finished) {
-        ui_ctx->priv.is_playing_ui_animation = false;
-        if (ani->progress_cb) {
-            ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_FINISH);
+        
+    /// base 动画先绘制
+    ui_ctx->play_animation_lock(NULL);
+    if (ui_ctx->priv.is_playing_ui_animation) {
+        ui_ctx->play_animation_unlock(NULL);
+        ui_animation_play_t *ani = &ui_ctx->priv.play_info;
+        if (ani->tag) {
+            if (ani->progress_cb) {
+                ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_BEFORE);
+                ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
+            }
+            ani->played_count++;
         }
-        return;
     }
 
-    if (ani->progress_cb) {
-        ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_BEFORE);
-        ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
+    /// overlay 后绘制（保证叠加层在上面）
+    ui_ctx->play_animation_lock(NULL);
+    if (ui_ctx->priv.is_playing_ui_overlay) {
+        ui_ctx->play_animation_unlock(NULL);
+        ui_animation_play_t *ani = &ui_ctx->priv.overlay_play_info;
+        if (ani->tag) {
+            if (ani->progress_cb) {
+                ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_BEFORE);
+                ani->progress_cb(ui_ctx, ani->played_count, ANI_TIMER_DRAW_AFTER);
+            }
+            ani->played_count++;
+        }
     }
-    ani->played_count++;
 }
 
 static void reset_play_count_cb(ui_animation_play_t *play)
@@ -309,6 +386,37 @@ static void ui_animation_play_deinit(struct ui_manager_context *thiz)
     ui_lvgl_msg_t msg = {0};
     msg.cmd = UI_LVGL_MSG_CMD_ANIM_DEINIT;
     MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
+}
+
+static void ui_animation_overlay_init(struct ui_manager_context *thiz, ui_play_info_t play_info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    ui_lvgl_msg_t msg = {0};
+    msg.cmd = UI_LVGL_MSG_CMD_OVERLAY_INIT;
+    msg.play_info = play_info; /* copy params to UI thread */
+    MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
+}
+
+static void ui_animation_overlay_deinit(struct ui_manager_context *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    ui_lvgl_msg_t msg = {0};
+    msg.cmd = UI_LVGL_MSG_CMD_OVERLAY_DEINIT;
+    MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
+}
+
+static void ui_pm_suspend_on_ui_thread(struct ui_manager_context *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    thiz->priv.is_playing_ui_animation = false;
+    thiz->priv.is_playing_ui_overlay = false;
+    if (thiz->priv.lv_timer != NULL) {
+        lv_timer_t *timer_to_delete = thiz->priv.lv_timer;
+        thiz->priv.lv_timer = NULL;
+        lv_timer_pause(timer_to_delete);
+        lv_timer_delete(timer_to_delete);
+        LOG_UI("==>pm suspend: lv_timer deleted:%p", timer_to_delete);
+    }
 }
 
 static void ui_thread_init_route(struct ui_manager_context *thiz)
@@ -341,8 +449,10 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
-                ui->priv.is_playing_ui_animation = false;
                 set_backlight_onoff(ui, false);
+                ui_lvgl_msg_t msg = {0};
+                msg.cmd = UI_LVGL_MSG_CMD_PM_SUSPEND;
+                MSG_QUEUE_SEND(ui->priv.ui_hdr_thd.msg_id, &msg, 0);
             } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
                 set_backlight_onoff(ui, true);
             }
@@ -369,7 +479,8 @@ static int on_perpare_ui_init_route(struct ui_manager_context *thiz)
 {    
     thiz->priv.lvgl_initialized = false;
     if (thiz->priv.panel_dev) {
-        DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_ADD_READY_CB, lcd_ready_callback);
+        DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_ADD_READY_CB,
+            lcd_ready_callback);
     }
     ui_ctx = thiz;
     return 0;
@@ -386,9 +497,11 @@ void register_ui_manager_hook(ui_manager_context_t *ctx)
     ctx->hook->on_perpare_init_route = on_perpare_ui_init_route;
     ctx->hook->ui_animation_play_init = ui_animation_play_init;
     ctx->hook->ui_animation_play_deinit = ui_animation_play_deinit;
+    ctx->hook->ui_animation_overlay_init = ui_animation_overlay_init;
+    ctx->hook->ui_animation_overlay_deinit = ui_animation_overlay_deinit;
+    ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
     ctx->hook->ui_thread_init_route = ui_thread_init_route;
     ctx->hook->lvgl_display_handler = lvgl_display_handler;
-    ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
     ctx->hook->set_ui_backlight_onoff = set_backlight_onoff;
     ctx->hook->set_ui_backlight_level = set_backlight_level;
     ctx->hook->set_ui_backlight_adaptive_level = set_backlight_adaptive_level;
