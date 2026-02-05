@@ -130,7 +130,11 @@ static void charge_power_gpio_init(void)
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
     pinmux.pin = (enum HAL_IOMUX_PIN_T)CHARGE_SLEEP_PIN;
     hal_iomux_init(&pinmux, 1);
+    #if DV_DEVICE_ENABLE == DV1_DEVICE_ENABLE
+    hal_gpio_pin_set_dir(CHARGE_SLEEP_PIN, HAL_GPIO_DIR_OUT, 0);
+    #else
     hal_gpio_pin_set_dir(CHARGE_SLEEP_PIN, HAL_GPIO_DIR_OUT, 1);
+    #endif
 #endif
 }
 
