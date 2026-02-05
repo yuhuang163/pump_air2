@@ -4,6 +4,7 @@
 */
 #include "bsp_motor_internal.h"
 #include "bsp_config.h"
+#include "pump_motor_error_check.h"
 
 /*
 * DEFINES
@@ -60,6 +61,9 @@ static void motor_power_control(uint8_t status)
 static int motor_dev_open(struct rt_device_node *dev)
 {
     motor_power_gpio_init();
+    #if IS_SUPPORT_MOTOR_STALL_DETECT
+        pump_motor_error_check_init();
+    #endif
     return bsp_motor_init();
 }
 
@@ -96,6 +100,9 @@ static int motor_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
         case OP_CODE_MOTOR_GET_STATUS:
             return bsp_motor_is_running(args);
 
+        case OP_CODE_MOTOR_ERROR_CHECK_REGISTER_CALLBACK:
+            return pump_motor_error_check_register_callback(args);
+
         default:
             LOGE("err op_code: %lx", op_code);
             return -1;
@@ -105,11 +112,17 @@ static int motor_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *a
 static int motor_dev_suspend(struct rt_device_node *dev)
 {
     motor_power_control(0);
+    #if IS_SUPPORT_MOTOR_STALL_DETECT
+        pump_motor_error_check_stop();
+    #endif
     return bsp_motor_deinit();
 }
 
 static int motor_dev_resume(struct rt_device_node *dev)
 {
+    #if IS_SUPPORT_MOTOR_STALL_DETECT
+        pump_motor_error_check_start();
+    #endif
     return bsp_motor_init();
 }
 
