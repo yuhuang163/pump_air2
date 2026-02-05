@@ -47,8 +47,7 @@ void start_popup_ui_animation(ui_proc_popup_t *proc)
 void stop_popup_ui_animation(ui_proc_popup_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
-    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_overlay_deinit);
     ui->hook->ui_animation_overlay_deinit(ui);
-    ui->animation_play_status_update(ui, false);
     proc->last_progress_ani_time = get_timestamp();
 }

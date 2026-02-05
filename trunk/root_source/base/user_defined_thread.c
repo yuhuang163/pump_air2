@@ -148,7 +148,7 @@ static int popup_window_test_cb(void)
     EXCEPTION_CHECK_INT(wm);
     if (wm->is_current_window(wm, ID_WINDOW_POPUP_WINDOW)) {
         LOG_PBUS("===> popup window already exists, ignore.");
-        return 2000;
+        return 5000;
     }
     multi_func_msg_data_t msg = {0};
     msg.union_body.extra.window_id = ID_WINDOW_POPUP_WINDOW;
@@ -157,7 +157,7 @@ static int popup_window_test_cb(void)
     msg.union_body.extra.popup_exit_time = 3000;
     wm->dispatch_new_window_args(wm, &msg);
     LOG_PBUS("===> popup window test!!!!!");
-    return 5000;
+    return 15000;
 }
 
 static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
@@ -168,7 +168,7 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, lcd_data_send_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, run_led_test_cb(), "pressure_test:continue"); 
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, external_flash_test_cb(), "pressure_test:continue");
-    // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, popup_window_test_cb(), "pressure_test:continue");
+    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, popup_window_test_cb(), "pressure_test:continue");
     // motor_debug_policy_test_cb();
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test:continue");

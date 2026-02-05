@@ -32,10 +32,18 @@ static window_context_record_t s_window_record = {0};
 */
 static int window_exit_state_change_cb(window_lift_cycle_e new_state,
     const struct window_context *ctx, const struct window_context *new_window);
+static int window_enter_state_change_cb(window_lift_cycle_e new_state,
+    const struct window_context *ctx, const struct window_context *old_window);
 
 static uint8_t get_current_window_id(void)
 {
-    return s_window_record.window_hdr ? s_window_record.window_hdr->window_id : 0;
+    return s_window_record.window_hdr ? s_window_record.window_hdr->window_id : ID_WINDOW_INVALID;
+}
+
+static uint8_t get_overlay_window_id(struct window_manager_context *wm)
+{
+    (void)wm;
+    return s_window_record.base_window_hdr ? s_window_record.base_window_hdr->window_id : ID_WINDOW_INVALID;
 }
 
 static window_context_handle_t *dichotomy_find_window_obj(uint16_t window_id)
@@ -228,10 +236,17 @@ static int close_popup_overlay_internal(window_manager_context_t *wm, window_ent
     if (popup_hdr->scr_obj && popup_hdr->scr_obj->on_destory) {
         popup_hdr->scr_obj->on_destory();
     }
-    /// 恢复 base 为当前窗口（base 没有 pause/destory，所以不需要 resume 回调）
+    /// 恢复 base 为当前窗口
     record->window_hdr = base_hdr;
     record->window_context = base_ctx;
     record->z_order = record->base_z_order;
+#if 0
+    /// 触发 base 的 resume 回调，恢复窗口刷新/任务
+    window_enter_state_change_cb(ID_SCR_STATE_ON_RESUME, base_ctx, popup_ctx);
+    if (base_hdr && base_hdr->scr_obj && base_hdr->scr_obj->on_resume) {
+        base_hdr->scr_obj->on_resume(base_ctx);
+    }
+#endif
     record->base_window_hdr = NULL;
     record->base_window_context = NULL;
     record->base_z_order = 0;
@@ -667,8 +682,7 @@ static int dispatch_new_window(window_context_t *ctx)
     } else {
         LOG_WM("Not found prev scr!"); /// 未找到前一个窗口
     }
-    /// 更新当前窗口记录
-    record->window_hdr = next;
+    record->window_hdr = next; /// 更新当前窗口记录
     record->window_context = ctx;   /// 更新当前窗口上下文
     LOGE("switch_windows finish: (%s/%d/z_order:%d), escaped: %ld ms", 
         to_window_name(next->window_id), next->window_id, record->z_order, get_timestamp_ms(t0));
@@ -740,6 +754,7 @@ void *register_module_for_window_manager_new(list_head_t *list_head)
     ptr->wait_window_ready = wait_window_ready;
     ptr->to_window_name = to_window_name;
     ptr->get_current_window_id = get_current_window_id;
+    ptr->get_overlay_window_id = get_overlay_window_id;
     ptr->dispatch_new_window_args = dispatch_new_window_args;
     ptr->go_back_to_history = go_back_to_history_wrapper;
     ptr->close_popup_overlay = close_popup_overlay_wrapper;

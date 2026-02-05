@@ -55,12 +55,6 @@ static int post_msg_to_flush(const char *tag, multi_func_msg_data_t *msg)
     return MSG_QUEUE_SEND(thiz->priv.ui_hdr_thd.msg_id, &msg, 0);
 }
 
-static void animation_play_status_update(ui_manager_context_t *thiz, bool flag)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    thiz->priv.is_playing_ui_animation = flag;
-}
-
 static void ui_handler_thread(const void *args)
 {
     if (thiz->hook && thiz->hook->ui_thread_init_route) {
@@ -134,7 +128,6 @@ void *register_module_for_ui_manager_new(list_head_t *list_head)
 {
     MALLOC_FOR_PTR(ptr, ui_manager_context_t);
     MUTEX_INIT(&ptr->priv.ui_draw_lock, ui_draw_lock);
-    ptr->animation_play_status_update = animation_play_status_update;
     ptr->play_animation_lock = ui_play_animation_lock;
     ptr->play_animation_unlock = ui_play_animation_unlock;
 #if IS_SUPPORT_LVGL

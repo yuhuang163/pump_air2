@@ -111,7 +111,6 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
         airplane_mode_led_policy(proc, 1);
         airplane_mode_pump_policy(proc);
-        ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         start_airplane_mode_ui(proc);
     }
     return 0;

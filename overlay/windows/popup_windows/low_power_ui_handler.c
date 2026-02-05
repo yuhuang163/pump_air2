@@ -67,7 +67,7 @@ static void low_power_ui_display_remove(void *user_data)
 
 static void show_low_power_ui(ui_manager_context_t *ui)
 {
-    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_overlay_init);
     ui_play_info_t play_info = {
         .tag = "low_power_screen",
         .fps = POPUP_ANIMATION_FREQ,

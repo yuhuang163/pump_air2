@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "handler_post.h"
 #include "input_key_code.h" // IWYU pragma: keep
 #include "root_common_api.h" // IWYU pragma: keep
 #include "windows_manager.h" 
@@ -18,12 +17,15 @@
 #define POPUP_EXIT_TASK_NAME                        "popup_exit"
 #define POPUP_UI_KEY_CODE                           (0xFFFF)         /// 任意按键
 #define POPUP_UI_KEY_TYPE                           (KEY_EVENT_CLICK) /// 仅响应 click（不影响其它长按/特殊键）
+#define IS_SUPPORT_POPUP_WAKE_LOCK                  (0)
+#define POPUP_WAKE_LOCK_NAME                        "popup-windows"
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
     REMOVE_TASK_HANDLER_DIRECTLY(POPUP_EXIT_TASK_NAME); \
 } while (0)
+
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -45,7 +47,9 @@ static void popup_exit_handler_cb(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pm);
     WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_POPUP_WINDOW);
-    proc->pm->release_wakelock("popup-windows");
+#if IS_SUPPORT_POPUP_WAKE_LOCK
+    proc->pm->release_wakelock(POPUP_WAKE_LOCK_NAME);
+#endif
     if (proc->extra.popup_exit_cb) {
         proc->extra.popup_exit_cb(proc->extra.user_data, 0, 0);
     } else {
@@ -62,7 +66,9 @@ static int on_popup_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t key
     WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_POPUP_WINDOW, 0);
     EXCEPTION_CHECK_INT(proc->pm);
     window_entry_extra_t extra = {0};
-    proc->pm->release_wakelock("popup-windows");
+#if IS_SUPPORT_POPUP_WAKE_LOCK
+    proc->pm->release_wakelock(POPUP_WAKE_LOCK_NAME);
+#endif
     if (proc->wm->close_popup_overlay) {
         proc->wm->close_popup_overlay(proc->wm, &proc->extra);
     }
@@ -85,7 +91,6 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         POST_TASK_HANDLER_DELAYED_ARG1(popup_exit_handler_cb, proc->extra.popup_exit_time, proc, POPUP_EXIT_TASK_NAME);
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
-        ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         start_popup_ui_animation(proc);
     }
     return 0;
@@ -140,10 +145,11 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
         extra->popup_exit_time = 2000; /// 限制最小退出时间长度
     }
 
+#if IS_SUPPORT_POPUP_WAKE_LOCK
     if (proc->pm) {
-        proc->pm->acquire_wakelock("popup-windows", extra->popup_exit_time / 1000 + 3); /// 锁住popup这段时间内不休眠.
+        proc->pm->acquire_wakelock(POPUP_WAKE_LOCK_NAME, extra->popup_exit_time / 1000 + 3); /// 锁住popup这段时间内不休眠.
     }
-
+#endif
     window_context_t *w_ctx = &proc->w_ctx;
     w_ctx->new_window_id = window_id;
     w_ctx->evt_cb_entry = entry_event_cb;

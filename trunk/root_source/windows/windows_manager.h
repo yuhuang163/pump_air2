@@ -55,7 +55,8 @@ do { \
     do { \
         window_manager_context_t *__wm = (proc) ? (proc)->wm : NULL; \
         EXCEPTION_CHECK_VOID(__wm); \
-        if (__wm->is_current_window(__wm, (expected_window_id)) == false || \
+        if ((__wm->get_current_window_id() != expected_window_id && \
+             __wm->get_overlay_window_id(__wm) != expected_window_id) || \
             GET_WINDOW_CONTEXT() == NULL) { \
             LOG_WM("window context not present, ignore."); \
             return; \
@@ -66,9 +67,33 @@ do { \
     do { \
         window_manager_context_t *__wm = (proc) ? (proc)->wm : NULL; \
         EXCEPTION_CHECK_INT(__wm); \
-        if (__wm->is_current_window(__wm, (expected_window_id)) == false || \
+        if ((__wm->get_current_window_id() != expected_window_id && \
+             __wm->get_overlay_window_id(__wm) != expected_window_id) || \
             GET_WINDOW_CONTEXT() == NULL) { \
             LOG_WM("window context not present, ignore."); \
+            return (ret); \
+        } \
+    } while (0)
+
+/// 窗口ID保护宏定义.
+#define WINDOW_ID_GUARD_VOID(proc, expected_window_id) \
+    do { \
+        window_manager_context_t *__wm = (proc) ? (proc)->wm : NULL; \
+        EXCEPTION_CHECK_VOID(__wm); \
+        if (__wm->get_current_window_id() != expected_window_id && \
+            __wm->get_overlay_window_id(__wm) != expected_window_id) { \
+            LOG_WM("window id not match, ignore."); \
+            return; \
+        } \
+    } while (0)
+
+#define WINDOW_ID_GUARD_INT(proc, expected_window_id, ret) \
+    do { \
+        window_manager_context_t *__wm = (proc) ? (proc)->wm : NULL; \
+        EXCEPTION_CHECK_INT(__wm); \
+        if (__wm->get_current_window_id() != expected_window_id && \
+            __wm->get_overlay_window_id(__wm) != expected_window_id) { \
+            LOG_WM("window id not match, ignore."); \
             return (ret); \
         } \
     } while (0)

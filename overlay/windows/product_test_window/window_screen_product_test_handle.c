@@ -147,7 +147,6 @@ static int entry_event_cb(window_lift_cycle_e new_state,
             PRODUCT_TEST_HOME_TASK_NAME);
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>PRODUCT_TEST_ON_CREATE");
-        ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         /// 获取当前测试模式
         uint8_t current_mode = TST_NONE_TYPE;
         if (proc->tests->tests_manager_get_current_mode) {
