@@ -77,6 +77,8 @@ extern "C" {
 #define IS_SUPPORT_PRESSURE_TEST                         (1)
 /// 支持爬升策略
 #define IS_SUPPORT_CLIMB_POLICY                          (1)
+/// 支持长按软复位
+#define IS_SUPPORT_KEY_SOFT_RESET                        (1)
 /// 支持LVGL
 #if CFG_LVGL_ENABLE
 #define IS_SUPPORT_LVGL                                  (1)
