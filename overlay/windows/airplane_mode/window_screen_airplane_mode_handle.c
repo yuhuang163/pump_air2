@@ -117,7 +117,7 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
         if (proc->key) {
             proc->key->add_keyevent_handler("airplane_mode_wm", proc, AIRPLANE_MODE_UI_KEY_CODE, AIRPLANE_MODE_UI_KEY_TYPE,
-                 on_airplane_mode_keyevent_hdr);
+                 on_airplane_mode_keyevent_hdr, KEY_HANDLER_SHIELD_LEVEL_1);
         } else {
             LOG_WM("key not present, ignore.");
         }

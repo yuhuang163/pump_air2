@@ -301,7 +301,7 @@ static void window_post_async_key_event(multi_func_msg_data_t *msg)
     key_input_context_t *input = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     int keycode = msg->union_body.key_event_data.keycode;
     int keytype = msg->union_body.key_event_data.keytype;
-    if (input->dispatch_client_input_key) {
+    if (input && input->dispatch_client_input_key) {
         input->dispatch_client_input_key(keycode, keytype);
     }
 }

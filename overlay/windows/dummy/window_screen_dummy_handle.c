@@ -133,7 +133,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
         if (proc->key) {
             proc->key->add_keyevent_handler("dummy_wm", proc, KEY_CODE_1, KEY_EVENT_CLICK,
-                 on_dummy_keyevent_hdr);
+                 on_dummy_keyevent_hdr, KEY_HANDLER_SHIELD_LEVEL_1);
         }
         proc->enter_dummy_time = platform_get_utc_time();
         POST_TASK_HANDLER_DELAYED_ARG1(system_power_off_cb, DUMMY_TIME_INTERVAL, proc, DUMMY_SYSTEM_POWER_OFF_TASK_NAME);
