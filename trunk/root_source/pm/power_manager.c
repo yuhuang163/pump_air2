@@ -660,6 +660,7 @@ static int system_power_control(bool state)
 #if IS_SUPPORT_POWER_OFF_FORCE_SAVE
     if (st->hook && st->hook->on_power_off_force_save_route) {
         st->hook->on_power_off_force_save_route(st);
+        msleep(100); /// 等待100ms，确保数据写入完成
     }
 #endif
     thiz->priv.is_system_power_on = false;
