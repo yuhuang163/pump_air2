@@ -71,6 +71,23 @@ VUSB_ON ?= 1
 # PSRAM enable switch
 PSRAM_ENABLE ?= 1
 
+# DV device enable 
+DV_DEVICE_ENABLE ?= 0
+
+ifeq ($(DV_DEVICE_ENABLE), 1)
+
+# littlefs section size
+LITTLEFS_SECTION_SIZE ?= 0xC0000
+
+# factory data section size
+FACTORY_DATA_SECTION_SIZE ?= 0x2000
+
+# lute picture resources section size
+LUTE_PICTURE_RESOURCES_SECTION_SIZE ?= 0x80000
+
+# lute reserved section size
+LUTE_RESERVED_SECTION_SIZE ?= 0x2000	
+else
 # littlefs section size
 LITTLEFS_SECTION_SIZE ?= 0x4000
 
@@ -82,7 +99,7 @@ LUTE_PICTURE_RESOURCES_SECTION_SIZE ?= 0x200000
 
 # lute reserved section size
 LUTE_RESERVED_SECTION_SIZE ?= 0x2000	
-
+endif
 # BLE 自定义服务开关
 CFG_CUSTOM_BLE_SERVICE ?= 1
 
