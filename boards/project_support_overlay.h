@@ -98,6 +98,9 @@ extern "C" {
 #define IS_SUPPORT_MODULE_RES                            (1)
 /// 支持自适应背光  
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
+/// 支持堵转检测
+#define IS_SUPPORT_MOTOR_STALL_DETECT                    (1)
+
 
 #if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 /// 支持漏气提醒
