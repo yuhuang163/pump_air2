@@ -154,7 +154,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
         if (proc->key) {
             proc->key->add_keyevent_handler("product_test_wm", proc, PRODUCT_TEST_UI_KEY_CODE, 
-                PRODUCT_TEST_UI_KEY_TYPE, product_test_ui_keyevent_hdr);
+                PRODUCT_TEST_UI_KEY_TYPE, product_test_ui_keyevent_hdr, KEY_HANDLER_SHIELD_LEVEL_1);
         }
         POST_TASK_HANDLER_DELAYED_ARG2(product_test_ui_common_cb, 100, PRODUCT_TEST_HOME, proc,
             PRODUCT_TEST_HOME_TASK_NAME);
