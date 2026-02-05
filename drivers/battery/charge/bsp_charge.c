@@ -140,7 +140,11 @@ static void charge_power_gpio_init(void)
 
 static void charge_power_control(bool enable)
 {
+    #if DV_DEVICE_ENABLE == DV1_DEVICE_ENABLE   
+    GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 1 : 0);
+    #else
     GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 0 : 1);
+    #endif
     is_charging = enable ? true:false;
     LOG_PBUS("charge_power_control: %d", enable);
 }

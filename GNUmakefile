@@ -72,9 +72,8 @@ VUSB_ON ?= 1
 PSRAM_ENABLE ?= 1
 
 # DV device enable 
-EV_DEVICE_ENABLE ?= 0
 DV1_DEVICE_ENABLE ?= 1
-DV_DEVICE_ENABLE ?= $(EV_DEVICE_ENABLE)
+DV_DEVICE_ENABLE ?= $(DV1_DEVICE_ENABLE)
 ifeq ($(DV_DEVICE_ENABLE), 1)
 
 # littlefs section size

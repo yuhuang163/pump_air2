@@ -152,14 +152,8 @@ extern "C" {
 #define CHARGE_PD_I2C_DATA_PIN          HAL_GPIO_PIN_P0_5
 /// 版本识别定义
 #define HW_VERSION_DETECT_PIN           HAL_GPIO_PIN_P1_5
-
-#if DV_DEVICE_ENABLE == DV1_DEVICE_ENABLE
-/// 外设电源相关定义  
-#define PERIPHERAL_POWER_PIN            HAL_GPIO_PIN_P1_5
-#else
 /// 外设电源相关定义
 #define PERIPHERAL_POWER_PIN            HAL_GPIO_PIN_P1_3
-#endif
 #else
 #error "Unsupported hardware version"
 #endif
