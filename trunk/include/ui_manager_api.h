@@ -109,7 +109,6 @@ typedef struct ui_manager_context {
     } priv;
 
     /// public:
-    void (*animation_play_status_update)(struct ui_manager_context *thiz, bool flag);
     void (*play_animation_lock)(const char *tag);
     void (*play_animation_unlock)(const char *tag);
 

@@ -65,7 +65,6 @@ static int entry_event_cb(window_lift_cycle_e new_state,
 
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
-        ui->animation_play_status_update(ui, false); /// 清除动画播放标志
         factory_reset_led_blink_policy(proc->led);
         start_factory_reset_ui_animation(proc);
         if (pump && pump->is_on_working()) {
