@@ -165,17 +165,12 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
             }
         }
     }
-    pump->set_breast_pump_setting(&proc->setting, time_index);
-    store_pump_setting_value_t store_pump_setting_value = {0};
-    store_pump_setting_value.is_custom_trial_mode = pump->priv.m_info.is_custom_trial_mode;
-    store_pump_setting_value.setting = &proc->setting;
-    st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, pump_info->mode, time_index, &store_pump_setting_value);
+    pump->set_breast_pump_setting(&proc->setting, time_index, true);
     show_pump_level_ui(proc);
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         LOG_UI("switch pump %d level: %d, mode: %s", i, proc->setting.level[i],
              pump->get_breast_pump_mode_name(pump_info->mode));
     } 
-    
     return 0;
 }   
 

@@ -159,22 +159,34 @@ static void get_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
     }
 }
 
-static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
+static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index, bool is_need_store)
 {
     if (step_index >= ROOT_BREAST_PUMP_STEP_MAX) {
         LOGE("step_index >= ROOT_BREAST_PUMP_STEP_MAX");
         memcpy(breast_pump_obj->priv.setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
     } else {
-        #if IS_PUMP_STEPS_USE_SAME_SETTING
+#if IS_PUMP_STEPS_USE_SAME_SETTING
         for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
             breast_pump_obj->priv.setting[i].level[0] = setting->level[0];
             breast_pump_obj->priv.setting[i].level[1] = setting->level[1];
         }
         breast_pump_obj->priv.setting[step_index].speed = setting->speed;
-        #else
+#else
         memcpy(&breast_pump_obj->priv.setting[step_index], setting, sizeof(pump_setting_t));
-        #endif
+#endif
     }
+ 
+    if (is_need_store) {
+        struct storage_manager_context *st = breast_pump_obj->priv.st;
+        if (st) {
+            store_pump_setting_value_t pump_setting = {0};
+            pump_setting.is_custom_trial_mode = breast_pump_obj->priv.m_info.is_custom_trial_mode;
+            pump_setting.setting = setting;
+            st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, breast_pump_obj->priv.m_info.mode, 
+                step_index, &pump_setting);
+        }
+    }
+
     //通知app
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx);

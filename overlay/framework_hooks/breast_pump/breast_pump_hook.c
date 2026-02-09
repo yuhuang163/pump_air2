@@ -191,13 +191,7 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
     }
     /// 获取当前模式.
     result_info->mode = ctx->get_breast_pump_mode();
-    /// 从ram中获取当前模式下的设置信息.
-    store_pump_setting_value_t store_pump_setting_value = {0};
-    store_pump_setting_value.is_custom_trial_mode = ctx->priv.m_info.is_custom_trial_mode;
-    store_pump_setting_value.setting = result_info->setting;
-    st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, result_info->mode, ROOT_BREAST_PUMP_STEP_MAX, &store_pump_setting_value);
-
-    ctx->set_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX);    
+    ctx->set_breast_pump_setting(result_info->setting, ROOT_BREAST_PUMP_STEP_MAX, true);    
 
     return 0;
 }
