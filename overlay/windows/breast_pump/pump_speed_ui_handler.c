@@ -113,8 +113,6 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
 int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump,
                         breast_pump_info_t *pump_info)
 {
-    struct storage_manager_context *st = pump->priv.st;
-    EXCEPTION_CHECK_INT(st);
     EXCEPTION_CHECK_INT(pump->priv.motor);
     EXCEPTION_CHECK_INT(proc);
     int time_index = pump->priv.motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
@@ -132,14 +130,36 @@ int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t
     } else {
         proc->setting.speed = BREAST_PUMP_SPEED_LOW;
     }
-    pump->set_breast_pump_setting(&proc->setting, time_index);
-    store_pump_setting_value_t store_pump_setting_value = {0};
-    store_pump_setting_value.is_custom_trial_mode = pump->priv.m_info.is_custom_trial_mode;
-    store_pump_setting_value.setting = &proc->setting;
-    st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, pump_info->mode, time_index, &store_pump_setting_value);
+    pump->set_breast_pump_setting(&proc->setting, time_index, true);
     show_pump_speed_ui(proc);
     LOG_UI("switch pump frequency: %d, mode: %s", proc->setting.speed,
          pump->get_breast_pump_mode_name(pump_info->mode));
+
+    return 0;
+}
+
+int pump_frequency_ui_create(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump,
+    breast_pump_info_t *pump_info)
+{
+    EXCEPTION_CHECK_INT(pump->priv.motor);
+    EXCEPTION_CHECK_INT(proc);
+    int time_index = pump->priv.motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
+
+    if (!BREAST_PUMP_IS_COMMON_MODE(pump_info->mode)) {
+        LOG_UI("pump is not common mode, ignore.");
+        return 0;
+    } 
+    pump->get_breast_pump_setting(&proc->setting, time_index);
+    if (proc->setting.speed > BREAST_PUMP_SPEED_HIGH) {
+        proc->setting.speed = BREAST_PUMP_SPEED_LOW;
+        pump->set_breast_pump_setting(&proc->setting, time_index, true);
+    }
+    show_pump_speed_ui(proc);
+    LOG_UI("switch pump frequency: %d, mode: %s", proc->setting.speed,
+    pump->get_breast_pump_mode_name(pump_info->mode));
 
     return 0;
 }

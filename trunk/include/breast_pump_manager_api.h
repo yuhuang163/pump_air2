@@ -125,7 +125,7 @@ typedef struct breast_pump_manager_context {
     int (*get_breast_pump_control_type)(void);
     void (*set_breast_pump_control_type)(uint8_t control_type);
     void (*get_breast_pump_setting)(pump_setting_t *setting, uint8_t step_index);
-    void (*set_breast_pump_setting)(pump_setting_t *setting, uint8_t step_index);
+    void (*set_breast_pump_setting)(pump_setting_t *setting, uint8_t step_index, bool is_need_store);
     void (*set_breast_pump_status)(int status);
     int (*get_breast_pump_status)(void);
     int (*get_breast_pump_status_async)(void);
