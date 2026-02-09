@@ -512,6 +512,10 @@ int bsp_motor_init(void)
     for (uint8_t i = 0; i < LENGTH_OF_ARRAY(motor_pwm_cfg); i++) {
         motor_pwm_cfg[i].iomux_set();
     }
+#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
+    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_1);
+    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_2);
+#endif
     memset(motor_pwm_status, 0, sizeof(motor_pwm_status));
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
     if (bsp_motor_init_timer_system() != 0) {
@@ -521,11 +525,6 @@ int bsp_motor_init(void)
     bsp_motor_pwm_gradual_gpio_irq_init(1);
     // 直接运行PWM测试函数
     // bsp_motor_pwm_test_all_step_counts();
-#endif
-
-#if IS_SUPPORT_PUMP_PWM_IDLE_HIGH
-    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_1);
-    bsp_motor_pwm_idle_high(MOTOR_PWM_PUMP_2);
 #endif
     return BSP_OK;
 }
