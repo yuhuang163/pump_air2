@@ -140,11 +140,7 @@ static void charge_power_gpio_init(void)
 
 static void charge_power_control(bool enable)
 {
-    #if DV_DEVICE_ENABLE == DV1_DEVICE_ENABLE   
-    GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 1 : 0);
-    #else
     GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 0 : 1);
-    #endif
     is_charging = enable ? true:false;
     LOG_PBUS("charge_power_control: %d", enable);
 }
@@ -152,7 +148,11 @@ static void charge_power_control(bool enable)
 static void charge_sleep_control(bool enable)
 {
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2)
+#if DV_DEVICE_ENABLE == DV1_DEVICE_ENABLE   
+    GPIO_PIN_CTRL(CHARGE_SLEEP_PIN, enable ? 1 : 0);
+#else
     GPIO_PIN_CTRL(CHARGE_SLEEP_PIN, enable ? 0 : 1);
+#endif
     LOG_PBUS("charge_sleep_control: %d", enable);
 #endif
 }
