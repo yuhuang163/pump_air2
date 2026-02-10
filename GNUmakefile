@@ -474,7 +474,7 @@ UI_MODULE_INC_FLAGS += $(UI_INC_DIRECT_FLAGS)
 UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui
 else
 UI_MODULE_INC_FLAGS += $(UI_INC_DIRECT_V2_FLAGS)
-UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui_v2
+UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui
 endif
 else
 UI_MODULE_INC_FLAGS += $(UI_INC_UART_FLAGS)
@@ -1024,7 +1024,7 @@ UI_MODULE_SRCS += $(UI_LCD_DIRECT_SRCS)
 UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui/*.c) 
 else
 UI_MODULE_SRCS += $(UI_LCD_DIRECT_V2_SRCS)
-UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui_v2/*.c) 
+UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui/*.c) 
 endif
 else
 UI_MODULE_SRCS += $(UI_LCD_UART_SRCS)
