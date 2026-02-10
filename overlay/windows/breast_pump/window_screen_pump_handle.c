@@ -257,11 +257,6 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         } else {
             LOG_WM("key not present, ignore.");
         }
-        if (proc->need_start_pump) {
-            proc->need_start_pump = 0;
-            POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, PUMP_HDR_ACTION_START_PUMP, proc,
-                 PUMP_START_TASK_NAME);
-        }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
         if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
