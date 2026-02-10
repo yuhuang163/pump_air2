@@ -30,7 +30,7 @@ typedef enum {
 
     RESOURCE_ID_MOM_PICTURE_ICON,              /// 妈妈图片图标
     RESOURCE_ID_IDLE_TEXT_AREA_ICON,           /// 空闲界面文本区域图标
-    RESOURCE_ID_IDLE_BUTTOM_ICON,             /// 空闲界面按钮指示图标
+    RESOURCE_ID_IDLE_BUTTOM_ICON,              /// 空闲界面按钮指示图标
 
     RESOURCE_ID_HOME_STIMULATE_ICON = 101,   /// 首页-刺激图标
     RESOURCE_ID_HOME_LACTATION_ICON,         /// 首页-泌乳图标

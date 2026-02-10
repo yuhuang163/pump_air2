@@ -579,7 +579,7 @@ static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t spe
     if (pump_info->speed_icon == NULL || !lv_obj_is_valid(pump_info->speed_icon)) {
         pump_info->speed_icon = lv_image_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->speed_icon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_HOME_SPEED_ICON, &pump_info->speed_icon_info);
+        common_ui_img_resource_init(thiz, RESOURCE_ID_FREQ_BOOST_ICON, &pump_info->speed_icon_info);
         EXCEPTION_CHECK_VOID(pump_info->speed_icon_info.data);
         lv_fs_make_path_from_buffer(&speed_icon_path, LV_FS_MEMFS_LETTER, 
             pump_info->speed_icon_info.data, pump_info->speed_icon_info.size, "baj");
