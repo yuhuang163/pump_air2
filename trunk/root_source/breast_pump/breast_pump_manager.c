@@ -209,6 +209,13 @@ static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
     } else {
         m_info->mode = mode;
     }
+
+    if (PUMP_IS_COMMON_MODE(mode)) {
+        m_info->common_mode = mode;
+    } else {
+        m_info->breastfeeding_mode = mode;
+    }
+    
     m_info->step_index = 0;
     LOG_PMP("new mode is: %d, name: %s", m_info->mode, breast_pump_obj->get_breast_pump_mode_name(m_info->mode));
     EXCEPTION_CHECK_VOID(st);
@@ -244,6 +251,18 @@ static int get_breast_pump_mode(void)
         set_breast_pump_mode(BREAST_PUMP_NORMAL_MODE_DEFAULT, 1);
     }
     return m_info->mode;
+}
+
+static int get_breast_pump_breastfeeding_mode(void)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    return m_info->breastfeeding_mode;
+}
+
+static int get_breast_pump_common_mode(void)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    return m_info->common_mode;
 }
 
 static int get_breast_pump_status(void)
@@ -586,46 +605,27 @@ static int on_post_breast_pump_init(void *ptr)
 {
     breast_pump_manager_context_t *ctx = ptr;
     memset(&ctx->priv.m_info , 0, sizeof(breast_pump_info_t));
-    ctx->priv.m_info.mode = BREAST_PUMP_MODE_INVALID;  
-    ctx->priv.m_info.is_custom_trial_mode = 0; //重启默认试用模式为关闭
+    ctx->priv.m_info.breastfeeding_mode = BREAST_PUMP_CUSTOM_MODE;
+    ctx->priv.m_info.common_mode = BREAST_PUMP_STIMULATION_MODE;
     EXCEPTION_CHECK_INT(ctx->priv.motor);
     struct rt_device_node *motor_dev;
     motor_dev = ctx->priv.pbus->find_device(ID_DEVICE_MOTOR);
     /// 检查 motor_dev 是否已初始化，避免空指针访问
     EXCEPTION_CHECK_INT(motor_dev);
     DEVICE_IOCTL_ARGS(motor_dev, OP_CODE_MOTOR_ERROR_CHECK_REGISTER_CALLBACK, on_motor_error_check_callback);
-    /// 获取控制类型.
     if (ctx->priv.st) {
-        uint8_t store_mode = 0;
-        int ret = ctx->priv.st->get_store_ram_val(STORE_ID_BREAST_PUMP_MODE, 0, 0, &store_mode);
-        if (ret == 0 && store_mode < BREAST_PUMP_MODE_MAX) {
-            #if IS_PUMP_MODE_NOT_STORE_NORMAL_MODE
-            if(store_mode == BREAST_PUMP_MIX_MODE || store_mode == BREAST_PUMP_LACTATION_MODE) {
-                store_mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
-            }
-            #endif
-            ctx->priv.m_info.mode = store_mode;
-        } else {
-            /// 读取失败或值无效，使用默认模式
-            ctx->priv.m_info.mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+        int store_value = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+        ctx->priv.st->get_store_ram_val(STORE_ID_BREAST_PUMP_MODE, 0, 0, &store_value);
+        if (store_value >= BREAST_PUMP_MODE_MAX || PUMP_IS_COMMON_MODE(store_value)) {
+            store_value = BREAST_PUMP_NORMAL_MODE_DEFAULT;
         }
-        /// 获取泵奶设置.
-        store_pump_setting_value_t store_pump_setting_value = {0};
-        store_pump_setting_value.is_custom_trial_mode = ctx->priv.m_info.is_custom_trial_mode;
-        store_pump_setting_value.setting = ctx->priv.setting;
-        ctx->priv.st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, ctx->priv.m_info.mode, ROOT_BREAST_PUMP_STEP_MAX, &store_pump_setting_value);
-        LOG_PMP("get pump mode: %d", ctx->priv.m_info.mode);
-        for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
-            LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, ctx->priv.setting[i].speed, 
-                ctx->priv.setting[i].level[0], ctx->priv.setting[i].level[1]);
-        }
-    }
-    /// 获取控制类型.
-    if (ctx->priv.st) {
-        int store_value = 0;
+        set_breast_pump_mode(store_value, 0);
+        store_value = BREAST_PUMP_CONTROL_TYPE_LEFT;
         ctx->priv.st->get_store_ram_val(STORE_ID_PUMP_CONTROL_TYPE, 0, 0, &store_value);
-        ctx->priv.m_info.control_type = store_value;
-        LOG_PMP("get pump control type: %d", ctx->priv.m_info.control_type);
+        if (store_value >= BREAST_PUMP_CONTROL_TYPE_MAX) {
+            store_value = BREAST_PUMP_CONTROL_TYPE_LEFT;
+        }
+        set_breast_pump_control_type(store_value);
     }
     /// 注册广播监听.
     ctx->priv.m_bdc.context = ctx;
@@ -662,6 +662,8 @@ void *register_module_for_breast_pump_new(list_head_t *list_head)
     ptr->add_breast_pump_result_listener = breast_pump_add_result_listener;
     ptr->remove_breast_pump_result_listener = breast_pump_remove_result_listener;
     ptr->get_breast_pump_mode = get_breast_pump_mode;
+    ptr->get_breast_pump_breastfeeding_mode = get_breast_pump_breastfeeding_mode;
+    ptr->get_breast_pump_common_mode = get_breast_pump_common_mode;
     ptr->set_breast_pump_mode = set_breast_pump_mode;
     ptr->get_breast_pump_control_type = get_breast_pump_control_type;
     ptr->set_breast_pump_control_type = set_breast_pump_control_type;

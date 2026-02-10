@@ -68,7 +68,6 @@ int ui_display_breastfeeding_mode_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc->pump);
-    uint8_t mode = proc->pump->get_breast_pump_mode();
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();

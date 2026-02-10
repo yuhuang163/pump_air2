@@ -76,7 +76,7 @@ V3_2710IMP_HARDWARE_V1 ?= 0
 V3_2710IMC_HARDWARE_V1 ?= 1
 V3_2710IMC_HARDWARE_V2 ?= 2
 V3_2710IMC_HARDWARE_V3 ?= 3 #DV1
-V3_HARDWARE_VERSION ?= $(V3_2710IMC_HARDWARE_V3)
+V3_HARDWARE_VERSION ?= $(V3_2710IMC_HARDWARE_V2)
 
 ifeq ($(V3_HARDWARE_VERSION), V3_2710IMC_HARDWARE_V3)
 # littlefs section size
@@ -1060,6 +1060,7 @@ WINDOWS_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/dummy/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/guide/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/home/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/logo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/ota/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/popup_windows/*.c) \

@@ -46,9 +46,12 @@ typedef enum {
     BREAST_PUMP_ERROR,
 } breast_pump_status_e;
 
+#define PUMP_NO_FINISH(state) (state == BREAST_PUMP_START || state == BREAST_PUMP_CONTINUE || state == BREAST_PUMP_PAUSE)
 #define PUMP_IS_GOING(state) (state == BREAST_PUMP_START || state == BREAST_PUMP_CONTINUE)
 #define PUMP_IS_COMMON_MODE(mode) (mode == BREAST_PUMP_LACTATION_MODE || mode == BREAST_PUMP_MIX_MODE ||\
      mode == BREAST_PUMP_STIMULATION_MODE)
+ #define PUMP_IS_BREASTFEEDING_MODE(mode) (mode == BREAST_PUMP_CUSTOM_MODE || mode == BREAST_PUMP_PP_MILK_TRACK_MODE ||\
+     mode == BREAST_PUMP_MILK_BOOST_MODE || mode == BREAST_PUMP_LACTATION_START_MODE)
 
 typedef struct {
     uint8_t breast_pump_state;
@@ -83,6 +86,8 @@ typedef struct breast_pump_info_t {
     uint8_t step_index;    /// 吸奶器档位索引
     uint8_t control_type;  /// 吸奶器控制类型
     uint8_t is_custom_trial_mode;    /// custom试用模式开关
+    uint8_t breastfeeding_mode;      /// 追奶模式
+    uint8_t common_mode;      /// 常规模式
 } breast_pump_info_t;
 
 /// 吸奶结果ID
@@ -121,6 +126,8 @@ typedef struct breast_pump_manager_context {
     int (*add_breast_pump_result_listener)(void *user_data, on_breast_pump_result_cb_ptr cb);
     void (*remove_breast_pump_result_listener)(on_breast_pump_result_cb_ptr cb);
     int (*get_breast_pump_mode)(void);
+    int (*get_breast_pump_breastfeeding_mode)(void);
+    int (*get_breast_pump_common_mode)(void);
     void (*set_breast_pump_mode)(uint32_t mode, uint8_t is_store_mode);
     int (*get_breast_pump_control_type)(void);
     void (*set_breast_pump_control_type)(uint8_t control_type);
