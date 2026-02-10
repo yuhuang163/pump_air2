@@ -106,29 +106,50 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_SPEED_ICON",
-      "description": "首页-速度图标",
-      "file": "baj/icon_Middle_25x24_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_FREQ_BOOST_ICON",
+      "description": "首页-频率增强图标",
+      "file": "baj/icon_Boost_33x29_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_FREQ_REGULAR_ICON",
+      "description": "首页-频率常规图标",
+      "file": "baj/icon_Regular_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_FREQ_COMFORT_ICON",
+      "description": "首页-频率舒适图标",
+      "file": "baj/icon_Comfort_32x11_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_STIMULATE_ICON",
+      "description": "首页-刺激图标",
+      "file": "baj/icon_Stimulate_31x29_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_HOME_LACTATION_ICON",
       "description": "首页-泌乳图标",
-      "file": "baj/icon_Lactation_24x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_MILK_ICON",
-      "description": "首页-奶量图标",
-      "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
+      "file": "baj/icon_Lactation_24x32_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_HOME_MIX_ICON",
       "description": "首页-混合图标",
+      "file": "baj/icon_mix_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_MILK_ICON",
+      "description": "首页-奶量图标",
       "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
@@ -144,13 +165,6 @@
       "resource_id": "RESOURCE_ID_HOME_PP_ICON",
       "description": "首页-PP图标",
       "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_STIMULATE_ICON",
-      "description": "首页-刺激图标",
-      "file": "baj/icon_Stimulate_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },

@@ -40,6 +40,15 @@ typedef enum {
    
     RESOURCE_ID_PUMP_HOME_BG = 130,          /// 泵奶首页背景
 
+     /* 模式组 [301..400]（大图 + 小图标） */
+    RESOURCE_ID_INITIATING_MODE = 201,        /// 模式-启动界面
+    RESOURCE_ID_MODE_LACTATION_ICON,          /// 模式-泌乳图标
+    RESOURCE_ID_MODE_MIX_ICON,                /// 模式-混合图标
+    RESOURCE_ID_MODE_STIMULATE_ICON,          /// 模式-刺激图标
+    RESOURCE_ID_FREQ_BOOST_ICON,              /// 频率增强图标
+    RESOURCE_ID_FREQ_REGULAR_ICON,            /// 频率常规图标
+    RESOURCE_ID_FREQ_COMFORT_ICON,            /// 频率舒适图标
+
     RESOURCE_ID_PUMP_MODE_ANIMATION_START = 300,   /// 泵奶模式动画-开始
 
     RESOURCE_ID_PUMP_MODE_ANIMATION_END = 449,     /// 泵奶模式动画-结束
