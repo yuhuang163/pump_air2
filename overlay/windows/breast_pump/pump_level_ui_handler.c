@@ -88,6 +88,8 @@ static void show_pump_level_ui(ui_proc_pump_t *proc)
     if (proc->current_ui_type == PUMP_UI_TYPE_LEVEL) {
         proc->last_progress_ani_time = get_timestamp();
         return;
+    } else {
+        pump_ui_change_hdr_remove(proc);
     }
     ui_play_info_t play_info = {
         .tag = "pump_level_screen",
@@ -106,34 +108,58 @@ static void show_pump_level_ui(ui_proc_pump_t *proc)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int switch_pump_control_type_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, uint8_t control_type)
+void switch_pump_control_type_ui(ui_proc_pump_t *proc,uint8_t control_type)
 {
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    if (proc->pump->is_on_working() == 0) {
+        LOG_UI("pump is not working, ignore.");
+        return;
+    }
+
     if (control_type >= BREAST_PUMP_CONTROL_TYPE_MAX) {
         LOGE("switch pump control type: %d, out of range", control_type);
-        return -1;
+        return;
     }
-    
+
+    if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
+        proc->led->set_led_blink(PUMP_RIGHT_CONTROL_BL, PUMP_BLINK_PERIOD,
+            PUMP_LEVEL_BLINK_TIMES, LED_STATUS_ON);
+        proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX / 2);
+    } else if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
+        proc->led->set_led_blink(PUMP_LEFT_CONTROL_BL, PUMP_BLINK_PERIOD,
+            PUMP_LEVEL_BLINK_TIMES, LED_STATUS_ON);
+        proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX / 2);
+    } else {
+        proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX);
+        proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX);
+    }
+
     if (proc->info.control_type != control_type) {
         proc->info.control_type = control_type;
-        pump->set_breast_pump_control_type(control_type);
+        proc->pump->set_breast_pump_control_type(control_type);
     }
+    
     show_pump_level_ui(proc);
-    return 0;
+    LOG_UI("switch pump control type: %d", control_type);
 }
 
-int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump,
-                    breast_pump_info_t *pump_info, uint8_t is_left)
+void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase)
 {
-    storage_manager_context_t *st = pump->priv.st;
-    EXCEPTION_CHECK_INT(st);
-    EXCEPTION_CHECK_INT(pump->priv.motor);
-    int time_index = pump->priv.motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    EXCEPTION_CHECK_VOID(proc->motor);
+    if (proc->pump->is_on_working() == 0) {
+        LOG_UI("pump is not working, ignore.");
+        return;
+    }
+    int time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
     if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
         time_index = 0;
     }
-    pump->get_breast_pump_setting(&proc->setting, time_index);
+    proc->pump->get_breast_pump_setting(&proc->setting, time_index);
     if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
-        if (is_left) {
+        if (is_increase) {
             if (proc->setting.level[0] > 0) {
                 proc->setting.level[0]--;
             }
@@ -143,7 +169,7 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
             }
         }
     } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
-        if (is_left) {
+        if (is_increase) {
             if (proc->setting.level[1] > 0) {
                 proc->setting.level[1]--;
             }
@@ -154,7 +180,7 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
         }
     } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
         for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
-            if (is_left) {
+            if (is_increase) {
                 if (proc->setting.level[i] > 0) {
                     proc->setting.level[i]--;
                 }
@@ -165,13 +191,12 @@ int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pu
             }
         }
     }
-    pump->set_breast_pump_setting(&proc->setting, time_index, true);
+    proc->pump->set_breast_pump_setting(&proc->setting, time_index, true);
     show_pump_level_ui(proc);
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         LOG_UI("switch pump %d level: %d, mode: %s", i, proc->setting.level[i],
-             pump->get_breast_pump_mode_name(pump_info->mode));
+             proc->pump->get_breast_pump_mode_name(proc->pump->get_breast_pump_mode()));
     } 
-    return 0;
 }   
 
 void pump_level_ui_hdr_remove(void)

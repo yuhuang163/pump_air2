@@ -71,8 +71,8 @@ static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reaso
         msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
         LOG_WM("goto product test mode window.");
     } else {
-        msg.union_body.extra.window_id = ID_WINDOW_PUMP;
-        LOG_WM("goto pump window.");
+        msg.union_body.extra.window_id = ID_WINDOW_HOME;
+        LOG_WM("goto home window.");
     }
     proc->wm->dispatch_new_window_args(proc->wm, &msg);
     return 0;

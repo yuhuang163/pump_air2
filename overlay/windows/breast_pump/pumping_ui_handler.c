@@ -75,12 +75,14 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    if (proc->current_ui_type == PUMP_UI_TYPE_PUMPING) {
+    if (proc->current_ui_type == PUMP_UI_TYPE_HOME) {
         proc->last_progress_ani_time = get_timestamp();
         return;
+    } else {
+        pump_ui_change_hdr_remove(proc);
     }
     ui_play_info_t play_info = {
-        .tag = "pumping_screen",
+        .tag = "home_screen",
         .fps = PUMP_ANIMATION_FREQ,
         .progress_cb = pumping_animation_progress_cb,
         .display_prepare_cb = pumping_ui_display_prepare,
@@ -89,5 +91,30 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
     };
     proc->last_progress_ani_time = get_timestamp();
     ui->hook->ui_animation_play_init(ui, play_info);
-    proc->current_ui_type = PUMP_UI_TYPE_PUMPING;
+    proc->current_ui_type = PUMP_UI_TYPE_HOME;
+}
+
+void switch_pump_status_ui(ui_proc_pump_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    EXCEPTION_CHECK_VOID(proc->led);
+    proc->led->set_led_blink(PUMP_START_BL, PUMP_BLINK_PERIOD, 
+        PUMP_BLINK_TIMES, LED_STATUS_ON); /// 按键灯闪烁
+    int status = proc->pump->get_breast_pump_status();
+    if (status == BREAST_PUMP_PAUSE || status == BREAST_PUMP_IDLE || status == BREAST_PUMP_FINISH) {
+        if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
+            proc->pump->set_breast_pump_mode(proc->ui_common_mode_index, true);
+        } else if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
+            proc->pump->set_breast_pump_mode(proc->ui_breastfeeding_mode_index, true);
+        } 
+        proc->pump->set_breast_pump_status(status == BREAST_PUMP_PAUSE ? \
+            BREAST_PUMP_CONTINUE : BREAST_PUMP_START);
+        show_pump_home_ui(proc);
+        LOG_UI("pump start ui create: %d", status);
+    } else {
+        proc->pump->set_breast_pump_status(BREAST_PUMP_PAUSE);
+        show_pump_home_ui(proc);
+        LOG_UI("pump stop ui create: %d", status);
+    }
 }

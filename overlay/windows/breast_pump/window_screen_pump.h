@@ -40,6 +40,16 @@ extern "C" {
 #define PUMP_RUNNING_TIME_UPDATE_INTERVAL      (1000) /// 1s
 /// 泵奶模式切换超时时间
 #define PUMP_MODE_CHANGE_TIMEOUT               (2000) /// 2s
+/// 泵奶UI显示超时时间
+#define PUMP_MODE_DISPLAY_TIMEOUT              (10000) /// 10s
+/// 泵奶结果显示超时时间
+#define PUMP_RESULT_DISPLAY_TIMEOUT            (5000) /// 5s
+/// 泵奶背光灯周期
+#define PUMP_BLINK_PERIOD                      (500)
+/// 泵奶背光灯闪烁次数
+#define PUMP_BLINK_TIMES                       (1)
+/// 泵奶控制背光灯闪烁次数
+#define PUMP_LEVEL_BLINK_TIMES                 (3)
 
 /// 泵奶UI动作枚举
 typedef enum {
@@ -112,8 +122,9 @@ typedef struct {
     uint8_t goto_charge_ui_flag; /// 是否需要跳转到充电界面.
     uint8_t is_mode_changed_by_app; /// 是否是从app中切换模式.
     uint8_t is_mode_changed_by_device; /// 是否是从设备中切换模式.
-    uint8_t current_ui_mode; /// 当前UI模式索引.
-    uint16_t current_ui_type; /// 当前UI类型. pump_ui_type_e
+    uint8_t ui_common_mode_index; /// UI普通模式索引.
+    uint8_t ui_breastfeeding_mode_index; /// UI追奶模式索引.
+    uint16_t current_ui_type; /// 当前UI类型
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     ui_pump_info_t info; /// 当前泵奶信息.
     pump_setting_t setting; /// 当前泵奶设置信息.
@@ -127,21 +138,33 @@ typedef struct {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
+/// 显示泵奶主界面
 void show_pump_home_ui(ui_proc_pump_t *proc);
-int switch_pump_common_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
-int switch_pump_night_light_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump);
-int switch_pump_status_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, int status);
-int switch_pump_frequency_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
-int switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info);
-int switch_pump_control_type_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, uint8_t control_type);
-int switch_pump_level_ui(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump, breast_pump_info_t *pump_info, uint8_t is_left);
-void show_pump_progress_time_policy(ui_proc_pump_t *proc, breast_pump_manager_context_t *pump);
+/// 普通模式UI相关
+void pump_common_mode_ui_create(ui_proc_pump_t *proc);
+void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
+/// 追奶模式UI相关
+void breastfeeding_mode_ui_create(ui_proc_pump_t *proc);
+void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
+/// 速度UI相关
+void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
+/// 档位UI相关
+void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase);
+void switch_pump_control_type_ui(ui_proc_pump_t *proc, uint8_t control_type);
+/// 泵奶状态UI相关
+void switch_pump_status_ui(ui_proc_pump_t *proc);
+void show_pump_result_ui(ui_proc_pump_t *proc);
+void pump_result_go_to_home_window(ui_proc_pump_t *proc);
+/// 移除UI相关
 void pump_result_ui_hdr_remove(void);
 void pump_level_ui_hdr_remove(void);
 void pump_speed_ui_hdr_remove(void);
 void pump_mode_ui_hdr_remove(void);
 void breastfeeding_mode_ui_hdr_remove(void);
+void pump_ui_change_hdr_remove(ui_proc_pump_t *proc);
 void stop_pump_ui_animation(ui_proc_pump_t *proc);
+/// 按键处理相关
+void pump_power_key_handler(ui_proc_pump_t *proc);
 #ifdef __cplusplus
 }
 #endif
