@@ -14,7 +14,7 @@
 */
 #define PAGE_STATIC_NAME                            home
 #define PAGE_NAME_STR                               "home"
-#define HOME_UI_KEY_CODE                            (KEY_CODE_MODE | KEY_CODE_BREASTFEEDING | KEY_CODE_START)
+#define HOME_UI_KEY_CODE                            (KEY_CODE_MODE | KEY_CODE_BREASTFEEDING | KEY_CODE_START | KEY_CODE_POWER)
 #define HOME_UI_KEY_TYPE                            KEY_EVENT_CLICK
 #define HOME_UI_COMMON_TASK_NAME                    "home_ui_common_task"
 #define REMOVE_ALL_HANDER_TASK() \
