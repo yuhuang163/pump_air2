@@ -24,14 +24,14 @@
     {
       "resource_id": "RESOURCE_ID_BLE_CONNECT",
       "description": "蓝牙连接图标",
-      "file": "baj/time_colon_12x42_a4_q99_422.baj",
+      "file": "baj/icon_Bleconnect_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_BLE_DISCONNECT",
       "description": "蓝牙断开图标",
-      "file": "baj/time_colon_12x42_a4_q99_422.baj",
+      "file": "baj/icon_Bledisconnect_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -165,6 +165,27 @@
       "resource_id": "RESOURCE_ID_HOME_PP_ICON",
       "description": "首页-PP图标",
       "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MOM_PICTURE_ICON",
+      "description": "妈妈图片图标",
+      "file": "baj/picture_mom_244x198_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_IDLE_TEXT_AREA_ICON",
+      "description": "空闲界面文本区域图标",
+      "file": "baj/icon_idle_text_area_272x86_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_IDLE_BUTTOM_ICON",
+      "description": "空闲界面按钮指示图标",
+      "file": "baj/icon_idle_button_20x20_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
