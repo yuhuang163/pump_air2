@@ -116,7 +116,6 @@ typedef struct {
     broadcast_obj_t receiver;
     uint32_t margic;
     breast_pump_result_t pump_result; /// 泵奶结果.
-    uint8_t need_start_pump; /// 是否需要启动泵奶.
     uint8_t ui_show_state; /// 当前UI显示状态.
     uint8_t user_pause; /// 用户是否暂停.
     uint8_t goto_charge_ui_flag; /// 是否需要跳转到充电界面.

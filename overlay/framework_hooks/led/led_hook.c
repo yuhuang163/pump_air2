@@ -53,7 +53,7 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
             .un.luminous.level = 0,
         },
     };
-
+#if 0
     if (level == 0) {
         thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
     } else {
@@ -100,6 +100,10 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
             thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
         }
     }
+#else
+    msg.led_status.un.luminous.level = level;
+    thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+#endif
     LOG_MISC("set ui key backlight: %d", level);
 }
 

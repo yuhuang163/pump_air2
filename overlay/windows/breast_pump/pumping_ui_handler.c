@@ -107,7 +107,14 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
             proc->pump->set_breast_pump_mode(proc->ui_common_mode_index, true);
         } else if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
             proc->pump->set_breast_pump_mode(proc->ui_breastfeeding_mode_index, true);
-        } 
+       
+        }
+        uint8_t mode = proc->pump->get_breast_pump_mode();
+        if (PUMP_IS_COMMON_MODE(mode)) {
+            proc->led->set_led_level(PUMP_FREQ_SET_BL, 100);
+        } else {
+            proc->led->set_led_level(PUMP_FREQ_SET_BL, 0);
+        }
         proc->pump->set_breast_pump_status(status == BREAST_PUMP_PAUSE ? \
             BREAST_PUMP_CONTINUE : BREAST_PUMP_START);
         show_pump_home_ui(proc);
@@ -115,6 +122,7 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
     } else {
         proc->pump->set_breast_pump_status(BREAST_PUMP_PAUSE);
         show_pump_home_ui(proc);
+        proc->led->set_led_level(PUMP_FREQ_SET_BL, 100);
         LOG_UI("pump stop ui create: %d", status);
     }
 }
