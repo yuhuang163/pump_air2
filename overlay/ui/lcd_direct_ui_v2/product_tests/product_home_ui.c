@@ -113,7 +113,7 @@ static void product_tests_mac_name_update(ui_manager_context_t *thiz, uint8_t *m
     snprintf(mac_name, sizeof(mac_name), "V3-%02X%02X", mac_addr[0], mac_addr[1]);
     lv_label_set_text(tests_info->mac_name, mac_name);
     lv_obj_set_style_text_color(tests_info->mac_name, lv_color_hex(PRODUCT_TESTS_HOME_MAC_NAME_COLOR), 0);
-    lv_obj_set_style_text_font(tests_info->mac_name, &lv_font_roboto_25_medium, 0);  /// 设置字体
+    lv_obj_set_style_text_font(tests_info->mac_name, &lv_font_oppo_sans_14_medium, 0);  /// 设置字体
     // lv_obj_set_style_text_line_space(tests_info->mac_name, 4, 0);  /// 设置行间距（像素）
     // lv_obj_set_style_text_align(tests_info->mac_name, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
     lv_obj_align(tests_info->mac_name, LV_ALIGN_TOP_LEFT, 

@@ -212,7 +212,7 @@ static void home_root_text_update(ui_manager_context_t *thiz)
     }
     lv_label_set_text(home_info->text, "lets get started with pump");  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(home_info->text, lv_color_hex(IDLE_TEXT_COLOR), 0);
-    lv_obj_set_style_text_font(home_info->text, &lv_font_roboto_27_regular, 0);  /// 设置字体
+    lv_obj_set_style_text_font(home_info->text, &lv_font_oppo_sans_24_medium, 0);  /// 设置字体
     lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_x, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_y); /// 设置文字位置
 }
 

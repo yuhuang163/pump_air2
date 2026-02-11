@@ -482,8 +482,7 @@ UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_uart_ui
 endif
 
 # 字体模块头文件
-FONT_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/overlay/font \
+FONT_V1_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_14 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_16 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_17 \
@@ -498,9 +497,27 @@ FONT_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_46 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_68 \
 	-I$(PROJECT_ROOT)/overlay/font/font_roboto_79 \
-	-I$(PROJECT_ROOT)/overlay/font/font_roboto_81 \
+	-I$(PROJECT_ROOT)/overlay/font/font_roboto_81 
+
+FONT_V2_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_12 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_14 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_16 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_20 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_22 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_24 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_32 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_72 \
+	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_96 \
 	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_96 \
+
+FONT_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/overlay/font
+ifeq ($(V3_UI_VERSION), $(V3_UI_V1))
+FONT_INC_FLAGS += $(FONT_V1_INC_FLAGS)
+else
+FONT_INC_FLAGS += $(FONT_V2_INC_FLAGS)
+endif
 
 # 窗口模块头文件
 WINDOWS_INC_FLAGS := \
@@ -685,6 +702,11 @@ CPPFLAGS += -DV3_2710IMC_HARDWARE_V2=$(V3_2710IMC_HARDWARE_V2)
 CPPFLAGS += -DV3_2710IMP_HARDWARE_V1=$(V3_2710IMP_HARDWARE_V1)
 CPPFLAGS += -DV3_2710IMC_HARDWARE_V3=$(V3_2710IMC_HARDWARE_V3)
 CPPFLAGS += -DV3_HARDWARE_VERSION=$(V3_HARDWARE_VERSION)
+
+# UI版本
+CPPFLAGS += -DV3_UI_VERSION=$(V3_UI_VERSION)
+CPPFLAGS += -DV3_UI_V1=$(V3_UI_V1)
+CPPFLAGS += -DV3_UI_V2=$(V3_UI_V2)
 
 # 调试日志相关宏定义
 ifeq ($(REL_TRACE_ENABLE),1)
@@ -1033,7 +1055,7 @@ UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_uart
 endif
 
 # 字体模块源码
-FONT_MODULE_SRCS := \
+FONT_V1_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_14/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_16/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_17/*.c) \
@@ -1048,9 +1070,26 @@ FONT_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_46/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_68/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_79/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_81/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_roboto_81/*.c) 
+
+FONT_V2_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_12/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_14/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_96/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_16/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_20/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_22/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_24/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_32/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_72/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_96/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_96/*.c) 
+
+FONT_MODULE_SRCS := $(wildcard $(PROJECT_ROOT)/overlay/font/*.c)
+ifeq ($(V3_UI_VERSION), $(V3_UI_V1))
+FONT_MODULE_SRCS += $(FONT_V1_SRCS)
+else
+FONT_MODULE_SRCS += $(FONT_V2_SRCS)
+endif
 
 # 窗口模块源码
 WINDOWS_MODULE_SRCS := \
