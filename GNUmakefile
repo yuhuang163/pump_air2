@@ -124,7 +124,7 @@ CFG_BT_CALIB ?= 1
 # UI版本
 V3_UI_V1 ?= 1
 V3_UI_V2 ?= 2
-V3_UI_VERSION ?= $(V3_UI_V1)
+V3_UI_VERSION ?= $(V3_UI_V2)
 
 # BLE 头文件子目录
 BLE_INC_DIRS := $(shell find $(PROJECT_ROOT)/trunk/platform_chip/bes/sdk/bthost -type d)\
