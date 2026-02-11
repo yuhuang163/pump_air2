@@ -13,6 +13,9 @@
 */
 typedef struct {
     lv_obj_t * root;
+    lv_obj_t * backgroud;
+    res_img_info_t background_info;
+    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
     lv_obj_t * root_text;
     uint8_t force_update;
 } home_display_info_t;
@@ -37,14 +40,50 @@ static void home_root_init(void)
     if (home_info->root == NULL || !lv_obj_is_valid(home_info->root)) {
         home_info->root = lv_obj_create(lv_screen_active());
     }
+    home_info->root = lv_obj_create(lv_screen_active());
     lv_obj_set_size(home_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-    lv_obj_set_style_bg_color(home_info->root, lv_color_white(), 0);     /// 设置背景颜色为白色
+    lv_obj_set_style_bg_color(home_info->root, lv_color_white(), 0);     /// 设置背景颜色为黑色
     lv_obj_set_style_bg_opa(home_info->root, LV_OPA_COVER, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
     lv_obj_set_style_border_width(home_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
     lv_obj_set_style_pad_all(home_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
-    lv_obj_align(home_info->root, LV_ALIGN_CENTER, 0, 0);    /// 设置模式标签位置
+    lv_obj_align(home_info->root, LV_ALIGN_CENTER, 0, 0);
     lv_obj_clear_flag(home_info->root, LV_OBJ_FLAG_CLICKABLE); /// 让 root 不吃事件，防止挡子控件
     lv_obj_clear_flag(home_info->root, LV_OBJ_FLAG_SCROLLABLE); /// 禁止滚动
+}
+
+static void home_bg_update(ui_manager_context_t *thiz)
+{
+    if (home_info->force_update == false) {
+        return;
+    }
+
+    lv_fs_path_ex_t bg_img_path;
+    if (home_info->backgroud == NULL || !lv_obj_is_valid(home_info->backgroud)) {
+        home_info->backgroud = lv_image_create(home_info->root);
+        EXCEPTION_CHECK_VOID(home_info->backgroud);
+#if LV_USE_SNAPSHOT
+        if (home_info->background_snapshot != NULL) {
+            lv_draw_buf_destroy(home_info->background_snapshot);
+            home_info->background_snapshot = NULL;
+        }
+#endif
+        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &home_info->background_info);
+        EXCEPTION_CHECK_VOID(home_info->background_info.data);
+        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
+            home_info->background_info.data, home_info->background_info.size, "png");
+        lv_image_set_src(home_info->backgroud, (const void *)&bg_img_path);
+        lv_obj_align(home_info->backgroud, LV_ALIGN_CENTER, 0, 0);
+#if LV_USE_SNAPSHOT
+        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
+        home_info->background_snapshot = lv_snapshot_take(home_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
+#endif
+    }
+
+#if LV_USE_SNAPSHOT
+    if (home_info->background_snapshot != NULL) {
+        lv_image_set_src(home_info->backgroud, home_info->background_snapshot);
+    }
+#endif
 }
 
 static void home_root_text_update(ui_manager_context_t *thiz)
@@ -58,7 +97,7 @@ static void home_root_text_update(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(home_info->root_text);
     }
     lv_label_set_text(home_info->root_text, "Home");  /// 设置 label 文字内容和样式
-    lv_obj_set_style_text_color(home_info->root_text, lv_color_black(), 0);
+    lv_obj_set_style_text_color(home_info->root_text, lv_color_white(), 0);
     lv_obj_set_style_text_font(home_info->root_text, &lv_font_roboto_24_medium, 0);  /// 设置字体
     lv_obj_align(home_info->root_text, LV_ALIGN_CENTER, 0, 0); /// 设置文字位置
 }
@@ -94,6 +133,8 @@ void ui_display_home_remove(ui_manager_context_t *thiz)
 int ui_display_home_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
+    EXCEPTION_CHECK_INT(home_info);
+    home_bg_update(thiz);
     home_root_text_update(thiz);
     home_info->force_update = false;
     thiz->priv.fps_count++;

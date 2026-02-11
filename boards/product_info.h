@@ -14,7 +14,7 @@ extern "C" {
 /**
  * 产品信息
 */
-#if 1
+#if 0
 #define ROOT_PRODUCT_ID                               ROOT_PRODUCT_V3PRO_ID
 #else
 #define ROOT_PRODUCT_ID                               ROOT_PRODUCT_V3_ID
