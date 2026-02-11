@@ -511,6 +511,7 @@ WINDOWS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/windows/charge \
 	-I$(PROJECT_ROOT)/overlay/windows/dummy \
 	-I$(PROJECT_ROOT)/overlay/windows/guide \
+	-I$(PROJECT_ROOT)/overlay/windows/home \
 	-I$(PROJECT_ROOT)/overlay/windows/logo \
 	-I$(PROJECT_ROOT)/overlay/windows/ota \
 	-I$(PROJECT_ROOT)/overlay/windows/popup_windows \
