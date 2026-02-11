@@ -190,6 +190,20 @@
       "y_offset": 0
     },
     {
+      "resource_id": "RESOURCE_ID_AIRPLANE_MODE_ICON",
+      "description": "飞行界面模式图标",
+      "file": "baj/icon_Airplane_mode_56x56_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_AIRPLANE_PAUSE_ICON",
+      "description": "飞行界面暂停图标",
+      "file": "baj/icon_Airplane_pause_56x56_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
       "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
       "description": "泵奶首页背景",
       "file": "png/home_bg.png",
