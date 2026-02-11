@@ -20,17 +20,16 @@
 #define HOME_BUTTON_ICON_INDEX                      (2)
 #define HOME_MOM_PICTURE_ICON_INDEX                 (3)
 
+#define IDLE_TEXT_AREA_ICON_X                       (54)
+#define IDLE_TEXT_AREA_ICON_Y                       (108)
+#define IDLE_BUTTON_ICON_X                          (IDLE_TEXT_AREA_ICON_X + 24)
+#define IDLE_BUTTON_ICON_Y                          (IDLE_TEXT_AREA_ICON_Y + 26)
+#define MOM_PICTURE_ICON_X                          (IDLE_TEXT_AREA_ICON_X + 2)
+#define MOM_PICTURE_ICON_Y                          (IDLE_TEXT_AREA_ICON_Y + 54)
 
-#define IDLE_TEXT_AREA_ICON_X                       (100)
-#define IDLE_TEXT_AREA_ICON_Y                       (100)
-#define IDLE_BUTTON_ICON_X                          (100)
-#define IDLE_BUTTON_ICON_Y                          (100)
-#define MOM_PICTURE_ICON_X                           (130)
-#define MOM_PICTURE_ICON_Y                           (126)
-
-#define IDLE_TEXT_LABEL_TEXT_X                       (80)
-#define IDLE_TEXT_LABEL_TEXT_Y                       (80)
-#define IDLE_TEXT_COLOR                              (0xB25962)
+#define IDLE_TEXT_LABEL_TEXT_X                      (IDLE_TEXT_AREA_ICON_X + 50)
+#define IDLE_TEXT_LABEL_TEXT_Y                      (IDLE_TEXT_AREA_ICON_Y + 26)
+#define IDLE_TEXT_COLOR                             (0xB25962)
 
 
 typedef struct {
@@ -210,7 +209,7 @@ static void home_root_text_update(ui_manager_context_t *thiz)
         home_info->text = lv_label_create(home_info->root);
         EXCEPTION_CHECK_VOID(home_info->text);
     }
-    lv_label_set_text(home_info->text, "lets get started with pump");  /// 设置 label 文字内容和样式
+    lv_label_set_text(home_info->text, "lets get started");  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(home_info->text, lv_color_hex(IDLE_TEXT_COLOR), 0);
     lv_obj_set_style_text_font(home_info->text, &lv_font_oppo_sans_24_medium, 0);  /// 设置字体
     lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_x, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_y); /// 设置文字位置
