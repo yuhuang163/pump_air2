@@ -32,6 +32,9 @@ typedef enum {
     RESOURCE_ID_IDLE_TEXT_AREA_ICON,           /// 空闲界面文本区域图标
     RESOURCE_ID_IDLE_BUTTOM_ICON,              /// 空闲界面按钮指示图标
 
+    RESOURCE_ID_AIRPLANE_MODE_ICON,              /// 飞行模式图标
+    RESOURCE_ID_AIRPLANE_PAUSE_ICON,             /// 飞行模式暂停图标
+
     RESOURCE_ID_HOME_STIMULATE_ICON = 101,   /// 首页-刺激图标
     RESOURCE_ID_HOME_LACTATION_ICON,         /// 首页-泌乳图标
     RESOURCE_ID_HOME_MIX_ICON,               /// 首页-混合图标

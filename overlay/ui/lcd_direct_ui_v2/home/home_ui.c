@@ -22,12 +22,12 @@
 
 #define IDLE_TEXT_AREA_ICON_X                       (54)
 #define IDLE_TEXT_AREA_ICON_Y                       (108)
-#define IDLE_BUTTON_ICON_X                          (IDLE_TEXT_AREA_ICON_X + 24)
+#define IDLE_BUTTON_ICON_X                          (IDLE_TEXT_AREA_ICON_X + 26)
 #define IDLE_BUTTON_ICON_Y                          (IDLE_TEXT_AREA_ICON_Y + 26)
 #define MOM_PICTURE_ICON_X                          (IDLE_TEXT_AREA_ICON_X + 2)
 #define MOM_PICTURE_ICON_Y                          (IDLE_TEXT_AREA_ICON_Y + 54)
 
-#define IDLE_TEXT_LABEL_TEXT_X                      (IDLE_TEXT_AREA_ICON_X + 50)
+#define IDLE_TEXT_LABEL_TEXT_X                      (IDLE_TEXT_AREA_ICON_X + 52)
 #define IDLE_TEXT_LABEL_TEXT_Y                      (IDLE_TEXT_AREA_ICON_Y + 26)
 #define IDLE_TEXT_COLOR                             (0xB25962)
 
