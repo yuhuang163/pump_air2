@@ -190,16 +190,9 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_AIRPLANE_MODE_ICON",
-      "description": "飞行界面模式图标",
-      "file": "baj/icon_Airplane_mode_56x56_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_AIRPLANE_PAUSE_ICON",
-      "description": "飞行界面暂停图标",
-      "file": "baj/icon_Airplane_pause_56x56_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_AIRPLANE_UNLOCK_BUTTON_ICON",
+      "description": "飞行界面解锁按钮图标",
+      "file": "baj/icon_travel_unlock_148x56_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },

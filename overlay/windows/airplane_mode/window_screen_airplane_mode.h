@@ -43,6 +43,7 @@ typedef struct ui_proc_airplane_mode {
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
     battery_manager_context_t *battery;
+    ble_manager_context_t *ble;
     power_manager_context_t *pm;
     key_input_context_t *key;
     breast_pump_manager_context_t *pump;
