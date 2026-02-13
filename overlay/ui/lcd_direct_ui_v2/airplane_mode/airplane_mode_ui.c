@@ -50,7 +50,7 @@ typedef struct {
 */
 #if IS_SUPPORT_AIRPLANE_MODE_COMP_BG
 static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
-    #include "./airplay_com_bg_360x360.txt"
+    #include "png2txt/airplay_com_bg_360x360.txt"
 };
 #endif
 

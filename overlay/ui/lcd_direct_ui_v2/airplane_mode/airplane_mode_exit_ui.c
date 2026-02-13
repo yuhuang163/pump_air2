@@ -12,7 +12,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_AIRPLANE_MODE_COMP_BG                          (1)
+#define IS_SUPPORT_AIRPLANE_MODE_COMP_BG                          (0)
 #define AIRPLANE_MODE_TEXT_COUNT                                  (2)
 #define AIRPLANE_MODE_ICON_COUNT                                  (1)
 #define AIRPLANE_MODE_UNLOCK_BUTTON_ICON_INDEX                    (0)
@@ -63,7 +63,7 @@ typedef struct {
 */
 #if IS_SUPPORT_AIRPLANE_MODE_COMP_BG
 static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
-    #include "./airplay_exit_com_bg_360x360.txt"
+    #include "png2txt/airplay_exit_com_bg_360x360.txt"
 };
 #endif
 

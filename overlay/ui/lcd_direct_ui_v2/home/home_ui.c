@@ -80,7 +80,7 @@ const static home_icon_info_t home_icon_infos[HOME_ICON_MAX_COUNT] = {
 #if IS_SUPPORT_ROOT_HOME_COMP_BG
 static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
     // #include "comparison_png2txt/bg_360x360.txt"
-    #include "./home_com_bg_360x360.txt"
+    #include "png2txt/home_com_bg_360x360.txt"
     // #include "comparison_png2txt/home_comp_1_v2_360x360.txt"
     // #include "comparison_png2txt/home_comp_80_v2_360x360.txt"
     // #include "comparison_png2txt/home_comp_100_v2_360x360.txt"
