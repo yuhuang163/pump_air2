@@ -151,7 +151,7 @@ static void airplane_mode_bg_update(ui_manager_context_t *thiz)
 }
 #endif
 
-static void pump_button_icon_update(ui_manager_context_t *thiz)
+static void airplane_mode_button_icon_update(ui_manager_context_t *thiz)
 {
     if (airplane_mode_info->force_update == false) {
         return;
@@ -170,7 +170,7 @@ static void pump_button_icon_update(ui_manager_context_t *thiz)
         airplane_mode_icon_infos[AIRPLANE_MODE_UNLOCK_BUTTON_ICON_INDEX].icon_y);
 }
 
-static void pump_texts_update(ui_manager_context_t *thiz, uint8_t index)
+static void airplane_mode_texts_update(ui_manager_context_t *thiz, uint8_t index)
 {
     if (airplane_mode_info->force_update == false) {
         return;
@@ -228,10 +228,10 @@ int ui_display_airplane_mode_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->ble);
     airplane_mode_bg_update(thiz);
-    pump_button_icon_update(thiz);
+    airplane_mode_button_icon_update(thiz);
     ble_ui_update(thiz, airplane_mode_info->root, proc->ble);
     for (uint8_t i = 0; i < AIRPLANE_MODE_TEXT_COUNT; i++) {
-        pump_texts_update(thiz, i);
+        airplane_mode_texts_update(thiz, i);
     }
 
     airplane_mode_info->force_update = false;
