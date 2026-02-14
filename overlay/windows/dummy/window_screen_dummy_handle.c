@@ -182,6 +182,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->tests = (tests_manager_context_t *)find_module(ID_MODULE_TESTS);
     proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;

@@ -157,7 +157,7 @@ static void airplane_mode_button_icon_update(ui_manager_context_t *thiz)
         return;
     }
     if (airplane_mode_info->unlock_button_icon == NULL || !lv_obj_is_valid(airplane_mode_info->root)) {
-        airplane_mode_info->unlock_button_icon = lv_image_create(lv_screen_active());
+        airplane_mode_info->unlock_button_icon = lv_image_create(airplane_mode_info->root);
     }
     common_ui_img_resource_init(thiz, RESOURCE_ID_AIRPLANE_UNLOCK_BUTTON_ICON, &airplane_mode_info->unlock_button_icon_info);
     EXCEPTION_CHECK_VOID(airplane_mode_info->unlock_button_icon_info.data);
