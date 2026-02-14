@@ -27,8 +27,9 @@ typedef enum {
     RESOURCE_ID_HOME_CHARGING,               /// 首页充电图标
     RESOURCE_ID_HOME_UNCHARGE,               /// 首页未充电图标
     RESOURCE_ID_HOME_TIME_COLON,             /// 首页时间冒号
-    
+
     RESOURCE_ID_CHARGE_ADAPTER_ICON,     /// 首页充电适配器图标
+    RESOURCE_ID_DUMMY_ICON,              /// dummy图标
 
     RESOURCE_ID_MOM_PICTURE_ICON,              /// 妈妈图片图标
     RESOURCE_ID_IDLE_TEXT_AREA_ICON,           /// 空闲界面文本区域图标

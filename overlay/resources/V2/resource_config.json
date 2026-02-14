@@ -204,6 +204,13 @@
       "y_offset": 0
     },
     {
+      "resource_id": "RESOURCE_ID_DUMMY_ICON",
+      "description": "dummy图标",
+      "file": "baj/icon_dummy_240x134_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
       "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
       "description": "泵奶首页背景",
       "file": "png/home_bg.png",
