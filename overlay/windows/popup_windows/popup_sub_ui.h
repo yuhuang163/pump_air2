@@ -20,6 +20,8 @@ extern "C" {
 */
 void start_low_power_ui_animation(ui_proc_popup_t *proc);
 void stop_low_power_ui_animation(ui_proc_popup_t *proc);
+void start_exit_airplane_ui_animation(ui_proc_popup_t *proc);
+void stop_exit_airplane_ui_animation(ui_proc_popup_t *proc);
 #ifdef __cplusplus
 }
 #endif
