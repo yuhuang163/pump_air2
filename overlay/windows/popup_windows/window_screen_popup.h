@@ -16,6 +16,7 @@ extern "C" {
 /// logo动画频率
 #if IS_SUPPORT_LVGL
 #define POPUP_ANIMATION_FREQ                 (25)
+#define EXIT_AIRPLANE_ANIMATION_FREQ         (25)
 #else
 #define POPUP_ANIMATION_FREQ                 (5)
 #endif
