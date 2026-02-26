@@ -213,7 +213,140 @@
     {
       "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
       "description": "泵奶首页背景",
-      "file": "png/home_bg.png",
+      "file": "baj/home_bg_360x360_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_QR_ICON",
+      "description": "二维码",
+      "file": "png/icon_QRCode.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_LRM_ICON",
+      "description": "左+右+模式",
+      "file": "png/icon_LRMode.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PLAYPAUSE_ICON",
+      "description": "启动暂停",
+      "file": "png/icon_Playpause.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_MODESTAR_ICON",
+      "description": "Mode+Star",
+      "file": "png/icon_ModeStar.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_ARROW_ICON",
+      "description": "向下箭头",
+      "file": "png/icon_Arrow.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PUMPING_ABB_ICON",
+      "description": "pumping缩略图",
+      "file": "png/icon_pumping_abb.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PUMPING_START_ABB_ICON",
+      "description": "pumping启动缩略图",
+      "file": "png/icon_pumpingstart_abb.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_KN_ABB_0",
+      "description": "旋钮指示缩略图0",
+      "file": "png/icon_knob_abb_0.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_KN_ABB_1",
+      "description": "旋钮指示缩略图1",
+      "file": "png/icon_knob_abb_1.png",
+      "x_offset": 0,
+      "y_offset": 0  
+    },
+    {
+      "resource_id": "RESOURCE_ID_EMODE_R_ICON",
+      "description": "English+右",
+      "file": "png/icon_emode_r.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_EMODE_L_ICON",
+      "description": "English+左",
+      "file": "png/icon_emode_l.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CMODE_R_ICON",
+      "description": "中文+右",
+      "file": "png/icon_cmode_r.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CMODE_L_ICON",
+      "description": "中文+左",
+      "file": "png/icon_cmode_l.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_STAR_ICON",
+      "description": "星形图标",
+      "file": "baj/icon_star_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HUE_ICON",
+      "description": "色调图标",
+      "file": "baj/icon_hue_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HEART_ICON",
+      "description": "心形图标",
+      "file": "baj/icon_heart_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_EXPRESSION_ICON",
+      "description": "表情图标",
+      "file": "baj/icon_expression_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_BG_ICON",
+      "description": "模式背景图标",
+      "file": "png/icon_mode_bg.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_VECTOR_ICON",
+      "description": "已读图标",
+      "file": "baj/icon_vector_12x8_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     }
