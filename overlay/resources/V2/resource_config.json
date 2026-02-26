@@ -211,6 +211,34 @@
       "y_offset": 0
     },
     {
+      "resource_id": "RESOURCE_ID_MODE_STIMULATION_PROMPT_ICON",
+      "description": "刺激确认提示图标",
+      "file": "baj/icon_Stimulation_prompt_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_EXPRESSION_PROMPT_ICON",
+      "description": "泌乳确认提示图标",
+      "file": "baj/icon_Expression_prompt_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_MIX_PROMPT_ICON",
+      "description": "混合确认提示图标",
+      "file": "baj/icon_mix_prompt_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_RELAX_PROMPT_ICON",
+      "description": "放松确认提示图标",
+      "file": "baj/icon_relax_prompt_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
       "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
       "description": "泵奶首页背景",
       "file": "png/home_bg.png",

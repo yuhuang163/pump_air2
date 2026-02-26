@@ -65,8 +65,10 @@ static void exit_airplane_ui_display_remove(void *user_data)
     ui_display_airplane_mode_exit_remove(ui);
 }
 
-static void show_exit_airplane_ui(ui_manager_context_t *ui)
+static void show_exit_airplane_ui(ui_proc_popup_t *proc)
 {
+    ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_VOID(ui);
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_overlay_init);
     ui_play_info_t play_info = {
         .tag = "exit_airplane_screen",
@@ -74,7 +76,7 @@ static void show_exit_airplane_ui(ui_manager_context_t *ui)
         .progress_cb = exit_airplane_animation_progress_cb,
         .display_prepare_cb = exit_airplane_ui_display_prepare,
         .display_remove_cb = exit_airplane_ui_display_remove,
-        .user_data = ui,
+        .user_data = proc,
     };
     ui->hook->ui_animation_overlay_init(ui, play_info);
 }
@@ -87,5 +89,5 @@ void start_exit_airplane_ui_animation(ui_proc_popup_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc->ui);
     LOG_UI("start exit airplane ui animation.");
-    show_exit_airplane_ui(proc->ui);
+    show_exit_airplane_ui(proc);
 }
