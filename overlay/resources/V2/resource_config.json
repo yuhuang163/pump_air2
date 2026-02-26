@@ -216,6 +216,76 @@
       "file": "png/home_bg.png",
       "x_offset": 0,
       "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_EMODE_R_ICON",
+      "description": "English+右",
+      "file": "png/icon_emode_r.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_EMODE_L_ICON",
+      "description": "English+左",
+      "file": "png/icon_emode_l.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CMODE_R_ICON",
+      "description": "中文+右",
+      "file": "png/icon_cmode_r.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CMODE_L_ICON",
+      "description": "中文+左",
+      "file": "png/icon_cmode_l.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_STAR_ICON",
+      "description": "星形图标",
+      "file": "baj/icon_star_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HUE_ICON",
+      "description": "色调图标",
+      "file": "baj/icon_hue_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HEART_ICON",
+      "description": "心形图标",
+      "file": "baj/icon_heart_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_EXPRESSION_ICON",
+      "description": "表情图标",
+      "file": "baj/icon_expression_36x36_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_BG_ICON",
+      "description": "模式背景图标",
+      "file": "png/icon_mode_bg.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_VECTOR_ICON",
+      "description": "已读图标",
+      "file": "baj/icon_vector_12x8_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
     }
   ]
 }
