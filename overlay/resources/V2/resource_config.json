@@ -213,9 +213,72 @@
     {
       "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
       "description": "泵奶首页背景",
-      "file": "png/home_bg.png",
+      "file": "baj/home_bg_360x360_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_QR_ICON",
+      "description": "二维码",
+      "file": "png/icon_QRCode.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_LRM_ICON",
+      "description": "左+右+模式",
+      "file": "png/icon_LRMode.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PLAYPAUSE_ICON",
+      "description": "启动暂停",
+      "file": "png/icon_Playpause.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_MODESTAR_ICON",
+      "description": "Mode+Star",
+      "file": "png/icon_ModeStar.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_ARROW_ICON",
+      "description": "向下箭头",
+      "file": "png/icon_Arrow.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PUMPING_ABB_ICON",
+      "description": "pumping缩略图",
+      "file": "png/icon_pumping_abb.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_PUMPING_START_ABB_ICON",
+      "description": "pumping启动缩略图",
+      "file": "png/icon_pumpingstart_abb.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_KN_ABB_0",
+      "description": "旋钮指示缩略图0",
+      "file": "png/icon_knob_abb_0.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_GUIDE_KN_ABB_1",
+      "description": "旋钮指示缩略图1",
+      "file": "png/icon_knob_abb_1.png",
+      "x_offset": 0,
+      "y_offset": 0  
     },
     {
       "resource_id": "RESOURCE_ID_EMODE_R_ICON",
