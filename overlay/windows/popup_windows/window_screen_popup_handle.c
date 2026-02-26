@@ -47,6 +47,7 @@ static void popup_exit_handler_cb(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pm);
     WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_POPUP_WINDOW);
+    LOG_WM("popup exit handler, time: %ld.", get_timestamp());
 #if IS_SUPPORT_POPUP_WAKE_LOCK
     proc->pm->release_wakelock(POPUP_WAKE_LOCK_NAME);
 #endif
