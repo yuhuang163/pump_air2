@@ -70,8 +70,8 @@ static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
 static airplane_mode_exit_display_info_t *airplane_mode_exit_info;
 
 const static airplane_mode_exit_text_info_t airplane_mode_exit_text_infos[AIRPLANE_MODE_TEXT_COUNT] = {
-    { "pump is locked", (100), (130), &lv_font_oppo_sans_24_medium ,0},
-    { "pump is locked long press for\n5 second to unlock", (76), (158), &lv_font_oppo_sans_16_medium ,0},
+    { "Device locked", (110), (130), &lv_font_oppo_sans_20_medium ,0},
+    { "Press and hold Start/Pause + Mode\n       for 5 seconds to unlock.", (48), (158), &lv_font_oppo_sans_16_medium ,0},
 };
 
 airplane_mode_exit_icon_info_t airplane_mode_exit_icon_infos[AIRPLANE_MODE_ICON_COUNT] = {
