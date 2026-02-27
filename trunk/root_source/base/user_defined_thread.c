@@ -153,7 +153,7 @@ static int popup_window_test_cb(void)
     multi_func_msg_data_t msg = {0};
     msg.union_body.extra.window_id = ID_WINDOW_POPUP_WINDOW;
     msg.union_body.extra.is_bg_dispatch = 0x01;
-    msg.union_body.extra.arg1 = ID_POPUP_WINDOW_EXIT_AIRPLANE_MODE;
+    msg.union_body.extra.arg1 = ID_POPUP_WINDOW_LOW_POWER;
     msg.union_body.extra.popup_exit_time = 8000;
     wm->dispatch_new_window_args(wm, &msg);
     LOG_PBUS("===> popup window test!!!!!");
@@ -182,7 +182,7 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
 int run_user_thread_dispatch(void)
 {
 #if IS_SUPPORT_PRESSURE_TEST  
-     POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 5000, "pressure_test");
+     //POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 5000, "pressure_test");
 #endif
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     if (wm) {
