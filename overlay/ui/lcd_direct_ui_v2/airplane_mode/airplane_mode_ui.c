@@ -201,6 +201,7 @@ void ui_display_airplane_mode_prepare(ui_manager_context_t *thiz)
     airplane_mode_info->force_update = true;
     ble_ui_init(thiz);
     airplane_mode_root_init();
+    ui_display_airplane_mode_exit_init(thiz, airplane_mode_info->root);
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
 }
@@ -214,6 +215,7 @@ void ui_display_airplane_mode_remove(ui_manager_context_t *thiz)
     ble_ui_deinit(thiz);
     common_ui_img_resource_deinit(thiz, &airplane_mode_info->background_info);
     common_ui_img_resource_deinit(thiz, &airplane_mode_info->unlock_button_icon_info);
+    ui_display_airplane_mode_exit_deinit(thiz, airplane_mode_info->root);
     LVGL_OBJ_DELETE(airplane_mode_info->root); 
     u_free(airplane_mode_info);
     airplane_mode_info = NULL;
@@ -233,7 +235,7 @@ int ui_display_airplane_mode_process(ui_manager_context_t *thiz)
     for (uint8_t i = 0; i < AIRPLANE_MODE_TEXT_COUNT; i++) {
         airplane_mode_texts_update(thiz, i);
     }
-
+    ui_display_airplane_mode_exit_process(thiz, airplane_mode_info->root);
     airplane_mode_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
