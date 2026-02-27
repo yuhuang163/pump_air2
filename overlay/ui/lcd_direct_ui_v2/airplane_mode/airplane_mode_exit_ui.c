@@ -22,10 +22,10 @@
 * TYPEDEFS
 *****************************************************************************************
 */
-lv_obj_t * sub_root;
-lv_obj_t * countdown_num;
-lv_obj_t * countdown_arc;            // 新增：环形进度条对象
-lv_obj_t * backgroud;
+static lv_obj_t * sub_root;
+static lv_obj_t * countdown_num;
+static lv_obj_t * countdown_arc;            // 新增：环形进度条对象
+static lv_obj_t * backgroud;
 static uint16_t countdown_value;
 static uint8_t force_update;
 static uint32_t start_time;
