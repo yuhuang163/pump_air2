@@ -48,7 +48,15 @@ const motor_policy_cfg_t *get_breast_pump_mode_para(int mode)
         case BREAST_PUMP_MILK_BOOST_MODE:   
             return milk_boost_default;
         case BREAST_PUMP_LACTATION_START_MODE:   
-            return lactation_start_default;  
+            return lactation_start_default;
+        case BREAST_PUMP_REGULAR_PUMPING_MODE:   
+            return regular_pumping_default;
+        case BREAST_PUMP_EMPTYING_BOOST_MODE:   
+            return emptying_boost_default;
+        case BREAST_PUMP_RELAX_MODE:
+            return relax_default;
+        default:
+            return 0;
     }
     return NULL;
 }
@@ -71,6 +79,12 @@ int breast_pump_mode_time_step_number_get(int mode)
             return MILK_BOOST_MODE_LEN;
         case BREAST_PUMP_LACTATION_START_MODE:
             return LACTATION_START_MODE_LEN;
+        case BREAST_PUMP_REGULAR_PUMPING_MODE:
+            return REGULAR_PUMPING_MODE_LEN;
+        case BREAST_PUMP_EMPTYING_BOOST_MODE:
+            return EMPTYING_BOOST_MODE_LEN;
+        case BREAST_PUMP_RELAX_MODE:
+            return RELAX_MODE_LEN;
         default:
             return 0;
     }
@@ -138,6 +152,30 @@ void breast_pump_setting_reset(sys_pump_info_t *pump_info, int mode)
             break;
         case BREAST_PUMP_LACTATION_START_MODE:   
             setting = pump_info->lactation_start_setting;  
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_REGULAR_PUMPING_MODE:   
+            setting = pump_info->regular_pumping_setting;  
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_EMPTYING_BOOST_MODE:   
+            setting = pump_info->emptying_boost_setting;  
+            for (uint8_t i = 0; i < step_count; i++) {
+                setting[i].speed = cfg[i].core.un.mapping.speed;
+                setting[i].level[0] = cfg[i].core.un.mapping.level;
+                setting[i].level[1] = cfg[i].core.un.mapping.level;
+            }
+            break;
+        case BREAST_PUMP_RELAX_MODE:   
+            setting = pump_info->relax_setting;  
             for (uint8_t i = 0; i < step_count; i++) {
                 setting[i].speed = cfg[i].core.un.mapping.speed;
                 setting[i].level[0] = cfg[i].core.un.mapping.level;
@@ -226,6 +264,12 @@ int breast_pump_mode_work_time_get(int mode)
             return work_time;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:
             return MILK_TRACK_MODE_DEFAULT_WORK_TIME;
+        case BREAST_PUMP_REGULAR_PUMPING_MODE:
+            return REGULAR_PUMPING_MODE_WORK_TIME;
+        case BREAST_PUMP_EMPTYING_BOOST_MODE:
+            return EMPTYING_BOOST_MODE_WORK_TIME;
+        case BREAST_PUMP_RELAX_MODE:
+            return RELAX_MODE_WORK_TIME;
     }
     return NORMAL_MODE_DEFAULT_WORK_TIME;
 }
