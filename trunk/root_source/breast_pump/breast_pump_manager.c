@@ -478,6 +478,10 @@ static const char *get_breast_pump_status_name(uint8_t status)
             return "#FINISH#";
         case BREAST_PUMP_FACTORY:
             return "#FACTORY#";
+        case BREAST_PUMP_RESET:
+            return "#RESET#";
+        case BREAST_PUMP_ERROR:
+            return "#ERROR#";
     }
 }
 
@@ -500,6 +504,12 @@ static const char *get_breast_pump_mode_name(uint8_t mode)
             return "@2+8_milk_boost";
         case BREAST_PUMP_LACTATION_START_MODE:
             return "@lactation_start";
+        case BREAST_PUMP_REGULAR_PUMPING_MODE:
+            return "@regular_pumping";
+        case BREAST_PUMP_EMPTYING_BOOST_MODE:
+            return "@emptying_boost";
+        case BREAST_PUMP_RELAX_MODE:
+            return "@relax";
     }
 }
 

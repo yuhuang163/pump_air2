@@ -111,6 +111,21 @@ static int motor_debug_test_cb(void)
     return 1000;
 }
 
+static int pumping_test_cb(void)
+{
+    breast_pump_manager_context_t *breast_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_INT(breast_ctx);
+    static uint8_t mode = BREAST_PUMP_STIMULATION_MODE;
+    breast_ctx->set_breast_pump_mode(mode, 0);
+    breast_ctx->set_breast_pump_status(BREAST_PUMP_START);
+    mode++;
+    if (mode >= BREAST_PUMP_MODE_MAX) {
+        mode = BREAST_PUMP_STIMULATION_MODE;
+    }
+    LOG_PBUS("===> pumping test!!!!! mode: %d", mode);
+    return 1000*30;
+}
+
 static void sys_dump_wdg_test_cb(void)
 {
     window_manager_context_t *wm = NULL;
@@ -168,10 +183,11 @@ static void hdr_run_pressure_test_cb(hdr_post_args_t *args)
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, lcd_data_send_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, run_led_test_cb(), "pressure_test:continue"); 
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, external_flash_test_cb(), "pressure_test:continue");
-    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, popup_window_test_cb(), "pressure_test:continue");
+    //POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, popup_window_test_cb(), "pressure_test:continue");
     // motor_debug_policy_test_cb();
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, motor_debug_test_cb(), "pressure_test:continue");
     // POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, 1000, "pressure_test:continue");
+    POST_TASK_HANDLER_DELAYED_ARG0(hdr_run_pressure_test_cb, pumping_test_cb(), "pressure_test:continue");
 }
 #endif
 
