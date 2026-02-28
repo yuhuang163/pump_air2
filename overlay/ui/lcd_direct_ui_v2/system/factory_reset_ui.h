@@ -1,5 +1,5 @@
-#ifndef __GUIDE_UI_H__
-#define __GUIDE_UI_H__
+#ifndef __FACTORY_RESET_UI_H__
+#define __FACTORY_RESET_UI_H__
 
 #ifdef __cplusplus
 extern "C" {

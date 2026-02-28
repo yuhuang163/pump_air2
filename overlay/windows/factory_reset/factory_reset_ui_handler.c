@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "ui_img_define.h" // IWYU pragma: keep
+#include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_factory_reset.h" // IWYU pragma: keep
 
 /*
@@ -31,7 +32,8 @@ static void factory_reset_ui_before_policy(ui_manager_context_t *ui, int index)
 
 static void factory_reset_ui_after_policy(ui_manager_context_t *ui, int index)
 {
-
+    EXCEPTION_CHECK_VOID(ui);
+    ui_display_factory_reset_process(ui);
 }
 
 static void factory_reset_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -56,14 +58,14 @@ static void factory_reset_ui_display_prepare(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    // ui_display_factory_reset_screen_prepare(ui);
+    ui_display_factory_reset_prepare(ui);
 }
 
 static void factory_reset_ui_display_remove(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    // ui_display_factory_reset_screen_remove(ui);
+    ui_display_factory_reset_remove(ui);
 }
 
 static void show_factory_reset_ui(ui_proc_factory_reset_t *proc)

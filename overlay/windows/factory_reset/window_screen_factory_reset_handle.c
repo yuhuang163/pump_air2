@@ -37,7 +37,7 @@ static void factory_reset_led_blink_policy(led_manager_context_t *led)
 {
     EXCEPTION_CHECK_VOID(led);
     LOG_UI("factory reset led blink policy");
-    led->set_led_blink(PUMP_LED_ALL_ID, 500, 3, LED_STATUS_OFF);
+    led->set_led_blink(PUMP_LED_ALL_ID, 500, 0, LED_STATUS_OFF);
 }
 
 static void factory_reset_cb(hdr_post_args_t *args)
@@ -45,7 +45,7 @@ static void factory_reset_cb(hdr_post_args_t *args)
     ui_proc_factory_reset_t *proc = (ui_proc_factory_reset_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
     WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_FACTORY_RESET);
-    stop_factory_reset_ui_animation(proc);
+    // stop_factory_reset_ui_animation(proc);
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     pm->acquire_wakelock("reboot", 10);
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);

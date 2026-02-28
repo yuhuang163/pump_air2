@@ -21,6 +21,7 @@ extern "C" {
 #include "home_ui.h" // IWYU pragma: keepin
 #include "logo_ui.h" // IWYU pragma: keepin
 #include "product_tests_ui.h" // IWYU pragma: keepin
+#include "factory_reset_ui.h" // IWYU pragma: keepin
 
 /*
 * GLOBAL FUNCTION DECLARATION
