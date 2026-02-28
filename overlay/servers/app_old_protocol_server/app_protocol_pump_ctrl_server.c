@@ -620,6 +620,16 @@ uint8_t app_old_comm_pump_custom_step_para_to_local_motor_policy(user_def_pump_s
             memcpy(custom_mode_policy_cfg + cfg_num, &mix_default2_temp,
                    sizeof(mix_default2_temp));
             cfg_num += 2;
+        } 
+        else if (pump_steps_data->data[i].mode == APP_OLD_COMM_MODE_RELAX) {
+            motor_policy_cfg_t relax_default_temp[RELAX_MODE_LEN] = {0};
+            memcpy(relax_default_temp, &relax_default, sizeof(relax_default));
+            relax_default_temp[0].duration = pump_steps_data->data[i].time;
+            relax_default_temp[0].core.un.mapping.level = pump_steps_data->data[i].level;
+            relax_default_temp[0].core.un.mapping.speed = pump_steps_data->data[i].freq;
+            memcpy(custom_mode_policy_cfg + cfg_num, &relax_default_temp,
+                   sizeof(relax_default_temp));
+            cfg_num += 1;
         } else {
             LOG_SRV("unknow custom pump step mode");
         }
