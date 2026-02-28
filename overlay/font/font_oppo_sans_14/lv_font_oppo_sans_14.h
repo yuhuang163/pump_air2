@@ -12,6 +12,7 @@ extern "C" {
 /// 包含字符: 0-9, A-Z, a-z, ' ' ',' '.' '!'
 extern const lv_font_t lv_font_oppo_sans_14_medium;
 extern const lv_font_t lv_font_oppo_sans_14_regular;
+extern const lv_font_t lv_font_oppo_sans_14_bold;
 
 #ifdef __cplusplus
 }

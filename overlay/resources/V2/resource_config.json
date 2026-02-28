@@ -246,13 +246,6 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_QR_ICON",
-      "description": "二维码",
-      "file": "baj/icon_QRCode_136x136_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
       "resource_id": "RESOURCE_ID_GUIDE_LRM_ICON",
       "description": "左+右+模式",
       "file": "baj/icon_LRMode_128x32_a4_q99_422.baj",
@@ -283,14 +276,14 @@
     {
       "resource_id": "RESOURCE_ID_GUIDE_PUMPING_ABB_ICON",
       "description": "pumping缩略图",
-      "file": "baj/icon_pumping_abb_216x216_a4_q99_422.baj",
+      "file": "baj/icon_pumping_abb_160x160_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_GUIDE_PUMPING_START_ABB_ICON",
       "description": "pumping启动缩略图",
-      "file": "baj/icon_pumpingstart_abb_348x222_a4_q99_422.baj",
+      "file": "baj/icon_pumpingstart_abb_183x160_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
