@@ -60,6 +60,7 @@ typedef struct {
     ui_manager_context_t *ui;
     ble_manager_context_t *ble;
     battery_manager_context_t *battery;
+    led_manager_context_t *led;
     key_input_context_t *key;
     uint32_t margic; /// 窗口标识.
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
