@@ -144,7 +144,8 @@ typedef struct breast_pump_manager_context {
     const char *(*get_breast_pump_mode_name)(uint8_t mode);
     uint8_t (*get_is_custom_trial_mode)(void);
     void (*set_is_custom_trial_mode)(uint8_t is_custom_trial_mode);
-
+    uint8_t (*get_pump_breastfeeding_sub_mode)(void);
+    uint8_t (*get_pump_breastfeeding_next_sub_mode)(void);
     ///  外部挂接点.
     struct __breast_pump_hook {
         int (*make_progress_route)(struct breast_pump_manager_context *ctx, pump_result_info_t *result_info);

@@ -65,26 +65,26 @@ int breast_pump_mode_time_step_number_get(int mode)
 {
     switch (mode) {
         case BREAST_PUMP_STIMULATION_MODE:
-            return STIMULATION_MODE_LEN;
+            return STIMULATION_MODE_MAX_STEPS;
         case BREAST_PUMP_LACTATION_MODE:
-            return PUMP_MODE_LEN;
+            return PUMP_MODE_MAX_STEPS;
         case BREAST_PUMP_MIX_MODE:
-            return MIX_MODE_LEN / 2; /// 混合模式步数为2，因为短吸和长吸各占一个步数.
+            return MIX_MODE_MAX_STEPS;
         case BREAST_PUMP_CUSTOM_MODE:
             /// todo: 补全自定义模式步数
-            return CUSTOM_MODE_LEN;
+            return CUSTOM_MODE_MAX_STEPS;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:
-            return PP_MODE_LEN;
+            return PP_MODE_MAX_STEPS;
         case BREAST_PUMP_MILK_BOOST_MODE:
-            return MILK_BOOST_MODE_LEN;
+            return MILK_BOOST_MODE_MAX_STEPS;
         case BREAST_PUMP_LACTATION_START_MODE:
-            return LACTATION_START_MODE_LEN;
+            return LACTATION_START_MODE_MAX_STEPS;
         case BREAST_PUMP_REGULAR_PUMPING_MODE:
-            return REGULAR_PUMPING_MODE_LEN;
+            return REGULAR_PUMPING_MODE_MAX_STEPS;
         case BREAST_PUMP_EMPTYING_BOOST_MODE:
-            return EMPTYING_BOOST_MODE_LEN;
+            return EMPTYING_BOOST_MODE_MAX_STEPS;
         case BREAST_PUMP_RELAX_MODE:
-            return RELAX_MODE_LEN;
+            return RELAX_MODE_MAX_STEPS;
         default:
             return 0;
     }
@@ -234,6 +234,64 @@ void breast_pump_custom_step_para_reset(sys_pump_info_t *pump_info)
     }
 
     custom_steps_parameter->num = step_idx;
+}
+
+//重写这个函数，根据cfg和step_index获取子模式， 参考这个函数breast_pump_custom_step_para_reset的逻辑，
+uint8_t get_pump_breastfeeding_sub_mode_from_cfg(const motor_policy_cfg_t *cfg, uint8_t step_index)
+{
+    EXCEPTION_CHECK_UINT(cfg);
+    
+    // 遍历配置，跳过子策略(MOTOR_TIME_SUB_POLICY)，只统计主策略
+    uint8_t step_idx = 0;
+    uint8_t cfg_idx = 0;
+    
+    // 遍历配置数组，直到找到对应的step_index或到达数组末尾
+    // 使用较大的上限值，因为配置数组可能包含子策略，实际主策略数量会少于配置数组长度
+    while (step_idx <= step_index && cfg_idx < (ROOT_BREAST_PUMP_STEP_MAX * 2)) {
+        // 跳过子策略，子策略不单独计为一个step
+        if (cfg[cfg_idx].policy_type == MOTOR_TIME_SUB_POLICY) {
+            cfg_idx++;
+            continue;
+        }
+        
+        // 如果找到对应的step_index，返回对应的模式
+        if (step_idx == step_index) {
+            uint8_t loop_num = cfg[cfg_idx].core.config.loop_num;
+            uint8_t mode_type = cfg[cfg_idx].core.un.mapping.mode_type;
+            
+            // 首先根据 loop_num 区分混合模式
+            if (loop_num == 5) {
+                // 混合模式1: 5次短吸 + 1次长吸
+                return BREAST_PUMP_MIX_MODE;
+            } else if (loop_num == 2) {
+                // 混合模式2: 2次短吸 + 1次长吸
+                return BREAST_PUMP_MIX_MODE;
+            }
+            
+            // 如果不是混合模式，则根据 mode_type 区分按摩、吸乳、relax
+            if (mode_type == SUCTION_MODE_IDLE) {
+                // 空闲模式（Relax）
+                return BREAST_PUMP_RELAX_MODE;
+            } else if (mode_type == SUCTION_MODE_SHORT) {
+                // 按摩模式（短吸）
+                return BREAST_PUMP_STIMULATION_MODE;
+            } else if (mode_type == SUCTION_MODE_LONG) {
+                // 吸乳模式（长吸）
+                return BREAST_PUMP_LACTATION_MODE;
+            } else {
+                // 未知模式类型，返回默认值
+                LOGE("unknown mode_type: %d, loop_num: %d", mode_type, loop_num);
+                return BREAST_PUMP_STIMULATION_MODE;
+            }
+        }
+        
+        step_idx++;
+        cfg_idx++;
+    }
+    
+    // 如果没找到，返回默认值
+    LOGE("step_index %d out of range, cfg_idx: %d, step_idx: %d", step_index, cfg_idx, step_idx);
+    return BREAST_PUMP_STIMULATION_MODE;
 }
 
 int breast_pump_mode_work_time_get(int mode)

@@ -28,7 +28,7 @@ extern "C" {
 #define DEVICE_FW_VERSION_LEN                       18
 
 #define IS_PUMP_STEPS_USE_SAME_SETTING              1 /// 是否使用相同的设置，如果使用相同的设置，则所有步骤都使用相同的设置
-#define ROOT_BREAST_PUMP_STEP_MAX                   14
+#define ROOT_BREAST_PUMP_STEP_MAX                   16
 #define FACTORY_AGE_INFO_MAX                        3   /// 老化信息最大保存3条
 #define ROOT_BREAST_PUMP_BURY_DATA_NUM            10    /// 埋点数据最大保存10条
 
