@@ -178,7 +178,7 @@
     {
       "resource_id": "RESOURCE_ID_IDLE_TEXT_AREA_ICON",
       "description": "空闲界面文本区域图标",
-      "file": "baj/icon_idle_text_area_272x86_a4_q99_422.baj",
+      "file": "baj/icon_idle_text_area_280x106_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
