@@ -15,12 +15,10 @@
 #define IS_SUPPORT_ROOT_DUMMY_COMP_BG                (0)
 
 #define DUMMY_ICON_MAX_COUNT                         (1)
-#define DUMMY_ICON_INDEX                       (0)
+#define DUMMY_ICON_INDEX                             (0)
 
-#define DUMMY_ICON_X                          (60)
-#define DUMMY_ICON_Y                          (130 + 2)
-
-
+#define DUMMY_ICON_X                                 (60)
+#define DUMMY_ICON_Y                                 (130 + 2)
 
 typedef struct {
     lv_obj_t * root;
