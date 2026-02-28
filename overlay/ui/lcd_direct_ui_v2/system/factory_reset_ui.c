@@ -103,15 +103,14 @@ void ui_display_factory_reset_prepare(ui_manager_context_t *thiz)
     }
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
+    ui_factory_reset_root_init();
     ui_info->force_update = true;
 }
 
 void ui_display_factory_reset_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (ui_info == NULL) {
-        return;
-    }
+    EXCEPTION_CHECK_VOID(ui_info);
     LVGL_OBJ_DELETE(ui_info->root);
     u_free(ui_info);
     ui_info = NULL;
@@ -120,10 +119,10 @@ void ui_display_factory_reset_remove(ui_manager_context_t *thiz)
 int ui_display_factory_reset_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
+    EXCEPTION_CHECK_INT(ui_info);
+    EXCEPTION_CHECK_INT(ui_info->root);
     ui_factory_reset_update(thiz);
-    if (ui_info != NULL) {
-        ui_info->force_update = false;
-    }
+    ui_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
