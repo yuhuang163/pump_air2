@@ -14,7 +14,7 @@
 */
 #define IS_SUPPORT_ROOT_HOME_COMP_BG                (0)
 
-#define HOME_ICON_MAX_COUNT                         (4)
+#define HOME_ICON_MAX_COUNT                         (3)
 #define HOME_TEXT_LABEL_INDEX                       (0)
 #define HOME_TEXT_AREA_ICON_INDEX                   (1)
 #define HOME_BUTTON_ICON_INDEX                      (2)
@@ -42,8 +42,9 @@ typedef struct {
     res_img_info_t idle_text_area_info;
     lv_obj_t * idle_button_icon;
     res_img_info_t idle_button_info;
-    lv_obj_t * mom_picture_icon;
-    res_img_info_t mom_picture_info;
+    lv_obj_t * animation;
+    res_img_info_t animation_info;
+    uint16_t animation_index;
     uint8_t force_update;
 } home_display_info_t;
 
@@ -68,9 +69,6 @@ const static home_icon_info_t home_icon_infos[HOME_ICON_MAX_COUNT] = {
     },
     { "idle_button_icon", RESOURCE_ID_IDLE_BUTTOM_ICON,     
       IDLE_BUTTON_ICON_X,              IDLE_BUTTON_ICON_Y, 
-    },
-    { "mom_picture_icon", RESOURCE_ID_MOM_PICTURE_ICON,     
-      MOM_PICTURE_ICON_X,              MOM_PICTURE_ICON_Y, 
     },
 };
 /*
@@ -215,26 +213,27 @@ static void home_root_text_update(ui_manager_context_t *thiz)
     lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_x, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_y); /// 设置文字位置
 }
 
-static void home_root_mom_picture_update(ui_manager_context_t *thiz)
-{   /// 设置妈妈图片icon
-    if (home_info->force_update == false) {
-        return;
-    }
+static void home_root_animation_update(ui_manager_context_t *thiz)
+{  
+    if (home_info->animation == NULL || !lv_obj_is_valid(home_info->animation)) {
+        home_info->animation = lv_image_create(home_info->root);
+        EXCEPTION_CHECK_VOID(home_info->animation);
+    }  
     
-    if (home_info->mom_picture_icon == NULL || !lv_obj_is_valid(home_info->mom_picture_icon)) {
-        home_info->mom_picture_icon = lv_image_create(home_info->root);
-        EXCEPTION_CHECK_VOID(home_info->mom_picture_icon);
+    uint16_t animation_size = RESOURCE_ID_HOME_DEFAULT_ANIMATION_END - RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + 1;
+    if (home_info->animation_index >= animation_size) {
+        home_info->animation_index = 0;
     }
-    
-    common_ui_img_resource_init(thiz, home_icon_infos[HOME_MOM_PICTURE_ICON_INDEX].img_id, &home_info->mom_picture_info);
-    EXCEPTION_CHECK_VOID(home_info->mom_picture_info.data);
-    lv_fs_path_ex_t mom_picture_img_path;
 
-    lv_fs_make_path_from_buffer(&mom_picture_img_path, LV_FS_MEMFS_LETTER, 
-        home_info->mom_picture_info.data, home_info->mom_picture_info.size, "baj");
-    lv_image_set_src(home_info->mom_picture_icon, (const void *)&mom_picture_img_path);
-    lv_obj_align(home_info->mom_picture_icon, LV_ALIGN_TOP_LEFT, 
-        home_icon_infos[HOME_MOM_PICTURE_ICON_INDEX].icon_x, home_icon_infos[HOME_MOM_PICTURE_ICON_INDEX].icon_y); /// 设置icon位置
+    lv_obj_align(home_info->animation, LV_ALIGN_TOP_LEFT, 86, 162); 
+    common_ui_img_resource_init(thiz, 
+        RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + home_info->animation_index, &home_info->animation_info);
+    EXCEPTION_CHECK_VOID(home_info->animation_info.data);
+    lv_fs_path_ex_t animation_img_path;
+    lv_fs_make_path_from_buffer(&animation_img_path, LV_FS_MEMFS_LETTER, 
+        home_info->animation_info.data, home_info->animation_info.size, "baj");
+    lv_image_set_src(home_info->animation, (const void *)&animation_img_path);
+    home_info->animation_index++;
 }
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -252,6 +251,7 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
     home_root_init();
     ble_ui_init(thiz);
     home_info->force_update = true;
+    home_info->animation_index = 0;
 }
 
 void ui_display_home_remove(ui_manager_context_t *thiz)
@@ -263,7 +263,7 @@ void ui_display_home_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &home_info->background_info);
     common_ui_img_resource_deinit(thiz, &home_info->idle_text_area_info);
     common_ui_img_resource_deinit(thiz, &home_info->idle_button_info);
-    common_ui_img_resource_deinit(thiz, &home_info->mom_picture_info);
+    common_ui_img_resource_deinit(thiz, &home_info->animation_info);
     ble_ui_deinit(thiz);
     LVGL_OBJ_DELETE(home_info->root);
     u_free(home_info);
@@ -280,8 +280,8 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc->ble);
     home_root_bg_update(thiz);
     home_root_text_update(thiz);
-    home_root_mom_picture_update(thiz);
-    ble_ui_update(thiz, home_info->root, proc->ble);
+    home_root_animation_update(thiz);
+    ble_ui_update(thiz, home_info->root, proc->ble, 168, 22);
     home_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
