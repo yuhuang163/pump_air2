@@ -53,11 +53,13 @@ typedef enum {
     RESOURCE_ID_FREQ_BOOST_ICON,              /// 频率增强图标
     RESOURCE_ID_FREQ_REGULAR_ICON,            /// 频率常规图标
     RESOURCE_ID_FREQ_COMFORT_ICON,            /// 频率舒适图标
+
     RESOURCE_ID_MODE_STIMULATION_PROMPT_ICON,  /// 模式-刺激确认提示图标
     RESOURCE_ID_MODE_EXPRESSION_PROMPT_ICON,    /// 模式-泌乳确认提示图标
     RESOURCE_ID_MODE_MIX_PROMPT_ICON,          /// 模式-混合确认提示图标
     RESOURCE_ID_MODE_RELAX_PROMPT_ICON,         /// 模式-放松确认提示图标
-    
+
+    RESOURCE_ID_PUMP_FINISH_ICON,               /// 泵奶完成图标
 
     RESOURCE_ID_GUIDE_QR_ICON = 250,
     RESOURCE_ID_GUIDE_LRM_ICON,
