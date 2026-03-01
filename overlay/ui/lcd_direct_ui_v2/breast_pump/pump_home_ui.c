@@ -690,6 +690,7 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     pump_home_init();  
     battery_icon_init(thiz);
     ui_display_mode_prompt_init(thiz);
+    pump_will_finish_ui_prompt_init(thiz);
     pump_info->animation_index = 0;
     pump_info->force_update = true;
 #endif
@@ -720,6 +721,7 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
     common_ui_img_resource_deinit(thiz, &pump_info->time_colon_info);
     ui_display_mode_prompt_deinit(thiz);
+    pump_will_finish_ui_prompt_deinit(thiz);
     LVGL_OBJ_DELETE(pump_info->root);
     u_free(pump_info);
     pump_info = NULL;
@@ -766,6 +768,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     pump_home_mode_label_update(thiz, mode);  
     pump_home_animation_update(thiz);
     ui_display_mode_prompt_process(thiz, pump_info->root);
+    pump_will_finish_ui_prompt_process(thiz, pump_info->root);
     pump_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
