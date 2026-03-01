@@ -104,7 +104,6 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
     msg.led_status.un.luminous.level = level;
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
 #endif
-    LOG_MISC("set ui key backlight: %d", level);
 }
 
 static void set_night_light_level_internal(led_manager_context_t *thiz, uint8_t level)

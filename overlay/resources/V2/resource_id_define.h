@@ -28,8 +28,8 @@ typedef enum {
     RESOURCE_ID_HOME_UNCHARGE,               /// 首页未充电图标
     RESOURCE_ID_HOME_TIME_COLON,             /// 首页时间冒号
 
-    RESOURCE_ID_CHARGE_ADAPTER_ICON,     /// 首页充电适配器图标
-    RESOURCE_ID_DUMMY_ICON,              /// dummy图标
+    RESOURCE_ID_CHARGE_ADAPTER_ICON,         /// 首页充电适配器图标
+    RESOURCE_ID_DUMMY_ICON,                  /// dummy图标
 
     RESOURCE_ID_MOM_PICTURE_ICON,              /// 妈妈图片图标
     RESOURCE_ID_IDLE_TEXT_AREA_ICON,           /// 空闲界面文本区域图标
@@ -48,7 +48,9 @@ typedef enum {
    
     RESOURCE_ID_PUMP_HOME_BG = 130,          /// 泵奶首页背景
 
-     /* 模式组 [301..400]（大图 + 小图标） */
+    RESOURCE_ID_START_LOGO_ICON = 140,             /// 启动LOGO
+
+    /* 模式组 [301..400]（大图 + 小图标） */
     RESOURCE_ID_INITIATING_MODE = 201,        /// 模式-启动界面
     RESOURCE_ID_MODE_LACTATION_ICON,          /// 模式-泌乳图标
     RESOURCE_ID_MODE_MIX_ICON,                /// 模式-混合图标
