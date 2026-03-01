@@ -614,8 +614,10 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
 void ui_display_guide_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (guide_info == NULL) {
-        return;
+    EXCEPTION_CHECK_VOID(guide_info);
+    if (guide_info->background_snapshot != NULL) {
+        lv_draw_buf_destroy(guide_info->background_snapshot);
+        guide_info->background_snapshot = NULL;
     }
     common_ui_img_resource_deinit(thiz, &guide_info->background_info);
     common_ui_img_resource_deinit(thiz, &guide_info->arrow_info);
