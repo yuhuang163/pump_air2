@@ -131,6 +131,7 @@ const static ui_mode_icon_info_t ui_mode_icon_infos[UI_MODE_ICON_MAX_COUNT] = {
       ID_AREA_ICON_X,       ID_AREA_ICON_Y, 
     }
 };
+
 /*
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -171,7 +172,7 @@ static void ui_mode_bg_update(ui_manager_context_t *thiz)
                                     LV_FS_MEMFS_LETTER,
                                     ui_mode_info->background_info.data,
                                     ui_mode_info->background_info.size,
-                                    "baj");
+                                    "png");
         lv_image_set_src(ui_mode_info->backgroud, (const void *)&ui_mode_info->background_path);
         lv_obj_align(ui_mode_info->backgroud, LV_ALIGN_CENTER, 0, 0);
 #if LV_USE_SNAPSHOT
@@ -262,7 +263,7 @@ static void ui_mode_icon_update(ui_manager_context_t *thiz, type_id_enum_t type_
                                     LV_FS_MEMFS_LETTER,
                                     ui_mode_info->mode_icon_id_info[0].data,
                                     ui_mode_info->mode_icon_id_info[0].size,
-                                    "png");
+                                    "baj");
         lv_image_set_src(ui_mode_info->mode_icon_id[0], (const void *)&ui_mode_info->mode_icon_id_path[0]);
         lv_obj_align(ui_mode_info->mode_icon_id[0], LV_ALIGN_TOP_MID, 0, 86);
     }
@@ -307,7 +308,7 @@ static void ui_mode_icon_update(ui_manager_context_t *thiz, type_id_enum_t type_
                                         LV_FS_MEMFS_LETTER,
                                         ui_mode_info->mode_icon_id_info[1].data,
                                         ui_mode_info->mode_icon_id_info[1].size,
-                                        "png");
+                                        "baj");
             lv_image_set_src(ui_mode_info->mode_icon_id[1], (const void *)&ui_mode_info->mode_icon_id_path[1]);
             /* 距离背景图中间顶端252，左右间距140（相对 root 水平居中） */
             //lv_obj_align_to(ui_mode_info->thumbnail_icon, ui_mode_info->knob_right_turn_icon, 
@@ -327,7 +328,7 @@ static void ui_mode_icon_update(ui_manager_context_t *thiz, type_id_enum_t type_
                                             LV_FS_MEMFS_LETTER,
                                             ui_mode_info->mode_icon_id_info[2].data,
                                             ui_mode_info->mode_icon_id_info[2].size,
-                                            "png");
+                                            "baj");
                 lv_image_set_src(ui_mode_info->mode_icon_id[2], (const void *)&ui_mode_info->mode_icon_id_path[2]);
                 // lv_obj_align_to(ui_mode_info->mode_icon_id03, ui_mode_info->mode_icon_id02, 
                 //                 LV_ALIGN_OUT_BOTTOM_MID, 0, 16);
@@ -632,8 +633,10 @@ void ui_display_pump_mode_prepare(ui_manager_context_t *thiz)
 void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (ui_mode_info == NULL) {
-        return;
+    EXCEPTION_CHECK_VOID(ui_mode_info);
+    if (ui_mode_info->background_snapshot != NULL) {
+        lv_draw_buf_destroy(ui_mode_info->background_snapshot);
+        ui_mode_info->background_snapshot = NULL;
     }
     common_ui_img_resource_deinit(thiz, &ui_mode_info->background_info);
     common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[0]);

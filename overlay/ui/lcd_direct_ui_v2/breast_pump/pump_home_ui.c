@@ -803,7 +803,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
             0, 0);
     }
     // ui_display_mode_prompt_process(thiz, pump_info->root);
-    pump_will_finish_ui_prompt_process(thiz, pump_info->root);
+    // pump_will_finish_ui_prompt_process(thiz, pump_info->root);
     pump_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

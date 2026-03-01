@@ -200,8 +200,10 @@ void ui_display_pump_complete_tip_prepare(ui_manager_context_t *thiz)
 void ui_display_pump_complete_tip_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (finish_info == NULL) {
-        return;
+    EXCEPTION_CHECK_VOID(finish_info);
+    if (finish_info->background_snapshot != NULL) {
+        lv_draw_buf_destroy(finish_info->background_snapshot);
+        finish_info->background_snapshot = NULL;
     }
     common_ui_img_resource_deinit(thiz, &finish_info->icon_info);
     common_ui_img_resource_deinit(thiz, &finish_info->background_info);
