@@ -372,6 +372,13 @@
       "y_offset": 0
     },
     {
+      "resource_id": "RESOURCE_ID_PUMP_FINISH_ICON",
+      "description": "泵奶完成图标",
+      "file": "baj/icon_pump_finish_160x160_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
       "resource_id": "RESOURCE_ID_START_LOGO_ICON",
       "description": "启动LOGO",
       "file": "baj/start_logo_icon_232x31_a4_q99_422.baj",
