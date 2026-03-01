@@ -18,7 +18,7 @@
 #define WILL_FINISH_ARC_SIZE            360    // 圆弧尺寸
 #define WILL_FINISH_ARC_WIDTH           12      // 圆弧粗细
 #define WILL_FINISH_ARC_COLOR           0xB25962 // 圆弧颜色（匹配吸奶器粉色）
-#define WILL_FINISH_COUNTDOWN_STEP_TIME      30      // 倒计时步长时间（30ms）
+#define WILL_FINISH_COUNTDOWN_STEP_TIME      75      // 倒计时步长时间（30ms）
 #define WILL_FINISH_COUNTDOWN_MAX_VALUE (3000/WILL_FINISH_COUNTDOWN_STEP_TIME)      // 倒计时最大值（3秒）每30ms递减1
 
 typedef struct {

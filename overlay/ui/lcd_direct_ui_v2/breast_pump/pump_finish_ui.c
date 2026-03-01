@@ -109,6 +109,10 @@ static void pump_complete_tip_texts_update(ui_manager_context_t *thiz, uint8_t i
 #if IS_SUPPORT_PUMP_FINISH_COMP_BG
 static void pump_finish_root_bg_update(ui_manager_context_t *thiz)
 {
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(finish_info);
+    EXCEPTION_CHECK_VOID(finish_info->root);
+    
     static uint32_t start_time = 0;
     static uint8_t status = 0;
     if (finish_info->backgroud == NULL || !lv_obj_is_valid(finish_info->backgroud)) {
@@ -134,6 +138,10 @@ static void pump_finish_root_bg_update(ui_manager_context_t *thiz)
 #else
 static void pump_finish_root_bg_update(ui_manager_context_t *thiz)
 {
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(finish_info);
+    EXCEPTION_CHECK_VOID(finish_info->root);
+    
     if (finish_info->force_update == false) {
         return;
     }
@@ -157,11 +165,15 @@ static void pump_finish_root_bg_update(ui_manager_context_t *thiz)
 #if LV_USE_SNAPSHOT
         lv_refr_now(NULL); /// 等待渲染完成后再创建快照
         finish_info->background_snapshot = lv_snapshot_take(finish_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
+        // 检查快照是否创建成功，如果失败则使用原始图片
+        if (finish_info->background_snapshot == NULL) {
+            LOGE("Failed to create background snapshot");
+        }
 #endif
     }
 
 #if LV_USE_SNAPSHOT
-    if (finish_info->background_snapshot != NULL) {
+    if (finish_info->background_snapshot != NULL && finish_info->backgroud != NULL) {
         lv_image_set_src(finish_info->backgroud, finish_info->background_snapshot);
     }
 #endif
