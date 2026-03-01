@@ -566,17 +566,16 @@ static uint8_t get_pump_breastfeeding_sub_mode(void)
 {
     uint8_t pump_step_index = breast_pump_obj->priv.m_info.step_index;
     uint8_t sub_mode = 0;
-    //根据当前的模式和step_index获取子模式
+    // 根据当前的模式和step_index获取子模式
     uint8_t mode = breast_pump_obj->priv.m_info.mode;
     const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(mode);
     EXCEPTION_CHECK_UINT(cfg);
-    //超范围会数组越界，后续检索会越界，需要注意
-    LOG_PMP("mode: %d, pump_step_index: %d", mode, pump_step_index);
-
+    // 超范围会数组越界，后续检索会越界，需要注意
+    // LOG_PMP("mode: %d, pump_step_index: %d", mode, pump_step_index);
     switch (mode) {
         case BREAST_PUMP_CUSTOM_MODE:
             if (pump_step_index >= get_pump_custom_mode_step_max_number()) {
-                LOG_PMP("error pump_step_index: %d", pump_step_index);
+                // LOG_PMP("error pump_step_index: %d", pump_step_index);
                 return BREAST_PUMP_STIMULATION_MODE;
             }
            //CONFIG为自定义模式参数,拿临时cfg。app会更新临时cfg。
@@ -597,10 +596,10 @@ static uint8_t get_pump_breastfeeding_sub_mode(void)
             sub_mode = get_pump_breastfeeding_sub_mode_from_cfg(cfg, pump_step_index);
             break;
         default:
-            LOG_PMP("unknow breastfeeding mode: %d", mode);
+            // LOG_PMP("unknow breastfeeding mode: %d", mode);
             break;
     }
-    LOG_PMP("sub_mode: %d", sub_mode);
+    // LOG_PMP("sub_mode: %d", sub_mode);
     return sub_mode;
 }
 
@@ -609,22 +608,22 @@ static uint8_t get_pump_breastfeeding_next_sub_mode(void)
 {
     uint8_t pump_next_step_index = breast_pump_obj->priv.m_info.step_index + 1;
     uint8_t next_sub_mode = 0;
-    //根据当前的模式和step_index获取子模式
+    // 根据当前的模式和step_index获取子模式
     uint8_t mode = breast_pump_obj->priv.m_info.mode;
     const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(mode);
     EXCEPTION_CHECK_UINT(cfg);
-    //超范围会数组越界，后续检索会越界，需要注意,next_step_index到边界回环
-    LOG_PMP("mode: %d, pump_next_step_index: %d", mode, pump_next_step_index);
+    // 超范围会数组越界，后续检索会越界，需要注意,next_step_index到边界回环
+    // LOG_PMP("mode: %d, pump_next_step_index: %d", mode, pump_next_step_index);
     switch (mode) {
         case BREAST_PUMP_CUSTOM_MODE:
             if (pump_next_step_index >= get_pump_custom_mode_step_max_number()) {
                 pump_next_step_index = 0;
-                LOG_PMP("pump_next_step_index out of range, reset to 0");
+                // LOG_PMP("pump_next_step_index out of range, reset to 0");
             }
-            //CONFIG为自定义模式参数,拿临时cfg。app会更新临时cfg。初始临时cfg和默认cfg一致
+            // CONFIG为自定义模式参数,拿临时cfg。app会更新临时cfg。初始临时cfg和默认cfg一致
             cfg = custom_mode_policy_cfg_get();
             EXCEPTION_CHECK_UINT(cfg);
-            //重新写一个函数，根据cfg和step_index获取子模式
+            // 重新写一个函数，根据cfg和step_index获取子模式
             next_sub_mode = get_pump_breastfeeding_sub_mode_from_cfg(cfg, pump_next_step_index);
             break;
         case BREAST_PUMP_PP_MILK_TRACK_MODE:
@@ -634,15 +633,15 @@ static uint8_t get_pump_breastfeeding_next_sub_mode(void)
         case BREAST_PUMP_EMPTYING_BOOST_MODE:
             if (pump_next_step_index >= breast_pump_mode_time_step_number_get(mode)) {
                 pump_next_step_index = 0;
-                LOG_PMP("pump_next_step_index out of range, reset to 0");
+                // LOG_PMP("pump_next_step_index out of range, reset to 0");
             }
             next_sub_mode = get_pump_breastfeeding_sub_mode_from_cfg(cfg, pump_next_step_index);
             break;
         default:
-            LOG_PMP("unknow breastfeeding mode: %d", mode);
+            // LOG_PMP("unknow breastfeeding mode: %d", mode);
             break;
     }
-    LOG_PMP("next_sub_mode: %d", next_sub_mode);
+    // LOG_PMP("next_sub_mode: %d", next_sub_mode);
     return next_sub_mode;
 }
 
