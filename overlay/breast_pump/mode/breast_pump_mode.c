@@ -290,7 +290,7 @@ uint8_t get_pump_breastfeeding_sub_mode_from_cfg(const motor_policy_cfg_t *cfg, 
     }
     
     // 如果没找到，返回默认值
-    LOGE("step_index %d out of range, cfg_idx: %d, step_idx: %d", step_index, cfg_idx, step_idx);
+    // LOGE("step_index %d out of range, cfg_idx: %d, step_idx: %d", step_index, cfg_idx, step_idx);
     return BREAST_PUMP_STIMULATION_MODE;
 }
 

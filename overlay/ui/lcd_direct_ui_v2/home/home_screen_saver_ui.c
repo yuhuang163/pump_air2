@@ -204,7 +204,7 @@ int ui_display_home_screen_saver_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc->ble);
     home_screen_saver_root_bg_update(thiz);
     home_screen_saver_root_icon_update(thiz);
-    ble_ui_update(thiz, home_screen_saver_info->root, proc->ble);
+    ble_ui_update(thiz, home_screen_saver_info->root, proc->ble, 168, 22);
     home_screen_saver_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

@@ -202,7 +202,7 @@ int ui_display_dummy_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc->ble);
     dummy_root_bg_update(thiz);
     dummy_root_dummy_icon_update(thiz);
-    ble_ui_update(thiz, dummy_info->root, proc->ble);
+    ble_ui_update(thiz, dummy_info->root, proc->ble, 168, 22);
     dummy_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

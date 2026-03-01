@@ -17,7 +17,8 @@ extern "C" {
 *****************************************************************************************
 */
 void ble_ui_init(ui_manager_context_t *thiz);
-int ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, ble_manager_context_t *ble);
+int ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, ble_manager_context_t *ble, 
+    uint16_t x, uint16_t y);
 void ble_ui_deinit(ui_manager_context_t *thiz);
 #ifdef __cplusplus
 }

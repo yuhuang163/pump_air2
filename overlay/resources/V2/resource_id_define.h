@@ -31,24 +31,19 @@ typedef enum {
     RESOURCE_ID_CHARGE_ADAPTER_ICON,         /// 首页充电适配器图标
     RESOURCE_ID_DUMMY_ICON,                  /// dummy图标
 
-    RESOURCE_ID_MOM_PICTURE_ICON,              /// 妈妈图片图标
     RESOURCE_ID_IDLE_TEXT_AREA_ICON,           /// 空闲界面文本区域图标
     RESOURCE_ID_IDLE_BUTTOM_ICON,              /// 空闲界面按钮指示图标
 
     RESOURCE_ID_AIRPLANE_UNLOCK_BUTTON_ICON,   /// 飞行模式解锁按钮图标
 
-    RESOURCE_ID_HOME_STIMULATE_ICON = 101,   /// 首页-刺激图标
-    RESOURCE_ID_HOME_LACTATION_ICON,         /// 首页-泌乳图标
-    RESOURCE_ID_HOME_MIX_ICON,               /// 首页-混合图标
-    RESOURCE_ID_HOME_PERSONALIZATION_ICON,   /// 首页-个性化图标
-    RESOURCE_ID_HOME_PP_ICON,                /// 首页-PP图标
-    RESOURCE_ID_HOME_MILK_ICON,              /// 首页-奶量图标
-    RESOURCE_ID_HOME_INITIA_ICON,            /// 首页-开奶图标
-
+    RESOURCE_ID_HOME_SPEED_SLOW_ICON = 101,    /// 首页-慢速图标
+    RESOURCE_ID_HOME_SPEED_REGULAR_ICON,       /// 首页-常规图标
+    RESOURCE_ID_HOME_SPEED_BOOST_ICON,         /// 首页-快速图标
+    RESOURCE_ID_HOME_DASHED_ARC_ICON,          /// 首页-虚线弧线图标
    
-    RESOURCE_ID_PUMP_HOME_BG = 130,          /// 泵奶首页背景
+    RESOURCE_ID_PUMP_HOME_BG = 130,            /// 泵奶首页背景
 
-    RESOURCE_ID_START_LOGO_ICON = 140,             /// 启动LOGO
+    RESOURCE_ID_START_LOGO_ICON = 140,         /// 启动LOGO
 
     /* 模式组 [301..400]（大图 + 小图标） */
     RESOURCE_ID_INITIATING_MODE = 201,        /// 模式-启动界面
@@ -86,9 +81,14 @@ typedef enum {
     RESOURCE_ID_EXPRESSION_ICON,
     RESOURCE_ID_MODE_BG_ICON,
     RESOURCE_ID_MODE_VECTOR_ICON,
-    RESOURCE_ID_PUMP_MODE_ANIMATION_START = 300,   /// 泵奶模式动画-开始
+    RESOURCE_ID_COMMON_MODE_ANIMATION_START = 300,   /// 泵奶模式动画-开始
+    RESOURCE_ID_COMMON_MODE_ANIMATION_END = 414,     /// 泵奶模式动画-结束
 
-    RESOURCE_ID_PUMP_MODE_ANIMATION_END = 449,     /// 泵奶模式动画-结束
+    RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START = 500,   /// 个性化模式动画-开始
+    RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_END = 619,     /// 泵奶模式动画-结束
+
+    RESOURCE_ID_HOME_DEFAULT_ANIMATION_START = 700,   /// 首页默认动画-开始
+    RESOURCE_ID_HOME_DEFAULT_ANIMATION_END = 819,     /// 首页默认动画-结束
 
     RESOURCE_ID_TYPE_MAX
 } resource_id_type_e;

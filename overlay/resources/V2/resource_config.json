@@ -9,15 +9,37 @@
   },
   "resource_ranges": [
     {
-      "start_resource_id": "RESOURCE_ID_PUMP_MODE_ANIMATION_START",
-      "end_resource_id": "RESOURCE_ID_PUMP_MODE_ANIMATION_END",
-      "description": "泵奶模式动画帧",
-      "file_template": "animation/common_mode/IP_{file_index:05d}_200x200_a4_q99_422.baj",
+      "start_resource_id": "RESOURCE_ID_COMMON_MODE_ANIMATION_START",
+      "end_resource_id": "RESOURCE_ID_COMMON_MODE_ANIMATION_END",
+      "description": "通用模式动画帧",
+      "file_template": "animation/common_mode/baj/M_{file_index:05d}_192x192_a4_q99_422.baj",
       "start_file_index": 0,
       "id_to_file_offset": -300,
       "x_offset": 0,
       "y_offset": 0,
-      "note": "动画资源ID范围: 300-349，共50帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 300)。资源ID 300→IP_00000, 301→IP_00001...349→IP_00049"
+      "note": "动画资源ID范围: 300-414，共115帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 300)。资源ID 300→M_00000, 301→M_00001...414→M_00114"
+    },
+    {
+      "start_resource_id": "RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START",
+      "end_resource_id": "RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_END",
+      "description": "个性化模式动画帧",
+      "file_template": "animation/personalized_mode/baj/Z_{file_index:05d}_360x360_a4_q99_422.baj",
+      "start_file_index": 0,
+      "id_to_file_offset": -500,
+      "x_offset": 0,
+      "y_offset": 0,
+      "note": "动画资源ID范围: 500-619，共120帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 500)。资源ID 500→Z_00000, 501→Z_00001...619→Z_00119"
+    },
+    {
+      "start_resource_id": "RESOURCE_ID_HOME_DEFAULT_ANIMATION_START",
+      "end_resource_id": "RESOURCE_ID_HOME_DEFAULT_ANIMATION_END",
+      "description": "首页默认动画帧",
+      "file_template": "animation/home_default/baj/s_{file_index:05d}_188x198_a4_q99_422.baj",
+      "start_file_index": 0,
+      "id_to_file_offset": -700,
+      "x_offset": 0,
+      "y_offset": 0,
+      "note": "动画资源ID范围: 700-819，共120帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 700)。资源ID 700→s_00000, 701→s_00001...819→s_00119"
     }
   ],
   "resources": [
@@ -99,16 +121,37 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_INITIA_ICON",
-      "description": "首页-启动图标",
-      "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_FREQ_BOOST_ICON",
+      "description": "首页-频率增强图标",
+      "file": "baj/icon_Boost_33x29_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_FREQ_BOOST_ICON",
-      "description": "首页-频率增强图标",
-      "file": "baj/icon_Boost_33x29_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_SPEED_SLOW_ICON",
+      "description": "首页-慢速图标",
+      "file": "baj/icon_speed_slow_24x24_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_SPEED_REGULAR_ICON",
+      "description": "首页-常规图标",
+      "file": "baj/icon_speed_regular_24x24_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_SPEED_BOOST_ICON",
+      "description": "首页-快速图标",
+      "file": "baj/icon_speed_fast_24x24_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_HOME_DASHED_ARC_ICON",
+      "description": "首页-虚线弧线图标",
+      "file": "baj/icon_dashed_arc_97x10_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -123,55 +166,6 @@
       "resource_id": "RESOURCE_ID_FREQ_COMFORT_ICON",
       "description": "首页-频率舒适图标",
       "file": "baj/icon_Comfort_32x11_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_STIMULATE_ICON",
-      "description": "首页-刺激图标",
-      "file": "baj/icon_Stimulate_31x29_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_LACTATION_ICON",
-      "description": "首页-泌乳图标",
-      "file": "baj/icon_Lactation_24x32_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_MIX_ICON",
-      "description": "首页-混合图标",
-      "file": "baj/icon_mix_36x36_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_MILK_ICON",
-      "description": "首页-奶量图标",
-      "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_PERSONALIZATION_ICON",
-      "description": "首页-个性化图标",
-      "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_PP_ICON",
-      "description": "首页-PP图标",
-      "file": "baj/icon_Pumping_31x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_MOM_PICTURE_ICON",
-      "description": "妈妈图片图标",
-      "file": "baj/picture_mom_244x198_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
