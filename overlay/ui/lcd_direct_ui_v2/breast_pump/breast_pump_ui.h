@@ -55,6 +55,11 @@ void pump_will_finish_ui_prompt_init(ui_manager_context_t *thiz);
 void pump_will_finish_ui_prompt_deinit(ui_manager_context_t *thiz);
 int pump_will_finish_ui_prompt_process(ui_manager_context_t *thiz, lv_obj_t *root);
 
+/// 泵奶状态提示界面
+void ui_display_pump_status_prompt_init(ui_manager_context_t *thiz);
+void ui_display_pump_status_prompt_deinit(ui_manager_context_t *thiz);
+void ui_display_pump_status_prompt_process(ui_manager_context_t *thiz, lv_obj_t *root);
+
 #ifdef __cplusplus
 }
 #endif

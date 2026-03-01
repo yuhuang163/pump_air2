@@ -378,6 +378,13 @@
       "file": "baj/start_logo_icon_232x31_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_PUMP_PAUSE_PROMPT_ICON",
+      "description": "泵奶暂停提示图标",
+      "file": "baj/icon_pump_pause_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
     }
   ]
 }
