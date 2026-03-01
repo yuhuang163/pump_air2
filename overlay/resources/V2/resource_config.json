@@ -377,6 +377,13 @@
       "file": "baj/icon_vector_12x8_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_PUMP_FINISH_ICON",
+      "description": "泵奶完成图标",
+      "file": "baj/icon_pump_finish_160x160_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
     }
   ]
 }

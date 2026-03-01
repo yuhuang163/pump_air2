@@ -191,6 +191,8 @@ void pump_will_finish_ui_prompt_deinit(ui_manager_context_t *thiz)
     // common_ui_img_resource_deinit(thiz, &finish_info->icon_info);
     //LVGL_OBJ_DELETE(will_finish_tip_info->sub_root); 
     will_finish_tip_info->countdown_arc = NULL;
+    will_finish_tip_info->sub_root_text = NULL;
+    will_finish_tip_info->sub_root = NULL;
     will_finish_tip_info->countdown_value = 0;
     will_finish_tip_info->start_time = 0;
     u_free(will_finish_tip_info);
