@@ -60,6 +60,7 @@ typedef enum {
     RESOURCE_ID_MODE_RELAX_PROMPT_ICON,         /// 模式-放松确认提示图标
 
     RESOURCE_ID_PUMP_FINISH_ICON,               /// 泵奶完成图标
+    RESOURCE_ID_PUMP_PAUSE_PROMPT_ICON,         /// 泵奶暂停提示图标
 
     RESOURCE_ID_GUIDE_QR_ICON = 250,
     RESOURCE_ID_GUIDE_LRM_ICON,

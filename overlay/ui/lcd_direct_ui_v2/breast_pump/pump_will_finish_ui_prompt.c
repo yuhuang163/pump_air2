@@ -205,7 +205,7 @@ int pump_will_finish_ui_prompt_process(ui_manager_context_t *thiz, lv_obj_t *roo
     EXCEPTION_CHECK_INT(root);
     EXCEPTION_CHECK_INT(will_finish_tip_info);
     /// TODO: 获取是否显示界面 
-    uint8_t is_show = true;
+    uint8_t is_show = 0;
     will_finish_tip_sub_root_update(thiz, root, is_show);
 
     return 0;
