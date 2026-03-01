@@ -506,10 +506,13 @@ uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old_comm_p
         switch (app_old_comm_get_current_pump_mode()) {
             case BREAST_PUMP_LACTATION_MODE:
             case BREAST_PUMP_STIMULATION_MODE: // 传统模式
+            case BREAST_PUMP_RELAX_MODE: // 放松模式
             case BREAST_PUMP_MIX_MODE: {       /// 常规的吸乳模式允许调频率
                 LOG_SRV("app set normal pump speed");
                 app_old_comm_set_nommal_pump_speed(app_old_comm_pump_ctrl_date);
             }
+            case BREAST_PUMP_REGULAR_PUMPING_MODE:
+            case BREAST_PUMP_EMPTYING_BOOST_MODE:
             case BREAST_PUMP_PP_MILK_TRACK_MODE:
             case BREAST_PUMP_MILK_BOOST_MODE:
             case BREAST_PUMP_LACTATION_START_MODE: {
