@@ -15,11 +15,11 @@
 
 typedef struct {
     lv_obj_t * root;
+    #if IS_SUPPORT_LOGO_COMP_BG
     lv_obj_t * backgroud;
+    #endif
     lv_obj_t * logo_icon; 
     res_img_info_t img_info;
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
     uint8_t force_update;
     uint32_t start_time;
 } logo_display_info_t;
@@ -87,42 +87,7 @@ static void ui_logo_bg_update(ui_manager_context_t *thiz)
 #else
 static void ui_logo_bg_update(ui_manager_context_t *thiz)
 {
-    if (logo_info->force_update == false) {
-        return;
-    }
-
-    if (logo_info->backgroud == NULL || !lv_obj_is_valid(logo_info->backgroud)) {
-        logo_info->backgroud = lv_image_create(logo_info->root);
-        EXCEPTION_CHECK_VOID(logo_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (logo_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(logo_info->background_snapshot);
-            logo_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &logo_info->background_info);
-        EXCEPTION_CHECK_VOID(logo_info->background_info.data);
-        lv_fs_path_ex_t background_path;
-        lv_fs_make_path_from_buffer(&background_path,
-                                    LV_FS_MEMFS_LETTER,
-                                    logo_info->background_info.data,
-                                    logo_info->background_info.size,
-                                    "png");
-        lv_image_set_src(logo_info->backgroud, (const void *)&background_path);
-        lv_obj_align(logo_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        logo_info->background_snapshot = lv_snapshot_take(logo_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (logo_info->background_snapshot != NULL) {
-        lv_image_set_src(logo_info->backgroud, logo_info->background_snapshot);
-    }
-#endif
-    // lv_obj_move_background(logo_info->backgroud);
-    // lv_obj_move_to_index(logo_info->backgroud, 0);
+    common_ui_bg_update(thiz, logo_info->root);
 }
 #endif
 
@@ -158,14 +123,18 @@ void ui_display_logo_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     ui_logo_root_init(); /// 初始化 root 容器
+    common_ui_bg_init(thiz);
     logo_info->force_update = true;
 }
 
 void ui_display_logo_remove(ui_manager_context_t *thiz)
 {
-    LVGL_OBJ_DELETE(logo_info->root);
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(logo_info);
+    EXCEPTION_CHECK_VOID(logo_info->root);
     common_ui_img_resource_deinit(thiz, &logo_info->img_info);
-    common_ui_img_resource_deinit(thiz, &logo_info->background_info);
+    common_ui_bg_deinit(thiz);
+    LVGL_OBJ_DELETE(logo_info->root);
     u_free(logo_info);
     logo_info = NULL;
 }

@@ -53,9 +53,9 @@ typedef struct {
 *****************************************************************************************
 */
 static lv_obj_t * sub_root;
+#if IS_SUPPORT_ROOT_MODE_PROMPT_BG
 static lv_obj_t * backgroud;
-static res_img_info_t background_info;
-static lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
+#endif
 static lv_obj_t * text;
 static lv_obj_t * mode_prompt_icon;
 static res_img_info_t mode_prompt_icon_info;
@@ -181,7 +181,9 @@ void ui_display_mode_prompt_deinit(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &mode_prompt_icon_info);
     //LVGL_OBJ_DELETE(sub_root);
     sub_root = NULL;
+#if IS_SUPPORT_ROOT_MODE_PROMPT_BG
     backgroud = NULL;
+#endif
     text = NULL;
     mode_prompt_icon = NULL;
     force_update = false;

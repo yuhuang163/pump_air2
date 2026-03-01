@@ -27,10 +27,9 @@
 
 typedef struct {
     lv_obj_t * root;
+    #if IS_SUPPORT_MODE_COMP_BG
     lv_obj_t * backgroud;
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
-
+    #endif
     lv_obj_t * mode_icon_id[5];
     res_img_info_t mode_icon_id_info[5];
 
@@ -131,6 +130,7 @@ const static ui_mode_icon_info_t ui_mode_icon_infos[UI_MODE_ICON_MAX_COUNT] = {
       ID_AREA_ICON_X,       ID_AREA_ICON_Y, 
     }
 };
+
 /*
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -152,41 +152,7 @@ static void ui_mode_root_init(void)
 
 static void ui_mode_bg_update(ui_manager_context_t *thiz)
 {
-    if (ui_mode_info->force_update == false) {
-        return;
-    }
-
-    if (ui_mode_info->backgroud == NULL || !lv_obj_is_valid(ui_mode_info->backgroud)) {
-        ui_mode_info->backgroud = lv_image_create(ui_mode_info->root);
-        EXCEPTION_CHECK_VOID(ui_mode_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (ui_mode_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(ui_mode_info->background_snapshot);
-            ui_mode_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &ui_mode_info->background_info);
-        EXCEPTION_CHECK_VOID(ui_mode_info->background_info.data);
-        lv_fs_make_path_from_buffer(&ui_mode_info->background_path,
-                                    LV_FS_MEMFS_LETTER,
-                                    ui_mode_info->background_info.data,
-                                    ui_mode_info->background_info.size,
-                                    "baj");
-        lv_image_set_src(ui_mode_info->backgroud, (const void *)&ui_mode_info->background_path);
-        lv_obj_align(ui_mode_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        ui_mode_info->background_snapshot = lv_snapshot_take(ui_mode_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (ui_mode_info->background_snapshot != NULL) {
-        lv_image_set_src(ui_mode_info->backgroud, ui_mode_info->background_snapshot);
-    }
-#endif
-    lv_obj_move_background(ui_mode_info->backgroud);
-    lv_obj_move_to_index(ui_mode_info->backgroud, 0);
+    common_ui_bg_update(thiz, ui_mode_info->root);
 }
 
 #define MODE_DOT_Y_OFFS                (328)
@@ -262,7 +228,7 @@ static void ui_mode_icon_update(ui_manager_context_t *thiz, type_id_enum_t type_
                                     LV_FS_MEMFS_LETTER,
                                     ui_mode_info->mode_icon_id_info[0].data,
                                     ui_mode_info->mode_icon_id_info[0].size,
-                                    "png");
+                                    "baj");
         lv_image_set_src(ui_mode_info->mode_icon_id[0], (const void *)&ui_mode_info->mode_icon_id_path[0]);
         lv_obj_align(ui_mode_info->mode_icon_id[0], LV_ALIGN_TOP_MID, 0, 86);
     }
@@ -307,7 +273,7 @@ static void ui_mode_icon_update(ui_manager_context_t *thiz, type_id_enum_t type_
                                         LV_FS_MEMFS_LETTER,
                                         ui_mode_info->mode_icon_id_info[1].data,
                                         ui_mode_info->mode_icon_id_info[1].size,
-                                        "png");
+                                        "baj");
             lv_image_set_src(ui_mode_info->mode_icon_id[1], (const void *)&ui_mode_info->mode_icon_id_path[1]);
             /* 距离背景图中间顶端252，左右间距140（相对 root 水平居中） */
             //lv_obj_align_to(ui_mode_info->thumbnail_icon, ui_mode_info->knob_right_turn_icon, 
@@ -327,7 +293,7 @@ static void ui_mode_icon_update(ui_manager_context_t *thiz, type_id_enum_t type_
                                             LV_FS_MEMFS_LETTER,
                                             ui_mode_info->mode_icon_id_info[2].data,
                                             ui_mode_info->mode_icon_id_info[2].size,
-                                            "png");
+                                            "baj");
                 lv_image_set_src(ui_mode_info->mode_icon_id[2], (const void *)&ui_mode_info->mode_icon_id_path[2]);
                 // lv_obj_align_to(ui_mode_info->mode_icon_id03, ui_mode_info->mode_icon_id02, 
                 //                 LV_ALIGN_OUT_BOTTOM_MID, 0, 16);
@@ -626,21 +592,19 @@ void ui_display_pump_mode_prepare(ui_manager_context_t *thiz)
     }
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
+    ui_mode_root_init();
+    common_ui_bg_init(thiz);
     ui_mode_info->force_update = true;
 }
 
 void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (ui_mode_info == NULL) {
-        return;
+    EXCEPTION_CHECK_VOID(ui_mode_info);
+    for (uint8_t i = 0; i < 5; i++) {
+        common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[i]);
     }
-    common_ui_img_resource_deinit(thiz, &ui_mode_info->background_info);
-    common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[0]);
-    common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[1]);
-    common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[2]);
-    common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[3]);
-    common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[4]);
+    common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(ui_mode_info->root);
     u_free(ui_mode_info);
     ui_mode_info = NULL;
@@ -649,7 +613,8 @@ void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 int ui_display_pump_mode_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
-    ui_mode_root_init();
+    EXCEPTION_CHECK_INT(ui_mode_info);
+    EXCEPTION_CHECK_INT(ui_mode_info->root);
     ui_mode_bg_update(thiz);
     ui_mode_icon_update(thiz, program_type,lactation_kinkstart_mode);
     if (ui_mode_info != NULL) {
@@ -658,9 +623,8 @@ int ui_display_pump_mode_process(ui_manager_context_t *thiz)
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> logo fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> pump mode fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
-
     return 0;
 }

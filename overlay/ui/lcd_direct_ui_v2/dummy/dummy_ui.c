@@ -22,9 +22,9 @@
 
 typedef struct {
     lv_obj_t * root;
+    #if IS_SUPPORT_ROOT_DUMMY_COMP_BG
     lv_obj_t * backgroud;
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
+    #endif
     lv_obj_t * dummy_icon;
     res_img_info_t dummy_icon_info;
     uint8_t force_update;
@@ -105,37 +105,7 @@ static void dummy_root_bg_update(ui_manager_context_t *thiz)
 #else
 static void dummy_root_bg_update(ui_manager_context_t *thiz)
 {
-    if (dummy_info->force_update == false) {
-        return;
-    }
-
-    lv_fs_path_ex_t bg_img_path;
-    if (dummy_info->backgroud == NULL || !lv_obj_is_valid(dummy_info->backgroud)) {
-        dummy_info->backgroud = lv_image_create(dummy_info->root);
-        EXCEPTION_CHECK_VOID(dummy_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (dummy_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(dummy_info->background_snapshot);
-            dummy_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &dummy_info->background_info);
-        EXCEPTION_CHECK_VOID(dummy_info->background_info.data);
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
-            dummy_info->background_info.data, dummy_info->background_info.size, "png");
-        lv_image_set_src(dummy_info->backgroud, (const void *)&bg_img_path);
-        lv_obj_align(dummy_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        dummy_info->background_snapshot = lv_snapshot_take(dummy_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (dummy_info->background_snapshot != NULL) {
-        lv_image_set_src(dummy_info->backgroud, dummy_info->background_snapshot);
-    }
-#endif
+    common_ui_bg_update(thiz, dummy_info->root);
 }
 #endif
 
@@ -175,18 +145,17 @@ void ui_display_dummy_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     dummy_root_init();
     ble_ui_init(thiz);
+    common_ui_bg_init(thiz);
     dummy_info->force_update = true;
 }
 
 void ui_display_dummy_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (dummy_info == NULL) {
-        return;
-    }
-    common_ui_img_resource_deinit(thiz, &dummy_info->background_info);
+    EXCEPTION_CHECK_VOID(dummy_info);
     common_ui_img_resource_deinit(thiz, &dummy_info->dummy_icon_info);
     ble_ui_deinit(thiz);
+    common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(dummy_info->root);
     u_free(dummy_info);
     dummy_info = NULL;

@@ -40,8 +40,9 @@
 
 typedef struct {    
     lv_obj_t * root;
+    #if IS_SUPPORT_HOME_COMP_BG
     lv_obj_t * backgroud;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
+    #endif
     lv_obj_t * mode_label[2];
     lv_obj_t * mode_text[2];
     lv_obj_t * mode_icon;
@@ -66,7 +67,6 @@ typedef struct {
     res_img_info_t time_colon_info;
     res_img_info_t speed_icon_info;
     res_img_info_t mode_icon_info;
-    res_img_info_t background_info;
     res_img_info_t animation_info;
     uint8_t force_update;
     uint8_t percent;
@@ -151,37 +151,7 @@ static void pump_home_bg_update(ui_manager_context_t *thiz)
 #else
 static void pump_home_bg_update(ui_manager_context_t *thiz)
 {
-    if (pump_info->force_update == false) {
-        return;
-    }
-
-    lv_fs_path_ex_t bg_img_path;
-    if (pump_info->backgroud == NULL || !lv_obj_is_valid(pump_info->backgroud)) {
-        pump_info->backgroud = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (pump_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(pump_info->background_snapshot);
-            pump_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &pump_info->background_info);
-        EXCEPTION_CHECK_VOID(pump_info->background_info.data);
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->background_info.data, pump_info->background_info.size, "png");
-        lv_image_set_src(pump_info->backgroud, (const void *)&bg_img_path);
-        lv_obj_align(pump_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        pump_info->background_snapshot = lv_snapshot_take(pump_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (pump_info->background_snapshot != NULL) {
-        lv_image_set_src(pump_info->backgroud, pump_info->background_snapshot);
-    }
-#endif
+   common_ui_bg_update(thiz, pump_info->root);
 }
 #endif
 
@@ -715,6 +685,7 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     pump_home_init();  
     ble_ui_init(thiz);
+    common_ui_bg_init(thiz);
     ui_display_mode_prompt_init(thiz);
     pump_will_finish_ui_prompt_init(thiz);
     ui_display_pump_status_prompt_init(thiz);
@@ -737,16 +708,12 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 #else
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
-    if (pump_info->background_snapshot != NULL) {
-        lv_draw_buf_destroy(pump_info->background_snapshot);
-        pump_info->background_snapshot = NULL;
-    }
-    common_ui_img_resource_deinit(thiz, &pump_info->background_info);
     common_ui_img_resource_deinit(thiz, &pump_info->mode_icon_info);
     common_ui_img_resource_deinit(thiz, &pump_info->speed_icon_info);
     common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
     common_ui_img_resource_deinit(thiz, &pump_info->time_colon_info);
     ble_ui_deinit(thiz);
+    common_ui_bg_deinit(thiz);
     ui_display_mode_prompt_deinit(thiz);
     pump_will_finish_ui_prompt_deinit(thiz);
     ui_display_pump_status_prompt_deinit(thiz);
@@ -807,6 +774,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     ui_display_mode_prompt_process(thiz, pump_info->root);
     pump_will_finish_ui_prompt_process(thiz, pump_info->root);
     ui_display_pump_status_prompt_process(thiz, pump_info->root);
+
     pump_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
