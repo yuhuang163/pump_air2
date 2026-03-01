@@ -20,13 +20,11 @@
 #define HOME_SCREEN_SAVER_ICON_X                          (60)
 #define HOME_SCREEN_SAVER_ICON_Y                          (130 + 2)
 
-
-
 typedef struct {
     lv_obj_t * root;
+    #if IS_SUPPORT_ROOT_HOME_SCREEN_SAVER_COMP_BG
     lv_obj_t * backgroud;
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
+    #endif
     lv_obj_t * home_screen_saver_icon;
     res_img_info_t home_screen_saver_icon_info;
     uint8_t force_update;
@@ -107,37 +105,7 @@ static void home_screen_saver_root_bg_update(ui_manager_context_t *thiz)
 #else
 static void home_screen_saver_root_bg_update(ui_manager_context_t *thiz)
 {
-    if (home_screen_saver_info->force_update == false) {
-        return;
-    }
-
-    lv_fs_path_ex_t bg_img_path;
-    if (home_screen_saver_info->backgroud == NULL || !lv_obj_is_valid(home_screen_saver_info->backgroud)) {
-        home_screen_saver_info->backgroud = lv_image_create(home_screen_saver_info->root);
-        EXCEPTION_CHECK_VOID(home_screen_saver_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (home_screen_saver_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(home_screen_saver_info->background_snapshot);
-            home_screen_saver_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &home_screen_saver_info->background_info);
-        EXCEPTION_CHECK_VOID(home_screen_saver_info->background_info.data);
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
-            home_screen_saver_info->background_info.data, home_screen_saver_info->background_info.size, "png");
-        lv_image_set_src(home_screen_saver_info->backgroud, (const void *)&bg_img_path);
-        lv_obj_align(home_screen_saver_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        home_screen_saver_info->background_snapshot = lv_snapshot_take(home_screen_saver_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (home_screen_saver_info->background_snapshot != NULL) {
-        lv_image_set_src(home_screen_saver_info->backgroud, home_screen_saver_info->background_snapshot);
-    }
-#endif
+    common_ui_bg_update(thiz, home_screen_saver_info->root);
 }
 #endif
 
@@ -176,6 +144,7 @@ void ui_display_home_screen_saver_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     home_screen_saver_root_init();
+    common_ui_bg_init(thiz);
     ble_ui_init(thiz);
     home_screen_saver_info->force_update = true;
 }
@@ -186,9 +155,9 @@ void ui_display_home_screen_saver_remove(ui_manager_context_t *thiz)
     if (home_screen_saver_info == NULL) {
         return;
     }
-    common_ui_img_resource_deinit(thiz, &home_screen_saver_info->background_info);
     common_ui_img_resource_deinit(thiz, &home_screen_saver_info->home_screen_saver_icon_info);
     ble_ui_deinit(thiz);
+    common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(home_screen_saver_info->root);
     u_free(home_screen_saver_info);
     home_screen_saver_info = NULL;
