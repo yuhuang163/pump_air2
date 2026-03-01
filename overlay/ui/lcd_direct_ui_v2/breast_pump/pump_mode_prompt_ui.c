@@ -197,7 +197,7 @@ void ui_display_mode_prompt_process(ui_manager_context_t *thiz, lv_obj_t *root)
     uint8_t mode = 2; 
     mode_prompt_parameter_info_t mode_prompt_parameter = {
         .mode = mode,
-        .is_show = true,
+        .is_show = 0,
     };
     mode_prompt_root_text_update(thiz, root, &mode_prompt_parameter);
     force_update = false;
