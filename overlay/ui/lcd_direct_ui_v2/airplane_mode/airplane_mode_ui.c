@@ -29,9 +29,9 @@ typedef struct {
 
 typedef struct {
     lv_obj_t * root;
+    #if IS_SUPPORT_AIRPLANE_MODE_COMP_BG
     lv_obj_t * backgroud;
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
+    #endif
     lv_obj_t * unlock_button_icon;
     lv_obj_t * texts[AIRPLANE_MODE_TEXT_COUNT];
     res_img_info_t unlock_button_icon_info;
@@ -117,37 +117,7 @@ static void airplane_mode_bg_update(ui_manager_context_t *thiz)
 #else
 static void airplane_mode_bg_update(ui_manager_context_t *thiz)
 {
-    if (airplane_mode_info->force_update == false) {
-        return;
-    }
-
-    lv_fs_path_ex_t bg_img_path;
-    if (airplane_mode_info->backgroud == NULL || !lv_obj_is_valid(airplane_mode_info->backgroud)) {
-        airplane_mode_info->backgroud = lv_image_create(airplane_mode_info->root);
-        EXCEPTION_CHECK_VOID(airplane_mode_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (airplane_mode_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(airplane_mode_info->background_snapshot);
-            airplane_mode_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &airplane_mode_info->background_info);
-        EXCEPTION_CHECK_VOID(airplane_mode_info->background_info.data);
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
-            airplane_mode_info->background_info.data, airplane_mode_info->background_info.size, "png");
-        lv_image_set_src(airplane_mode_info->backgroud, (const void *)&bg_img_path);
-        lv_obj_align(airplane_mode_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        airplane_mode_info->background_snapshot = lv_snapshot_take(airplane_mode_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (airplane_mode_info->background_snapshot != NULL) {
-        lv_image_set_src(airplane_mode_info->backgroud, airplane_mode_info->background_snapshot);
-    }
-#endif
+    common_ui_bg_update(thiz, airplane_mode_info->root);
 }
 #endif
 
@@ -202,18 +172,18 @@ void ui_display_airplane_mode_prepare(ui_manager_context_t *thiz)
     ble_ui_init(thiz);
     airplane_mode_root_init();
     ui_display_airplane_mode_exit_init(thiz, airplane_mode_info->root);
+    common_ui_bg_init(thiz);
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
 }
 
 void ui_display_airplane_mode_remove(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    if (airplane_mode_info == NULL) {
-        return;
-    }
+    EXCEPTION_CHECK_VOID(thiz); 
+    EXCEPTION_CHECK_VOID(airplane_mode_info);
+    EXCEPTION_CHECK_VOID(airplane_mode_info->root);
     ble_ui_deinit(thiz);
-    common_ui_img_resource_deinit(thiz, &airplane_mode_info->background_info);
+    common_ui_bg_deinit(thiz);
     common_ui_img_resource_deinit(thiz, &airplane_mode_info->unlock_button_icon_info);
     ui_display_airplane_mode_exit_deinit(thiz, airplane_mode_info->root);
     LVGL_OBJ_DELETE(airplane_mode_info->root); 

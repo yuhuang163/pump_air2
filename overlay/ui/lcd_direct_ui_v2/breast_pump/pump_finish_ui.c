@@ -26,9 +26,9 @@ typedef struct {
 
 typedef struct {
     lv_obj_t * root;
+    #if IS_SUPPORT_PUMP_FINISH_COMP_BG
     lv_obj_t * backgroud;
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
+    #endif
     lv_obj_t * icon;
     lv_obj_t * texts[COMPLETE_TIP_TEXT_COUNT];
     res_img_info_t icon_info;
@@ -137,46 +137,8 @@ static void pump_finish_root_bg_update(ui_manager_context_t *thiz)
 }
 #else
 static void pump_finish_root_bg_update(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(finish_info);
-    EXCEPTION_CHECK_VOID(finish_info->root);
-    
-    if (finish_info->force_update == false) {
-        return;
-    }
-
-    lv_fs_path_ex_t bg_img_path;
-    if (finish_info->backgroud == NULL || !lv_obj_is_valid(finish_info->backgroud)) {
-        finish_info->backgroud = lv_image_create(finish_info->root);
-        EXCEPTION_CHECK_VOID(finish_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (finish_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(finish_info->background_snapshot);
-            finish_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &finish_info->background_info);
-        EXCEPTION_CHECK_VOID(finish_info->background_info.data);
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
-            finish_info->background_info.data, finish_info->background_info.size, "png");
-        lv_image_set_src(finish_info->backgroud, (const void *)&bg_img_path);
-        lv_obj_align(finish_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        finish_info->background_snapshot = lv_snapshot_take(finish_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-        // 检查快照是否创建成功，如果失败则使用原始图片
-        if (finish_info->background_snapshot == NULL) {
-            LOGE("Failed to create background snapshot");
-        }
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (finish_info->background_snapshot != NULL && finish_info->backgroud != NULL) {
-        lv_image_set_src(finish_info->backgroud, finish_info->background_snapshot);
-    }
-#endif
+{ 
+    common_ui_bg_update(thiz, finish_info->root);
 }
 #endif
 
@@ -193,6 +155,7 @@ void ui_display_pump_complete_tip_prepare(ui_manager_context_t *thiz)
     }
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
+    common_ui_bg_init(thiz);
     pump_complete_tip_root_init();
     finish_info->force_update = true;
 }
@@ -201,12 +164,8 @@ void ui_display_pump_complete_tip_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(finish_info);
-    if (finish_info->background_snapshot != NULL) {
-        lv_draw_buf_destroy(finish_info->background_snapshot);
-        finish_info->background_snapshot = NULL;
-    }
     common_ui_img_resource_deinit(thiz, &finish_info->icon_info);
-    common_ui_img_resource_deinit(thiz, &finish_info->background_info);
+    common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(finish_info->root); 
     u_free(finish_info);
     finish_info = NULL;

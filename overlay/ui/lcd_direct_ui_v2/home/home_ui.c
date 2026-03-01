@@ -34,9 +34,9 @@
 
 typedef struct {
     lv_obj_t * root;
+#if IS_SUPPORT_ROOT_HOME_COMP_BG
     lv_obj_t * backgroud;
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
+#endif
     lv_obj_t * text;
     lv_obj_t * idle_text_area_icon;
     res_img_info_t idle_text_area_info;
@@ -79,9 +79,6 @@ const static home_icon_info_t home_icon_infos[HOME_ICON_MAX_COUNT] = {
 static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
     // #include "comparison_png2txt/bg_360x360.txt"
     #include "png2txt/home_com_bg_360x360.txt"
-    // #include "comparison_png2txt/home_comp_1_v2_360x360.txt"
-    // #include "comparison_png2txt/home_comp_80_v2_360x360.txt"
-    // #include "comparison_png2txt/home_comp_100_v2_360x360.txt"
 };
 #endif
 /*
@@ -132,37 +129,7 @@ static void home_root_bg_update(ui_manager_context_t *thiz)
 #else
 static void home_root_bg_update(ui_manager_context_t *thiz)
 {
-    if (home_info->force_update == false) {
-        return;
-    }
-
-    lv_fs_path_ex_t bg_img_path;
-    if (home_info->backgroud == NULL || !lv_obj_is_valid(home_info->backgroud)) {
-        home_info->backgroud = lv_image_create(home_info->root);
-        EXCEPTION_CHECK_VOID(home_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (home_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(home_info->background_snapshot);
-            home_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &home_info->background_info);
-        EXCEPTION_CHECK_VOID(home_info->background_info.data);
-        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
-            home_info->background_info.data, home_info->background_info.size, "png");
-        lv_image_set_src(home_info->backgroud, (const void *)&bg_img_path);
-        lv_obj_align(home_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        home_info->background_snapshot = lv_snapshot_take(home_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (home_info->background_snapshot != NULL) {
-        lv_image_set_src(home_info->backgroud, home_info->background_snapshot);
-    }
-#endif
+    common_ui_bg_update(thiz, home_info->root);
 }
 #endif
 static void home_root_text_update(ui_manager_context_t *thiz)
@@ -250,6 +217,7 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     home_root_init();
     ble_ui_init(thiz);
+    common_ui_bg_init(thiz);
     home_info->force_update = true;
     home_info->animation_index = 0;
 }
@@ -257,14 +225,12 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
 void ui_display_home_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    if (home_info == NULL) {
-        return;
-    }
-    common_ui_img_resource_deinit(thiz, &home_info->background_info);
+    EXCEPTION_CHECK_VOID(home_info);
     common_ui_img_resource_deinit(thiz, &home_info->idle_text_area_info);
     common_ui_img_resource_deinit(thiz, &home_info->idle_button_info);
     common_ui_img_resource_deinit(thiz, &home_info->animation_info);
     ble_ui_deinit(thiz);
+    common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(home_info->root);
     u_free(home_info);
     home_info = NULL;

@@ -38,15 +38,15 @@ typedef struct {
     lv_obj_t * root;
     lv_obj_t * qrcode_container;
     lv_obj_t * qrcode;
+    #if IS_SUPPORT_GUIDE_COMP_BG
     lv_obj_t * backgroud;
+    #endif
     lv_obj_t * arrow; /// 箭头
     lv_obj_t * arrow_text; /// 箭头文本框
     lv_obj_t * img[GUIDE_IMG_NUM];
     lv_obj_t * text[GUIDE_TEXT_NUM];
     res_img_info_t arrow_info;
     res_img_info_t img_info[GUIDE_IMG_NUM];
-    res_img_info_t background_info;
-    lv_draw_buf_t *background_snapshot;  /// 背景快照，避免重复解码
     uint8_t force_update;
     uint8_t page_index;
 } guide_display_info_t;
@@ -196,42 +196,7 @@ static void ui_guide_bg_update(ui_manager_context_t *thiz)
 
 static void ui_guide_bg_update(ui_manager_context_t *thiz)
 {
-    if (guide_info->force_update == false) {
-        return;
-    }
-
-    if (guide_info->backgroud == NULL || !lv_obj_is_valid(guide_info->backgroud)) {
-        guide_info->backgroud = lv_image_create(guide_info->root);
-        EXCEPTION_CHECK_VOID(guide_info->backgroud);
-#if LV_USE_SNAPSHOT
-        if (guide_info->background_snapshot != NULL) {
-            lv_draw_buf_destroy(guide_info->background_snapshot);
-            guide_info->background_snapshot = NULL;
-        }
-#endif
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_HOME_BG, &guide_info->background_info);
-        EXCEPTION_CHECK_VOID(guide_info->background_info.data);
-        lv_fs_path_ex_t background_path;
-        lv_fs_make_path_from_buffer(&background_path,
-                                    LV_FS_MEMFS_LETTER,
-                                    guide_info->background_info.data,
-                                    guide_info->background_info.size,
-                                    "png");
-        lv_image_set_src(guide_info->backgroud, (const void *)&background_path);
-        lv_obj_align(guide_info->backgroud, LV_ALIGN_CENTER, 0, 0);
-#if LV_USE_SNAPSHOT
-        lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        guide_info->background_snapshot = lv_snapshot_take(guide_info->backgroud, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
-#endif
-    }
-
-#if LV_USE_SNAPSHOT
-    if (guide_info->background_snapshot != NULL) {
-        lv_image_set_src(guide_info->backgroud, guide_info->background_snapshot);
-    }
-#endif
-    // lv_obj_move_background(guide_info->backgroud);
-    // lv_obj_move_to_index(guide_info->backgroud, 0);
+    common_ui_bg_update(thiz, guide_info->root);
 }
 #endif
 
@@ -608,6 +573,7 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     ui_guide_root_init(); /// 初始化 root 容器
+    common_ui_bg_init(thiz);
     guide_info->force_update = true;
 }
 
@@ -615,15 +581,12 @@ void ui_display_guide_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(guide_info);
-    if (guide_info->background_snapshot != NULL) {
-        lv_draw_buf_destroy(guide_info->background_snapshot);
-        guide_info->background_snapshot = NULL;
-    }
-    common_ui_img_resource_deinit(thiz, &guide_info->background_info);
+    EXCEPTION_CHECK_VOID(guide_info->root);
     common_ui_img_resource_deinit(thiz, &guide_info->arrow_info);
     for (int i = 0; i < GUIDE_IMG_NUM; i++) {
         common_ui_img_resource_deinit(thiz, &guide_info->img_info[i]);
     }
+    common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(guide_info->root);
     u_free(guide_info);
     guide_info = NULL;
