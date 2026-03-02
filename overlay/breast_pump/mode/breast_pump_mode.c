@@ -219,9 +219,21 @@ void breast_pump_custom_step_para_reset(sys_pump_info_t *pump_info)
         } else if (loop_num == 2) {
             // 混合模式2: 2次短吸 + 1次长吸
             custom_steps_parameter->data[step_idx].mode = APP_OLD_COMM_MODE_MIX2;
-        } else {
+        } 
+        if (cfg[i].core.un.mapping.mode_type == SUCTION_MODE_IDLE) {
+            // 空闲模式（Relax）
+            custom_steps_parameter->data[step_idx].mode = APP_OLD_COMM_MODE_RELAX;
+        } else if (cfg[i].core.un.mapping.mode_type == SUCTION_MODE_SHORT) {
+            // 按摩模式（短吸）
+            custom_steps_parameter->data[step_idx].mode = APP_OLD_COMM_MODE_SHORT;
+        } else if (cfg[i].core.un.mapping.mode_type == SUCTION_MODE_LONG) {
+            // 吸乳模式（长吸）
+            custom_steps_parameter->data[step_idx].mode = APP_OLD_COMM_MODE_LONG;
+        }
+        else {
             // 普通模式: SUCTION_MODE_SHORT(1)->0x01, SUCTION_MODE_LONG(2)->0x02
-            custom_steps_parameter->data[step_idx].mode = cfg[i].core.un.mapping.mode_type;
+            // custom_steps_parameter->data[step_idx].mode = cfg[i].core.un.mapping.mode_type;
+            LOGE("unknown mode_type: %d, loop_num: %d", cfg[i].core.un.mapping.mode_type, loop_num);
         }
 
         custom_steps_parameter->custom_total_time += custom_steps_parameter->data[step_idx].time;
