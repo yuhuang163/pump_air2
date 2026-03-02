@@ -10,6 +10,7 @@ extern "C" {
 
 /// LVGL 字体声明 - Oppo Sans 20px
 /// 包含字符: 0-9, A-Z, a-z, ' ' ',' '.' '!'
+extern const lv_font_t lv_font_oppo_sans_20_semibold;
 extern const lv_font_t lv_font_oppo_sans_20_medium;
 
 #ifdef __cplusplus
