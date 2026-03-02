@@ -61,6 +61,7 @@ typedef enum {
 
     RESOURCE_ID_PUMP_FINISH_ICON,               /// 泵奶完成图标
     RESOURCE_ID_PUMP_PAUSE_PROMPT_ICON,         /// 泵奶暂停提示图标
+    RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON,     /// 泵奶档位背景图标
 
     RESOURCE_ID_GUIDE_QR_ICON = 250,
     RESOURCE_ID_GUIDE_LRM_ICON,
