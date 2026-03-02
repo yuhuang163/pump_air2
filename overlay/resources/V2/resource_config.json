@@ -385,6 +385,13 @@
       "file": "baj/icon_pump_pause_64x64_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON",
+      "description": "泵奶档位背景图标",
+      "file": "png/icon_level_bg.png",
+      "x_offset": 0,
+      "y_offset": 0
     }
   ]
 }
