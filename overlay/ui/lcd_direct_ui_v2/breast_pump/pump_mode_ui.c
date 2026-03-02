@@ -82,7 +82,7 @@ typedef enum{
 *****************************************************************************************
 */
 static ui_mode_info_t *ui_mode_info;
-
+#if 0
 const static ui_mode_icon_info_t ui_mode_icon_infos[UI_MODE_ICON_MAX_COUNT] = {
     { "idle_text_label", 0, 
         ID_AREA_ICON_X,       ID_AREA_ICON_Y, 
@@ -582,6 +582,7 @@ static void ui_mode_icon_update(ui_manager_context_t *thiz, type_id_enum_t type_
                 lv_obj_align_to(ui_mode_info->mode_text_label[2], ui_mode_info->mode_text_label[1],LV_ALIGN_OUT_BOTTOM_MID, 0, 12);
             }
 }
+#endif
 //*********************************************************************************************************************** */
 void ui_display_pump_mode_prepare(ui_manager_context_t *thiz)
 {
@@ -592,8 +593,8 @@ void ui_display_pump_mode_prepare(ui_manager_context_t *thiz)
     }
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
-    ui_mode_root_init();
-    common_ui_bg_init(thiz);
+    // ui_mode_root_init();
+    // common_ui_bg_init(thiz);
     ui_mode_info->force_update = true;
 }
 
@@ -601,10 +602,10 @@ void ui_display_pump_mode_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(ui_mode_info);
-    for (uint8_t i = 0; i < 5; i++) {
-        common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[i]);
-    }
-    common_ui_bg_deinit(thiz);
+    // for (uint8_t i = 0; i < 5; i++) {
+    //     common_ui_img_resource_deinit(thiz, &ui_mode_info->mode_icon_id_info[i]);
+    // }
+    // common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(ui_mode_info->root);
     u_free(ui_mode_info);
     ui_mode_info = NULL;
@@ -615,8 +616,8 @@ int ui_display_pump_mode_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(ui_mode_info);
     EXCEPTION_CHECK_INT(ui_mode_info->root);
-    ui_mode_bg_update(thiz);
-    ui_mode_icon_update(thiz, program_type,lactation_kinkstart_mode);
+    // ui_mode_bg_update(thiz);
+    // ui_mode_icon_update(thiz, program_type,lactation_kinkstart_mode);
     if (ui_mode_info != NULL) {
         ui_mode_info->force_update = false;
     }
