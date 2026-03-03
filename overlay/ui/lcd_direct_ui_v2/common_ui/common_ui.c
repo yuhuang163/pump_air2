@@ -51,6 +51,7 @@ void common_ui_img_resource_deinit(ui_manager_context_t *thiz, res_img_info_t *i
 void common_ui_text_place_in_circle(lv_obj_t * lab, uint16_t angle, uint16_t ring_r, uint8_t is_reverse)
 {
     EXCEPTION_CHECK_VOID(lab);
+    lv_obj_update_layout(lab);
     /// 父对象 360x360，圆心(180,180)
     lv_point_t c = { .x = PANLE_DISPLAY_W / 2, .y = PANLE_DISPLAY_H / 2 };
     /// 计算圆周点
