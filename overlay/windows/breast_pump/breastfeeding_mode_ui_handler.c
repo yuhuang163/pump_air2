@@ -134,8 +134,8 @@ void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool l
         return;
     }
     uint8_t mode = proc->ui_breastfeeding_mode_index;
-    if (is_increase) {
-        if (mode < BREAST_PUMP_LACTATION_START_MODE) {
+    if (is_increase == false) {
+        if (mode < BREAST_PUMP_EMPTYING_BOOST_MODE) {
             mode++;
         } else {
             mode = BREAST_PUMP_CUSTOM_MODE;
@@ -144,7 +144,7 @@ void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool l
         if (mode > BREAST_PUMP_CUSTOM_MODE) {
             mode--;
         } else {
-            mode = BREAST_PUMP_LACTATION_START_MODE;
+            mode = BREAST_PUMP_EMPTYING_BOOST_MODE;
         }
     }
     proc->ui_breastfeeding_mode_index = mode;

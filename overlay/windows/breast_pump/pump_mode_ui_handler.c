@@ -140,7 +140,7 @@ void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led
     }
 
     mode = proc->ui_common_mode_index;
-    if (is_increase) {
+    if (is_increase == false) {
         if (mode < BREAST_PUMP_MIX_MODE) {
             mode++;
         } else {
