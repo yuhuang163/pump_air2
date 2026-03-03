@@ -58,114 +58,16 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_BATTERY_0",
-      "description": "首页电池电量0%",
-      "file": "baj/battery_6_49x16_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
+      "description": "泵奶首页背景",
+      "file": "png/home_bg.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_BATTERY_20",
-      "description": "首页电池电量20%",
-      "file": "baj/battery_5_49x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_BATTERY_40",
-      "description": "首页电池电量40%",
-      "file": "baj/battery_4_49x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_BATTERY_60",
-      "description": "首页电池电量60%",
-      "file": "baj/battery_3_49x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_BATTERY_80",
-      "description": "首页电池电量80%",
-      "file": "baj/battery_2_49x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_BATTERY_100",
-      "description": "首页电池电量100%",
-      "file": "baj/battery_1_49x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_CHARGING",
-      "description": "首页充电图标",
-      "file": "baj/icon_battery_16x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_UNCHARGE",
-      "description": "首页未充电图标",
-      "file": "baj/icon_battery_16x16_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_TIME_COLON",
-      "description": "首页时间冒号",
-      "file": "baj/time_colon_12x42_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_FREQ_BOOST_ICON",
-      "description": "首页-频率增强图标",
-      "file": "baj/icon_Boost_33x29_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_SPEED_SLOW_ICON",
-      "description": "首页-慢速图标",
-      "file": "baj/icon_speed_slow_24x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_SPEED_REGULAR_ICON",
-      "description": "首页-常规图标",
-      "file": "baj/icon_speed_regular_24x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_SPEED_BOOST_ICON",
-      "description": "首页-快速图标",
-      "file": "baj/icon_speed_fast_24x24_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_HOME_DASHED_ARC_ICON",
-      "description": "首页-虚线弧线图标",
-      "file": "baj/icon_dashed_arc_97x10_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_FREQ_REGULAR_ICON",
-      "description": "首页-频率常规图标",
-      "file": "baj/icon_Regular_36x36_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_FREQ_COMFORT_ICON",
-      "description": "首页-频率舒适图标",
-      "file": "baj/icon_Comfort_32x11_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_START_LOGO_ICON",
+      "description": "启动LOGO",
+      "file": "baj/icon_start_logo_232x31_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -191,13 +93,6 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_ICON",
-      "description": "充电适配器图标",
-      "file": "png/icon_charge_adapter_error.png",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
       "resource_id": "RESOURCE_ID_DUMMY_ICON",
       "description": "dummy图标",
       "file": "baj/icon_dummy_240x134_a4_q99_422.baj",
@@ -205,37 +100,9 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_MODE_STIMULATION_PROMPT_ICON",
-      "description": "刺激确认提示图标",
-      "file": "baj/icon_Stimulation_prompt_64x64_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_MODE_EXPRESSION_PROMPT_ICON",
-      "description": "泌乳确认提示图标",
-      "file": "baj/icon_Expression_prompt_64x64_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_MODE_MIX_PROMPT_ICON",
-      "description": "混合确认提示图标",
-      "file": "baj/icon_mix_prompt_64x64_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_MODE_RELAX_PROMPT_ICON",
-      "description": "放松确认提示图标",
-      "file": "baj/icon_relax_prompt_64x64_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
-      "description": "泵奶首页背景",
-      "file": "png/home_bg.png",
+      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_ICON",
+      "description": "充电适配器图标",
+      "file": "png/icon_charge_adapter_error.png",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -293,61 +160,89 @@
       "description": "旋钮指示缩略图1",
       "file": "baj/icon_knob_abb_1_222x214_a4_q99_422.baj",
       "x_offset": 0,
-      "y_offset": 0  
+      "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_EMODE_R_ICON",
-      "description": "English+右",
-      "file": "baj/icon_emode_r_50x220_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_SPEED_SLOW_ICON",
+      "description": "首页-慢速图标",
+      "file": "baj/icon_speed_slow_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_EMODE_L_ICON",
-      "description": "English+左",
-      "file": "baj/icon_emode_l_50x220_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_SPEED_REGULAR_ICON",
+      "description": "首页-常规图标",
+      "file": "baj/icon_speed_regular_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CMODE_R_ICON",
-      "description": "中文+右",
-      "file": "baj/icon_cmode_r_50x220_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_SPEED_BOOST_ICON",
+      "description": "首页-快速图标",
+      "file": "baj/icon_speed_fast_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CMODE_L_ICON",
-      "description": "中文+左",
-      "file": "baj/icon_cmode_l_49x220_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_DASHED_ARC_ICON",
+      "description": "首页-虚线弧线图标",
+      "file": "baj/icon_dashed_arc_97x10_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_STAR_ICON",
-      "description": "星形图标",
-      "file": "baj/icon_star_36x36_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_HOME_TIME_COLON",
+      "description": "首页时间冒号",
+      "file": "baj/time_colon_12x42_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HUE_ICON",
-      "description": "色调图标",
-      "file": "baj/icon_hue_36x36_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_FREQ_PAGE_BOOST_ICON",
+      "description": "频率页-频率增强图标",
+      "file": "baj/icon_speed_page_fast_48x48_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HEART_ICON",
-      "description": "心形图标",
-      "file": "baj/icon_heart_36x36_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_FREQ_PAGE_REGULAR_ICON",
+      "description": "频率页-频率常规图标",
+      "file": "baj/icon_speed_page_regular_48x48_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_EXPRESSION_ICON",
-      "description": "表情图标",
-      "file": "baj/icon_expression_36x36_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_FREQ_PAGE_COMFORT_ICON",
+      "description": "频率页-频率舒适图标",
+      "file": "baj/icon_speed_page_slow_48x48_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_STIMULATION_PROMPT_ICON",
+      "description": "刺激确认提示图标",
+      "file": "baj/icon_Stimulation_prompt_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_EXPRESSION_PROMPT_ICON",
+      "description": "泌乳确认提示图标",
+      "file": "baj/icon_Expression_prompt_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_MIX_PROMPT_ICON",
+      "description": "混合确认提示图标",
+      "file": "baj/icon_mix_prompt_64x64_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_RELAX_PROMPT_ICON",
+      "description": "放松确认提示图标",
+      "file": "baj/icon_relax_prompt_64x64_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -359,9 +254,51 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_MODE_VECTOR_ICON",
-      "description": "已读图标",
-      "file": "baj/icon_vector_12x8_a4_q99_422.baj",
+      "resource_id": "RESOURCE_ID_LAST_USED_MODE_ICON",
+      "description": "上一次使用模式图标",
+      "file": "baj/icon_last_usage_mode_20x20_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_NEW_MODE_UNCONFIRMED_ICON",
+      "description": "新模式未确认图标",
+      "file": "baj/icon_new_mode_unconfirmed_8x8_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_LACTATION_ICON",
+      "description": "模式-泌乳图标",
+      "file": "baj/icon_mode_page_lactation_48x48_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_MIX_ICON",
+      "description": "模式-混合图标",
+      "file": "baj/icon_mode_page_mix_48x48_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_STIMULATE_ICON",
+      "description": "模式-刺激图标",
+      "file": "baj/icon_mode_page_stimulation_48x48_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_CUSTOM_URD_ICON",
+      "description": "韵律-专家模式图标",
+      "file": "baj/icon_mode_custom_URD_48x48_a4_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_CUSTOM_RDE_ICON",
+      "description": "韵律-个性化模式图标",
+      "file": "baj/icon_mode_custom_RDE_48x48_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -369,13 +306,6 @@
       "resource_id": "RESOURCE_ID_PUMP_FINISH_ICON",
       "description": "泵奶完成图标",
       "file": "baj/icon_pump_finish_160x160_a4_q99_422.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_START_LOGO_ICON",
-      "description": "启动LOGO",
-      "file": "baj/start_logo_icon_232x31_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },

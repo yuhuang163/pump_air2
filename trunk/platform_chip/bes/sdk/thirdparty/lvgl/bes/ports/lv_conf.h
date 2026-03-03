@@ -76,7 +76,7 @@
 #endif
 
 /* memory configs */
-#define LV_MEM_SIZE                         (4 * 1024U * 1024U)
+#define LV_MEM_SIZE                         (5 * 1024U * 1024U)
 // #define LV_CACHE_DEF_SIZE                   (2 * 1024U * 1024U)
 // #define LV_IMAGE_HEADER_CACHE_DEF_CNT       128
 #define LV_ATTRIBUTE_MEM_ALIGN_SIZE         64

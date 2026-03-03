@@ -137,7 +137,7 @@ void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink
         time_index = 0;
     }
     proc->pump->get_breast_pump_setting(&proc->setting, time_index);
-    if (is_increase) {
+    if (is_increase == false) {
         if (proc->setting.speed < BREAST_PUMP_SPEED_HIGH) {
             proc->setting.speed++;
         } else {
