@@ -566,7 +566,7 @@ int ui_display_pump_level_process(ui_manager_context_t *thiz)
     level_info->left_level = setting.level[0];
     level_info->right_level = setting.level[1];
     level_info->control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-    level_info->level_change = 10;  // 测试值，实际应从业务逻辑获取
+    level_info->level_change = 9;  // 测试值，实际应从业务逻辑获取
     
     // 根据控制类型计算当前显示等级
     uint8_t display_level;

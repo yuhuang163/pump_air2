@@ -46,6 +46,7 @@ static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
 */
 static void airplane_mode_exit_sub_root_init(lv_obj_t *root)
 {
+
     if (sub_root == NULL || 
         !lv_obj_is_valid(sub_root)) {
         sub_root = lv_obj_create(root);
@@ -150,14 +151,19 @@ static int airplane_mode_exit_countdown_num_update(ui_manager_context_t *thiz, l
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(root);
     /* 1. 创建 / 校验子根对象 */
-    airplane_mode_exit_sub_root_init(root);
+    if (show_countdown_num == 1) {
+        airplane_mode_exit_sub_root_init(root);
+    }
 
-    if (get_timestamp() - start_time < 1000) {
+    if (get_timestamp() - start_time < 700) {
         return 0;
     }
     // 如果不需要显示倒计时数字，则直接返回
     if (show_countdown_num == 0) {
-        lv_obj_add_flag(sub_root, LV_OBJ_FLAG_HIDDEN);
+        if (sub_root) {
+            lv_obj_add_flag(sub_root, LV_OBJ_FLAG_HIDDEN);
+        }
+        countdown_value = COUNTDOWN_MAX_VALUE;
         return 0;
     }
     lv_obj_clear_flag(sub_root, LV_OBJ_FLAG_HIDDEN);
@@ -213,12 +219,12 @@ void ui_display_airplane_mode_exit_deinit(ui_manager_context_t *thiz, lv_obj_t *
     start_time = 0;
 }
 
-void ui_display_airplane_mode_exit_process(ui_manager_context_t *thiz, lv_obj_t *root)
+void ui_display_airplane_mode_exit_process(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t need_show_countdown_time)
 {
     EXCEPTION_CHECK_VOID(thiz);
 
     //是否显示倒计时数字
-    uint8_t show_countdown_num = 1;
+    uint8_t show_countdown_num = need_show_countdown_time;
     // 数字更新时自动同步圆弧进度
     airplane_mode_exit_countdown_num_update(thiz, root, show_countdown_num);
     force_update = false;
