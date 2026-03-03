@@ -13,6 +13,8 @@
 #define PAGE_NAME_STR                           "airplane_mode"
 #define AIRPLANE_MODE_UI_KEY_CODE               (KEY_CODE_TRAVEL_LOCK)
 #define AIRPLANE_MODE_UI_KEY_TYPE               (KEY_EVENT_LONG_5S)
+#define AIRPLANE_MODE_UI_KEY_DOWN_TYPE          (KEY_EVENT_DOWN)
+#define AIRPLANE_MODE_UI_KEY_UP_TYPE            (KEY_EVENT_UP)
 #define AIRPLANE_MODE_EXIT_TASK_NAME            "airplane_mode_exit_task"
 #define AIRPLANE_MODE_TIMEOUT_TASK_NAME         "airplane_mode_timeout_task"
 #define REMOVE_ALL_HANDER_TASK() \
@@ -87,7 +89,18 @@ static int on_airplane_mode_keyevent_hdr(void *user_data, uint16_t keycode, uint
     ui_proc_airplane_mode_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc);
     WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_AIRPLANE_MODE, 0);
-    POST_TASK_HANDLER_DELAYED_ARG1(airplane_mode_exit_cb, 10, proc, AIRPLANE_MODE_EXIT_TASK_NAME);
+    if (keytype == AIRPLANE_MODE_UI_KEY_DOWN_TYPE) {
+        proc->show_countdown_time = 1;
+    }
+    else if (keytype == AIRPLANE_MODE_UI_KEY_UP_TYPE) {
+        proc->show_countdown_time = 0;
+    }
+    else if (keytype == AIRPLANE_MODE_UI_KEY_TYPE) {
+         POST_TASK_HANDLER_DELAYED_ARG1(airplane_mode_exit_cb, 10, proc, AIRPLANE_MODE_EXIT_TASK_NAME);
+    }
+    else {
+        LOG_WM("airplane mode key event type not supported: %d", keytype);
+    }
     return 0;
 }
 
@@ -102,8 +115,10 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
     if (new_state == ID_SCR_STATE_ON_RESUME) {
         LOG_WM("==>%s window on resume", PAGE_NAME_STR);
         if (proc->key) {
-            proc->key->add_keyevent_handler("airplane_mode_wm", proc, AIRPLANE_MODE_UI_KEY_CODE, AIRPLANE_MODE_UI_KEY_TYPE,
+            proc->key->add_keyevent_handler("airplane_mode_wm", proc, AIRPLANE_MODE_UI_KEY_CODE, \
+            AIRPLANE_MODE_UI_KEY_TYPE | AIRPLANE_MODE_UI_KEY_DOWN_TYPE | AIRPLANE_MODE_UI_KEY_UP_TYPE,
                  on_airplane_mode_keyevent_hdr, KEY_HANDLER_SHIELD_LEVEL_1);
+
         } else {
             LOG_WM("key not present, ignore.");
         }
@@ -170,6 +185,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     proc->airplane = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
+    proc->show_countdown_time = 0;
     /// 监听PM状态改变.
     proc->receiver.id.code = ID_BROADCAST_PM_STATE_CHANGE;
     proc->receiver.id.code |= ID_BROADCAST_BATTERY_STATE_CHANGE;

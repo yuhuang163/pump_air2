@@ -21,7 +21,7 @@ int ui_display_airplane_mode_process(ui_manager_context_t *thiz);
 
 void ui_display_airplane_mode_exit_init(ui_manager_context_t *thiz, lv_obj_t *root);
 void ui_display_airplane_mode_exit_deinit(ui_manager_context_t *thiz, lv_obj_t *root);
-void ui_display_airplane_mode_exit_process(ui_manager_context_t *thiz, lv_obj_t *root);
+void ui_display_airplane_mode_exit_process(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t need_show_countdown_time);
 
 #ifdef __cplusplus
 }

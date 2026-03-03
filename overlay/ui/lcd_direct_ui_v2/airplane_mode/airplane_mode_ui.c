@@ -205,7 +205,7 @@ int ui_display_airplane_mode_process(ui_manager_context_t *thiz)
     for (uint8_t i = 0; i < AIRPLANE_MODE_TEXT_COUNT; i++) {
         airplane_mode_texts_update(thiz, i);
     }
-    ui_display_airplane_mode_exit_process(thiz, airplane_mode_info->root);
+    ui_display_airplane_mode_exit_process(thiz, airplane_mode_info->root, proc->show_countdown_time);
     airplane_mode_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
