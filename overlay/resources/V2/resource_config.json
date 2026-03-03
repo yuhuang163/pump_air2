@@ -40,6 +40,17 @@
       "x_offset": 0,
       "y_offset": 0,
       "note": "动画资源ID范围: 700-819，共120帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 700)。资源ID 700→s_00000, 701→s_00001...819→s_00119"
+    },
+    {
+      "start_resource_id": "RESOURCE_ID_PUMP_LEVEL_START",
+      "end_resource_id": "RESOURCE_ID_PUMP_LEVEL_END",
+      "description": "泵奶档位图片",
+      "file_template": "animation/pump_level/baj/BG_{file_index:05d}_360x360_a4_q99_422.baj",
+      "start_file_index": 0,
+      "id_to_file_offset": -900,
+      "x_offset": 0,
+      "y_offset": 0,
+      "note": "泵奶档位图片资源ID范围: 900-914，共15帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 900)。资源ID 900→BG_00000, 901→BG_00001...914→BG_00114"
     }
   ],
   "resources": [
