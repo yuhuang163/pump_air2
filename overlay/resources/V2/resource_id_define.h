@@ -62,6 +62,7 @@ typedef enum {
     RESOURCE_ID_PUMP_FINISH_ICON,               /// 泵奶完成图标
     RESOURCE_ID_PUMP_PAUSE_PROMPT_ICON,         /// 泵奶暂停提示图标
     RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON,     /// 泵奶档位背景图标
+    RESOURCE_ID_PUMP_LEVEL_ADD_LABEL_ICON,     /// 泵奶档位文本加号图标
 
     RESOURCE_ID_GUIDE_QR_ICON = 250,
     RESOURCE_ID_GUIDE_LRM_ICON,
@@ -91,6 +92,9 @@ typedef enum {
 
     RESOURCE_ID_HOME_DEFAULT_ANIMATION_START = 700,   /// 首页默认动画-开始
     RESOURCE_ID_HOME_DEFAULT_ANIMATION_END = 819,     /// 首页默认动画-结束
+
+    RESOURCE_ID_PUMP_LEVEL_START = 900,   /// 泵奶档位图片-开始
+    RESOURCE_ID_PUMP_LEVEL_END = 914,     /// 泵奶档位图片-结束
 
     RESOURCE_ID_TYPE_MAX
 } resource_id_type_e;

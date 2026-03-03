@@ -118,7 +118,7 @@ static int charge_adapter_object_update(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(adapter_info->charge_adapter_icon_info.data);
     lv_fs_path_ex_t charge_adapter_icon_img_path;
     lv_fs_make_path_from_buffer(&charge_adapter_icon_img_path, LV_FS_MEMFS_LETTER,
-        adapter_info->charge_adapter_icon_info.data, adapter_info->charge_adapter_icon_info.size, "baj");
+        adapter_info->charge_adapter_icon_info.data, adapter_info->charge_adapter_icon_info.size, "png");
     lv_image_set_src(adapter_info->charge_adapter_icon, charge_adapter_icon_img_path.path);
     lv_obj_align(adapter_info->charge_adapter_icon, LV_ALIGN_TOP_LEFT, 106, 46 + 2);
 
