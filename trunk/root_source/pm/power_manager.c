@@ -653,21 +653,31 @@ static int system_power_control(bool state)
     } 
     storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_INT(st);
-    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
-    EXCEPTION_CHECK_INT(pbus);
-    rt_device_node_t *power_dev = pbus->find_device(ID_DEVICE_POWER);
-    EXCEPTION_CHECK_INT(power_dev);
+    if (thiz->priv.is_system_power_on) {
+        thiz->priv.is_system_power_on = false;
+        window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+        EXCEPTION_CHECK_INT(wm);
+        multi_func_msg_data_t msg = {0};
+        msg.union_body.extra.window_id = ID_WINDOW_SYSTEM;
+        msg.union_body.extra.arg1 = ID_SYSTEM_WINDOW_POWER_OFF;
+        wm->dispatch_new_window_args(wm, &msg);
 #if IS_SUPPORT_POWER_OFF_FORCE_SAVE
-    if (st->hook && st->hook->on_power_off_force_save_route) {
-        st->hook->on_power_off_force_save_route(st);
-        msleep(100); /// 等待100ms，确保数据写入完成
-    }
+        if (st->hook && st->hook->on_power_off_force_save_route) {
+            st->hook->on_power_off_force_save_route(st);
+            msleep(100); /// 等待100ms，确保数据写入完成
+        }
 #endif
-    thiz->priv.is_system_power_on = false;
-    LOG_PM("system_power_off");
-    st->flash_protect(true); /// 禁止flash读写操作.
-    int args[] = {0};
-    power_dev->ioctl(power_dev, OP_CODE_POWER_CONTROL, (void *)args);
+        st->flash_protect(true); /// 禁止flash读写操作.
+    } else {
+        LOG_PM("system_power_off");
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        EXCEPTION_CHECK_INT(pbus);
+        rt_device_node_t *power_dev = pbus->find_device(ID_DEVICE_POWER);
+        EXCEPTION_CHECK_INT(power_dev);
+        st->flash_protect(true); /// 禁止flash读写操作.
+        int args[] = {0};
+        power_dev->ioctl(power_dev, OP_CODE_POWER_CONTROL, (void *)args);
+    }
     return 0;
 }
 

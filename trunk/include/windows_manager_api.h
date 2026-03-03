@@ -39,7 +39,7 @@ typedef enum {
     ID_WINDOW_SETTINGS,            /// 系统设置
     ID_WINDOW_AIRPLANE_MODE,       /// 飞行模式
     ID_WINDOW_PRODUCT_TEST_MODE,   /// 测试模式
-    ID_WINDOW_FACTORY_RESET,       /// 工厂重置
+    ID_WINDOW_SYSTEM,              /// 系统界面
     ID_WINDOW_MAX
 } window_id_e;
 

@@ -39,6 +39,13 @@ typedef enum {
     ID_POPUP_WINDOW_MAX,
 } popup_window_id_e;
 
+/// 系统窗口ID枚举.
+typedef enum {
+    ID_SYSTEM_WINDOW_POWER_OFF,
+    ID_SYSTEM_WINDOW_FACTORY_RESET,
+    ID_SYSTEM_WINDOW_ID_MAX,
+} system_window_id_e;
+
 /// 窗口屏幕进入参数描述,记录进入新窗口屏幕需要的参数.
 typedef struct {
     uint8_t window_id;   /// 窗口ID.
