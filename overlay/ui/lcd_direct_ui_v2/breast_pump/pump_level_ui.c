@@ -18,6 +18,8 @@
 #define IS_SUPPORT_PUMP_LEVEL_COMP_BG                   (0)
 
 //颜色定义
+#define PUMP_LEVEL_CONTROL_TYPE_LABEL_COLOR                   0xB25962
+#define PUMP_LEVEL_ROOT_BG_COLOR                              0xFFE0E5
 #define PUMP_LEVEL_TITLE_TEXT_COLOR                           0x533129
 #define PUMP_LEVEL_CONTROL_TYPE_TEXT_COLOR                     0xB25962
 #define PUMP_LEVEL_TEXT_LEVEL_LABLE_COLOR                      0x533129
@@ -91,7 +93,8 @@ static void pump_level_root_init(void)
     if (level_info->root == NULL || !lv_obj_is_valid(level_info->root)) {
         level_info->root = lv_obj_create(lv_screen_active());
         lv_obj_set_size(level_info->root, LV_PCT(100), LV_PCT(100));
-        lv_obj_set_style_bg_color(level_info->root, lv_color_white(), 0);
+        //设置前景色为浅粉，防止闪烁
+        lv_obj_set_style_bg_color(level_info->root, lv_color_hex(PUMP_LEVEL_ROOT_BG_COLOR), 0);
         lv_obj_set_style_bg_opa(level_info->root, LV_OPA_COVER, 0);
         lv_obj_set_style_border_width(level_info->root, 0, 0);
         lv_obj_set_style_pad_all(level_info->root, 0, 0);
@@ -152,14 +155,15 @@ static void pump_level_root_bg_update(ui_manager_context_t *thiz)
             level_info->background_snapshot = NULL;
         }
 #endif
-        
+        //先隐藏背景图片
+        lv_obj_add_flag(level_info->background, LV_OBJ_FLAG_HIDDEN);
         common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON, &level_info->background_info);
         EXCEPTION_CHECK_VOID(level_info->background_info.data);
         
         lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, 
             level_info->background_info.data, level_info->background_info.size, "png");
         lv_image_set_src(level_info->background, (const void *)&bg_img_path);
-        lv_obj_align(level_info->background, LV_ALIGN_CENTER, 4, 4);
+        lv_obj_align(level_info->background, LV_ALIGN_CENTER, 0, 0);
         
 #if LV_USE_SNAPSHOT
         lv_refr_now(NULL);
@@ -218,9 +222,17 @@ static void pump_level_arc_progress_update(ui_manager_context_t *thiz, uint8_t l
     if (level_info->last_display_level == display_level && !level_info->force_update) {
         return;
     }
-    
     // 0级时隐藏图片
     if (display_level == 0) {
+        //前景色恢复为白色，防止闪烁
+        if (level_info->root != NULL && lv_obj_is_valid(level_info->root)) {
+            lv_obj_set_style_bg_color(level_info->root, lv_color_hex(PUMP_LEVEL_ROOT_BG_COLOR), 0);
+            lv_obj_set_style_bg_opa(level_info->root, LV_OPA_COVER, 0);
+        }
+        //打开背景图片，防止闪烁
+        if (level_info->background != NULL && lv_obj_is_valid(level_info->background)) {
+            lv_obj_clear_flag(level_info->background, LV_OBJ_FLAG_HIDDEN);
+        }
         if (level_info->level_image != NULL && lv_obj_is_valid(level_info->level_image)) {
             lv_obj_add_flag(level_info->level_image, LV_OBJ_FLAG_HIDDEN);
         }
@@ -243,7 +255,17 @@ static void pump_level_arc_progress_update(ui_manager_context_t *thiz, uint8_t l
     // 初始化图片资源（参照pump_home_animation_update）
     common_ui_img_resource_init(thiz, resource_id, &level_info->level_image_info);
     EXCEPTION_CHECK_VOID(level_info->level_image_info.data);
-    
+
+    //前景色恢复为白色，防止闪烁
+    if (level_info->root != NULL && lv_obj_is_valid(level_info->root)) {
+        lv_obj_set_style_bg_color(level_info->root, lv_color_hex(PUMP_LEVEL_ROOT_BG_COLOR), 0);
+        lv_obj_set_style_bg_opa(level_info->root, LV_OPA_COVER, 0);
+    }
+    //打开背景图片，防止闪烁
+    if (level_info->background != NULL && lv_obj_is_valid(level_info->background)) {
+        lv_obj_clear_flag(level_info->background, LV_OBJ_FLAG_HIDDEN);
+    }
+   
     // 设置图片路径并显示
     lv_fs_path_ex_t level_img_path;
     lv_fs_make_path_from_buffer(&level_img_path, LV_FS_MEMFS_LETTER, 
@@ -309,8 +331,8 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
         lv_obj_align(level_info->control_type_lable1, LV_ALIGN_TOP_LEFT, 
             PUMP_LEVEL_CONTROL_TYPE_LABLE1_X_B, PUMP_LEVEL_CONTROL_TYPE_LABLE1_Y_B);
         lv_obj_clear_flag(level_info->control_type_lable1, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_bg_color(level_info->control_type_lable1, lv_color_hex(0xFFE0E5), 0);
-        lv_obj_set_style_bg_opa(level_info->control_type_lable1, LV_OPA_COVER, 0);
+        lv_obj_set_style_bg_color(level_info->control_type_lable1, lv_color_hex(PUMP_LEVEL_CONTROL_TYPE_LABEL_COLOR), 0);
+        lv_obj_set_style_bg_opa(level_info->control_type_lable1, LV_OPA_20, 0);//透明20%
         lv_obj_set_style_radius(level_info->control_type_lable1, capsule_radius, 0);
         lv_obj_set_style_border_opa(level_info->control_type_lable1, LV_OPA_TRANSP, 0);
         lv_obj_clear_flag(level_info->control_type_lable1, LV_OBJ_FLAG_HIDDEN);
@@ -340,8 +362,8 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
         lv_obj_align(level_info->control_type_lable2, LV_ALIGN_TOP_LEFT, 
             PUMP_LEVEL_CONTROL_TYPE_LABLE2_X_B, PUMP_LEVEL_CONTROL_TYPE_LABLE2_Y_B);
         lv_obj_clear_flag(level_info->control_type_lable2, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_bg_color(level_info->control_type_lable2, lv_color_hex(0xFFE0E5), 0);
-        lv_obj_set_style_bg_opa(level_info->control_type_lable2, LV_OPA_COVER, 0);
+        lv_obj_set_style_bg_color(level_info->control_type_lable2, lv_color_hex(PUMP_LEVEL_CONTROL_TYPE_LABEL_COLOR), 0);
+        lv_obj_set_style_bg_opa(level_info->control_type_lable2, LV_OPA_20, 0);//透明20%
         lv_obj_set_style_radius(level_info->control_type_lable2, capsule_radius, 0);
         lv_obj_set_style_border_opa(level_info->control_type_lable2, LV_OPA_TRANSP, 0);
         lv_obj_clear_flag(level_info->control_type_lable2, LV_OBJ_FLAG_HIDDEN);
@@ -379,8 +401,8 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
         
         lv_obj_clear_flag(level_info->control_type_lable1, LV_OBJ_FLAG_SCROLLABLE);   /// 不要滚动条
         // 设置浅粉色背景 (RGB: 255, 224, 229 精准匹配浅粉)
-        lv_obj_set_style_bg_color(level_info->control_type_lable1, lv_color_hex(0xFFE0E5), 0);
-        lv_obj_set_style_bg_opa(level_info->control_type_lable1, LV_OPA_COVER, 0);  // 完全不透明
+        lv_obj_set_style_bg_color(level_info->control_type_lable1, lv_color_hex(PUMP_LEVEL_CONTROL_TYPE_LABEL_COLOR), 0);
+        lv_obj_set_style_bg_opa(level_info->control_type_lable1, LV_OPA_20, 0);//透明20%
         // 设置圆角半径为高度的一半，形成胶囊/椭圆效果
         lv_obj_set_style_radius(level_info->control_type_lable1, capsule_radius, 0);
         lv_obj_set_style_border_opa(level_info->control_type_lable1, LV_OPA_TRANSP, 0);  // 无边框
@@ -511,6 +533,8 @@ void ui_display_pump_level_prepare(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(level_info);
         // 初始化所有指针为NULL
         memset(level_info, 0, sizeof(level_display_info_t));
+        level_info->last_display_level = 0xff; //初始化为无效值
+        level_info->level_change = 0; //初始化为0
     }
     
     thiz->priv.fps_count = 0;
@@ -579,8 +603,8 @@ int ui_display_pump_level_process(ui_manager_context_t *thiz)
     
     // 更新UI
     pump_level_root_bg_update(thiz);
+    pump_level_arc_progress_update(thiz, display_level);  // 使用实际计算的等级
     pump_level_title_text_update(thiz);
-    //pump_level_arc_progress_update(thiz, display_level);  // 使用实际计算的等级
     pump_level_control_type_lable_update(thiz);
     pump_level_text_level_lable_update(thiz);
     level_info->force_update = false;

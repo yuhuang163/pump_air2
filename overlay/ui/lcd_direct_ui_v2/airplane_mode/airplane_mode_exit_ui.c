@@ -203,8 +203,6 @@ void ui_display_airplane_mode_exit_init(ui_manager_context_t *thiz, lv_obj_t *ro
     force_update = true;
     countdown_value = 5;
     start_time = get_timestamp(); // 初始化倒计时起始时间
-    thiz->priv.fps_count = 0;
-    thiz->priv.fps_start_time = get_timestamp();
 }
 
 void ui_display_airplane_mode_exit_deinit(ui_manager_context_t *thiz, lv_obj_t *root)

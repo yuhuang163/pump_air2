@@ -57,8 +57,8 @@ static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
 static airplane_mode_display_info_t *airplane_mode_info;
 
 const static airplane_mode_text_info_t airplane_mode_text_infos[AIRPLANE_MODE_TEXT_COUNT] = {
-    { "Device locked", (110), (130), &lv_font_oppo_sans_20_medium ,0},
-    { "Press and hold Start/Pause + Mode\n       for 5 seconds to unlock.", (48), (158), &lv_font_oppo_sans_16_medium ,0},
+    { "Device locked", (116), (118), &lv_font_oppo_sans_20_medium ,0},
+    { "Press and hold Start/Pause + Mode\nfor 5 seconds to unlock.", (48), (146), &lv_font_oppo_sans_16_medium ,0},
 };
 
 airplane_mode_icon_info_t airplane_mode_icon_infos[AIRPLANE_MODE_ICON_COUNT] = {
@@ -153,7 +153,7 @@ static void airplane_mode_texts_update(ui_manager_context_t *thiz, uint8_t index
         lv_color_hex(AIRPLANE_MODE_CONTENT_COLOR), 0);
     lv_obj_set_style_text_font(airplane_mode_info->texts[index], airplane_mode_text_infos[index].font, 0);  /// 设置字体
     lv_obj_set_style_text_line_space(airplane_mode_info->texts[index], airplane_mode_text_infos[index].line_space, 0);  /// 设置行间距（像素）
-    // lv_obj_set_style_text_align(airplane_mode_info->texts[index], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
+    lv_obj_set_style_text_align(airplane_mode_info->texts[index], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
     lv_obj_align(airplane_mode_info->texts[index], LV_ALIGN_TOP_LEFT,
         airplane_mode_text_infos[index].text_x, airplane_mode_text_infos[index].text_y);
 }
@@ -209,9 +209,9 @@ int ui_display_airplane_mode_process(ui_manager_context_t *thiz)
     airplane_mode_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
+        LOG_UI("===> airplane mode fps=%d", thiz->priv.fps_count);
         thiz->priv.fps_start_time = get_timestamp();
         thiz->priv.fps_count = 0;
-        LOG_UI("===> airplane mode fps=%d", thiz->priv.fps_count);
     }
     return thiz->priv.fps_count;
 }
