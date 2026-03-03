@@ -70,7 +70,6 @@ static void airplane_mode_exit_cb(hdr_post_args_t *args)
 static void on_airplane_mode_window_receive(broadcast_mask_id_t id, void *context,
                                  int32_t pm_state, int32_t wakeup_reason, broadcast_priv_data_t *pdata)
 {
-
     ui_proc_airplane_mode_t *proc = (ui_proc_airplane_mode_t *)context;
     EXCEPTION_CHECK_VOID(proc);
     WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_AIRPLANE_MODE);
@@ -147,7 +146,6 @@ static int exit_event_cb(window_lift_cycle_e new_state, const struct window_cont
             if (proc->key) {
                 proc->key->remove_keyevent_handler(on_airplane_mode_keyevent_hdr);
             }
-            airplane_mode_led_policy(proc, 0);
             break;
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);

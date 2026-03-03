@@ -179,7 +179,7 @@ void ui_display_mode_prompt_deinit(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     common_ui_img_resource_deinit(thiz, &mode_prompt_icon_info);
-    //LVGL_OBJ_DELETE(sub_root);
+    LVGL_OBJ_DELETE(sub_root);
     sub_root = NULL;
 #if IS_SUPPORT_ROOT_MODE_PROMPT_BG
     backgroud = NULL;

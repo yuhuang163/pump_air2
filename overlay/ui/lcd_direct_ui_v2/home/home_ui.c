@@ -90,7 +90,6 @@ static void home_root_init(void)
     if (home_info->root == NULL || !lv_obj_is_valid(home_info->root)) {
         home_info->root = lv_obj_create(lv_screen_active());
     }
-    home_info->root = lv_obj_create(lv_screen_active());
     lv_obj_set_size(home_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
     lv_obj_set_style_bg_color(home_info->root, lv_color_white(), 0);     /// 设置背景颜色为黑色
     lv_obj_set_style_bg_opa(home_info->root, LV_OPA_COVER, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
@@ -183,6 +182,8 @@ static void home_root_text_update(ui_manager_context_t *thiz)
 
 static void home_root_animation_update(ui_manager_context_t *thiz)
 {  
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(home_info);
     if (home_info->animation == NULL || !lv_obj_is_valid(home_info->animation)) {
         home_info->animation = lv_image_create(home_info->root);
         EXCEPTION_CHECK_VOID(home_info->animation);
@@ -194,6 +195,10 @@ static void home_root_animation_update(ui_manager_context_t *thiz)
     }
 
     lv_obj_align(home_info->animation, LV_ALIGN_TOP_LEFT, 86, 162); 
+    if (home_info->animation_info.data != NULL) {
+        common_ui_img_resource_deinit(thiz, &home_info->animation_info);
+        memset(&home_info->animation_info, 0, sizeof(home_info->animation_info));
+    }
     common_ui_img_resource_init(thiz, 
         RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + home_info->animation_index, &home_info->animation_info);
     EXCEPTION_CHECK_VOID(home_info->animation_info.data);

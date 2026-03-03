@@ -180,6 +180,7 @@ void ui_display_pump_status_prompt_init(ui_manager_context_t *thiz)
 void ui_display_pump_status_prompt_deinit(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(pump_status_prompt_info);
     for (uint8_t i = 0; i < PUMP_STATUS_PROMPT_ICON_MAX_COUNT; i++) {
         common_ui_img_resource_deinit(thiz, &pump_status_prompt_info->pump_status_prompt_icon_info[i]);
     }
@@ -189,6 +190,7 @@ void ui_display_pump_status_prompt_deinit(ui_manager_context_t *thiz)
     for (uint8_t i = 0; i < PUMP_STATUS_PROMPT_TEXT_COUNT; i++) {
         pump_status_prompt_info->pump_status_prompt_text[i] = NULL;
     }
+    LVGL_OBJ_DELETE(pump_status_prompt_info->sub_root);
     pump_status_prompt_info->sub_root = NULL;
 #if IS_SUPPORT_PUMP_STATUS_PROMPT_COMP_BG
     pump_status_prompt_info->background = NULL;
@@ -197,7 +199,6 @@ void ui_display_pump_status_prompt_deinit(ui_manager_context_t *thiz)
     pump_status_prompt_info->current_status = 0;
     u_free(pump_status_prompt_info);
     pump_status_prompt_info = NULL;
-    //LVGL_OBJ_DELETE(sub_root);
 }
 
 void ui_display_pump_status_prompt_process(ui_manager_context_t *thiz, lv_obj_t *root)

@@ -77,6 +77,7 @@ void common_ui_bg_update(ui_manager_context_t *thiz, lv_obj_t *parent)
         lv_image_set_src(backgroud, background_snapshot);
     }
 #endif
+    s_force_update = false;
     // lv_obj_move_background(guide_info->backgroud);
     // lv_obj_move_to_index(guide_info->backgroud, 0);
 }
@@ -84,13 +85,15 @@ void common_ui_bg_update(ui_manager_context_t *thiz, lv_obj_t *parent)
 void common_ui_bg_deinit(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(backgroud);
     if (background_snapshot != NULL) {
         lv_draw_buf_destroy(background_snapshot);
         background_snapshot = NULL;
     }
-    common_ui_img_resource_deinit(thiz, &background_info);
+    if (backgroud != NULL) {
+        common_ui_img_resource_deinit(thiz, &background_info);
+    }
     backgroud = NULL;
+    s_force_update = false;
 }
 
 
