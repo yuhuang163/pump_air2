@@ -23,12 +23,12 @@
 #define IDLE_TEXT_AREA_ICON_X                       (44)
 #define IDLE_TEXT_AREA_ICON_Y                       (82)
 #define IDLE_BUTTON_ICON_X                          (80)
-#define IDLE_BUTTON_ICON_Y                          (112+10)
+#define IDLE_BUTTON_ICON_Y                          (112+7)
 #define MOM_PICTURE_ICON_X                          (56)
 #define MOM_PICTURE_ICON_Y                          (160)
 
 #define IDLE_TEXT_LABEL_TEXT_X                      (80 + 28)
-#define IDLE_TEXT_LABEL_TEXT_Y                      (118)
+#define IDLE_TEXT_LABEL_TEXT_Y                      (118 - 4)
 #define IDLE_TEXT_COLOR                             (0xB25962)
 
 
@@ -178,6 +178,7 @@ static void home_root_text_update(ui_manager_context_t *thiz)
     lv_obj_set_style_text_color(home_info->text, lv_color_hex(IDLE_TEXT_COLOR), 0);
     lv_obj_set_style_text_font(home_info->text, &lv_font_oppo_sans_14_medium, 0);  /// 设置字体
     lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_x, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_y); /// 设置文字位置
+    lv_obj_set_style_text_line_space(home_info->text, 3, 0); /// 设置行间距
 }
 
 static void home_root_animation_update(ui_manager_context_t *thiz)
