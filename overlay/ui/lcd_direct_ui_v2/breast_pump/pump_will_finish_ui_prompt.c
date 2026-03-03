@@ -189,7 +189,7 @@ void pump_will_finish_ui_prompt_deinit(ui_manager_context_t *thiz)
         return;
     }
     // common_ui_img_resource_deinit(thiz, &finish_info->icon_info);
-    //LVGL_OBJ_DELETE(will_finish_tip_info->sub_root); 
+    LVGL_OBJ_DELETE(will_finish_tip_info->sub_root);
     will_finish_tip_info->countdown_arc = NULL;
     will_finish_tip_info->sub_root_text = NULL;
     will_finish_tip_info->sub_root = NULL;

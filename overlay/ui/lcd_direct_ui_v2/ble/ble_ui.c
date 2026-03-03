@@ -47,6 +47,8 @@ void ble_ui_init(ui_manager_context_t *thiz)
 
 int ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, ble_manager_context_t *ble, uint16_t x, uint16_t y)
 {
+    EXCEPTION_CHECK_INT(thiz);
+    EXCEPTION_CHECK_INT(root);
     EXCEPTION_CHECK_INT(ble);
     uint8_t is_connected = ble->ble_is_connected();
     if (s_is_connected == is_connected && s_force_update == false) {
@@ -69,6 +71,8 @@ int ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, ble_manager_contex
         ble_line_icon = lv_line_create(root);
         EXCEPTION_CHECK_INT(ble_line_icon);
     }
+    s_is_connected = is_connected;
+    s_force_update = false;
     return 0;
 }
 
@@ -77,5 +81,7 @@ void ble_ui_deinit(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(thiz);
     ble_img = NULL;
     ble_line_icon = NULL;
+    s_is_connected = 0;
+    s_force_update = false;
     common_ui_img_resource_deinit(thiz, &ble_info);
 }

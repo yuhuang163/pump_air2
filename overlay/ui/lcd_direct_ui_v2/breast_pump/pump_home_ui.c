@@ -631,6 +631,8 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
 static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t start_resource_id, uint16_t animation_size,
     uint16_t x_offset, uint16_t y_offset)
 {
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(pump_info);
     if (pump_info->animation == NULL || !lv_obj_is_valid(pump_info->animation)) {
         pump_info->animation = lv_image_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->animation);
@@ -641,6 +643,10 @@ static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t star
     }
 
     lv_obj_align(pump_info->animation, LV_ALIGN_TOP_LEFT, x_offset, y_offset); 
+    if (pump_info->animation_info.data != NULL) {
+        common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
+        memset(&pump_info->animation_info, 0, sizeof(pump_info->animation_info));
+    }
     common_ui_img_resource_init(thiz, 
         start_resource_id + pump_info->animation_index, &pump_info->animation_info);
     EXCEPTION_CHECK_VOID(pump_info->animation_info.data);
@@ -764,9 +770,9 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     pump_home_left_level_update(thiz, setting.level[0]);
     pump_home_right_level_update(thiz, setting.level[1]);
     pump_home_speed_label_update(thiz, setting.speed);
-    ui_display_mode_prompt_process(thiz, pump_info->root);
-    pump_will_finish_ui_prompt_process(thiz, pump_info->root);
-    ui_display_pump_status_prompt_process(thiz, pump_info->root);
+    // ui_display_mode_prompt_process(thiz, pump_info->root);
+    // pump_will_finish_ui_prompt_process(thiz, pump_info->root);
+    // ui_display_pump_status_prompt_process(thiz, pump_info->root);
     pump_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
