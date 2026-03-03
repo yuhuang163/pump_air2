@@ -263,7 +263,7 @@
     {
       "resource_id": "RESOURCE_ID_NEW_MODE_UNCONFIRMED_ICON",
       "description": "新模式未确认图标",
-      "file": "baj/icon_new_mode_unconfirmed_20x20_a4_q99_422.baj",
+      "file": "baj/icon_new_mode_unconfirmed_8x8_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
