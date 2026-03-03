@@ -39,10 +39,6 @@
 #define BF_CIRCLE_BG_EXT                     ("baj")
 #define BF_MODE_COMPONENT_EXT                ("baj")
 
-/*
-* LOCAL VARIABLE DEFINITIONS
-*****************************************************************************************
-*/
 typedef enum {
     BF_SLOT_LEFT = 0,
     BF_SLOT_CENTER,
@@ -58,11 +54,17 @@ typedef struct {
     lv_obj_t *mode_type_text;
     lv_obj_t *circle_obj[BF_CIRCLE_SLOT_COUNT]; /// 圆圈对象
     lv_obj_t *dots[BF_MODE_COUNT]; /// 模式序号点
+    lv_obj_t *last_usage_icon[BF_CIRCLE_SLOT_COUNT]; /// 模式图标对象
+    lv_obj_t *unconfirmed_icon[BF_CIRCLE_SLOT_COUNT]; /// 新模式未确认图标对象
     lv_obj_t *mode_component_img[BF_CIRCLE_SLOT_COUNT]; /// 模式组件图片
     lv_obj_t *mode_title_label[BF_CIRCLE_SLOT_COUNT]; /// 模式标题标签
     lv_obj_t *mode_desc_label[BF_CIRCLE_SLOT_COUNT]; /// 模式描述标签
     res_img_info_t circle_bg_info;
     lv_fs_path_ex_t circle_bg_path;
+    res_img_info_t last_usage_icon_info;
+    lv_fs_path_ex_t last_usage_icon_path;
+    res_img_info_t unconfirmed_icon_info;
+    lv_fs_path_ex_t unconfirmed_icon_path;
     res_img_info_t mode_component_info[BF_CIRCLE_SLOT_COUNT];
     lv_fs_path_ex_t mode_component_path[BF_CIRCLE_SLOT_COUNT];
     uint16_t slot_res_id[BF_CIRCLE_SLOT_COUNT];
@@ -72,6 +74,11 @@ typedef struct {
     uint8_t mode_obj_init_done;
 } bf_mode_display_info_t;
 
+
+/*
+* LOCAL VARIABLE DEFINITIONS
+*****************************************************************************************
+*/
 static bf_mode_display_info_t *bf_mode_info;
 
 static const uint16_t bf_mode_component_ids[BF_MODE_COUNT] = {
@@ -103,7 +110,7 @@ static const char *bf_mode_desc[BF_MODE_COUNT] = {
 
 #if IS_SUPPORT_MODE_COMP_BG
 static PSRAM_DATA_LOC uint8_t bf_mode_bg_data[] = {
-    #include "comparison_png2txt/Custom1_360x360.txt"
+    #include "comparison_png2txt/Custom3_360x360.txt"
 };
 #endif
 
@@ -111,14 +118,6 @@ static PSRAM_DATA_LOC uint8_t bf_mode_bg_data[] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static uint8_t map_pump_mode_to_bf_idx(uint8_t mode)
-{
-    if (mode < BREAST_PUMP_CUSTOM_MODE || mode > BREAST_PUMP_LACTATION_START_MODE) {
-        return 0;
-    }
-    return (uint8_t)(mode - BREAST_PUMP_CUSTOM_MODE);
-}
-
 static int32_t slot_target_x(bf_circle_slot_e slot)
 {
     int32_t center_x = (BF_VIEW_W - BF_CIRCLE_W) / 2;
@@ -143,14 +142,17 @@ static void apply_slot_children_opa(uint8_t slot)
         return;
     }
     lv_opa_t opa = (slot == BF_SLOT_CENTER) ? LV_OPA_COVER : LV_OPA_20;
-    lv_obj_set_style_image_opa(circle, opa, 0);
-    // lv_obj_set_style_opa(circle, opa, 0);
-    lv_obj_invalidate(circle); /// 刷新
+    #if IS_SUPPORT_MODE_COMP_BG
+        lv_obj_set_style_image_opa(circle, LV_OPA_TRANSP, 0);
+    #else
+        lv_obj_set_style_image_opa(circle, opa, 0);
+    #endif
+    // lv_obj_invalidate(circle); /// 刷新
 
     if (bf_mode_info->mode_component_img[slot] != NULL && lv_obj_is_valid(bf_mode_info->mode_component_img[slot])) {
         opa =(slot == BF_SLOT_CENTER) ? LV_OPA_COVER : LV_OPA_80;
         lv_obj_set_style_image_opa(bf_mode_info->mode_component_img[slot], opa, 0);;
-        lv_obj_invalidate(bf_mode_info->mode_component_img[slot]);
+        // lv_obj_invalidate(bf_mode_info->mode_component_img[slot]);
     }
 
     if (bf_mode_info->mode_title_label[slot] != NULL && lv_obj_is_valid(bf_mode_info->mode_title_label[slot])) {
@@ -161,7 +163,7 @@ static void apply_slot_children_opa(uint8_t slot)
     if (bf_mode_info->mode_desc_label[slot] != NULL && lv_obj_is_valid(bf_mode_info->mode_desc_label[slot])) {
         opa =(slot == BF_SLOT_CENTER) ? 240 : 210;
         lv_obj_set_style_text_opa(bf_mode_info->mode_desc_label[slot], opa, 0);
-        lv_obj_invalidate(bf_mode_info->mode_desc_label[slot]);
+        // lv_obj_invalidate(bf_mode_info->mode_desc_label[slot]);
     }
 }
 
@@ -360,6 +362,7 @@ static void circle_carousel_set_mode(ui_manager_context_t *thiz, uint8_t idx, bo
 
 static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_circle_slot_e slot)
 {
+    /// 模式背景图标资源
     if (bf_mode_info->circle_bg_info.data == NULL) {
         common_ui_img_resource_init(thiz, RESOURCE_ID_MODE_BG_ICON, &bf_mode_info->circle_bg_info);
         EXCEPTION_CHECK_VOID(bf_mode_info->circle_bg_info.data);
@@ -369,20 +372,59 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
                                     bf_mode_info->circle_bg_info.size,
                                     BF_CIRCLE_BG_EXT);
     }
-
+    /// 模式背景图标对象
     if (bf_mode_info->circle_obj[slot] == NULL || !lv_obj_is_valid(bf_mode_info->circle_obj[slot])) {
         bf_mode_info->circle_obj[slot] = lv_image_create(parent);
         EXCEPTION_CHECK_VOID(bf_mode_info->circle_obj[slot]);
         lv_image_set_src(bf_mode_info->circle_obj[slot], (const void *)&bf_mode_info->circle_bg_path);
         lv_obj_set_pos(bf_mode_info->circle_obj[slot], (lv_coord_t)slot_target_x(slot), (lv_coord_t)slot_target_y(slot));
     }
+    /// 上一次使用模式图标资源  
+    if (bf_mode_info->last_usage_icon_info.data == NULL) {
+        common_ui_img_resource_init(thiz, RESOURCE_ID_LAST_USED_MODE_ICON, &bf_mode_info->last_usage_icon_info);
+        EXCEPTION_CHECK_VOID(bf_mode_info->last_usage_icon_info.data);
+        lv_fs_make_path_from_buffer(&bf_mode_info->last_usage_icon_path,
+                                    LV_FS_MEMFS_LETTER,
+                                    bf_mode_info->last_usage_icon_info.data,
+                                    bf_mode_info->last_usage_icon_info.size,
+                                    "baj");
+    }
+    /// 上一次使用模式图标对象
+    if (bf_mode_info->last_usage_icon[slot] == NULL || !lv_obj_is_valid(bf_mode_info->last_usage_icon[slot])) {
+        bf_mode_info->last_usage_icon[slot] = lv_image_create(bf_mode_info->circle_obj[slot]);
+        EXCEPTION_CHECK_VOID(bf_mode_info->last_usage_icon[slot]);
+        lv_image_set_src(bf_mode_info->last_usage_icon[slot], (const void *)&bf_mode_info->last_usage_icon_path);
+        lv_obj_align(bf_mode_info->last_usage_icon[slot], LV_ALIGN_CENTER, 22, -72);
+        lv_obj_set_style_image_opa(bf_mode_info->last_usage_icon[slot], LV_OPA_COVER, 0);
+        lv_obj_add_flag(bf_mode_info->last_usage_icon[slot], LV_OBJ_FLAG_HIDDEN);
+    }
 
+    /// 新模式未确认图标资源
+    if (bf_mode_info->unconfirmed_icon_info.data == NULL) {
+        common_ui_img_resource_init(thiz, RESOURCE_ID_NEW_MODE_UNCONFIRMED_ICON, &bf_mode_info->unconfirmed_icon_info);
+        EXCEPTION_CHECK_VOID(bf_mode_info->unconfirmed_icon_info.data);
+        lv_fs_make_path_from_buffer(&bf_mode_info->unconfirmed_icon_path,
+                                    LV_FS_MEMFS_LETTER,
+                                    bf_mode_info->unconfirmed_icon_info.data,
+                                    bf_mode_info->unconfirmed_icon_info.size,
+                                    "baj");
+    }
+    /// 新模式未确认图标
+    if (bf_mode_info->unconfirmed_icon[slot] == NULL || !lv_obj_is_valid(bf_mode_info->unconfirmed_icon[slot])) {
+        bf_mode_info->unconfirmed_icon[slot] = lv_image_create(bf_mode_info->circle_obj[slot]);
+        EXCEPTION_CHECK_VOID(bf_mode_info->unconfirmed_icon[slot]);
+        lv_image_set_src(bf_mode_info->unconfirmed_icon[slot], (const void *)&bf_mode_info->unconfirmed_icon_path);
+        lv_obj_align(bf_mode_info->unconfirmed_icon[slot], LV_ALIGN_CENTER, 16, -76);
+        lv_obj_set_style_image_opa(bf_mode_info->unconfirmed_icon[slot], LV_OPA_COVER, 0);
+        lv_obj_add_flag(bf_mode_info->unconfirmed_icon[slot], LV_OBJ_FLAG_HIDDEN);
+    }
+    /// 模式组件图片对象
     if (bf_mode_info->mode_component_img[slot] == NULL || !lv_obj_is_valid(bf_mode_info->mode_component_img[slot])) {
         bf_mode_info->mode_component_img[slot] = lv_image_create(bf_mode_info->circle_obj[slot]);
         EXCEPTION_CHECK_VOID(bf_mode_info->mode_component_img[slot]);
         lv_obj_align(bf_mode_info->mode_component_img[slot], LV_ALIGN_CENTER, 0, -58);
     }
-
+    /// 模式标题标签
     if (bf_mode_info->mode_title_label[slot] == NULL || !lv_obj_is_valid(bf_mode_info->mode_title_label[slot])) {
         bf_mode_info->mode_title_label[slot] = lv_label_create(bf_mode_info->circle_obj[slot]);
         EXCEPTION_CHECK_VOID(bf_mode_info->mode_title_label[slot]);
@@ -391,7 +433,7 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
         lv_obj_set_style_text_align(bf_mode_info->mode_title_label[slot], LV_TEXT_ALIGN_CENTER, 0);  /// 居中对齐
         lv_obj_align(bf_mode_info->mode_title_label[slot], LV_ALIGN_CENTER, 0, -15);
     }
-
+    /// 模式描述标签
     if (bf_mode_info->mode_desc_label[slot] == NULL || !lv_obj_is_valid(bf_mode_info->mode_desc_label[slot])) {
         bf_mode_info->mode_desc_label[slot] = lv_label_create(bf_mode_info->circle_obj[slot]);
         EXCEPTION_CHECK_VOID(bf_mode_info->mode_desc_label[slot]);
@@ -440,7 +482,7 @@ static void dotbar_carousel_create(ui_manager_context_t *thiz, lv_obj_t *parent,
     update_dots(mode_idx);
 }
 
-static void breastfeeding_mode_root_init(ui_manager_context_t *thiz)
+static void bf_mode_root_init(ui_manager_context_t *thiz)
 {
     if (bf_mode_info->root == NULL || !lv_obj_is_valid(bf_mode_info->root)) {
         bf_mode_info->root = lv_obj_create(lv_screen_active());
@@ -459,7 +501,7 @@ static void breastfeeding_mode_root_init(ui_manager_context_t *thiz)
 }
 
 #if IS_SUPPORT_MODE_COMP_BG
-static void breastfeeding_mode_bg_update(ui_manager_context_t *thiz)
+static void bf_mode_bg_update(ui_manager_context_t *thiz)
 {
     static uint32_t start_time = 0;
     static uint8_t status = 0;
@@ -484,16 +526,18 @@ static void breastfeeding_mode_bg_update(ui_manager_context_t *thiz)
     }
 }
 #else
-static void breastfeeding_mode_bg_update(ui_manager_context_t *thiz)
+static void bf_mode_bg_update(ui_manager_context_t *thiz)
 {
     common_ui_bg_update(thiz, bf_mode_info->root);
 }
 #endif
 
-static void breastfeeding_mode_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
+static void bf_mode_ui_update(ui_manager_context_t *thiz, uint8_t mode_idx)
 {
-    EXCEPTION_CHECK_VOID(proc);
-    uint8_t target_idx = map_pump_mode_to_bf_idx(proc->ui_breastfeeding_mode_index);
+    if (PUMP_IS_BREASTFEEDING_MODE(mode_idx) == false) {
+        mode_idx = BREAST_PUMP_PP_MILK_TRACK_MODE;
+    }
+    uint8_t target_idx = mode_idx - BREAST_PUMP_CUSTOM_MODE;
     if (bf_mode_info->mode_obj_init_done == false) {
         circle_carousel_create(thiz, bf_mode_info->root, target_idx);
         dotbar_carousel_create(thiz, bf_mode_info->root, target_idx);
@@ -507,7 +551,7 @@ static void breastfeeding_mode_ui_update(ui_manager_context_t *thiz, ui_proc_pum
     }
 }
 
-static void breastfeeding_mode_text_update(ui_manager_context_t *thiz)
+static void bf_mode_text_update(ui_manager_context_t *thiz)
 {
     if (bf_mode_info->force_update == false) {
         return;
@@ -538,7 +582,7 @@ void ui_display_breastfeeding_mode_prepare(ui_manager_context_t *thiz)
     }
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
-    breastfeeding_mode_root_init(thiz);
+    bf_mode_root_init(thiz);
     common_ui_bg_init(thiz);
     bf_mode_info->force_update = true;
     bf_mode_info->mode_obj_init_done = false;
@@ -549,6 +593,8 @@ void ui_display_breastfeeding_mode_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(bf_mode_info);
     common_ui_img_resource_deinit(thiz, &bf_mode_info->circle_bg_info);
+    common_ui_img_resource_deinit(thiz, &bf_mode_info->last_usage_icon_info);
+    common_ui_img_resource_deinit(thiz, &bf_mode_info->unconfirmed_icon_info);
     for (uint8_t i = 0; i < BF_CIRCLE_SLOT_COUNT; i++) {
         common_ui_img_resource_deinit(thiz, &bf_mode_info->mode_component_info[i]);
     }
@@ -565,14 +611,15 @@ int ui_display_breastfeeding_mode_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(bf_mode_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
-    breastfeeding_mode_bg_update(thiz);
-    breastfeeding_mode_ui_update(thiz, proc);
-    breastfeeding_mode_text_update(thiz);
+    uint8_t mode_idx = proc->ui_breastfeeding_mode_index;
+    bf_mode_bg_update(thiz);
+    bf_mode_ui_update(thiz, mode_idx);
+    bf_mode_text_update(thiz);
     bf_mode_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> breastfeeding mode fps: %d", thiz->priv.fps_count);
+        LOG_UI("===> bf mode fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
     return 0;

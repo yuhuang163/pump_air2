@@ -51,7 +51,8 @@ typedef enum {
 #define PUMP_IS_COMMON_MODE(mode) (mode == BREAST_PUMP_LACTATION_MODE || mode == BREAST_PUMP_MIX_MODE ||\
      mode == BREAST_PUMP_STIMULATION_MODE)
  #define PUMP_IS_BREASTFEEDING_MODE(mode) (mode == BREAST_PUMP_CUSTOM_MODE || mode == BREAST_PUMP_PP_MILK_TRACK_MODE ||\
-     mode == BREAST_PUMP_MILK_BOOST_MODE || mode == BREAST_PUMP_LACTATION_START_MODE)
+     mode == BREAST_PUMP_MILK_BOOST_MODE || mode == BREAST_PUMP_LACTATION_START_MODE || mode == BREAST_PUMP_REGULAR_PUMPING_MODE ||\
+     mode == BREAST_PUMP_EMPTYING_BOOST_MODE)
 
 typedef struct {
     uint8_t breast_pump_state;
