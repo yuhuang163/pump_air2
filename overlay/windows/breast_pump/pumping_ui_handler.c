@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "root_log_define.h"
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_pump.h"
 
@@ -24,6 +25,26 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void pumping_work_ui_popup_ui_update(ui_manager_context_t *ui, uint8_t popup_ui_index)
+{
+    LOG_WM("===> popup %d ui display complete.", popup_ui_index);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    switch (popup_ui_index) {
+        case PUMP_POPUP_UI_MODE_PROMPT:
+            if (proc->pump->is_on_working()) {
+                proc->pump->set_breast_pump_mode(proc->ui_common_mode_index, true); /// 更改泵奶模块模式
+            }
+            break;
+        case PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP:
+            pump_complete_event_handler(proc);
+            break;
+        case PUMP_POPUP_UI_PUMP_PAUSE_PROMPT:
+            break;
+    }
+    proc->popup_ui_type = PUMP_POPUP_UI_NONE;
+}
+
 static void pumping_work_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -47,6 +68,9 @@ static void pumping_animation_progress_cb(void *user_data, int index, ui_ani_pro
             break;
         case ANI_TIMER_DRAW_AFTER:
             pumping_work_ui_after_policy(ui, index);
+            break;
+        case ANI_POPUP_DISPLAY_FINISH:
+            pumping_work_ui_popup_ui_update(ui, index);
             break;
         default:
             break;
@@ -117,12 +141,14 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
         }
         proc->pump->set_breast_pump_status(status == BREAST_PUMP_PAUSE ? \
             BREAST_PUMP_CONTINUE : BREAST_PUMP_START);
+        proc->popup_ui_type = PUMP_POPUP_UI_NONE;
         show_pump_home_ui(proc);
         LOG_UI("pump start ui create: %d", status);
     } else {
         proc->pump->set_breast_pump_status(BREAST_PUMP_PAUSE);
         show_pump_home_ui(proc);
         proc->led->set_led_level(PUMP_FREQ_SET_BL, 100);
+        proc->popup_ui_type = PUMP_POPUP_UI_PUMP_PAUSE_PROMPT;
         LOG_UI("pump stop ui create: %d", status);
     }
 }

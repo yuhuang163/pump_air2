@@ -40,6 +40,7 @@ static void pump_mode_display_completed_cb(hdr_post_args_t *args)
             msg.union_body.extra.window_id = ID_WINDOW_HOME;
             proc->wm->dispatch_new_window_args(proc->wm, &msg);
         } else {
+            proc->popup_ui_type = PUMP_POPUP_UI_MODE_PROMPT;
             show_pump_home_ui(proc);
         }
     }
@@ -55,9 +56,17 @@ static void pump_mode_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_display_pump_mode_process(ui);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_MODE_DISPLAY_TIMEOUT) {
-        LOG_UI("pump mode ui timeout: %d", proc->last_progress_ani_time);
-        POST_TASK_HANDLER_NO_DELAY(pump_mode_display_completed_cb, proc, PUMP_MODE_DISPLAY_TASK_NAME);
+    uint8_t do_work = proc->pump->is_on_working();
+    if (do_work == 0) {
+        if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_MODE_DISPLAY_TIMEOUT) {
+            LOG_UI("pump mode ui timeout: %d", proc->last_progress_ani_time);
+            POST_TASK_HANDLER_NO_DELAY(pump_mode_display_completed_cb, proc, PUMP_MODE_DISPLAY_TASK_NAME);
+        }
+    } else {
+        if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMPING_MODE_DISPLAY_TIMEOUT) {
+            LOG_UI("pumping mode ui timeout: %d", proc->last_progress_ani_time);
+            POST_TASK_HANDLER_NO_DELAY(pump_mode_display_completed_cb, proc, PUMP_MODE_DISPLAY_TASK_NAME);
+        }
     }
 }
 
@@ -129,18 +138,15 @@ void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led
             PUMP_BLINK_TIMES, LED_STATUS_ON);
     }
 
-    uint8_t mode = 0;
+    uint8_t mode = proc->pump->get_breast_pump_mode();
     int status = proc->pump->get_breast_pump_status();
-    if (PUMP_NO_FINISH(status)) {
-        mode = proc->pump->get_breast_pump_mode();
-        if (PUMP_IS_BREASTFEEDING_MODE(mode)) {
-            LOG_UI("pump is breastfeeding mode, ignore."); /// 追奶模式下不支持切换普通模式(产品需求)
-            return;
-        }
+    if (PUMP_NO_FINISH(status) && PUMP_IS_BREASTFEEDING_MODE(mode)) {
+        LOG_UI("pump is breastfeeding mode, ignore."); /// 追奶模式下不支持切换普通模式(产品需求)
+        return;
     }
 
     mode = proc->ui_common_mode_index;
-    if (is_increase == false) {
+    if (is_increase) {
         if (mode < BREAST_PUMP_MIX_MODE) {
             mode++;
         } else {
@@ -154,9 +160,6 @@ void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led
         }
     }
     proc->ui_common_mode_index = mode;
-    if (proc->pump->is_on_working()) {
-        proc->pump->set_breast_pump_mode(mode, true); /// 更改泵奶模块模式
-    }
     show_pump_mode_ui(proc);
     LOG_UI("switch %s mode: %d", proc->pump->get_breast_pump_mode_name(mode), mode);
 }
