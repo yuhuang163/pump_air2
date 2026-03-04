@@ -71,6 +71,7 @@ typedef struct pump_result_info {
     pump_setting_t setting[ROOT_BREAST_PUMP_STEP_MAX];
     uint8_t  report_flag;               /// 泵奶报告是否实时上传
     uint32_t timestamp;                 /// 开始泵奶时间
+    uint32_t timestamp_finish;          /// 结束泵奶时间
     uint32_t setting_time;              /// app设置的单次泵奶时间
     uint32_t target_valid_time;         /// 目标有效泵奶时间
     uint32_t target_total_time;         /// 目标最大工作时长 电子压感存在时使用

@@ -137,7 +137,7 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
         if (PUMP_IS_COMMON_MODE(mode)) {
             proc->led->set_led_level(PUMP_FREQ_SET_BL, 100);
         } else {
-            proc->led->set_led_level(PUMP_FREQ_SET_BL, 0);
+            // proc->led->set_led_level(PUMP_FREQ_SET_BL, 0);
         }
         proc->pump->set_breast_pump_status(status == BREAST_PUMP_PAUSE ? \
             BREAST_PUMP_CONTINUE : BREAST_PUMP_START);

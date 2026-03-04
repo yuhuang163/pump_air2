@@ -43,6 +43,7 @@ static int breast_pump_completed_route(breast_pump_manager_context_t *ctx)
         need_save = 0;
     } else {
         memcpy(history_info, result_info, sizeof(pump_result_info_t)); /// 保存上次有效泵奶记录
+        history_info->timestamp_finish = platform_get_utc_time();
     }
 
     int user_bind_info = 0;
