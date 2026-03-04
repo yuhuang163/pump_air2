@@ -228,17 +228,14 @@ static int pm_key_event_handler(void *user_data, uint16_t keycode, uint16_t keyt
         ctx->hook->on_key_event_route(ctx, keycode, keytype);
     }
     
-    if (keycode != KEY_CODE_1) {
-        if (ctx->priv.is_goto_sys_standby == true) {
-            if (keytype == KEY_EVENT_UP || keytype == KEY_EVENT_DOWN) {
-                ctx->priv.is_goto_sys_standby = false;
-            }
-            LOG_PM("is_goto_sys_standby, ignore");
-            return 0;
+    if (ctx->priv.is_goto_sys_standby == true) {
+        if (keytype == KEY_EVENT_UP || keytype == KEY_EVENT_DOWN) {
+            ctx->priv.is_goto_sys_standby = false;
         }
-        set_suspend_counter("non-wakeup-key-reset", get_suspend_timeout(ctx), true);
-        LOG_PM("not wakeup-key, only reset");
+        LOG_PM("is_goto_sys_standby, ignore");
+        return 0;
     }
+    set_suspend_counter("non-wakeup-key-reset", get_suspend_timeout(ctx), false);
     return 0;
 }
 
@@ -397,7 +394,8 @@ static int on_post_pm_init(void *ptr)
     ctx->priv.pm_bcd->receiver_cb = on_pm_broadcast_receive;
     register_broadcast_receiver(ctx->priv.pm_bcd);
     /// 注册按键唤醒.
-    uint16_t keycode = KEY_CODE_1;
+    uint16_t keycode = KEY_CODE_1 | KEY_CODE_2 | KEY_CODE_3 | KEY_CODE_4 |
+     KEY_CODE_5 | KEY_CODE_6 | KEY_CODE_7 | KEY_CODE_8 | KEY_CODE_9 | KEY_CODE_10 | KEY_CODE_11;
     uint16_t keytype = KEY_EVENT_CLICK | KEY_EVENT_DOWN | KEY_EVENT_UP | KEY_EVENT_LONG_2S |
      KEY_EVENT_LONG_3S | KEY_EVENT_LONG_5S | KEY_EVENT_LONG_9S;
     key_input_context_t *input = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
