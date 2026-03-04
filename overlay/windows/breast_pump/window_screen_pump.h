@@ -153,7 +153,7 @@ typedef struct {
 /// 显示泵奶主界面
 void show_pump_home_ui(ui_proc_pump_t *proc);
 /// 普通模式UI相关
-void pump_common_mode_ui_create(ui_proc_pump_t *proc);
+void pump_mode_key_click_handler(ui_proc_pump_t *proc);
 void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
 /// 追奶模式UI相关
 void breastfeeding_mode_ui_create(ui_proc_pump_t *proc);
