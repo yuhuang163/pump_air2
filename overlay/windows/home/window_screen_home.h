@@ -33,6 +33,7 @@ typedef enum {
 typedef enum {
     HOME_UI_TYPE_NONE = 0,
     HOME_UI_TYPE_HOME,
+    HOME_UI_TYPE_HOME_IDLE,
     HOME_UI_TYPE_MAX
 } home_ui_type_e;
 
@@ -45,6 +46,7 @@ typedef struct {
     battery_manager_context_t *battery;
     key_input_context_t *key;
     led_manager_context_t *led;
+    broadcast_obj_t receiver;
     uint32_t margic; /// 窗口标识.
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     uint16_t current_ui_type; /// 当前UI类型. home_ui_type_e
@@ -55,7 +57,8 @@ typedef struct {
 *****************************************************************************************
 */
 void start_home_ui_animation(ui_proc_home_t *proc);
-void stop_home_ui_animation(ui_proc_home_t *proc);
+void start_home_idle_ui_animation(ui_proc_home_t *proc);
+void stop_home_common_ui(ui_proc_home_t *proc);
 void home_start_key_event_handler(ui_proc_home_t *proc);
 
 #ifdef __cplusplus

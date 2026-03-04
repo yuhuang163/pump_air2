@@ -85,11 +85,3 @@ void start_home_ui_animation(ui_proc_home_t *proc)
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->current_ui_type = HOME_UI_TYPE_HOME;
 }
-
-void stop_home_ui_animation(ui_proc_home_t *proc)
-{
-    ui_manager_context_t *ui = proc->ui;
-    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
-    ui->hook->ui_animation_play_deinit(ui);
-    proc->last_progress_ani_time = get_timestamp();
-}
