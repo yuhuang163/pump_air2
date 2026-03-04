@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "breast_pump_manager.h"
-#include "handler_post.h"
 #include "window_screen_pump.h"// IWYU pragma: keep
 
 /*
@@ -106,7 +105,7 @@ void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
             switch_pump_level_ui(proc, is_left);
             break;
         case PUMP_UI_TYPE_SPEED:
-            switch_pump_speed_ui(proc, is_left, false);
+            switch_pump_speed_ui(proc, is_left ? false : true, false);
             break;
         case PUMP_UI_TYPE_COMMON_MODE:
             switch_pump_common_mode_ui(proc, (is_left ? false : true), false);
