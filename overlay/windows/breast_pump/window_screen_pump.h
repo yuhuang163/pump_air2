@@ -42,8 +42,12 @@ extern "C" {
 #define PUMP_MODE_CHANGE_TIMEOUT               (2000) /// 2s
 /// 泵奶UI显示超时时间
 #define PUMP_MODE_DISPLAY_TIMEOUT              (10000) /// 10s
+#define PUMPING_MODE_DISPLAY_TIMEOUT           (5000) /// 5s
+/// 泵奶速度显示超时时间
+#define PUMP_SPEED_DISPLAY_TIMEOUT             (3000) /// 3s
+#define PUMP_SPEED_SYNC_TIMEOUT                 (1000) /// 3s 
 /// 泵奶结果显示超时时间
-#define PUMP_RESULT_DISPLAY_TIMEOUT            (5000) /// 5s
+#define PUMP_RESULT_DISPLAY_TIMEOUT            (3000) /// 3s
 /// 泵奶背光灯周期
 #define PUMP_BLINK_PERIOD                      (500)
 /// 泵奶背光灯闪烁次数
@@ -91,6 +95,13 @@ typedef enum {
     PUMP_UI_TYPE_MAX
 } pump_ui_type_e;
 
+typedef enum {
+    PUMP_POPUP_UI_NONE = 0,
+    PUMP_POPUP_UI_MODE_PROMPT = 1, /// 模式切换提示
+    PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP = 2, /// 泵奶结束提示
+    PUMP_POPUP_UI_PUMP_PAUSE_PROMPT = 3, /// 泵奶暂停提示
+} pump_popup_ui_type_e;
+
 /// 泵奶信息结构体
 typedef struct {    
     uint8_t common_mode; /// 普通泵奶模式.
@@ -129,10 +140,12 @@ typedef struct {
     pump_setting_t setting; /// 当前泵奶设置信息.
     int8_t level_change; /// 当前档位变化值.
     uint8_t level_change_direction; /// 当前档位变化方向. 0: 增加, 1: 减少.
+    uint8_t speed_sync_flag; /// 速度同步标志.
 #if IS_SUPPORT_AIR_LEAKAGE_WARNING
     uint8_t is_air_leakage_popup_show; /// 是否显示空气泄漏弹窗提示.
     uint8_t hide_air_leakage_popup_wm; /// 是否隐藏空气泄漏弹窗提示.
 #endif
+    uint8_t popup_ui_type; /// 当前弹窗类型.
 } ui_proc_pump_t;
 
 /*
@@ -142,7 +155,7 @@ typedef struct {
 /// 显示泵奶主界面
 void show_pump_home_ui(ui_proc_pump_t *proc);
 /// 普通模式UI相关
-void pump_common_mode_ui_create(ui_proc_pump_t *proc);
+void pump_mode_key_click_handler(ui_proc_pump_t *proc);
 void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
 /// 追奶模式UI相关
 void breastfeeding_mode_ui_create(ui_proc_pump_t *proc);
@@ -166,6 +179,8 @@ void pump_ui_change_hdr_remove(ui_proc_pump_t *proc);
 void stop_pump_ui_animation(ui_proc_pump_t *proc);
 /// 按键处理相关
 void pump_power_key_handler(ui_proc_pump_t *proc);
+/// 泵奶完成事件处理
+void pump_complete_event_handler(ui_proc_pump_t *proc);
 #ifdef __cplusplus
 }
 #endif

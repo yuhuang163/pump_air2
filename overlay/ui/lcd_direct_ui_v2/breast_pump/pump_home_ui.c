@@ -8,6 +8,7 @@
 #include "ui_manager.h"   // IWYU pragma: keep
 #include "window_screen_pump.h" // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
+#include <stdint.h>
 
 /*
 * DEFINES
@@ -70,6 +71,7 @@ typedef struct {
     res_img_info_t mode_icon_info;
     res_img_info_t animation_info;
     uint8_t force_update;
+    uint8_t popup_ui_index; /// 当前弹窗索引.
     uint8_t percent;
     uint8_t is_charging;
     uint8_t mode;
@@ -657,22 +659,61 @@ static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t star
     pump_info->animation_index++;
 }
 
+static void pump_home_popup_ui_remove(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(pump_info);
+    ui_prompt_mode_switch_remove(thiz);
+    ui_prompt_pump_will_finish_remove(thiz);
+    ui_prompt_pump_status_remove(thiz);
+    pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+}
+
+static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
+{
+    switch (proc->popup_ui_type) {
+        case PUMP_POPUP_UI_NONE:
+            pump_home_popup_ui_remove(thiz);
+            break;
+        case PUMP_POPUP_UI_MODE_PROMPT:
+            if (PUMP_IS_COMMON_MODE(pump_info->mode) == 0) {
+                return; /// 普通模式下不显示模式切换提示
+            }
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_MODE_PROMPT) {
+                pump_home_popup_ui_remove(thiz);
+                ui_prompt_mode_switch_prepare(thiz, pump_info->root);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_MODE_PROMPT;
+            } else {
+                ui_prompt_mode_switch_process(thiz, proc->ui_common_mode_index);
+            }
+            break;
+        case PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP) {
+                pump_home_popup_ui_remove(thiz);
+                ui_prompt_pump_will_finish_prepare(thiz, pump_info->root);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP;
+            } else {
+                ui_prompt_pump_will_finish_process(thiz);
+            }
+            break;
+        case PUMP_POPUP_UI_PUMP_PAUSE_PROMPT:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_PAUSE_PROMPT) {
+                pump_home_popup_ui_remove(thiz);
+                ui_prompt_pump_status_prepare(thiz, pump_info->root);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_PAUSE_PROMPT;
+            } else {
+                ui_prompt_pump_status_process(thiz, 0);
+            }
+            break;
+    }
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
 void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
 {
-#if IS_SUPPORT_HOME_DEBUG_OTHER_PAGE
-    // ui_display_pump_left_level_prepare(thiz);
-    // ui_display_pump_mode_prepare(thiz);
-    // ui_display_breastfeeding_mode_prepare(thiz);
-    // ui_display_pump_complete_tip_prepare(thiz);
-    // ui_display_airplane_mode_prepare(thiz);
-    // ui_display_home_prepare(thiz);
-    // ui_display_product_tests_home_prepare(thiz);
-    ui_display_pump_speed_prepare(thiz);
-#else
     EXCEPTION_CHECK_VOID(thiz);
     if (pump_info == NULL) {
         pump_info = (pump_display_info_t *)u_malloz(sizeof(pump_display_info_t));
@@ -683,26 +724,13 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     pump_home_init();  
     ble_ui_init(thiz);
     common_ui_bg_init(thiz);
-    ui_display_mode_prompt_init(thiz);
-    pump_will_finish_ui_prompt_init(thiz);
-    ui_display_pump_status_prompt_init(thiz);
     pump_info->animation_index = 0;
     pump_info->force_update = true;
-#endif
+    pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
 }
 
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 {
-#if IS_SUPPORT_HOME_DEBUG_OTHER_PAGE
-    // ui_display_pump_left_level_remove(thiz);
-    // ui_display_pump_mode_remove(thiz);
-    // ui_display_breastfeeding_mode_remove(thiz);
-    // ui_display_pump_complete_tip_remove(thiz);
-    // ui_display_airplane_mode_remove(thiz);
-    // ui_display_home_remove(thiz);
-    // ui_display_product_tests_home_remove(thiz);
-    ui_display_pump_speed_remove(thiz);
-#else
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
     common_ui_img_resource_deinit(thiz, &pump_info->mode_icon_info);
@@ -711,27 +739,14 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &pump_info->time_colon_info);
     ble_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
-    ui_display_mode_prompt_deinit(thiz);
-    pump_will_finish_ui_prompt_deinit(thiz);
-    ui_display_pump_status_prompt_deinit(thiz);
+    pump_home_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(pump_info->root);
     u_free(pump_info);
     pump_info = NULL;
-#endif
 }
 
 int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
 {
-#if IS_SUPPORT_HOME_DEBUG_OTHER_PAGE
-    // ui_display_pump_left_level_process(thiz);
-    // ui_display_pump_mode_process(thiz);
-    // ui_display_breastfeeding_mode_process(thiz);
-    // ui_display_pump_complete_tip_process(thiz);
-    // ui_display_airplane_mode_process(thiz);
-    // ui_display_home_process(thiz);
-    // ui_display_product_tests_home_process(thiz);
-    ui_display_pump_speed_process(thiz);
-#else
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(pump_info);
     EXCEPTION_CHECK_INT(pump_info->root);
@@ -766,13 +781,10 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
             0, 0);
         pump_home_custom_mode_update(thiz, mode, sub_mode, next_sub_mode);
     }
-
     pump_home_left_level_update(thiz, setting.level[0]);
     pump_home_right_level_update(thiz, setting.level[1]);
     pump_home_speed_label_update(thiz, setting.speed);
-    // ui_display_mode_prompt_process(thiz, pump_info->root);
-    // pump_will_finish_ui_prompt_process(thiz, pump_info->root);
-    // ui_display_pump_status_prompt_process(thiz, pump_info->root);
+    pump_home_popup_ui_update(thiz, proc);
     pump_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
@@ -780,6 +792,5 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
         LOG_UI("===> pump home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
-#endif
     return 0;
 }

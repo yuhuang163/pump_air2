@@ -105,13 +105,13 @@ void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
             switch_pump_level_ui(proc, is_left);
             break;
         case PUMP_UI_TYPE_SPEED:
-            switch_pump_speed_ui(proc, is_left, false);
+            switch_pump_speed_ui(proc, is_left ? false : true, false);
             break;
         case PUMP_UI_TYPE_COMMON_MODE:
-            switch_pump_common_mode_ui(proc, is_left, false);
+            switch_pump_common_mode_ui(proc, (is_left ? false : true), false);
             break;
         case PUMP_UI_TYPE_BREASTFEEDING_MODE:
-            switch_breastfeeding_mode_ui(proc, is_left, false);
+            switch_breastfeeding_mode_ui(proc, (is_left ? false : true), false);
             break;
         default:
             LOG_WM("unknow ui type: %d, ignore.", proc->current_ui_type);
@@ -123,8 +123,9 @@ static void pump_long_press_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
 {
     switch (keycode) {
         case KEY_CODE_START:
-            POST_TASK_HANDLER_NO_DELAY_ARG1(pump_ui_common_cb, proc, PUMP_HDR_ACTION_PUMP_COMPLETE,
-                PUMP_COMPLETE_TASK_NAME);
+            if (proc->current_ui_type == PUMP_UI_TYPE_HOME) {
+                proc->popup_ui_type = PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP;
+            }
             break;
         default:
             LOG_WM("unknow keycode: %d, ignore.", keycode);
@@ -142,11 +143,10 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
             switch_pump_status_ui(proc);
             break;
         case KEY_CODE_MODE:
-            switch_pump_common_mode_ui(proc, true, true);
+            pump_mode_key_click_handler(proc);
             break;
         case KEY_CODE_FREQUENCY:
-                switch_pump_speed_ui(proc, true, true);
-
+            switch_pump_speed_ui(proc, true, true);
             break;
         case KEY_CODE_BREASTFEEDING:
             switch_breastfeeding_mode_ui(proc, true, true);
@@ -231,9 +231,11 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                     proc->is_mode_changed_by_app = false;
                 }
             } else if (arg1 == BREAST_PUMP_BROADCAST_COMPLETED) {
-                POST_TASK_HANDLER_DELAYED_ARG2(pump_ui_common_cb, 100, PUMP_HDR_ACTION_PUMP_COMPLETE, 
-                    proc, PUMP_COMPLETE_TASK_NAME);
                 LOG_WM("pump finish, post pump complete task.");
+            } else if (arg1 == BREAST_PUMP_BROADCAST_PUMP_WILL_FINISH) {
+                POST_TASK_HANDLER_NO_DELAY_ARG1(pump_ui_common_cb, proc, PUMP_HDR_ACTION_PUMP_COMPLETE, 
+                    PUMP_COMPLETE_TASK_NAME);
+                LOG_WM("pump will finish, post pump will finish task.");
             }
             break;
         default:
@@ -261,7 +263,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
         if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
-            pump_common_mode_ui_create(proc);
+            pump_mode_key_click_handler(proc);
         } else if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             breastfeeding_mode_ui_create(proc);
@@ -374,3 +376,8 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     return ID_WINDOW_DISPLAY_OK;
 }
 
+void pump_complete_event_handler(ui_proc_pump_t *proc)
+{
+    POST_TASK_HANDLER_NO_DELAY_ARG1(pump_ui_common_cb, proc, PUMP_HDR_ACTION_PUMP_COMPLETE,
+        PUMP_COMPLETE_TASK_NAME);
+}
