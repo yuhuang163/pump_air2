@@ -6,6 +6,7 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
+#include "window_screen_pump.h"   // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
 
 /*
@@ -13,23 +14,23 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_WILL_FINISH_TIP_COMP_BG                        (0)
-#define WILL_FINISH_TIP_TEXT_COLOR                                 0xFFFFFF
-// 圆弧进度条配置
-#define WILL_FINISH_ARC_SIZE            360    // 圆弧尺寸
-#define WILL_FINISH_ARC_WIDTH           12      // 圆弧粗细
-#define WILL_FINISH_ARC_COLOR           0xB25962 // 圆弧颜色（匹配吸奶器粉色）
-#define WILL_FINISH_COUNTDOWN_STEP_TIME      75      // 倒计时步长时间（30ms）
-#define WILL_FINISH_COUNTDOWN_MAX_VALUE (3000/WILL_FINISH_COUNTDOWN_STEP_TIME)      // 倒计时最大值（3秒）每30ms递减1
+#define WILL_FINISH_TIP_TEXT_COLOR                                0xFFFFFF
+#define WILL_FINISH_ARC_SIZE                                      (360)    // 圆弧尺寸
+#define WILL_FINISH_ARC_WIDTH                                     (12)      // 圆弧粗细
+#define WILL_FINISH_ARC_COLOR                                     (0xB25962) // 圆弧颜色（匹配吸奶器粉色）
+#define WILL_FINISH_COUNTDOWN_STEP_TIME                           (75)      // 倒计时步长时间（30ms）
+#define WILL_FINISH_COUNTDOWN_MAX_VALUE                           (3000/WILL_FINISH_COUNTDOWN_STEP_TIME)      // 倒计时最大值（3秒）每30ms递减1
 
 typedef struct {
-    lv_obj_t * sub_root;
+    lv_obj_t * root;
 #if IS_SUPPORT_WILL_FINISH_TIP_COMP_BG
     lv_obj_t * background;
 #endif
-    lv_obj_t * sub_root_text;
-    lv_obj_t * countdown_arc;            // 圆弧进度条对象
-    uint16_t countdown_value;             // 倒计时值
-    uint32_t start_time;                 // 倒计时起始时间
+    lv_obj_t * text;
+    lv_obj_t * countdown_arc;            /// 圆弧进度条对象
+    uint16_t countdown_value;            /// 倒计时值
+    uint32_t start_time;                 /// 倒计时起始时间
+    uint8_t force_update;
 } will_finish_tip_display_info_t;
 
 /*
@@ -54,44 +55,36 @@ static will_finish_tip_display_info_t *will_finish_tip_info;
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void will_finish_tip_sub_root_init(lv_obj_t *root)
+static void will_finish_tip_sub_root_init(lv_obj_t *parent)
 {
-    if (will_finish_tip_info->sub_root == NULL || !lv_obj_is_valid(will_finish_tip_info->sub_root)) {
-        will_finish_tip_info->sub_root = lv_obj_create(root);
-        EXCEPTION_CHECK_VOID(will_finish_tip_info->sub_root);
-        lv_obj_set_size(will_finish_tip_info->sub_root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-        lv_obj_set_style_bg_color(will_finish_tip_info->sub_root, lv_color_black(), 0);     /// 设置背景颜色为黑色
-        lv_obj_set_style_bg_opa(will_finish_tip_info->sub_root, LV_OPA_50, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
-        lv_obj_set_style_border_width(will_finish_tip_info->sub_root, 0, 0);                /// 设置边框宽度为0（无边框）
-        lv_obj_set_style_pad_all(will_finish_tip_info->sub_root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
-        lv_obj_align(will_finish_tip_info->sub_root, LV_ALIGN_CENTER, 0, 0);
-        lv_obj_clear_flag(will_finish_tip_info->sub_root, LV_OBJ_FLAG_CLICKABLE); /// 让 root 不吃事件，防止挡子控件
-        lv_obj_clear_flag(will_finish_tip_info->sub_root, LV_OBJ_FLAG_SCROLLABLE); /// 禁止滚动
+    if (will_finish_tip_info->root == NULL || !lv_obj_is_valid(will_finish_tip_info->root)) {
+        will_finish_tip_info->root = lv_obj_create(parent);
+        EXCEPTION_CHECK_VOID(will_finish_tip_info->root);
     }
+    lv_obj_set_size(will_finish_tip_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
+    lv_obj_set_style_bg_color(will_finish_tip_info->root, lv_color_black(), 0);     /// 设置背景颜色为黑色
+    lv_obj_set_style_bg_opa(will_finish_tip_info->root, LV_OPA_50, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
+    lv_obj_set_style_border_width(will_finish_tip_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
+    lv_obj_set_style_pad_all(will_finish_tip_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
+    lv_obj_align(will_finish_tip_info->root, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_clear_flag(will_finish_tip_info->root, LV_OBJ_FLAG_CLICKABLE); /// 让 root 不吃事件，防止挡子控件
+    lv_obj_clear_flag(will_finish_tip_info->root, LV_OBJ_FLAG_SCROLLABLE); /// 禁止滚动
 }
 
-// 圆弧进度条更新函数（参照 airplane_mode_exit_arc_update）
 static void will_finish_tip_arc_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(will_finish_tip_info);
-    EXCEPTION_CHECK_VOID(will_finish_tip_info->sub_root);
-
     /* 1. 创建 / 校验圆弧对象 */
     if (will_finish_tip_info->countdown_arc == NULL ||
         !lv_obj_is_valid(will_finish_tip_info->countdown_arc)) {
-
-        lv_obj_t *arc = lv_arc_create(will_finish_tip_info->sub_root);
+        lv_obj_t *arc = lv_arc_create(will_finish_tip_info->root);
         EXCEPTION_CHECK_VOID(arc);
         will_finish_tip_info->countdown_arc = arc;
 
         /* 基础配置：范围、背景角度、尺寸和位置 */
         lv_arc_set_range(arc, 0, WILL_FINISH_COUNTDOWN_MAX_VALUE);      // 0 ~ 100 (3秒，每30ms递减1)
         lv_arc_set_bg_angles(arc, 0, 360);                  // 背景整圆
-
         lv_obj_set_size(arc, WILL_FINISH_ARC_SIZE, WILL_FINISH_ARC_SIZE);
         lv_obj_align(arc, LV_ALIGN_CENTER, 0, 0);
-
         /* 样式：隐藏背景弧和 knob，只显示指示弧 */
         lv_obj_set_style_arc_opa(arc, LV_OPA_TRANSP, LV_PART_MAIN);          // 背景弧透明
         lv_obj_set_style_opa(arc, LV_OPA_TRANSP, LV_PART_KNOB);              // knob 透明
@@ -106,10 +99,11 @@ static void will_finish_tip_arc_update(ui_manager_context_t *thiz)
     // progress: 0..WILL_FINISH_COUNTDOWN_MAX_VALUE (0..100)
     int16_t progress = (int16_t)WILL_FINISH_COUNTDOWN_MAX_VALUE -
                        (int16_t)will_finish_tip_info->countdown_value;
-    if (progress < 0)
-      progress = 0;
-    if (progress > (int16_t)WILL_FINISH_COUNTDOWN_MAX_VALUE)
-      progress = (int16_t)WILL_FINISH_COUNTDOWN_MAX_VALUE;
+    if (progress < 0) {
+        progress = 0;
+    } else if (progress > (int16_t)WILL_FINISH_COUNTDOWN_MAX_VALUE) {
+        progress = (int16_t)WILL_FINISH_COUNTDOWN_MAX_VALUE;
+    }
 
     // 0~100 的值同步给 arc
     lv_arc_set_value(will_finish_tip_info->countdown_arc, progress);
@@ -131,31 +125,20 @@ static void will_finish_tip_arc_update(ui_manager_context_t *thiz)
     lv_arc_set_angles(will_finish_tip_info->countdown_arc, start, end);
 }
 
-static void will_finish_tip_sub_root_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t is_show)
+static void will_finish_tip_animation_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(root);
-    /// 创建 / 校验子根对象
-    will_finish_tip_sub_root_init(root);
-    if (is_show == false) {
-        lv_obj_add_flag(will_finish_tip_info->sub_root, LV_OBJ_FLAG_HIDDEN);
-        return;
-    }
-    lv_obj_clear_flag(will_finish_tip_info->sub_root, LV_OBJ_FLAG_HIDDEN);
     /// 更新子根内容
-    if (will_finish_tip_info->sub_root_text == NULL || !lv_obj_is_valid(will_finish_tip_info->sub_root_text)) {
-        will_finish_tip_info->sub_root_text = lv_label_create(will_finish_tip_info->sub_root);
-        EXCEPTION_CHECK_VOID(will_finish_tip_info->sub_root_text);
+    if (will_finish_tip_info->text == NULL || !lv_obj_is_valid(will_finish_tip_info->text)) {
+        will_finish_tip_info->text = lv_label_create(will_finish_tip_info->root);
+        EXCEPTION_CHECK_VOID(will_finish_tip_info->text);
     }
-    lv_label_set_text(will_finish_tip_info->sub_root_text,"Ending");
-    lv_obj_set_style_text_color(will_finish_tip_info->sub_root_text, lv_color_hex(WILL_FINISH_TIP_TEXT_COLOR), 0);
-    lv_obj_set_style_text_font(will_finish_tip_info->sub_root_text, &lv_font_oppo_sans_20_medium, 0);
-    lv_obj_align(will_finish_tip_info->sub_root_text, LV_ALIGN_CENTER, 0, 0);
-    
-    // 更新圆弧进度条
+    lv_label_set_text(will_finish_tip_info->text,"Ending");
+    lv_obj_set_style_text_color(will_finish_tip_info->text, lv_color_hex(WILL_FINISH_TIP_TEXT_COLOR), 0);
+    lv_obj_set_style_text_font(will_finish_tip_info->text, &lv_font_oppo_sans_20_medium, 0);
+    lv_obj_align(will_finish_tip_info->text, LV_ALIGN_CENTER, 0, 0);
+    /// 更新圆弧进度条
     will_finish_tip_arc_update(thiz);
-    
-    // 倒计时更新逻辑：每30ms递减1
+    /// 倒计时更新逻辑：每30ms递减1
     if (get_timestamp() - will_finish_tip_info->start_time >= WILL_FINISH_COUNTDOWN_STEP_TIME) {
         if (will_finish_tip_info->countdown_value > 0) {
             will_finish_tip_info->countdown_value--;
@@ -164,49 +147,45 @@ static void will_finish_tip_sub_root_update(ui_manager_context_t *thiz, lv_obj_t
     }
 }
 
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void pump_will_finish_ui_prompt_init(ui_manager_context_t *thiz)
+void ui_prompt_pump_will_finish_prepare(ui_manager_context_t *thiz, lv_obj_t *parent)
 {
     EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(parent);
     if (will_finish_tip_info == NULL) {
         will_finish_tip_info = (will_finish_tip_display_info_t *)u_malloz(sizeof(will_finish_tip_display_info_t));
         EXCEPTION_CHECK_VOID(will_finish_tip_info);
     }
-    // 初始化倒计时
+    will_finish_tip_info->force_update = true;
     will_finish_tip_info->countdown_value = WILL_FINISH_COUNTDOWN_MAX_VALUE;
-    will_finish_tip_info->start_time = get_timestamp();
-    will_finish_tip_info->countdown_arc = NULL;
+    will_finish_tip_sub_root_init(parent);
 }
 
-void pump_will_finish_ui_prompt_deinit(ui_manager_context_t *thiz)
+void ui_prompt_pump_will_finish_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     if (will_finish_tip_info == NULL) {
         return;
     }
-    // common_ui_img_resource_deinit(thiz, &finish_info->icon_info);
-    LVGL_OBJ_DELETE(will_finish_tip_info->sub_root);
-    will_finish_tip_info->countdown_arc = NULL;
-    will_finish_tip_info->sub_root_text = NULL;
-    will_finish_tip_info->sub_root = NULL;
-    will_finish_tip_info->countdown_value = 0;
-    will_finish_tip_info->start_time = 0;
+    LVGL_OBJ_DELETE(will_finish_tip_info->root);
     u_free(will_finish_tip_info);
     will_finish_tip_info = NULL;
 }
 
-int pump_will_finish_ui_prompt_process(ui_manager_context_t *thiz, lv_obj_t *root)
+void ui_prompt_pump_will_finish_process(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(root);
-    EXCEPTION_CHECK_INT(will_finish_tip_info);
-    /// TODO: 获取是否显示界面 
-    uint8_t is_show = 0;
-    will_finish_tip_sub_root_update(thiz, root, is_show);
-
-    return 0;
+    EXCEPTION_CHECK_VOID(thiz);
+    if (will_finish_tip_info == NULL || will_finish_tip_info->root == NULL) {
+        return;
+    }
+    will_finish_tip_animation_update(thiz);
+    will_finish_tip_info->force_update = false;
+    if (will_finish_tip_info->countdown_value == 0) {
+        ui_animation_play_t *ani = &thiz->priv.play_info;
+        EXCEPTION_CHECK_VOID(ani);
+        ani->progress_cb(thiz, PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP, ANI_POPUP_DISPLAY_FINISH);
+    }
 }

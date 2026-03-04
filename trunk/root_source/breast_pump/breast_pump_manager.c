@@ -652,9 +652,16 @@ static void make_progress(void)
     struct __breast_pump_hook *hook = breast_pump_obj->hook;
     if (hook && hook->make_progress_route) {
         notify_id = hook->make_progress_route(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
-        if (notify_id == RESULT_PUMP_FINISH && get_timestamp_ms(notify_time) > 2000) {
-            notify_time = get_timestamp();
-            SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_COMPLETED);
+        if (notify_id == RESULT_PUMP_FINISH) {
+            if (get_timestamp_ms(notify_time) > 10000) {
+                notify_time = get_timestamp();
+                SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_COMPLETED);
+            }
+        } else if (notify_id == RESULT_PUMP_WILL_FINISH) {
+            if (get_timestamp_ms(notify_time) > 10000) {
+                notify_time = get_timestamp();
+                SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_PUMP_WILL_FINISH);
+            }
         }
     }
 }

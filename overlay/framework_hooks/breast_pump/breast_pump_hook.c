@@ -12,6 +12,7 @@
 *****************************************************************************************
 */
 #define PUMP_INFO_LOG_INTERVAL                             (10)            
+#define PUMP_WILL_FINISH_TIME_MS                           (3000)
 
 // 比较两数相等，允许一定范围的误差
 #define IS_UINT_EQUAL_IN_ERROR(num_scr, num_dest, diff)           (((num_dest) <= (num_scr)) && ((num_scr) < ((num_dest) + (diff))))
@@ -67,6 +68,12 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
         log_timer = 0;
         return RESULT_PUMP_FINISH;
     }
+    
+    if ((result_info->work_total_time + PUMP_WILL_FINISH_TIME_MS) >= result_info->target_total_time ||
+        (result_info->work_valid_time + PUMP_WILL_FINISH_TIME_MS) >= result_info->target_valid_time) {
+        ret = RESULT_PUMP_WILL_FINISH;
+    }
+
     /// 更新自然时间.
     result_info->work_total_time += PUMP_WORK_STEP_TIME_MS;
     result_info->current_mode_work_time += PUMP_WORK_STEP_TIME_MS;
@@ -76,7 +83,8 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     /// 有效时间累加，更新各区域有效时间.
     result_info->work_valid_time += PUMP_WORK_STEP_TIME_MS;
     if (log_timer > PUMP_INFO_LOG_INTERVAL) {
-        LOG_PMP("normal, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d, mode_time=%d", 
+        LOG_PMP("%s, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d, mode_time=%d", 
+            ret == RESULT_PUMP_WILL_FINISH ? "will finish" : "normal",
             result_info->work_total_time, result_info->target_total_time, result_info->work_valid_time, result_info->target_valid_time,
             result_info->current_mode_work_time);
         log_timer = 0;
