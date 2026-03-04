@@ -66,7 +66,8 @@ typedef enum {
     RESOURCE_ID_PUMP_FINISH_ICON,              /// 泵奶完成图标
     RESOURCE_ID_PUMP_PAUSE_PROMPT_ICON,        /// 泵奶暂停提示图标
     RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON,    /// 泵奶档位背景图标
-     RESOURCE_ID_PUMP_LEVEL_ADD_LABEL_ICON,     /// 泵奶档位文本加号图标
+    RESOURCE_ID_PUMP_LEVEL_ADD_LABEL_ICON,     /// 泵奶档位文本加号图标
+    RESOURCE_ID_PUMP_LEVEL_SUB_LABEL_ICON,     /// 泵奶档位文本减号图标
 
     /* 动画组 [300...] */
     RESOURCE_ID_COMMON_MODE_ANIMATION_START = 300,   /// 泵奶模式动画-开始
