@@ -131,14 +131,10 @@ static void show_pump_mode_ui(ui_proc_pump_t *proc)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink)
+void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase)
 {
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
-
-    if (proc->current_ui_type != PUMP_UI_TYPE_COMMON_MODE) {
-        return;
-    } 
     uint8_t mode = proc->ui_common_mode_index;
     if (is_increase) {
         if (mode < BREAST_PUMP_MIX_MODE) {
@@ -168,8 +164,7 @@ void pump_mode_key_click_handler(ui_proc_pump_t *proc)
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
     EXCEPTION_CHECK_VOID(proc->led);
-    proc->led->set_led_blink(PUMP_MODE_BL, PUMP_BLINK_PERIOD,
-        PUMP_BLINK_TIMES, LED_STATUS_ON);
+    proc->led->set_led_blink(PUMP_MODE_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
     if (proc->current_ui_type != PUMP_UI_TYPE_COMMON_MODE) {
         proc->ui_common_mode_index = proc->pump->get_breast_pump_common_mode();
         show_pump_mode_ui(proc);

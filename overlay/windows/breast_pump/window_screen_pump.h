@@ -154,12 +154,13 @@ typedef struct {
 void show_pump_home_ui(ui_proc_pump_t *proc);
 /// 普通模式UI相关
 void pump_mode_key_click_handler(ui_proc_pump_t *proc);
-void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
+void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase);
 /// 追奶模式UI相关
-void breastfeeding_mode_ui_create(ui_proc_pump_t *proc);
-void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
+void breastfeeding_mode_key_click_handler(ui_proc_pump_t *proc);
+void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase);
 /// 速度UI相关
-void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink);
+void pump_speed_key_click_handler(ui_proc_pump_t *proc);
+void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase);
 /// 档位UI相关
 void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase);
 void switch_pump_control_type_ui(ui_proc_pump_t *proc, uint8_t control_type);

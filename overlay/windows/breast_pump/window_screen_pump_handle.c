@@ -105,13 +105,13 @@ void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
             switch_pump_level_ui(proc, is_left);
             break;
         case PUMP_UI_TYPE_SPEED:
-            switch_pump_speed_ui(proc, is_left ? false : true, false);
+            switch_pump_speed_ui(proc, is_left ? false : true);
             break;
         case PUMP_UI_TYPE_COMMON_MODE:
-            switch_pump_common_mode_ui(proc, (is_left ? false : true), false);
+            switch_pump_common_mode_ui(proc, is_left ? false : true);
             break;
         case PUMP_UI_TYPE_BREASTFEEDING_MODE:
-            switch_breastfeeding_mode_ui(proc, (is_left ? false : true), false);
+            switch_breastfeeding_mode_ui(proc, is_left ? false : true);
             break;
         default:
             LOG_WM("unknow ui type: %d, ignore.", proc->current_ui_type);
@@ -146,10 +146,10 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
             pump_mode_key_click_handler(proc);
             break;
         case KEY_CODE_FREQUENCY:
-            switch_pump_speed_ui(proc, true, true);
+            pump_speed_key_click_handler(proc);
             break;
         case KEY_CODE_BREASTFEEDING:
-            switch_breastfeeding_mode_ui(proc, true, true);
+            breastfeeding_mode_key_click_handler(proc);
             break;
         case KEY_CODE_RIGHT_CONTROL:
             switch_pump_control_type_ui(proc, BREAST_PUMP_CONTROL_TYPE_RIGHT);
@@ -266,7 +266,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
             pump_mode_key_click_handler(proc);
         } else if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
-            breastfeeding_mode_ui_create(proc);
+            breastfeeding_mode_key_click_handler(proc);
         } else if (proc->current_ui_type == PUMP_UI_TYPE_PUMPING) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             switch_pump_status_ui(proc);

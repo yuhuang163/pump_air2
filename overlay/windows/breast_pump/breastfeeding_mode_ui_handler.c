@@ -120,19 +120,16 @@ static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink)
+void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase)
 {
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
-    if (led_blink && proc->led) {
-        proc->led->set_led_blink(PUMP_BREASTFEEDING_BL, PUMP_BLINK_PERIOD,
-            PUMP_BLINK_TIMES, LED_STATUS_ON);
-    }
     int status = proc->pump->get_breast_pump_status();
     if (PUMP_NO_FINISH(status)) {
         LOG_UI("pump is going %d, ignore switch mode.", status); /// 泵奶进行中不支持切换追奶模式(产品需求)
         return;
     }
+
     uint8_t mode = proc->ui_breastfeeding_mode_index;
     if (is_increase) {
         if (mode < BREAST_PUMP_EMPTYING_BOOST_MODE) {
@@ -148,26 +145,24 @@ void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase, bool l
         }
     }
     proc->ui_breastfeeding_mode_index = mode;
-    if (proc->pump->is_on_working()) {
-        proc->pump->set_breast_pump_mode(mode, true);
-    }
-    show_breastfeeding_mode_ui(proc);
+    proc->pump->set_breast_pump_mode(mode, true);
     LOG_UI("switch %s mode: %d", proc->pump->get_breast_pump_mode_name(mode), mode);
-}
-
-void breastfeeding_mode_ui_create(ui_proc_pump_t *proc)
-{
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);
-    uint8_t mode = proc->pump->get_breast_pump_breastfeeding_mode();
-    proc->led->set_led_blink(PUMP_BREASTFEEDING_BL, PUMP_BLINK_PERIOD, 
-        PUMP_BLINK_TIMES, LED_STATUS_ON); /// 追奶背光灯闪烁
-    proc->ui_breastfeeding_mode_index = mode;
     show_breastfeeding_mode_ui(proc);
-    LOG_UI("breastfeeding mode ui create: %d", mode);
 }
 
 void breastfeeding_mode_ui_hdr_remove(void)
 {
     REMOVE_TASK_HANDLER_DIRECTLY(BREASTFEEDING_MODE_DISPLAY_TASK_NAME);
+}
+
+void breastfeeding_mode_key_click_handler(ui_proc_pump_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    EXCEPTION_CHECK_VOID(proc->led);
+    proc->led->set_led_blink(PUMP_BREASTFEEDING_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
+    if (proc->current_ui_type != PUMP_UI_TYPE_BREASTFEEDING_MODE && proc->pump->is_on_working() == 0) {
+        proc->ui_breastfeeding_mode_index = proc->pump->get_breast_pump_breastfeeding_mode();
+        show_breastfeeding_mode_ui(proc);
+    }
 }
