@@ -143,7 +143,7 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
             switch_pump_status_ui(proc);
             break;
         case KEY_CODE_MODE:
-            switch_pump_common_mode_ui(proc, true, true);
+            pump_mode_key_click_handler(proc);
             break;
         case KEY_CODE_FREQUENCY:
             switch_pump_speed_ui(proc, true, true);
@@ -263,7 +263,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
         if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
-            pump_common_mode_ui_create(proc);
+            pump_mode_key_click_handler(proc);
         } else if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             breastfeeding_mode_ui_create(proc);
