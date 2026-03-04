@@ -41,10 +41,10 @@ static void pump_ui_speed_status_syn(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = (ui_proc_pump_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
     if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
-        EXCEPTION_CHECK_VOID(proc->motor);
-        int time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
+        int time_index = proc->pump->get_breast_pump_step_index();
         if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
             time_index = 0;
         }
@@ -132,10 +132,41 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink)
+void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);  
+    if (is_increase) {
+        if (proc->setting.speed < BREAST_PUMP_SPEED_HIGH) {
+            proc->setting.speed++;
+        } else {
+            proc->setting.speed = BREAST_PUMP_SPEED_LOW;
+        }
+    } else {
+        if (proc->setting.speed > BREAST_PUMP_SPEED_LOW) {
+            proc->setting.speed--;
+        } else {
+            proc->setting.speed = BREAST_PUMP_SPEED_HIGH;
+        }
+    }
+    proc->speed_sync_flag = true;
+    uint8_t mode = proc->pump->get_breast_pump_mode();
+    LOG_UI("switch %s mode frequency: %d", proc->pump->get_breast_pump_mode_name(mode), proc->setting.speed);
+    show_pump_speed_ui(proc);
+}
+
+void pump_speed_ui_hdr_remove(void)
+{
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SPEED_DISPLAY_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SPEED_SYNC_TASK_NAME);
+}
+
+void pump_speed_key_click_handler(ui_proc_pump_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
+    EXCEPTION_CHECK_VOID(proc->led);
+    proc->led->set_led_blink(PUMP_FREQ_SET_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
     if (proc->pump->is_on_working() == 0) {
         LOG_UI("pump is not working, ignore.");
         return;
@@ -145,41 +176,11 @@ void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase, bool led_blink
         LOG_UI("pump is breastfeeding mode, ignore.");
         return;
     }
-     
-    if (led_blink && proc->led) {
-        proc->led->set_led_blink(PUMP_FREQ_SET_BL, PUMP_BLINK_PERIOD,
-            PUMP_BLINK_TIMES, LED_STATUS_ON);
-    }
-
-    if (proc->current_ui_type != PUMP_UI_TYPE_SPEED) {
-        EXCEPTION_CHECK_VOID(proc->motor);
-        int time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
-        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-            time_index = 0;
-        }
-        proc->pump->get_breast_pump_setting(&proc->setting, time_index);
-    } else {    
-        if (is_increase) {
-            if (proc->setting.speed < BREAST_PUMP_SPEED_HIGH) {
-                proc->setting.speed++;
-            } else {
-                proc->setting.speed = BREAST_PUMP_SPEED_LOW;
-            }
-        } else {
-            if (proc->setting.speed > BREAST_PUMP_SPEED_LOW) {
-                proc->setting.speed--;
-            } else {
-                proc->setting.speed = BREAST_PUMP_SPEED_HIGH;
-            }
-        }
-        proc->speed_sync_flag = true;
-        LOG_UI("switch %s mode frequency: %d", proc->pump->get_breast_pump_mode_name(mode), proc->setting.speed);
-    }
     show_pump_speed_ui(proc);
-}
-
-void pump_speed_ui_hdr_remove(void)
-{
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SPEED_DISPLAY_TASK_NAME);
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_SPEED_SYNC_TASK_NAME);
+    EXCEPTION_CHECK_VOID(proc->motor);
+    int time_index = proc->pump->get_breast_pump_step_index();
+    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+        time_index = 0;
+    }
+    proc->pump->get_breast_pump_setting(&proc->setting, time_index);
 }
