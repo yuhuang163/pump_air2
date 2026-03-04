@@ -554,13 +554,8 @@ int ui_display_pump_speed_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(speed_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->pump);
-    EXCEPTION_CHECK_INT(proc->motor);
-    pump_setting_t setting;
-    uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
-    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
     speed_bg_update(thiz);
-    speed_ui_update(thiz, setting.speed);
+    speed_ui_update(thiz, proc->setting.speed);
     speed_text_update(thiz);
     speed_info->force_update = false;
     thiz->priv.fps_count++;
