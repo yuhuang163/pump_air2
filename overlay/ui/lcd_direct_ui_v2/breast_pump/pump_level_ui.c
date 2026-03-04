@@ -627,23 +627,18 @@ int ui_display_pump_level_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->pump);
     EXCEPTION_CHECK_INT(proc->motor);
-    
-    uint8_t control_type = proc->pump->get_breast_pump_control_type();
-    pump_setting_t setting;
-    uint8_t time_index = proc->pump->get_breast_pump_step_index();
-    proc->pump->get_breast_pump_setting(&setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
 
-    level_info->left_level = setting.level[0];
-    level_info->right_level = setting.level[1];
-    level_info->control_type = control_type;
+    level_info->left_level = proc->setting.level[0];
+    level_info->right_level = proc->setting.level[1];
+    level_info->control_type = proc->info.control_type;
     level_info->level_change = proc->level_change;  // 测试值，实际应从业务逻辑获取
     
     // 根据控制类型计算当前显示等级
     int8_t display_level;
-    if (control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
+    if (level_info->control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
         display_level = level_info->level_change;
     } else {
-        display_level = (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) ? 
+        display_level = (level_info->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) ? 
                         level_info->left_level : level_info->right_level;
     }
     

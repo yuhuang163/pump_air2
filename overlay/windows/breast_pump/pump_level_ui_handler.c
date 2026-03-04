@@ -10,6 +10,7 @@
 *****************************************************************************************
 */
 #define PUMP_LEVEL_DISPLAY_TASK_NAME       "pump_level_display_cmp"
+#define PUMP_LEVEL_SYNC_TASK_NAME          "pump_level_sync_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -39,6 +40,21 @@ static void pump_level_display_completed_cb(hdr_post_args_t *args)
     }
 }
 
+static void pump_ui_level_status_syn(hdr_post_args_t *args)
+{
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
+    if (proc->current_ui_type == PUMP_UI_TYPE_LEVEL) {
+        EXCEPTION_CHECK_VOID(proc->motor);
+        int time_index = proc->pump->get_breast_pump_step_index();
+        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+            time_index = 0;
+        }
+        proc->pump->set_breast_pump_setting(&proc->setting, time_index, true);
+    }
+}
+
 static void pump_level_ui_before_policy(ui_manager_context_t *ui, int index)
 {
 
@@ -49,8 +65,12 @@ static void pump_level_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     ui_display_pump_level_process(ui);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_SUB_UI_DISPLAY_TIME) {
+    uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
+    if (time_diff >= PUMP_SUB_UI_DISPLAY_TIME) {
         POST_TASK_HANDLER_NO_DELAY(pump_level_display_completed_cb, proc, PUMP_LEVEL_DISPLAY_TASK_NAME);
+    } else if (proc->level_sync_flag && time_diff >= PUMP_LEVEL_SYNC_TIMEOUT) {
+        proc->level_sync_flag = false;
+        POST_TASK_HANDLER_NO_DELAY(pump_ui_level_status_syn, proc, PUMP_LEVEL_SYNC_TASK_NAME);
     }
 }
 
@@ -157,75 +177,82 @@ void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase)
         LOG_UI("pump is not working, ignore.");
         return;
     }
-    int time_index = proc->pump->get_breast_pump_step_index();
-    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-        time_index = 0;
-    }
 
-    proc->info.control_type = proc->pump->get_breast_pump_control_type();
-    proc->pump->get_breast_pump_setting(&proc->setting, time_index);
-
-    if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
-        if (is_increase) {
-            if (proc->setting.level[0] > 0) {
-                proc->setting.level[0]--;
-            }
-        } else {
-            if (proc->setting.level[0] < BREAST_PUMP_LEVEL_15) {
-                proc->setting.level[0]++;
-            }
+    if (proc->current_ui_type != PUMP_UI_TYPE_LEVEL) {
+        int time_index = proc->pump->get_breast_pump_step_index();
+        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+            time_index = 0;
         }
-    } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
-        if (is_increase) {
-            if (proc->setting.level[1] > 0) {
-                proc->setting.level[1]--;
-            }
-        } else {
-            if (proc->setting.level[1] < BREAST_PUMP_LEVEL_15) {
-                proc->setting.level[1]++;
-            }
-        }
-    } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
-        /// 双侧模式：level_change 表示档位变化值，范围 -15 到 15
-        /// is_increase=true: 增加强度（level_change++, level[i]++）
-        /// is_increase=false: 减小强度（level_change--, level[i]--）
-
-        /// 如果上次档位变化方向与is_increase相反，则清零档位变化值
-        if (proc->level_change_direction != is_increase) {
-            proc->level_change = 0;
-        }
-        /// 更新档位变化方向
-        proc->level_change_direction = is_increase;
-        /// 更新档位变化值
-        if (is_increase) {
-            if ((proc->setting.level[0] != BREAST_PUMP_LEVEL_0 && proc->setting.level[1] != BREAST_PUMP_LEVEL_0)) {
-                if (proc->level_change > -15) {
-                    proc->level_change--;
-                }
-            }
-        } else {
-            if ((proc->setting.level[0] != BREAST_PUMP_LEVEL_15 && proc->setting.level[1] != BREAST_PUMP_LEVEL_15)) {
-                if (proc->level_change < 15) {
-                    proc->level_change++;
-                }
-            }
-        }
-        // 同步更新两侧的档位值（档位值越小，强度越大）
-        for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+        proc->info.control_type = proc->pump->get_breast_pump_control_type();
+        proc->pump->get_breast_pump_setting(&proc->setting, time_index);
+    } 
+    else {
+        /// 如果当前是PUMP_UI_TYPE_LEVEL，则根据档位变化方向更新档位变化值
+        if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
             if (is_increase) {
-                if (proc->setting.level[i] > 0) {
-                    proc->setting.level[i]--;
+                if (proc->setting.level[0] > 0) {
+                    proc->setting.level[0]--;
                 }
             } else {
-                if (proc->setting.level[i] < BREAST_PUMP_LEVEL_15) {
-                    proc->setting.level[i]++;
+                if (proc->setting.level[0] < BREAST_PUMP_LEVEL_15) {
+                    proc->setting.level[0]++;
                 }
             }
+        } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
+            if (is_increase) {
+                if (proc->setting.level[1] > 0) {
+                    proc->setting.level[1]--;
+                }
+            } else {
+                if (proc->setting.level[1] < BREAST_PUMP_LEVEL_15) {
+                    proc->setting.level[1]++;
+                }
+            }
+        } else if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
+            /// 双侧模式：level_change 表示档位变化值，范围 -15 到 15
+            /// is_increase=true: 增加强度（level_change++, level[i]++）
+            /// is_increase=false: 减小强度（level_change--, level[i]--）
+    
+            /// 如果上次档位变化方向与is_increase相反，则清零档位变化值
+            if (proc->level_change_direction != is_increase) {
+                proc->level_change = 0;
+            }
+            /// 更新档位变化方向
+            proc->level_change_direction = is_increase;
+            /// 更新档位变化值
+            if (is_increase) {
+                if ((proc->setting.level[0] != BREAST_PUMP_LEVEL_0 && proc->setting.level[1] != BREAST_PUMP_LEVEL_0)) {
+                    if (proc->level_change > -15) {
+                        proc->level_change--;
+                    }
+                }
+            } else {
+                if ((proc->setting.level[0] != BREAST_PUMP_LEVEL_15 && proc->setting.level[1] != BREAST_PUMP_LEVEL_15)) {
+                    if (proc->level_change < 15) {
+                        proc->level_change++;
+                    }
+                }
+            }
+            // 同步更新两侧的档位值（档位值越小，强度越大）
+            for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+                if (is_increase) {
+                    if (proc->setting.level[i] > 0) {
+                        proc->setting.level[i]--;
+                    }
+                } else {
+                    if (proc->setting.level[i] < BREAST_PUMP_LEVEL_15) {
+                        proc->setting.level[i]++;
+                    }
+                }
+            }
+            LOG_UI("switch pump level change: %d, mode: %s", proc->level_change,
+                proc->pump->get_breast_pump_mode_name(proc->pump->get_breast_pump_mode()));
         }
-        LOG_UI("switch pump level change: %d, mode: %s", proc->level_change,
-            proc->pump->get_breast_pump_mode_name(proc->pump->get_breast_pump_mode()));
+    // 如果 UI 已经是 LEVEL 类型，设置同步标志，延后同步；否则立即同步
+    proc->level_sync_flag = true;
+    
     }
-    proc->pump->set_breast_pump_setting(&proc->setting, time_index, true);
+    
     show_pump_level_ui(proc);
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         LOG_UI("switch pump %d level: %d, mode: %s", i, proc->setting.level[i],
@@ -236,4 +263,5 @@ void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase)
 void pump_level_ui_hdr_remove(void)
 {
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_LEVEL_DISPLAY_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_LEVEL_SYNC_TASK_NAME);
 }
