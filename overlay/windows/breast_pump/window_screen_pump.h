@@ -46,6 +46,7 @@ extern "C" {
 /// 泵奶速度显示超时时间
 #define PUMP_SPEED_DISPLAY_TIMEOUT             (3000) /// 3s
 #define PUMP_SPEED_SYNC_TIMEOUT                 (1000) /// 3s 
+#define PUMP_LEVEL_SYNC_TIMEOUT                 (1000) /// 3s 
 /// 泵奶结果显示超时时间
 #define PUMP_RESULT_DISPLAY_TIMEOUT            (3000) /// 3s
 /// 泵奶背光灯周期
@@ -140,6 +141,7 @@ typedef struct {
     pump_setting_t setting; /// 当前泵奶设置信息.
     int8_t level_change; /// 当前档位变化值.
     uint8_t level_change_direction; /// 当前档位变化方向. 0: 增加, 1: 减少.
+    uint8_t level_sync_flag; /// 档位同步标志.
     uint8_t speed_sync_flag; /// 速度同步标志.
 #if IS_SUPPORT_AIR_LEAKAGE_WARNING
     uint8_t is_air_leakage_popup_show; /// 是否显示空气泄漏弹窗提示.
