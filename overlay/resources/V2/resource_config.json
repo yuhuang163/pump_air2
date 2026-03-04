@@ -340,6 +340,13 @@
       "file": "png/icon_level_add.png",
       "x_offset": 0,
       "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_PUMP_LEVEL_SUB_LABEL_ICON",
+      "description": "泵奶档位文本减号图标",
+      "file": "png/icon_level_sub.png",
+      "x_offset": 0,
+      "y_offset": 0
     }
   ]
 }

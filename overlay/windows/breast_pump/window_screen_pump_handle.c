@@ -349,6 +349,8 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
     proc->algo = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
     proc->led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    proc->level_change_direction = 0xff;/// 无效值
+    proc->level_change = 0;/// 档位变化值归零
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "pump_screen";

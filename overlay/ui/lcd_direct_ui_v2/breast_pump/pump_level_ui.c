@@ -6,9 +6,11 @@
 #include "ui_img_define.h"
 #include "ui_page_define.h"
 #include "ui_manager.h"
+#include "window_screen_logo.h"
 #include "window_screen_pump.h"
 #include "breast_pump_ui.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 /*
 * DEFINES
@@ -25,7 +27,7 @@
 #define PUMP_LEVEL_TEXT_LEVEL_LABLE_COLOR                      0x533129
 
 
-#define PUMP_LEVEL_TITLE_TEXT_X                           117  + 32
+#define PUMP_LEVEL_TITLE_TEXT_X                           117  + 36
 #define PUMP_LEVEL_TITLE_TEXT_Y                           96
 
 #define PUMP_LEVEL_CONTROL_TYPE_LABLE1_X_L_R                         150
@@ -36,6 +38,8 @@
 #define PUMP_LEVEL_CONTROL_TYPE_LABLE1_Y_B                           224
 #define PUMP_LEVEL_TEXT_LEVEL_LABLE_X                                130+8
 #define PUMP_LEVEL_TEXT_LEVEL_LABLE_Y                                136+8
+#define PUMP_LEVEL_DIGIT_WIDTH                                       43      // 单个数字字符固定宽度
+#define PUMP_LEVEL_DIGIT_SPACING                                      0       // 两个数字之间的间距
 
 
 
@@ -58,15 +62,16 @@ typedef struct {
     lv_obj_t * control_type_lable_text1;            // 控制类型标签文字
     lv_obj_t * control_type_lable2;                // 控制类型标签
     lv_obj_t * control_type_lable_text2;            // 控制类型标签文字
-    lv_obj_t * text_level_lable1;                    // 等级文字标签
     lv_obj_t * text_level_lable2;                    // 等级文字标签
+    lv_obj_t * text_level_digit1;                    // 等级数字标签（十位）
+    lv_obj_t * text_level_digit2;                    // 等级数字标签（个位）
     lv_obj_t * add_label;                    // 加号文字标签    
     res_img_info_t add_label_info;            // 加号文字标签资源信息
 
     uint8_t force_update;
     uint8_t left_level;
     uint8_t right_level;
-    uint8_t level_change;
+    int8_t level_change;
     uint8_t control_type;
     uint8_t last_display_level;             // 上次显示的等级，用于避免重复刷新
 } level_display_info_t;
@@ -202,7 +207,7 @@ static void pump_level_indicator_create(ui_manager_context_t *thiz, lv_obj_t *pa
 /**
  * @brief 更新等级指示器进度（参照pump_home_animation_update，使用图片代替圆弧）
  */
-static void pump_level_arc_progress_update(ui_manager_context_t *thiz, uint8_t level)
+static void pump_level_arc_progress_update(ui_manager_context_t *thiz, int8_t level_change)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(level_info);
@@ -214,7 +219,8 @@ static void pump_level_arc_progress_update(ui_manager_context_t *thiz, uint8_t l
     }
     
     EXCEPTION_CHECK_VOID(level_info->level_image);
-    
+    /// 取绝对值
+    uint8_t level = abs(level_change);
     // 边界保护：等级范围是0-15
     uint8_t display_level = (level > TOTAL_LEVEL) ? TOTAL_LEVEL : level;
     
@@ -347,6 +353,10 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
         }
         snprintf(label1_text, sizeof(label1_text), "L %s", level_str);
         lv_label_set_text(level_info->control_type_lable_text1, label1_text);
+        // 设置固定宽度，避免等级变化时位置跳动
+        lv_obj_set_width(level_info->control_type_lable_text1, 78);  // 固定宽度，确保"L 00"到"L 15"都能完整显示
+        lv_label_set_long_mode(level_info->control_type_lable_text1, LV_LABEL_LONG_CLIP);
+        lv_obj_set_style_text_align(level_info->control_type_lable_text1, LV_TEXT_ALIGN_CENTER, 0);  // 文本居中对齐
         lv_obj_set_style_bg_opa(level_info->control_type_lable_text1, LV_OPA_TRANSP, 0);
         lv_obj_set_style_border_opa(level_info->control_type_lable_text1, LV_OPA_TRANSP, 0);
         lv_obj_set_style_shadow_opa(level_info->control_type_lable_text1, LV_OPA_TRANSP, 0);
@@ -378,6 +388,10 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
         }
         snprintf(label2_text, sizeof(label2_text), "R %s", level_str2);
         lv_label_set_text(level_info->control_type_lable_text2, label2_text);
+        // 设置固定宽度，避免等级变化时位置跳动
+        lv_obj_set_width(level_info->control_type_lable_text2, 78);  // 固定宽度，确保"R 00"到"R 15"都能完整显示
+        lv_label_set_long_mode(level_info->control_type_lable_text2, LV_LABEL_LONG_CLIP);
+        lv_obj_set_style_text_align(level_info->control_type_lable_text2, LV_TEXT_ALIGN_CENTER, 0);  // 文本居中对齐
         lv_obj_set_style_bg_opa(level_info->control_type_lable_text2, LV_OPA_TRANSP, 0);
         lv_obj_set_style_border_opa(level_info->control_type_lable_text2, LV_OPA_TRANSP, 0);
         lv_obj_set_style_shadow_opa(level_info->control_type_lable_text2, LV_OPA_TRANSP, 0);
@@ -433,19 +447,37 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
 
 }
 
+/**
+ * @brief 设置固定宽度的数字标签样式
+ */
+static void pump_level_digit_label_setup(lv_obj_t *label, uint16_t x, uint16_t y)
+{
+    lv_obj_set_size(label, PUMP_LEVEL_DIGIT_WIDTH, 72);  // 固定宽度，高度匹配字体
+    lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);  // 居中对齐，确保字符居中
+    lv_obj_set_style_text_color(label, lv_color_hex(PUMP_LEVEL_TEXT_LEVEL_LABLE_COLOR), 0);
+    lv_obj_set_style_text_font(label, &lv_font_oppo_sans_72_bold, 0);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, x, y);
+}
+
 static void pump_level_text_level_lable_update(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(level_info);
     EXCEPTION_CHECK_VOID(level_info->root);
 
-    if (level_info->text_level_lable1 == NULL || !lv_obj_is_valid(level_info->text_level_lable1)) {
-        level_info->text_level_lable1 = lv_label_create(level_info->root);
-        EXCEPTION_CHECK_VOID(level_info->text_level_lable1);
-    }
     if (level_info->text_level_lable2 == NULL || !lv_obj_is_valid(level_info->text_level_lable2)) {
         level_info->text_level_lable2 = lv_label_create(level_info->root);
         EXCEPTION_CHECK_VOID(level_info->text_level_lable2);
+    }
+    // 创建两个独立的数字标签（十位和个位）
+    if (level_info->text_level_digit1 == NULL || !lv_obj_is_valid(level_info->text_level_digit1)) {
+        level_info->text_level_digit1 = lv_label_create(level_info->root);
+        EXCEPTION_CHECK_VOID(level_info->text_level_digit1);
+    }
+    if (level_info->text_level_digit2 == NULL || !lv_obj_is_valid(level_info->text_level_digit2)) {
+        level_info->text_level_digit2 = lv_label_create(level_info->root);
+        EXCEPTION_CHECK_VOID(level_info->text_level_digit2);
     }
     if (level_info->add_label == NULL || !lv_obj_is_valid(level_info->add_label)) {
         level_info->add_label = lv_image_create(level_info->root);
@@ -453,19 +485,26 @@ static void pump_level_text_level_lable_update(ui_manager_context_t *thiz)
     }
 
     if (level_info->control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
-        // 双侧模式：lable1 显示chang值
-        char level_text1[8];
-        /// 如果level_change小于10，则显示0+level_change的个位数
-        if (level_info->level_change < 10) {
-            snprintf(level_text1, sizeof(level_text1), "0%d", level_info->level_change);
-        } else {
-            snprintf(level_text1, sizeof(level_text1), "%d", level_info->level_change);
-        }
-
-        lv_label_set_text(level_info->text_level_lable1, level_text1);
-        lv_obj_set_style_text_color(level_info->text_level_lable1, lv_color_hex(PUMP_LEVEL_TEXT_LEVEL_LABLE_COLOR), 0);
-        lv_obj_set_style_text_font(level_info->text_level_lable1, &lv_font_oppo_sans_72_bold, 0);
-        lv_obj_align(level_info->text_level_lable1, LV_ALIGN_TOP_LEFT, PUMP_LEVEL_TEXT_LEVEL_LABLE_X, PUMP_LEVEL_TEXT_LEVEL_LABLE_Y);
+        // 双侧模式：使用两个独立标签显示level_change值（十位和个位）
+        uint8_t level_value = abs(level_info->level_change);
+        uint8_t tens_digit = level_value / 10;      // 十位数字
+        uint8_t ones_digit = level_value % 10;      // 个位数字
+        
+        // 显示十位数字（固定宽度）
+        char tens_char[2] = { '0' + tens_digit, '\0' };
+        lv_label_set_text(level_info->text_level_digit1, tens_char);
+        pump_level_digit_label_setup(level_info->text_level_digit1, 
+            PUMP_LEVEL_TEXT_LEVEL_LABLE_X, PUMP_LEVEL_TEXT_LEVEL_LABLE_Y);
+        lv_obj_clear_flag(level_info->text_level_digit1, LV_OBJ_FLAG_HIDDEN);
+        
+        // 显示个位数字（固定宽度）
+        char ones_char[2] = { '0' + ones_digit, '\0' };
+        lv_label_set_text(level_info->text_level_digit2, ones_char);
+        pump_level_digit_label_setup(level_info->text_level_digit2, 
+            PUMP_LEVEL_TEXT_LEVEL_LABLE_X + PUMP_LEVEL_DIGIT_WIDTH + PUMP_LEVEL_DIGIT_SPACING, 
+            PUMP_LEVEL_TEXT_LEVEL_LABLE_Y);
+        lv_obj_clear_flag(level_info->text_level_digit2, LV_OBJ_FLAG_HIDDEN);
+        
 
         ///lable2 显示 +文本 隐藏
         //lv_label_set_text(level_info->text_level_lable2, "+");
@@ -475,7 +514,8 @@ static void pump_level_text_level_lable_update(ui_manager_context_t *thiz)
         lv_obj_add_flag(level_info->text_level_lable2, LV_OBJ_FLAG_HIDDEN);
 
         ///add_label 显示加号图标（参照背景图标代码）
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_LEVEL_ADD_LABEL_ICON, &level_info->add_label_info);
+        //LOG_UI("level_change: %d", level_info->level_change);
+        common_ui_img_resource_init(thiz, level_info->level_change >= 0 ? RESOURCE_ID_PUMP_LEVEL_ADD_LABEL_ICON : RESOURCE_ID_PUMP_LEVEL_SUB_LABEL_ICON, &level_info->add_label_info);
         EXCEPTION_CHECK_VOID(level_info->add_label_info.data);
         
         lv_fs_path_ex_t add_img_path;
@@ -490,28 +530,32 @@ static void pump_level_text_level_lable_update(ui_manager_context_t *thiz)
 
         ///add_label图片标签   隐藏
         lv_obj_add_flag(level_info->add_label, LV_OBJ_FLAG_HIDDEN);
-        // 单侧模式：显示一个等级标签
+        // 单侧模式：使用两个独立标签显示等级值（十位和个位）
         uint8_t display_level = (level_info->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) ? 
                                 level_info->left_level : level_info->right_level;
+        uint8_t tens_digit = display_level / 10;      // 十位数字
+        uint8_t ones_digit = display_level % 10;      // 个位数字
         
-        char level_text[8];
-        /// 如果display_level小于10，则显示0+display_level的个位数
-        if (display_level < 10) {
-            snprintf(level_text, sizeof(level_text), "0%d", display_level);
-        } else {
-            snprintf(level_text, sizeof(level_text), "%d", display_level);
-        }
-        lv_label_set_text(level_info->text_level_lable1, level_text);
-        lv_obj_set_style_text_color(level_info->text_level_lable1, lv_color_hex(PUMP_LEVEL_TEXT_LEVEL_LABLE_COLOR), 0);
-        lv_obj_set_style_text_font(level_info->text_level_lable1, &lv_font_oppo_sans_72_bold, 0);
-        lv_obj_align(level_info->text_level_lable1, LV_ALIGN_TOP_LEFT, PUMP_LEVEL_TEXT_LEVEL_LABLE_X, PUMP_LEVEL_TEXT_LEVEL_LABLE_Y);
-
+        // 显示十位数字（固定宽度）
+        char tens_char[2] = { '0' + tens_digit, '\0' };
+        lv_label_set_text(level_info->text_level_digit1, tens_char);
+        pump_level_digit_label_setup(level_info->text_level_digit1, 
+            PUMP_LEVEL_TEXT_LEVEL_LABLE_X, PUMP_LEVEL_TEXT_LEVEL_LABLE_Y);
+        lv_obj_clear_flag(level_info->text_level_digit1, LV_OBJ_FLAG_HIDDEN);
         
+        // 显示个位数字（固定宽度）
+        char ones_char[2] = { '0' + ones_digit, '\0' };
+        lv_label_set_text(level_info->text_level_digit2, ones_char);
+        pump_level_digit_label_setup(level_info->text_level_digit2, 
+            PUMP_LEVEL_TEXT_LEVEL_LABLE_X + PUMP_LEVEL_DIGIT_WIDTH + PUMP_LEVEL_DIGIT_SPACING, 
+            PUMP_LEVEL_TEXT_LEVEL_LABLE_Y);
+        lv_obj_clear_flag(level_info->text_level_digit2, LV_OBJ_FLAG_HIDDEN);
+             
         // 第二个标签显示/15 文本
         lv_label_set_text(level_info->text_level_lable2, "/15");
         lv_obj_set_style_text_color(level_info->text_level_lable2, lv_color_hex(PUMP_LEVEL_TEXT_LEVEL_LABLE_COLOR), 0);
         lv_obj_set_style_text_font(level_info->text_level_lable2, &lv_font_oppo_sans_20_medium, 0);
-        lv_obj_align(level_info->text_level_lable2, LV_ALIGN_TOP_LEFT, PUMP_LEVEL_TEXT_LEVEL_LABLE_X + 84, PUMP_LEVEL_TEXT_LEVEL_LABLE_Y + 40);
+        lv_obj_align(level_info->text_level_lable2, LV_ALIGN_TOP_LEFT, PUMP_LEVEL_TEXT_LEVEL_LABLE_X + 86, PUMP_LEVEL_TEXT_LEVEL_LABLE_Y + 38);
          //修改字体透明度为50%
         lv_obj_set_style_text_opa(level_info->text_level_lable2, LV_OPA_50, LV_PART_MAIN);
         ///text_level_lable2 显示lable
@@ -565,6 +609,8 @@ void ui_display_pump_level_remove(ui_manager_context_t *thiz)
     LVGL_OBJ_DELETE(level_info->background);
     LVGL_OBJ_DELETE(level_info->level_image);
     LVGL_OBJ_DELETE(level_info->add_label);
+    LVGL_OBJ_DELETE(level_info->text_level_digit1);
+    LVGL_OBJ_DELETE(level_info->text_level_digit2);
     LVGL_OBJ_DELETE(level_info->root);
     
     u_free(level_info);
@@ -589,11 +635,11 @@ int ui_display_pump_level_process(ui_manager_context_t *thiz)
 
     level_info->left_level = setting.level[0];
     level_info->right_level = setting.level[1];
-    level_info->control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
-    level_info->level_change = 9;  // 测试值，实际应从业务逻辑获取
+    level_info->control_type = control_type;
+    level_info->level_change = proc->level_change;  // 测试值，实际应从业务逻辑获取
     
     // 根据控制类型计算当前显示等级
-    uint8_t display_level;
+    int8_t display_level;
     if (control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
         display_level = level_info->level_change;
     } else {
