@@ -155,6 +155,7 @@ void ui_display_product_tests_home_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     product_tests_ui_root_init();
+    ble_ui_init(thiz);
 }
 
 void ui_display_product_tests_home_remove(ui_manager_context_t *thiz)
@@ -163,6 +164,7 @@ void ui_display_product_tests_home_remove(ui_manager_context_t *thiz)
     if (tests_info == NULL) {
         return;
     }
+    ble_ui_deinit(thiz);
     LVGL_OBJ_DELETE(tests_info->root);
     u_free(tests_info);
     tests_info = NULL;
@@ -176,7 +178,7 @@ int ui_display_product_tests_home_process(ui_manager_context_t *thiz)
     ui_proc_product_test_t *proc = (ui_proc_product_test_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc->ble);
     EXCEPTION_CHECK_INT(proc->battery);
-    ble_ui_update(thiz, tests_info->root, proc->ble->ble_is_connected(), 168, 22);
+    ble_ui_update(thiz, tests_info->root, proc->ble, 168, 22);
     battery_icon_update(thiz, tests_info->root, proc->battery->get_battery_percent(),
         BATTERY_IS_CHARGING(proc->battery->get_charge_status()));
     uint8_t mac_addr[6] = {0};
