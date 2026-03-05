@@ -143,6 +143,14 @@ void switch_pump_control_type_ui(ui_proc_pump_t *proc,uint8_t control_type)
         return;
     }
 
+    if (proc->current_ui_type != PUMP_UI_TYPE_LEVEL) {
+        int time_index = proc->pump->get_breast_pump_step_index();
+        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+            time_index = 0;
+        }
+        proc->pump->get_breast_pump_setting(&proc->setting, time_index);
+    } 
+
     if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
         proc->led->set_led_blink(PUMP_RIGHT_CONTROL_BL, PUMP_BLINK_PERIOD,
             PUMP_LEVEL_BLINK_TIMES, LED_STATUS_ON);
