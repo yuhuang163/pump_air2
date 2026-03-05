@@ -39,7 +39,7 @@ static void on_motor_error_check_callback(uint8_t pump_id, motor_dev_status_e st
         
         /// 检查广播系统是否已初始化
         if (is_broadcast_inited()) {
-            SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_STATE_CHANGE, BREAST_PUMP_ERROR);
+            SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_PUMP_ERROR);
         }
         
         breast_pump_obj->set_breast_pump_status(BREAST_PUMP_PAUSE);

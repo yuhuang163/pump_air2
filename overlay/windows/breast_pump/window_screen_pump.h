@@ -101,6 +101,7 @@ typedef enum {
     PUMP_POPUP_UI_MODE_PROMPT = 1, /// 模式切换提示
     PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP = 2, /// 泵奶结束提示
     PUMP_POPUP_UI_PUMP_PAUSE_PROMPT = 3, /// 泵奶暂停提示
+    PUMP_POPUP_UI_PUMP_ERROR_TIP = 4, /// 泵奶异常提示
 } pump_popup_ui_type_e;
 
 /// 泵奶信息结构体
