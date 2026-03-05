@@ -185,6 +185,12 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     body->is_climb_policy = 1;
 #endif
     body->timed_policy = &body->manager->head;
+    body->current_mode_type = pump_policy_type_get(body->timed_policy->policy);
+    if (body->timed_policy->next) {
+        body->next_mode_type = pump_policy_type_get(body->timed_policy->next->policy);
+    } else {
+        body->next_mode_type = body->current_mode_type;
+    }
     body->current_timed_policy_index = 0;
     body->current_policy_index = 0;
     body->current_time_policy_running_time = 0;
@@ -192,6 +198,7 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     if (!body->taste_run_flag) {
         thiz->priv.pump_ctx->priv.m_info.step_index = 0;
     }
+    
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
         pump_policy_info_reset(thiz, body, i);

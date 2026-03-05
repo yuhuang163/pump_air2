@@ -774,8 +774,8 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
         pump_home_common_mode_update(thiz, mode);  
     } else {
         pump_home_time_update(thiz, hold_time, 19);
-        uint8_t sub_mode = proc->pump->get_pump_breastfeeding_sub_mode();
-        uint8_t next_sub_mode = proc->pump->get_pump_breastfeeding_next_sub_mode();
+        uint8_t sub_mode = proc->motor->get_runtime_mode_type(false);
+        uint8_t next_sub_mode = proc->motor->get_runtime_mode_type(true);
         pump_home_animation_update(thiz, RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START, 
             RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_END - RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START + 1,
             0, 0);

@@ -47,11 +47,8 @@ static void pump_ui_level_status_syn(hdr_post_args_t *args)
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
     if (proc->current_ui_type == PUMP_UI_TYPE_LEVEL) {
         EXCEPTION_CHECK_VOID(proc->motor);
-        int time_index = proc->pump->get_breast_pump_step_index();
-        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-            time_index = 0;
-        }
-        proc->pump->set_breast_pump_setting(&proc->setting, time_index, true);
+        uint8_t time_index = proc->pump->get_breast_pump_step_index();
+        proc->pump->set_breast_pump_setting(&proc->setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index, true);
     }
 }
 
@@ -179,14 +176,10 @@ void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase)
     }
 
     if (proc->current_ui_type != PUMP_UI_TYPE_LEVEL) {
-        int time_index = proc->pump->get_breast_pump_step_index();
-        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-            time_index = 0;
-        }
+        uint8_t time_index = proc->pump->get_breast_pump_step_index();
         proc->info.control_type = proc->pump->get_breast_pump_control_type();
-        proc->pump->get_breast_pump_setting(&proc->setting, time_index);
-    } 
-    else {
+        proc->pump->get_breast_pump_setting(&proc->setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
+    } else {
         /// 如果当前是PUMP_UI_TYPE_LEVEL，则根据档位变化方向更新档位变化值
         if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
             if (is_increase) {

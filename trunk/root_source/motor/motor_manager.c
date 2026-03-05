@@ -244,6 +244,15 @@ int motor_is_can_play_now(void)
     return 1;
 }
 
+static uint8_t get_runtime_mode_type(uint8_t is_next_mode)
+{
+    if (is_next_mode) {
+        return motor_obj->priv.runtime.next_mode_type;
+    } else {
+        return motor_obj->priv.runtime.current_mode_type;
+    }
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************

@@ -57,6 +57,8 @@ typedef enum {
     SUCTION_MODE_IDLE = 0,
     SUCTION_MODE_SHORT,
     SUCTION_MODE_LONG, 
+    SUCTION_MODE_MIX_SHORT,
+    SUCTION_MODE_MIX_LONG,
 } suction_mode_type_e;
 
 /// 吸力速度等级
@@ -267,6 +269,8 @@ typedef struct {
     uint32_t manager_start_time; /// 总策略开始时间，单位ms
     taste_setting_t taste_setting; /// 体验模式设置
     uint8_t taste_run_flag; /// 体验模式运行标志
+    uint8_t current_mode_type; /// 当前模式类型
+    uint8_t next_mode_type; /// 下一个模式类型
 } motor_policy_runtime_t;
 
 /// 吸乳策略处理
