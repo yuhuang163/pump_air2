@@ -25,6 +25,7 @@ typedef enum {
     BREAST_PUMP_BROADCAST_PUMP_WILL_FINISH,   /// 泵奶即将结束.
     BREAST_PUMP_BROADCAST_STATE_CHANGE,       /// 状态改变.
     BREAST_PUMP_BROADCAST_POLICY_CHANGE,      /// 策略改变.
+    BREAST_PUMP_BROADCAST_PUMP_ERROR,   /// 泵奶异常.
     BREAST_PUMP_BROADCAST_ID_MAX, 
 } breast_pump_broadcast_id_e;
 

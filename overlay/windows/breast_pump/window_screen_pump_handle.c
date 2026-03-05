@@ -237,6 +237,11 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
                     PUMP_COMPLETE_TASK_NAME);
                 LOG_WM("pump will finish, post pump will finish task.");
             }
+            else if (arg1 == BREAST_PUMP_BROADCAST_PUMP_ERROR) {
+                LOG_WM("pump error, post pump error task.");
+                //先暂时显示暂停提示
+                proc->popup_ui_type = PUMP_POPUP_UI_PUMP_PAUSE_PROMPT;
+            }
             break;
         default:
             break;
