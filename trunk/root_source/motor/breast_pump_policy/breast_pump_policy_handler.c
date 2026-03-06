@@ -191,9 +191,11 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     } else {
         body->next_mode_type = body->current_mode_type;
     }
+    LOG_MOTOR("mode %d current type: %d, next type: %d", body->breast_pump_mode,
+         body->current_mode_type, body->next_mode_type);
     body->current_timed_policy_index = 0;
     body->current_policy_index = 0;
-    body->current_time_policy_running_time = 0;
+    body->time_policy_running_time = 0;
     /// 更新pump缓存当前策略步数索引,体验模式下不更新PUMP步数索引
     if (!body->taste_run_flag) {
         thiz->priv.pump_ctx->priv.m_info.step_index = 0;
@@ -249,7 +251,7 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
         }    
         // msleep(PUMP_POLICY_RUN_TIME_INTERVAL);
     }
-    runtime->current_time_policy_running_time += get_timestamp_ms(runtime->timed_policy_start_time);
+    runtime->time_policy_running_time += get_timestamp_ms(runtime->timed_policy_start_time);
     negative_pressure_release(thiz);
     STOP_TIMER(policy_work_timer);
     if (runtime->taste_run_flag) {

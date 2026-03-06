@@ -339,8 +339,6 @@ static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_
     EXCEPTION_CHECK_UINT(storage_ctx);
     storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, &pump_steps_info);
     LOG_SRV("put custom trial steps info to ram");
-    storage_ctx->put_store_ram_val(STORE_ID_BREAST_PUMP_TIME, BREAST_PUMP_CUSTOM_TRIAL_MODE,0, &pump_steps_info.total_time);
-    LOG_SRV("custom trial mode total time=%d", pump_steps_info.total_time);
     custom_trial_mode_update_by_steps_info(&pump_steps_info);
     pump_setting_t setting;
     for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
@@ -351,7 +349,7 @@ static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_
         for (uint8_t j = 0; j < BREAST_PUMP_NUM; j++) {
             setting.level[j] = pump_steps_info.data[i].level;
         }
-        storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_MODE, i, &setting);
+        storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, i, &setting);
     }
     return true;
 }
