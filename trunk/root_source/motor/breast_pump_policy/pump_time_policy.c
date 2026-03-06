@@ -110,24 +110,29 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
 { 
     /// 检测当前时间策略是否执行完毕
     uint32_t hold_time = (get_timestamp_ms(runtime->timed_policy_start_time) + \
-     runtime->current_time_policy_running_time) / 1000; 
+                          runtime->time_policy_running_time) / 1000; 
+                          
     if (hold_time >= runtime->timed_policy->duration_seconds) {
         /// 执行下一个时间策略
         if (runtime->timed_policy->next) {
             runtime->current_timed_policy_index++;
             runtime->timed_policy = runtime->timed_policy->next;
-            runtime->current_mode_type = pump_policy_type_get(runtime->timed_policy->policy);
-            if (runtime->timed_policy->next) {  
-                runtime->next_mode_type = pump_policy_type_get(runtime->timed_policy->next->policy);
-            } else {
-                runtime->next_mode_type = pump_policy_type_get(runtime->manager->head.policy);
-            }
-            runtime->current_time_policy_running_time = 0;
+            runtime->time_policy_running_time = 0;
         } else {
             runtime->current_timed_policy_index = 0;
             runtime->timed_policy = &runtime->manager->head;
-            runtime->current_time_policy_running_time = 0;
+            runtime->time_policy_running_time = 0;
         }
+        runtime->time_policy_remaining_time = runtime->timed_policy->duration_seconds;
+        /// 更新模式类型
+        runtime->current_mode_type = pump_policy_type_get(runtime->timed_policy->policy);
+        if (runtime->timed_policy->next) {  
+            runtime->next_mode_type = pump_policy_type_get(runtime->timed_policy->next->policy);
+        } else {
+            runtime->next_mode_type = pump_policy_type_get(runtime->manager->head.policy);
+        }
+        LOG_MOTOR("mode %d type cur: %d, next: %d, index: %d", runtime->breast_pump_mode,
+             runtime->current_mode_type, runtime->next_mode_type, runtime->current_timed_policy_index);
         /// 更新步数索引.
         if (thiz->priv.pump_ctx && (!runtime->taste_run_flag)) {
             thiz->priv.pump_ctx->priv.m_info.step_index = runtime->current_timed_policy_index;
@@ -156,6 +161,8 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
             servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
         }
         return 0;
+    } else {
+        runtime->time_policy_remaining_time = runtime->timed_policy->duration_seconds - hold_time;
     }
 
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {

@@ -91,7 +91,9 @@ typedef struct breast_pump_info_t {
     uint8_t step_index;    /// 吸奶器档位索引
     uint8_t control_type;  /// 吸奶器控制类型
     uint8_t breastfeeding_mode;      /// 追奶模式
+    uint8_t last_breastfeeding_mode;      /// 上次追奶模式
     uint8_t common_mode;      /// 常规模式
+    uint8_t last_common_mode;      /// 上次常规模式
 } breast_pump_info_t;
 
 /// 吸奶结果ID
@@ -100,6 +102,13 @@ typedef enum{
     BREAST_PUMP_RESULT_HISTORY,    /// 上次有效的泵奶信息 >30秒
     BREAST_PUMP_RESULT_MAX,
 } breast_pump_result_id_e;
+
+/// 吸奶模式类型
+typedef enum{
+    BREAST_PUMP_MODE_TYPE_COMMON,    /// 常规模式
+    BREAST_PUMP_MODE_TYPE_BREASTFEEDING,    /// 追奶模式
+    BREAST_PUMP_MODE_TYPE_MAX,
+} breast_pump_mode_type_e;
 
 struct peripheral_bus_context;
 struct motor_manager_context;
@@ -129,9 +138,8 @@ typedef struct breast_pump_manager_context {
     void (*reset_breast_pump_result)(void);
     int (*add_breast_pump_result_listener)(void *user_data, on_breast_pump_result_cb_ptr cb);
     void (*remove_breast_pump_result_listener)(on_breast_pump_result_cb_ptr cb);
+    int (*get_breast_pump_mode_by_type)(breast_pump_mode_type_e type, uint8_t is_last);
     int (*get_breast_pump_mode)(void);
-    int (*get_breast_pump_breastfeeding_mode)(void);
-    int (*get_breast_pump_common_mode)(void);
     void (*set_breast_pump_mode)(uint32_t mode, uint8_t is_store_mode);
     int (*get_breast_pump_control_type)(void);
     void (*set_breast_pump_control_type)(uint8_t control_type);

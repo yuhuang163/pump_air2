@@ -53,6 +53,8 @@ int read_pump_control_type_from_ram(store_func_args_t args);
 /// 泵奶模式接口
 int write_pump_mode_to_ram(store_func_args_t args);
 int read_pump_mode_from_ram(store_func_args_t args);
+int write_pump_mode_with_type_to_ram(store_func_args_t args);
+int read_pump_mode_with_type_from_ram(store_func_args_t args);
 
 /// 泵奶数据同步接口
 int pump_data_info_sync_flash(storage_manager_context_t *ctx, pump_result_info_t *body);

@@ -13,6 +13,7 @@
 */
 #define PUMP_INFO_LOG_INTERVAL                             (10)            
 #define PUMP_WILL_FINISH_TIME_MS                           (3000)
+#define PUMP_TIME_TO_SECOND(time)                          (time / 1000)
 
 // 比较两数相等，允许一定范围的误差
 #define IS_UINT_EQUAL_IN_ERROR(num_scr, num_dest, diff)           (((num_dest) <= (num_scr)) && ((num_scr) < ((num_dest) + (diff))))
@@ -65,7 +66,8 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     if ((result_info->work_total_time >= result_info->target_total_time && result_info->target_total_time != 0) || 
         (result_info->work_valid_time >= result_info->target_valid_time && result_info->target_valid_time != 0)) {
         LOG_PMP("finish, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d, mode_time=%d", 
-            result_info->work_total_time, result_info->target_total_time, result_info->work_valid_time, result_info->target_valid_time,
+            PUMP_TIME_TO_SECOND(result_info->work_total_time), PUMP_TIME_TO_SECOND(result_info->target_total_time),
+            PUMP_TIME_TO_SECOND(result_info->work_valid_time), PUMP_TIME_TO_SECOND(result_info->target_valid_time),
             result_info->current_mode_work_time);   
         log_timer = 0;
         return RESULT_PUMP_FINISH;
@@ -87,10 +89,12 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     /// 有效时间累加，更新各区域有效时间.
     result_info->work_valid_time += PUMP_WORK_STEP_TIME_MS;
     if (log_timer > PUMP_INFO_LOG_INTERVAL) {
-        LOG_PMP("%s, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d, mode_time=%d", 
+        uint32_t time_policy_remaining_time = ctx->priv.motor->get_current_time_policy_remaining_time();
+        LOG_PMP("%s, total: work_time=%d, target_time=%d; valid: work_time=%d, target_time=%d, mode_time=%d, policy_rtime=%d", 
             ret == RESULT_PUMP_WILL_FINISH ? "will finish" : "normal",
-            result_info->work_total_time, result_info->target_total_time, result_info->work_valid_time, result_info->target_valid_time,
-            result_info->current_mode_work_time);
+            PUMP_TIME_TO_SECOND(result_info->work_total_time), PUMP_TIME_TO_SECOND(result_info->target_total_time),
+            PUMP_TIME_TO_SECOND(result_info->work_valid_time), PUMP_TIME_TO_SECOND(result_info->target_valid_time),
+            PUMP_TIME_TO_SECOND(result_info->current_mode_work_time), time_policy_remaining_time);
         log_timer = 0;
     }
     return ret;

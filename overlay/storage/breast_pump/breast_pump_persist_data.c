@@ -58,8 +58,8 @@ int write_pump_info_to_flash(store_func_args_t args)
 void reset_pump_info(storage_manager_context_t *ctx, sys_pump_info_t *pump_info)
 {
     const motor_policy_cfg_t *cfg = NULL;
-    pump_info->last_expert_mode              = 0;
-    pump_info->last_regular_mode             = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+    pump_info->last_expert_mode              = 255;
+    pump_info->last_regular_mode             = 255;
     pump_info->last_pump_mode                = BREAST_PUMP_NORMAL_MODE_DEFAULT;
     for (int i = 0; i < BREAST_PUMP_MODE_MAX; i++) {
         pump_info->mode_update_flag[i] = 0;
@@ -123,8 +123,6 @@ void reset_pump_mode_steps_info(storage_manager_context_t *ctx, sys_pump_mode_in
     memset(mode_info, 0, sizeof(sys_pump_mode_info_t));
     for (int i = 0; i < BREAST_PUMP_MODE_MAX; i++) {
         breast_pump_mode_steps_info_reset(mode_info, i);
-        mode_info->pump_time[i] = mode_info->steps_info[i].total_time;
-        LOG_STORE_WRAP("reset pump mode: %d, time: %d", i, mode_info->pump_time[i]);
     }
     store_func_args_t args = {
         .ctx = ctx,
@@ -349,7 +347,7 @@ int write_pump_time_to_ram(store_func_args_t args)
         LOGE("mode: %d, out of range", mode);
         return -1;
     }
-    mode_info->pump_time[mode] = (uint16_t)*pump_time;
+    mode_info->steps_info[mode].total_time = (uint16_t)*pump_time;
     LOG_STORE_WRAP("write pump mode: %d, time: %d", mode, *pump_time);
     return 0;
 }
@@ -365,7 +363,7 @@ int read_pump_time_from_ram(store_func_args_t args)
         LOGE("mode: %d, out of range", mode);
         return -1;
     }
-    *pump_time = (uint32_t)mode_info->pump_time[mode];
+    *pump_time = (uint32_t)mode_info->steps_info[mode].total_time;
     // LOG_STORE_WRAP("read pump mode: %d, time: %d", mode, *pump_time);
     return 0;
 }
@@ -521,7 +519,12 @@ int write_pump_mode_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    pump_info->last_pump_mode = *(uint8_t *)args.val;
+    uint8_t mode = args.arg1;
+    if (mode >= BREAST_PUMP_MODE_MAX) {
+        LOGE("mode: %d, out of range", mode);
+        return -1;
+    }
+    pump_info->last_pump_mode = mode;
     LOG_STORE_WRAP("write pump mode: %d", pump_info->last_pump_mode);
     return 0;
 }
@@ -536,41 +539,47 @@ int read_pump_mode_from_ram(store_func_args_t args)
     return 0;
 }
 
-int write_expert_mode_to_ram(store_func_args_t args)
+int write_pump_mode_with_type_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    pump_info->last_expert_mode = *(uint8_t *)args.val;
-    LOG_STORE_WRAP("write expert mode: %d", pump_info->last_expert_mode);
+    uint8_t mode_type = args.arg1;
+    uint8_t mode = args.arg2;
+    if (mode_type >= BREAST_PUMP_MODE_TYPE_MAX) {
+        LOGE("mode_type: %d, out of range", mode_type);
+        return -1;
+    }
+    
+    if (mode >= BREAST_PUMP_MODE_MAX) {
+        LOGE("mode: %d, out of range", mode);
+        return -1;
+    }
+
+    if (mode_type == BREAST_PUMP_MODE_TYPE_COMMON) {
+        pump_info->last_regular_mode = mode;
+    } else {
+        pump_info->last_expert_mode = mode;
+    }
+    LOG_STORE_WRAP("write pump mode with type: %d, mode: %d", mode_type, mode);
     return 0;
 }
 
-int read_expert_mode_from_ram(store_func_args_t args)
+int read_pump_mode_with_type_from_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    int *tmp = (int *)args.val;
-    EXCEPTION_CHECK_INT(tmp);
-    *tmp = pump_info->last_expert_mode;
-    return 0;
-}
-
-int write_regular_mode_to_ram(store_func_args_t args)
-{
-    EXCEPTION_CHECK_INT(args.ctx);
-    sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    pump_info->last_regular_mode = *(uint8_t *)args.val;
-    LOG_STORE_WRAP("write regular mode: %d", pump_info->last_regular_mode);
-    return 0;
-}   
-
-int read_regular_mode_from_ram(store_func_args_t args)
-{
-    EXCEPTION_CHECK_INT(args.ctx);
-    sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
-    int *tmp = (int *)args.val;
-    EXCEPTION_CHECK_INT(tmp);
-    *tmp = pump_info->last_regular_mode;
+    uint8_t mode_type = args.arg1;
+    int *mode = (int *)args.val;
+    EXCEPTION_CHECK_INT(mode);
+    if (mode_type >= BREAST_PUMP_MODE_TYPE_MAX) {
+        LOGE("mode_type: %d, out of range", mode_type);
+        return -1;
+    }
+    if (mode_type == BREAST_PUMP_MODE_TYPE_COMMON) {
+        *mode = (int)pump_info->last_regular_mode;
+    } else {
+        *mode = (int)pump_info->last_expert_mode;
+    }
     return 0;
 }
 

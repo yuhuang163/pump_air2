@@ -216,7 +216,6 @@ typedef struct {
 #define PUMP_MODE_NAME_LEN                 20
 typedef struct {
     pump_mode_steps_info_t steps_info[BREAST_PUMP_MODE_MAX];
-    uint16_t pump_time[BREAST_PUMP_MODE_MAX];   /// 泵奶时长,单位s
     char mode_name[BREAST_PUMP_MODE_MAX][PUMP_MODE_NAME_LEN];   /// 模式名称
 } sys_pump_mode_info_t;
 

@@ -253,6 +253,11 @@ static uint8_t get_runtime_mode_type(uint8_t is_next_mode)
     }
 }
 
+static uint32_t get_current_time_policy_remaining_time(void)
+{
+    return motor_obj->priv.runtime.time_policy_remaining_time;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -267,6 +272,7 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
     ptr->is_can_play_now = motor_is_can_play_now;
     ptr->get_runtime_policy_index = get_runtime_policy_index;
     ptr->get_runtime_mode_type = get_runtime_mode_type;
+    ptr->get_current_time_policy_remaining_time = get_current_time_policy_remaining_time;
     ptr->synchronous_stop_motor = synchronous_stop_motor;
     motor_obj = ptr;
     
