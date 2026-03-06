@@ -78,6 +78,7 @@ const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
     {STORE_ID_BREAST_PUMP_BURY_INFO, write_pump_buried_info_to_ram},
     {STORE_ID_BREAST_PUMP_MODE, write_pump_mode_to_ram},
     {STORE_ID_BREAST_PUMP_MODE_WITH_TYPE, write_pump_mode_with_type_to_ram},
+    {STORE_ID_MODE_UPDATE_FLAG, write_mode_update_flag_to_ram},
     {STORE_ID_SYS_BIND_STATUS, write_bind_status_to_ram},
 };
 
@@ -107,6 +108,7 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_BREAST_PUMP_DATA_HEAD, read_pump_data_head_from_ram},
     {STORE_ID_BREAST_PUMP_MODE, read_pump_mode_from_ram},
     {STORE_ID_BREAST_PUMP_MODE_WITH_TYPE, read_pump_mode_with_type_from_ram},
+    {STORE_ID_MODE_UPDATE_FLAG, read_mode_update_flag_from_ram},
     {STORE_ID_SYS_BIND_STATUS, read_bind_status_from_ram},
 };
 

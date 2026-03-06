@@ -99,6 +99,13 @@ static int generate_motor_para_custom(void *user_data, int data_size)
     return custom_mode_update_by_steps_info(steps_info);
 }
 
+static int generate_motor_para_custom_trial(void *user_data, int data_size)
+{
+    pump_mode_steps_info_t *steps_info = (pump_mode_steps_info_t *) user_data;
+    EXCEPTION_CHECK_INT(steps_info);
+    return custom_trial_mode_update_by_steps_info(steps_info);
+}
+
 static int generate_motor_para(struct motor_manager_context *ctx, int mode, void *user_data, int data_size)
 {
     uint8_t stop_flag = 0;
@@ -112,6 +119,9 @@ static int generate_motor_para(struct motor_manager_context *ctx, int mode, void
     switch (mode) {
         case BREAST_PUMP_CUSTOM_MODE:
             ret = generate_motor_para_custom(user_data, data_size);
+            break;
+        case BREAST_PUMP_CUSTOM_TRIAL_MODE:
+            ret = generate_motor_para_custom_trial(user_data, data_size);
             break;
         default:
             break;
