@@ -81,7 +81,7 @@ static const uint16_t mode_component_ids[MODE_COUNT] = {
 static const char *mode_name[MODE_COUNT] = {
     "Stimulation", /// 慢速
     "Expression", /// 常规
-    "Mix", /// 快速
+    "Mixed", /// 快速
 };
 
 static const char *mode_desc[MODE_COUNT] = {
