@@ -13,7 +13,7 @@
 */
 #define PUMP_INFO_LOG_INTERVAL                             (10)            
 #define PUMP_WILL_FINISH_TIME_MS                           (3000)
-#define PUMP_TIME_TO_SECOND(time)                          (time / 1000)
+#define PUMP_TIME_TO_SECOND(time)                          (time)
 
 // 比较两数相等，允许一定范围的误差
 #define IS_UINT_EQUAL_IN_ERROR(num_scr, num_dest, diff)           (((num_dest) <= (num_scr)) && ((num_scr) < ((num_dest) + (diff))))
