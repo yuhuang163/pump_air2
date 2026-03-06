@@ -3,10 +3,8 @@
 *****************************************************************************************
 */
 #include "persist_storage.h"
-#include "root_common.h"
 #include "root_common_api.h"
 #include "breast_pump_manager.h" // IWYU pragma: keep
-#include "breast_pump_mode.h"
 
 /*
 * DEFINES
@@ -154,41 +152,45 @@ static void get_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
     } 
 
     if (step_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-        memcpy(setting, breast_pump_obj->priv.setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
-    } else {
-        memcpy(setting, &breast_pump_obj->priv.setting[step_index], sizeof(pump_setting_t));
+        LOGE("step_index out of range");
+        return;
     }
+#if IS_PUMP_STEPS_USE_SAME_SETTING
+    setting->level[0] = breast_pump_obj->priv.setting[0].level[0];
+    setting->level[1] = breast_pump_obj->priv.setting[0].level[1];
+    setting->speed = breast_pump_obj->priv.setting[0].speed;
+#else
+    memcpy(setting, &breast_pump_obj->priv.setting[step_index], sizeof(pump_setting_t));
+#endif
+    
 }
 
 static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index, bool is_need_store)
 {
     if (step_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-        LOGE("step_index >= ROOT_BREAST_PUMP_STEP_MAX");
-        memcpy(breast_pump_obj->priv.setting, setting, sizeof(pump_setting_t) * ROOT_BREAST_PUMP_STEP_MAX);
-    } else {
+        LOGE("step_index out of range");
+        return;
+    } 
+
 #if IS_PUMP_STEPS_USE_SAME_SETTING
-        for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
-            breast_pump_obj->priv.setting[i].level[0] = setting->level[0];
-            breast_pump_obj->priv.setting[i].level[1] = setting->level[1];
-        }
-        breast_pump_obj->priv.setting[step_index].speed = setting->speed;
-#else
-        memcpy(&breast_pump_obj->priv.setting[step_index], setting, sizeof(pump_setting_t));
-#endif
+    for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+        breast_pump_obj->priv.setting[i].level[0] = setting->level[0];
+        breast_pump_obj->priv.setting[i].level[1] = setting->level[1];
+        breast_pump_obj->priv.setting[i].speed = setting->speed;
     }
- 
+#else
+    memcpy(&breast_pump_obj->priv.setting[step_index], setting, sizeof(pump_setting_t));
+#endif
+    
     if (is_need_store) {
         struct storage_manager_context *st = breast_pump_obj->priv.st;
         if (st) {
-            store_pump_setting_value_t pump_setting = {0};
-            pump_setting.is_custom_trial_mode = breast_pump_obj->priv.m_info.is_custom_trial_mode;
-            pump_setting.setting = setting;
             st->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, breast_pump_obj->priv.m_info.mode, 
-                step_index, &pump_setting);
+                step_index, setting);
         }
     }
 
-    //通知app
+    /// 通知app
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx);
     if (servers_ctx->hook) {
@@ -213,26 +215,26 @@ static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
 
     if (PUMP_IS_COMMON_MODE(mode)) {
         m_info->common_mode = mode;
-    } else {
+    } else if (PUMP_IS_BREASTFEEDING_MODE(mode)) {
         m_info->breastfeeding_mode = mode;
+    } else {
+       /// 其他模式不做处理, 比如个性化调试模式
     }
-    
     m_info->step_index = 0;
     LOG_PMP("new mode is: %d, name: %s", m_info->mode, breast_pump_obj->get_breast_pump_mode_name(m_info->mode));
     EXCEPTION_CHECK_VOID(st);
-    if (is_store_mode) {
+    /// 存储泵奶模式
+    if (is_store_mode && (PUMP_IS_COMMON_MODE(m_info->mode) || PUMP_IS_BREASTFEEDING_MODE(m_info->mode))) {
         st->put_store_ram_val(STORE_ID_BREAST_PUMP_MODE, 0, 0, &m_info->mode);
     }
-    store_pump_setting_value_t store_pump_setting_value = {0};
-    store_pump_setting_value.is_custom_trial_mode = m_info->is_custom_trial_mode;
-    store_pump_setting_value.setting = breast_pump_obj->priv.setting;
-    st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, m_info->mode, ROOT_BREAST_PUMP_STEP_MAX, &store_pump_setting_value);
-    for (int i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
-        LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
-            breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
+    /// 读取存储器中的泵奶设置
+    for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+        st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, m_info->mode, i, &breast_pump_obj->priv.setting[i]);
+        // LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
+        //     breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
     }
     SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_MODE_CHANGE, m_info->mode);
-    //通知app
+    /// 通知app
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
     servers_publish_data_args_t args = {
@@ -549,102 +551,6 @@ static void set_breast_pump_control_type(uint8_t control_type)
 
 }
 
-static uint8_t get_is_custom_trial_mode(void)
-{
-    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
-    return m_info->is_custom_trial_mode;
-}
-
-static void set_is_custom_trial_mode(uint8_t is_custom_trial_mode)
-{
-    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
-    m_info->is_custom_trial_mode = is_custom_trial_mode;
-}
-
-///@brief 获取当前运行组合追奶模式下的子模式如按摩，吸乳，混合1，混合2，relax
-static uint8_t get_pump_breastfeeding_sub_mode(void)
-{
-    uint8_t pump_step_index = breast_pump_obj->priv.m_info.step_index;
-    uint8_t sub_mode = 0;
-    // 根据当前的模式和step_index获取子模式
-    uint8_t mode = breast_pump_obj->priv.m_info.mode;
-    const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(mode);
-    EXCEPTION_CHECK_UINT(cfg);
-    // 超范围会数组越界，后续检索会越界，需要注意
-    // LOG_PMP("mode: %d, pump_step_index: %d", mode, pump_step_index);
-    switch (mode) {
-        case BREAST_PUMP_CUSTOM_MODE:
-            if (pump_step_index >= get_pump_custom_mode_step_max_number()) {
-                // LOG_PMP("error pump_step_index: %d", pump_step_index);
-                return BREAST_PUMP_STIMULATION_MODE;
-            }
-           //CONFIG为自定义模式参数,拿临时cfg。app会更新临时cfg。
-           cfg = custom_mode_policy_cfg_get();
-           EXCEPTION_CHECK_UINT(cfg);
-            //重新写一个函数，根据cfg和step_index获取子模式
-            sub_mode = get_pump_breastfeeding_sub_mode_from_cfg(cfg, pump_step_index);
-            break;
-        case BREAST_PUMP_PP_MILK_TRACK_MODE:
-        case BREAST_PUMP_MILK_BOOST_MODE:
-        case BREAST_PUMP_LACTATION_START_MODE:
-        case BREAST_PUMP_REGULAR_PUMPING_MODE:
-        case BREAST_PUMP_EMPTYING_BOOST_MODE:
-            if (pump_step_index >= breast_pump_mode_time_step_number_get(mode)) {
-                LOG_PMP("error pump_step_index: %d", pump_step_index);
-                return BREAST_PUMP_STIMULATION_MODE;
-            }
-            sub_mode = get_pump_breastfeeding_sub_mode_from_cfg(cfg, pump_step_index);
-            break;
-        default:
-            // LOG_PMP("unknow breastfeeding mode: %d", mode);
-            break;
-    }
-    // LOG_PMP("sub_mode: %d", sub_mode);
-    return sub_mode;
-}
-
-///@brief 获取当前运行组合追奶模式下的子模式如按摩，吸乳，混合1，混合2，relax
-static uint8_t get_pump_breastfeeding_next_sub_mode(void)
-{
-    uint8_t pump_next_step_index = breast_pump_obj->priv.m_info.step_index + 1;
-    uint8_t next_sub_mode = 0;
-    // 根据当前的模式和step_index获取子模式
-    uint8_t mode = breast_pump_obj->priv.m_info.mode;
-    const motor_policy_cfg_t *cfg = get_breast_pump_mode_para(mode);
-    EXCEPTION_CHECK_UINT(cfg);
-    // 超范围会数组越界，后续检索会越界，需要注意,next_step_index到边界回环
-    // LOG_PMP("mode: %d, pump_next_step_index: %d", mode, pump_next_step_index);
-    switch (mode) {
-        case BREAST_PUMP_CUSTOM_MODE:
-            if (pump_next_step_index >= get_pump_custom_mode_step_max_number()) {
-                pump_next_step_index = 0;
-                // LOG_PMP("pump_next_step_index out of range, reset to 0");
-            }
-            // CONFIG为自定义模式参数,拿临时cfg。app会更新临时cfg。初始临时cfg和默认cfg一致
-            cfg = custom_mode_policy_cfg_get();
-            EXCEPTION_CHECK_UINT(cfg);
-            // 重新写一个函数，根据cfg和step_index获取子模式
-            next_sub_mode = get_pump_breastfeeding_sub_mode_from_cfg(cfg, pump_next_step_index);
-            break;
-        case BREAST_PUMP_PP_MILK_TRACK_MODE:
-        case BREAST_PUMP_MILK_BOOST_MODE:
-        case BREAST_PUMP_LACTATION_START_MODE:
-        case BREAST_PUMP_REGULAR_PUMPING_MODE:
-        case BREAST_PUMP_EMPTYING_BOOST_MODE:
-            if (pump_next_step_index >= breast_pump_mode_time_step_number_get(mode)) {
-                pump_next_step_index = 0;
-                // LOG_PMP("pump_next_step_index out of range, reset to 0");
-            }
-            next_sub_mode = get_pump_breastfeeding_sub_mode_from_cfg(cfg, pump_next_step_index);
-            break;
-        default:
-            // LOG_PMP("unknow breastfeeding mode: %d", mode);
-            break;
-    }
-    // LOG_PMP("next_sub_mode: %d", next_sub_mode);
-    return next_sub_mode;
-}
-
 static void make_progress(void)
 {
     static uint32_t notify_time = 0;
@@ -781,10 +687,6 @@ void *register_module_for_breast_pump_new(list_head_t *list_head)
     ptr->get_breast_pump_result = get_breast_pump_result;
     ptr->get_breast_pump_status_name = get_breast_pump_status_name;
     ptr->get_breast_pump_mode_name = get_breast_pump_mode_name;
-    ptr->get_is_custom_trial_mode = get_is_custom_trial_mode;
-    ptr->set_is_custom_trial_mode = set_is_custom_trial_mode;
-    ptr->get_pump_breastfeeding_sub_mode = get_pump_breastfeeding_sub_mode;
-    ptr->get_pump_breastfeeding_next_sub_mode = get_pump_breastfeeding_next_sub_mode;
     MUTEX_INIT(&ptr->priv.m_lock, breast_pump_client_mutex);
     MUTEX_INIT(&ptr->priv.breast_pump_state_lock, brusht_state_mutex);
     MUTEX_INIT(&ptr->priv.breast_pump_mode_lock, breast_pump_mode_lock);

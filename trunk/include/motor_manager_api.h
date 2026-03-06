@@ -105,6 +105,8 @@ typedef struct motor_manager_context {
     bool (*is_on_motor_task_running)(struct motor_manager_context *ctx);
     /// 获取马达策略索引
     int (*get_runtime_policy_index)(motor_policy_type_e type);
+    /// 获取模式类型
+    uint8_t (*get_runtime_mode_type)(uint8_t is_next_mode);
     /// 外部钩子函数.
     struct __motor_manager_hook {
         int (*on_post_init_route)(struct motor_manager_context *ctx);

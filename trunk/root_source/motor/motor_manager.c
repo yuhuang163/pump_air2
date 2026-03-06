@@ -244,6 +244,15 @@ int motor_is_can_play_now(void)
     return 1;
 }
 
+static uint8_t get_runtime_mode_type(uint8_t is_next_mode)
+{
+    if (is_next_mode) {
+        return motor_obj->priv.runtime.next_mode_type;
+    } else {
+        return motor_obj->priv.runtime.current_mode_type;
+    }
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -257,6 +266,7 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
     ptr->is_on_motor_task_running = is_on_motor_task_running;
     ptr->is_can_play_now = motor_is_can_play_now;
     ptr->get_runtime_policy_index = get_runtime_policy_index;
+    ptr->get_runtime_mode_type = get_runtime_mode_type;
     ptr->synchronous_stop_motor = synchronous_stop_motor;
     motor_obj = ptr;
     

@@ -21,15 +21,15 @@
 *****************************************************************************************
 */
 const static put_store_process_handle_t put_store_process_list[] = {
-    #if IS_SUPPORT_DEVICE_IMU
+#if IS_SUPPORT_DEVICE_IMU
     {STORE_ID_FACTORY_IMU_CALI_DATA, write_imu_cali_data_to_flash},
-    #endif
+#endif
     {STORE_ID_FACTORY_DEPLOY_FLAG, write_factory_deploy_flag_to_flash},
     {STORE_ID_FACTORY_AGE_FLAG, write_factory_age_flag_to_flash},
     {STORE_ID_FACTORY_AGE_DISPLAY_FLAG, write_factory_age_display_flag_to_flash},
-    #if IS_SUPPORT_DEVICE_FSENSOR
+#if IS_SUPPORT_DEVICE_FSENSOR
     {STORE_ID_FACTORY_FSENSOR_CALI_FLAG, write_factory_fsensor_cali_flag_to_flash},
-    #endif
+#endif
     {STORE_ID_FACTORY_FLAG_INFO, write_factory_flag_info_to_flash},
     {STORE_ID_SYS_CONFIG_INFO, write_sys_config_info_to_flash},
     {STORE_ID_SYS_UTC_TIMESTAMP, write_utc_timestamp_to_flash},
@@ -42,9 +42,9 @@ const static put_store_process_handle_t put_store_process_list[] = {
 
 const static get_store_process_handle_t get_store_process_list[] = {
     {STORE_ID_FACTORY_DEV_INFO, read_factory_dev_info_from_flash},
-    #if IS_SUPPORT_DEVICE_IMU
+#if IS_SUPPORT_DEVICE_IMU
     {STORE_ID_FACTORY_IMU_CALI_DATA, read_imu_cali_data_from_flash},
-    #endif
+#endif
     {STORE_ID_FACTORY_FLAG_INFO, read_factory_flag_info_from_flash},
     {STORE_ID_SYS_CONFIG_INFO, read_sys_config_info_from_flash},
     {STORE_ID_SYS_UTC_TIMESTAMP, read_utc_timestamp_from_flash},
@@ -71,10 +71,7 @@ const static put_store_ram_val_handle_t put_store_ram_val_list[] = {
 
     {STORE_ID_BREAST_PUMP_TIME, write_pump_time_to_ram},
     {STORE_ID_PUMP_SETTING_INFO, write_pump_setting_info_to_ram},
-    {STORE_ID_PUMP_CUSTOM_STEPS_PARAMETER_INFO, write_pump_custom_steps_parameter_to_ram},
-    {STORE_ID_REMIND_PUMP_EXCEPTION, write_pump_exception_remind_to_ram},
-    {STORE_ID_REMIND_PUMP_MODE_CHANGE, write_pump_mode_change_remind_to_ram},
-    {STORE_ID_REMIND_PUMP_FINISH, write_pump_finish_remind_to_ram},
+    {STORE_ID_PUMP_MODE_STEPS_INFO, write_pump_mode_steps_info_to_ram},
     {STORE_ID_PUMP_CONTROL_TYPE, write_pump_control_type_to_ram},
     {STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, write_night_light_adaptive_switch_to_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, write_airplane_mode_state_to_ram},
@@ -87,9 +84,9 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_FACTORY_DEPLOY_FLAG, read_factory_deploy_flag_from_ram},
     {STORE_ID_FACTORY_AGE_FLAG, read_factory_age_flag_from_ram},
     {STORE_ID_FACTORY_AGE_DISPLAY_FLAG, read_factory_age_display_flag_from_ram},
-    #if IS_SUPPORT_DEVICE_FSENSOR
+#if IS_SUPPORT_DEVICE_FSENSOR
     {STORE_ID_FACTORY_FSENSOR_CALI_FLAG, read_factory_fsensor_cali_flag_from_ram},
-    #endif
+#endif
     {STORE_ID_SYS_TIME_ZONE, read_sys_time_zone_from_ram},
     {STORE_ID_SYS_AP_MODE_ONOFF, read_ap_mode_onoff_from_ram},
     {STORE_ID_SYS_SILENT_UPGRADE, read_slient_upgrade_onoff_from_ram},
@@ -102,11 +99,8 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_USER_BIND_INFO, user_is_binded_from_ram},
     {STORE_ID_BREAST_PUMP_TIME, read_pump_time_from_ram},
     {STORE_ID_PUMP_SETTING_INFO, read_pump_setting_info_from_ram},
-    {STORE_ID_PUMP_CUSTOM_STEPS_PARAMETER_INFO, read_pump_custom_steps_parameter_from_ram},
+    {STORE_ID_PUMP_MODE_STEPS_INFO, read_pump_mode_steps_info_from_ram},
     {STORE_ID_PUMP_CONTROL_TYPE, read_pump_control_type_from_ram},
-    {STORE_ID_REMIND_PUMP_EXCEPTION, read_pump_exception_remind_from_ram},
-    {STORE_ID_REMIND_PUMP_MODE_CHANGE, read_pump_mode_change_remind_from_ram},
-    {STORE_ID_REMIND_PUMP_FINISH, read_pump_finish_remind_from_ram},
     {STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, read_night_light_adaptive_switch_from_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, read_airplane_mode_state_from_ram},
     {STORE_ID_BREAST_PUMP_DATA_HEAD, read_pump_data_head_from_ram},
@@ -156,20 +150,26 @@ static int init_system_persist_info(storage_manager_context_t *ctx)
         .val = NULL,
     };
     args.val = &sys_info->config;
-    read_sys_config_info_from_flash(args);
+    read_sys_config_info_from_flash(args);  /// 读取系统配置信息
     args.val = &sys_info->state;
-    read_sys_state_info_from_flash(args);
+    read_sys_state_info_from_flash(args);  /// 读取系统状态信息
+    msleep(10);
     args.val = &sys_info->bind_info;
-    read_user_bind_info_from_flash(args);
+    read_user_bind_info_from_flash(args);  /// 读取用户绑定信息
     args.val = &sys_info->pump_info;
-    read_pump_info_from_flash(args);
+    read_pump_info_from_flash(args);  /// 读取泵奶配置信息
+    msleep(10);
+    args.val = &sys_info->mode_info;
+    read_pump_mode_steps_info_from_flash(args);  /// 读取泵奶模式步骤信息
     args.val = &sys_info->buried_info_list;
-    read_pump_buried_info_from_flash(args);
+    read_pump_buried_info_from_flash(args);  /// 读取泵奶埋点信息
     args.val = pump_data_head;
-    read_pump_data_head_from_flash(args);
+    read_pump_data_head_from_flash(args);  /// 读取泵奶数据头
+    msleep(10);
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_CONFIG] = CRC16(&sys_info->config, sizeof(sys_config_info_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_SYS_STATE]  = CRC16(&sys_info->state, sizeof(sys_state_info_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_INFO]  = CRC16(&sys_info->pump_info, sizeof(sys_pump_info_t));
+    ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_MODE_STEPS_INFO]  = CRC16(&sys_info->mode_info, sizeof(sys_pump_mode_info_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_BURY_INFO]  = CRC16(&sys_info->buried_info_list, sizeof(sys_buried_info_list_t));
     ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_USER_DATA_HEAD]  = CRC16(pump_data_head, sizeof(breast_pump_data_head_t));
     return 0;
@@ -207,6 +207,13 @@ static int system_persist_info_sync_flash(storage_manager_context_t *ctx)
         write_pump_info_to_flash(args);
         LOG_STORE("-->pump info sync flash");
     }
+    ///  泵奶模式步骤信息
+    info_crc = CRC16(&sys_info->mode_info, sizeof(sys_pump_mode_info_t));
+    if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_MODE_STEPS_INFO]) {
+        args.val = &sys_info->mode_info;
+        write_pump_mode_steps_info_to_flash(args);
+        LOG_STORE("-->pump mode steps info sync flash");
+    }
     ///  泵奶埋点信息
     info_crc = CRC16(&sys_info->buried_info_list, sizeof(sys_buried_info_list_t));
     if (info_crc != ctx->priv.sys_info_crc[STORE_CRC_TYPE_PUMP_BURY_INFO]) {
@@ -220,19 +227,20 @@ static int system_persist_info_sync_flash(storage_manager_context_t *ctx)
 static int user_database_reset(void)
 {
     EXCEPTION_CHECK_INT(thiz);
-    reset_pump_info(thiz, &thiz->priv.sys_info.pump_info);
+    reset_pump_info(thiz, &thiz->priv.sys_info.pump_info);  /// 重置泵奶配置信息
     msleep(10);
-    reset_user_bind_info(thiz, &thiz->priv.sys_info.bind_info);
+    reset_pump_mode_steps_info(thiz, &thiz->priv.sys_info.mode_info);  /// 重置泵奶模式步骤信息
     msleep(10);
-    reset_sys_config_info(thiz, &thiz->priv.sys_info.config);
+    reset_user_bind_info(thiz, &thiz->priv.sys_info.bind_info);  /// 重置用户绑定信息
     msleep(10);
-    reset_sys_state_info(thiz, &thiz->priv.sys_info.state);
+    reset_sys_config_info(thiz, &thiz->priv.sys_info.config);  /// 重置系统配置信息
     msleep(10);
-    reset_pump_data_head(thiz, &thiz->priv.pump_data_head);
+    reset_sys_state_info(thiz, &thiz->priv.sys_info.state);  /// 重置系统状态信息
     msleep(10);
-    reset_pump_buried_info(thiz, &thiz->priv.sys_info.buried_info_list);
+    reset_pump_data_head(thiz, &thiz->priv.pump_data_head);  /// 重置泵奶数据头
+    msleep(10);
+    reset_pump_buried_info(thiz, &thiz->priv.sys_info.buried_info_list);  /// 重置泵奶埋点信息
     LOGE("==> user database reset !!!!!!!!!!!!!!!");
-    
     return 0;
 }
 
@@ -358,8 +366,8 @@ static int on_post_storage_init_route(storage_manager_context_t *ctx)
     init_system_persist_info(ctx);
     /// 加载系统版本信息
     init_system_ver_info(ctx);
-
-    //test_pump_data_write_read_complete(0);
+    /// 测试泵奶数据写入和读取
+    // test_pump_data_write_read_complete(0);
     return 0;
 }
 

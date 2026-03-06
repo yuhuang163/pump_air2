@@ -44,11 +44,8 @@ static void pump_ui_speed_status_syn(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(proc->pump);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
     if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
-        int time_index = proc->pump->get_breast_pump_step_index();
-        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-            time_index = 0;
-        }
-        proc->pump->set_breast_pump_setting(&proc->setting, time_index, true);
+        uint8_t time_index = proc->pump->get_breast_pump_step_index();
+        proc->pump->set_breast_pump_setting(&proc->setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index, true);
     }
 }
 
@@ -178,9 +175,6 @@ void pump_speed_key_click_handler(ui_proc_pump_t *proc)
     }
     show_pump_speed_ui(proc);
     EXCEPTION_CHECK_VOID(proc->motor);
-    int time_index = proc->pump->get_breast_pump_step_index();
-    if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
-        time_index = 0;
-    }
-    proc->pump->get_breast_pump_setting(&proc->setting, time_index);
+    uint8_t time_index = proc->pump->get_breast_pump_step_index();
+    proc->pump->get_breast_pump_setting(&proc->setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index);
 }
