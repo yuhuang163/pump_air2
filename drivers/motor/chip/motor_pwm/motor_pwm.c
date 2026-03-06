@@ -279,7 +279,9 @@ static void bsp_motor_start_periodic_task(motor_pwm_control_id_e pwm_id)
         LOGE("Failed to start periodic task");
         return;
     }
+#if IS_SUPPORT_PUMP_PWM_DEBUG_LOG
     LOG_PBUS("Start periodic task: %d", pwm_id);
+#endif
     // 将毫秒转换为tick
     uint32_t ticks = MS_TO_HWTICKS(timer_info[pwm_id].time_period);
     

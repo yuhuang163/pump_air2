@@ -206,9 +206,9 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
     }
     /// 获取当前模式.
     result_info->mode = ctx->get_breast_pump_mode();
-    for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
-        ctx->set_breast_pump_setting(&result_info->setting[i], i, true);
-    }
+    // for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+    //     ctx->set_breast_pump_setting(&result_info->setting[i], i, true);
+    // }
 
     return 0;
 }

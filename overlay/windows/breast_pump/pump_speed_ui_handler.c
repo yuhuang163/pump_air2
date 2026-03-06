@@ -45,7 +45,8 @@ static void pump_ui_speed_status_syn(hdr_post_args_t *args)
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
     if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
         uint8_t time_index = proc->pump->get_breast_pump_step_index();
-        proc->pump->set_breast_pump_setting(&proc->setting, time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index, true);
+        proc->pump->set_breast_pump_setting(&proc->setting, 
+            time_index >= ROOT_BREAST_PUMP_STEP_MAX ? 0 : time_index, true);
     }
 }
 
