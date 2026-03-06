@@ -3,10 +3,8 @@
 *****************************************************************************************
 */
 #include "persist_storage.h"
-#include "root_common.h"
 #include "root_common_api.h"
 #include "breast_pump_manager.h" // IWYU pragma: keep
-#include "breast_pump_mode.h"
 
 /*
 * DEFINES
@@ -217,15 +215,16 @@ static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
 
     if (PUMP_IS_COMMON_MODE(mode)) {
         m_info->common_mode = mode;
-    } else {
+    } else if (PUMP_IS_BREASTFEEDING_MODE(mode)) {
         m_info->breastfeeding_mode = mode;
+    } else {
+       /// 其他模式不做处理, 比如个性化调试模式
     }
-    
     m_info->step_index = 0;
     LOG_PMP("new mode is: %d, name: %s", m_info->mode, breast_pump_obj->get_breast_pump_mode_name(m_info->mode));
     EXCEPTION_CHECK_VOID(st);
     /// 存储泵奶模式
-    if (is_store_mode) {
+    if (is_store_mode && (PUMP_IS_COMMON_MODE(m_info->mode) || PUMP_IS_BREASTFEEDING_MODE(m_info->mode))) {
         st->put_store_ram_val(STORE_ID_BREAST_PUMP_MODE, 0, 0, &m_info->mode);
     }
     /// 读取存储器中的泵奶设置
@@ -235,7 +234,7 @@ static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
         //     breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
     }
     SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_MODE_CHANGE, m_info->mode);
-    //通知app
+    /// 通知app
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
     servers_publish_data_args_t args = {
@@ -552,18 +551,6 @@ static void set_breast_pump_control_type(uint8_t control_type)
 
 }
 
-static uint8_t get_is_custom_trial_mode(void)
-{
-    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
-    return m_info->is_custom_trial_mode;
-}
-
-static void set_is_custom_trial_mode(uint8_t is_custom_trial_mode)
-{
-    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
-    m_info->is_custom_trial_mode = is_custom_trial_mode;
-}
-
 static void make_progress(void)
 {
     static uint32_t notify_time = 0;
@@ -700,8 +687,6 @@ void *register_module_for_breast_pump_new(list_head_t *list_head)
     ptr->get_breast_pump_result = get_breast_pump_result;
     ptr->get_breast_pump_status_name = get_breast_pump_status_name;
     ptr->get_breast_pump_mode_name = get_breast_pump_mode_name;
-    ptr->get_is_custom_trial_mode = get_is_custom_trial_mode;
-    ptr->set_is_custom_trial_mode = set_is_custom_trial_mode;
     MUTEX_INIT(&ptr->priv.m_lock, breast_pump_client_mutex);
     MUTEX_INIT(&ptr->priv.breast_pump_state_lock, brusht_state_mutex);
     MUTEX_INIT(&ptr->priv.breast_pump_mode_lock, breast_pump_mode_lock);
