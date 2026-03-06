@@ -448,7 +448,7 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
     sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
     uint8_t mode = args.arg1;
     uint8_t mode_step = args.arg2;
-    LOG_STORE("mode: %d, step: %d", mode, mode_step);
+    // LOG_STORE("mode: %d, step: %d", mode, mode_step);
     if (mode >= BREAST_PUMP_MODE_MAX) {
         LOGE("mode: %d, out of range", mode);
         return -1;

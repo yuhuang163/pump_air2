@@ -11,7 +11,7 @@
 *****************************************************************************************
 */
 #define UI_ANIMATION_STOP_TIMEOUT               (1000)
-#define IS_PRINT_LVGL_MEM_MONITOR               1
+#define IS_PRINT_LVGL_MEM_MONITOR               0
 #define UI_LVGL_MSG_QUEUE_NUM                   4
 #define UI_BL_ON_LEVEL_MIN                      (20) /// 开灯最低亮度
 #define UI_BL_ON_LEVEL_RANGE                    (50) /// 开灯调节范围大小 20 - 50
