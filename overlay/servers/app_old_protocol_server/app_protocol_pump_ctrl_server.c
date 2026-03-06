@@ -333,13 +333,36 @@ static uint8_t app_old_comm_get_system_is_airplane_mode(void)
     return (uint8_t)air_play_mode;
 }
 
+static void pump_copy_trial_mode_to_custom_mode(void)
+{
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(storage_ctx);
+    // 复制BREAST_PUMP_CUSTOM_TRIAL_MODE的数据到BREAST_PUMP_CUSTOM_MODE
+    pump_mode_steps_info_t trial_steps_info;
+    storage_ctx->get_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, &trial_steps_info);
+    storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_MODE, 0, &trial_steps_info);
+    LOG_SRV("copy custom trial steps info to custom mode");
+    pump_setting_t trial_setting;
+    for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+        if (i >= trial_steps_info.policy_num) {
+            break; // 如果步数大于最大步数，则跳出
+        }
+        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, i, &trial_setting);
+        storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_MODE, i, &trial_setting);
+    }
+    LOG_SRV("copy custom trial setting info to custom mode");
+}
+
 static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_steps_info)
 {
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     EXCEPTION_CHECK_UINT(storage_ctx);
+    ///是否需要区分设备是否在用户自定义模式下运行，如果运行，是否直接替换用户自定义模式参数
     storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, &pump_steps_info);
     LOG_SRV("put custom trial steps info to ram");
-    custom_trial_mode_update_by_steps_info(&pump_steps_info);
+    motor_ctx->hook->generate_motor_para(motor_ctx, BREAST_PUMP_CUSTOM_TRIAL_MODE, &pump_steps_info, sizeof(pump_steps_info));
+    //custom_trial_mode_update_by_steps_info(&pump_steps_info);
     pump_setting_t setting;
     for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
         if (i >= pump_steps_info.policy_num) {
@@ -561,7 +584,7 @@ static void app_pump_custom_trial_mode_start_handler(void)
 {
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_VOID(pump_ctx);
-    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE && pump_ctx->is_on_working()) {
+    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_TRIAL_MODE && pump_ctx->is_on_working()) {
         pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
         app_broadcast_pump_status_to_window(BREAST_PUMP_PAUSE, OLD_BROADCAST_ALL_CT);
         pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
@@ -663,7 +686,7 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     app_old_comm_pump_ctrl_date.user_define_pump_step_mode = cab[3];
     app_old_comm_pump_ctrl_date.user_define_pump_level = cab[4];
     app_old_comm_pump_ctrl_date.user_define_pump_speed = cab[5] - 1; //频次（1-低 2-中 3-高）（1字节）
-    app_old_comm_pump_ctrl_date.pump_mode_lr_or_all = cab[6];
+    app_old_comm_pump_ctrl_date.pump_mode_lr_or_all = cab[6];//0:左 1:右 2:双
     app_old_comm_pump_ctrl_date.normal_pump_speed = cab[7]; //频次（0-低 1-中 2-高）（1字节）
     ///查看窗口，是否需要唤醒pump窗口
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
@@ -672,7 +695,8 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
         app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_CTRL_DEV, 1, &cab[6]);
         app_old_comm_pump_control_handler(&app_old_comm_pump_ctrl_date);
         app_old_comm_pump_run_status_ctrl(cab[0]);
-    } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)) {
+    } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)
+        || wm->is_current_window(wm, ID_WINDOW_HOME)) {
         LOG_SRV("charge or dummy, dispatch pump window.");
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PUMP;
@@ -704,6 +728,11 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 		section_num = cab[4];
 		pump_steps_info.time_policy_num = section_num;
         LOG_SRV("time_policy_num = %d", pump_steps_info.time_policy_num);
+	}
+	else { //超出范围，发送NACK
+		LOG_SRV("section_num: %d, out of range", section_num);
+		app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
+		return;
 	}
 	pump_steps_info.total_time = 0;
     uint8_t step_index = 0, n = 0;
@@ -777,8 +806,9 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     if (wm->is_current_window(wm, ID_WINDOW_PUMP)) {
         app_pump_custom_trial_mode_start_handler();
         app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
-    } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)) {
-        LOG_SRV("charge or dummy, dispatch pump window.");
+    } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)
+        ||wm->is_current_window(wm, ID_WINDOW_HOME)) {
+        LOG_SRV("charge or dummy or home mode, dispatch pump window.");
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PUMP;
         wm->dispatch_new_window_args(wm, &msg);
@@ -793,7 +823,13 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 //0xc5
 void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
 {
-    //不需要做啥c4 已经写入
+    // 复制BREAST_PUMP_CUSTOM_TRIAL_MODE的数据到BREAST_PUMP_CUSTOM_MODE
+    pump_copy_trial_mode_to_custom_mode();
+
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_VOID(storage_ctx);
+
+    storage_ctx->put_store_ram_val(STORE_ID_MODE_UPDATE_FLAG, BREAST_PUMP_CUSTOM_MODE, 0, 0);
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 0, NULL);
 }
 
@@ -849,6 +885,8 @@ void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab)
     app_broadcast_pump_status_to_window(BREAST_PUMP_RESET,OLD_BROADCAST_ALL_CT);
     pump_ctx->set_breast_pump_status(BREAST_PUMP_IDLE);
     app_broadcast_pump_status_to_window(BREAST_PUMP_IDLE,OLD_BROADCAST_ALL_CT);
+    /// 发送APP强制完成广播
+    SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_APP_COMPLETED);
 }
  
 void app_old_comm_handle_get_record_num_req(uint8_t cal, uint8_t *cab)
