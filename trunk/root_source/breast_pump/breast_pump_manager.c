@@ -231,8 +231,8 @@ static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
     /// 读取存储器中的泵奶设置
     for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
         st->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, m_info->mode, i, &breast_pump_obj->priv.setting[i]);
-        LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
-            breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
+        // LOG_PMP("setting[%d]: speed: %d, level: %d, %d", i, breast_pump_obj->priv.setting[i].speed, 
+        //     breast_pump_obj->priv.setting[i].level[0], breast_pump_obj->priv.setting[i].level[1]);
     }
     SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_MODE_CHANGE, m_info->mode);
     //通知app

@@ -123,6 +123,8 @@ void reset_pump_mode_steps_info(storage_manager_context_t *ctx, sys_pump_mode_in
     memset(mode_info, 0, sizeof(sys_pump_mode_info_t));
     for (int i = 0; i < BREAST_PUMP_MODE_MAX; i++) {
         breast_pump_mode_steps_info_reset(mode_info, i);
+        mode_info->pump_time[i] = mode_info->steps_info[i].total_time;
+        LOG_STORE_WRAP("reset pump mode: %d, time: %d", i, mode_info->pump_time[i]);
     }
     store_func_args_t args = {
         .ctx = ctx,
@@ -364,7 +366,7 @@ int read_pump_time_from_ram(store_func_args_t args)
         return -1;
     }
     *pump_time = (uint32_t)mode_info->pump_time[mode];
-    LOG_STORE_WRAP("read pump mode: %d, time: %d", mode, *pump_time);
+    // LOG_STORE_WRAP("read pump mode: %d, time: %d", mode, *pump_time);
     return 0;
 }
 
@@ -481,7 +483,7 @@ int read_pump_setting_info_from_ram(store_func_args_t args)
     EXCEPTION_CHECK_INT(setting);
     uint8_t mode = args.arg1;
     uint8_t mode_step = args.arg2;
-    LOG_STORE("mode: %d, step: %d", args.arg1, args.arg2);
+    // LOG_STORE("mode: %d, step: %d", args.arg1, args.arg2);
     if (mode >= BREAST_PUMP_MODE_MAX) {
         LOGE("mode: %d, out of range", mode);
         return -1;

@@ -266,6 +266,7 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
     ptr->is_on_motor_task_running = is_on_motor_task_running;
     ptr->is_can_play_now = motor_is_can_play_now;
     ptr->get_runtime_policy_index = get_runtime_policy_index;
+    ptr->get_runtime_mode_type = get_runtime_mode_type;
     ptr->synchronous_stop_motor = synchronous_stop_motor;
     motor_obj = ptr;
     
