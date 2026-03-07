@@ -159,9 +159,9 @@ void breastfeeding_mode_key_click_handler(ui_proc_pump_t *proc)
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
     EXCEPTION_CHECK_VOID(proc->led);
-    proc->led->set_led_blink(PUMP_BREASTFEEDING_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
     int status = proc->pump->get_breast_pump_status();
     if (proc->current_ui_type != PUMP_UI_TYPE_BREASTFEEDING_MODE && PUMP_NO_FINISH(status) == 0) {
+        proc->led->set_led_blink(PUMP_BREASTFEEDING_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
         proc->ui_breastfeeding_mode_index = proc->pump->get_breast_pump_mode_by_type(BREAST_PUMP_MODE_TYPE_BREASTFEEDING, false);
         show_breastfeeding_mode_ui(proc);   
     }

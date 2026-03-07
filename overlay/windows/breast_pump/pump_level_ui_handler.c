@@ -134,7 +134,7 @@ void switch_pump_control_type_ui(ui_proc_pump_t *proc,uint8_t control_type)
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
     if (proc->pump->is_on_working() == 0) {
-        LOG_UI("pump is not working, ignore.");
+        // LOG_UI("pump is not working, ignore.");
         return;
     }
 
@@ -154,11 +154,11 @@ void switch_pump_control_type_ui(ui_proc_pump_t *proc,uint8_t control_type)
     if (control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {
         proc->led->set_led_blink(PUMP_RIGHT_CONTROL_BL, PUMP_BLINK_PERIOD,
             PUMP_LEVEL_BLINK_TIMES, LED_STATUS_ON);
-        proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX / 2);
+        // proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX / 2);
     } else if (control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
         proc->led->set_led_blink(PUMP_LEFT_CONTROL_BL, PUMP_BLINK_PERIOD,
             PUMP_LEVEL_BLINK_TIMES, LED_STATUS_ON);
-        proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX / 2);
+        // proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX / 2);
     } else {
         proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX);
         proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX);
