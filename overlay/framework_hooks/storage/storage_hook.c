@@ -264,49 +264,81 @@ static void on_power_off_force_save_route(storage_manager_context_t *ctx)
 
 static void pump_user_data_sync_flash_cb(hdr_post_args_t *args)
 {
+    EXCEPTION_CHECK_VOID(args);
+    EXCEPTION_CHECK_VOID(thiz);
     breast_pump_data_head_t *pump_data_head = &thiz->priv.pump_data_head;
-    /// 更新泵奶数据头 - 实现循环缓冲区逻辑
     uint8_t write_index;
     if (pump_data_head->num < ROOT_BREAST_PUMP_DATA_BODY_NUM) {
-        /// 未满，直接递增
-        /// head: 最旧数据索引（固定为0）
-        /// tail: 最新数据索引（等于num-1）
+        /// 缓冲区未满，下一条写到末尾
+        write_index = pump_data_head->num;
+    } else {
+        /// 缓冲区已满，覆盖最旧数据
+        write_index = pump_data_head->head;
+    }
+
+    pump_result_info_t *pump_data_body = (pump_result_info_t *)args->user_data;
+    if (pump_data_body == NULL) {
+        breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+        EXCEPTION_CHECK_VOID(pump);
+        pump_data_body = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
+    }
+    EXCEPTION_CHECK_VOID(pump_data_body);
+
+    store_func_args_t storage_args = {
+        .ctx = thiz,
+        .arg1 = write_index,
+        .arg2 = 0,
+        .val = pump_data_body,
+    };
+    /// 先写入body，成功后再更新head，避免半更新状态
+    int ret = write_pump_data_body_to_flash(storage_args);
+    if (ret != 0) {
+        LOGW("write pump data body failure, retry once. ret: %d, index: %d", ret, write_index);
+        ret = write_pump_data_body_to_flash(storage_args);
+        if (ret != 0) {
+            LOGE("write pump data body failure! ret: %d, index: %d", ret, write_index);
+            return;
+        }
+    }
+
+    breast_pump_data_head_t head_backup = *pump_data_head;
+
+    /// 更新泵奶数据头 - 实现循环缓冲区逻辑
+    if (pump_data_head->num < ROOT_BREAST_PUMP_DATA_BODY_NUM) {
         pump_data_head->num += 1;
-        write_index = pump_data_head->num - 1;  /// 索引从0开始，所以是 num - 1
         pump_data_head->tail = write_index;
-        /// 第一次写入时，head保持为0；后续写入时head不变
         if (pump_data_head->num == 1) {
             pump_data_head->head = 0;
         }
     } else {
-        /// 已满，使用循环缓冲区，覆盖最旧的数据
-        /// head: 最旧数据索引（即将被覆盖的位置）
-        /// tail: 最新数据索引（刚写入的位置）
-        /// 写入到head位置，然后head和tail都向前移动
-        write_index = pump_data_head->head;
         pump_data_head->head = (pump_data_head->head + 1) % ROOT_BREAST_PUMP_DATA_BODY_NUM;
-        pump_data_head->tail = (pump_data_head->tail + 1) % ROOT_BREAST_PUMP_DATA_BODY_NUM;
-        /// num 保持为最大值，表示缓冲区已满
+        pump_data_head->tail = write_index;
         pump_data_head->num = ROOT_BREAST_PUMP_DATA_BODY_NUM;
     }
-    
-    store_func_args_t storage_args = {
-        .ctx = thiz,
-        .arg1 = 0,
-        .arg2 = 0,
-        .val = pump_data_head,
-    };
-    /// 写入泵奶数据头
-    write_pump_data_head_to_flash(storage_args);
 
-    breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    EXCEPTION_CHECK_VOID(pump);
-    pump_result_info_t *pump_data_body = pump->get_breast_pump_result(BREAST_PUMP_RESULT_PUMPING);
-    EXCEPTION_CHECK_VOID(pump_data_body);
-    storage_args.arg1 = write_index;
-    storage_args.val = pump_data_body;
-    /// 写入泵奶数据
-    write_pump_data_body_to_flash(storage_args);
+    storage_args.arg1 = 0;
+    storage_args.val = pump_data_head;
+    /// 写入泵奶数据头
+    ret = write_pump_data_head_to_flash(storage_args);
+    if (ret != 0) {
+        LOGW("write pump data head failure, retry once. ret: %d", ret);
+        ret = write_pump_data_head_to_flash(storage_args);
+        if (ret != 0) {
+            LOGE("write pump data head failure! ret: %d", ret);
+            /// 回滚内存中的head状态，并删除刚写入的body，避免半更新
+            *pump_data_head = head_backup;
+            store_func_args_t del_args = {
+                .ctx = thiz,
+                .arg1 = write_index,
+                .arg2 = 0,
+                .val = NULL,
+            };
+            int del_ret = del_pump_data_body_from_flash(del_args);
+            if (del_ret != 0) {
+                LOGE("rollback pump data body failure! ret: %d, index: %d", del_ret, write_index);
+            }
+        }
+    }
 }
 
 static void storage_ram_sync_flash_cb(hdr_post_args_t *args)

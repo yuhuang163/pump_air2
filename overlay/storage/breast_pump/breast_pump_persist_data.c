@@ -86,11 +86,17 @@ int read_pump_info_from_flash(store_func_args_t args)
     EXCEPTION_CHECK_INT(store_pump_info);
     ret = user_database_get(args.ctx, PERSIST_KEY_BREAST_PUMP_INFO, (uint8_t *)store_pump_info,
                     sizeof(breast_pump_info_storage_t));
-    if (ret == 0) {
+    uint16_t crc = CRC16(&store_pump_info->pump_info, sizeof(sys_pump_info_t));
+    if (ret == 0 && store_pump_info->magic == STORAGE_BREAST_PUMP_INFO_MAGIC_NUM &&
+        store_pump_info->crc == crc) {
         memcpy(pump_info, &store_pump_info->pump_info, sizeof(sys_pump_info_t));
     } else {
+        if (ret == 0) {
+            ret = -1;
+        }
         reset_pump_info(args.ctx, pump_info);
-        LOGE("read pump info failure! ret: %d", ret);
+        LOGE("read pump info failure! ret: %d, magic: 0x%x, crc: 0x%x, expect_crc: 0x%x",
+             ret, store_pump_info->magic, store_pump_info->crc, crc);
     }
     u_free(store_pump_info);
     return ret;
@@ -144,11 +150,17 @@ int read_pump_mode_steps_info_from_flash(store_func_args_t args)
     EXCEPTION_CHECK_INT(store_mode_info);
     ret = user_database_get(args.ctx, PERSIST_KEY_BREAST_PUMP_MODE_STEPS_INFO, (uint8_t *)store_mode_info,
                     sizeof(breast_pump_mode_steps_info_storage_t));
-    if (ret == 0) {
+    uint16_t crc = CRC16(&store_mode_info->mode_info, sizeof(sys_pump_mode_info_t));
+    if (ret == 0 && store_mode_info->magic == STORAGE_PUMP_MODE_STEPS_INFO_MAGIC_NUM &&
+        store_mode_info->crc == crc) {
         memcpy(mode_info, &store_mode_info->mode_info, sizeof(sys_pump_mode_info_t));
     } else {
+        if (ret == 0) {
+            ret = -1;
+        }
         reset_pump_mode_steps_info(args.ctx, mode_info);
-        LOGE("read pump mode steps info failure! ret: %d", ret);
+        LOGE("read pump mode steps info failure! ret: %d, magic: 0x%x, crc: 0x%x, expect_crc: 0x%x",
+             ret, store_mode_info->magic, store_mode_info->crc, crc);
     }
     u_free(store_mode_info);
     return ret;
@@ -199,11 +211,17 @@ int read_pump_buried_info_from_flash(store_func_args_t args)
     EXCEPTION_CHECK_INT(store_buried_info);
     ret = user_database_get(args.ctx, PERSIST_KEY_BREAST_PUMP_BURY_INFO, (uint8_t *)store_buried_info,
                     sizeof(breast_pump_buried_info_storage_t));
-    if (ret == 0) {
+    uint16_t crc = CRC16(&store_buried_info->buried_info_list, sizeof(sys_buried_info_list_t));
+    if (ret == 0 && store_buried_info->magic == STORAGE_BREAST_PUMP_BURY_INFO_MAGIC_NUM &&
+        store_buried_info->crc == crc) {
         memcpy(buried_info_list, &store_buried_info->buried_info_list, sizeof(sys_buried_info_list_t));
     } else {
+        if (ret == 0) {
+            ret = -1;
+        }
         reset_pump_buried_info(args.ctx, buried_info_list);
-        LOGE("read pump buried info failure! ret: %d", ret);
+        LOGE("read pump buried info failure! ret: %d, magic: 0x%x, crc: 0x%x, expect_crc: 0x%x",
+             ret, store_buried_info->magic, store_buried_info->crc, crc);
     }
     u_free(store_buried_info);
 
@@ -254,12 +272,17 @@ int read_pump_data_head_from_flash(store_func_args_t args)
     EXCEPTION_CHECK_INT(store_pump_data_head);
     ret = user_database_get(args.ctx, PERSIST_KEY_BREAST_PUMP_DATA_HEAD, (uint8_t *)store_pump_data_head,
                             sizeof(breast_pump_data_head_storage_t));
-    if (ret == 0) {
+    uint16_t crc = CRC16(&store_pump_data_head->pump_data_head, sizeof(breast_pump_data_head_t));
+    if (ret == 0 && store_pump_data_head->magic == STORAGE_BREAST_PUMP_DATA_HEAD_MAGIC_NUM &&
+        store_pump_data_head->crc == crc) {
         memcpy(pump_data_head, &store_pump_data_head->pump_data_head, sizeof(breast_pump_data_head_t));
     } else {
+        if (ret == 0) {
+            ret = -1;
+        }
         reset_pump_data_head(args.ctx, pump_data_head);
-        //memset(pump_data_head, 0, sizeof(breast_pump_data_head_t));
-        LOGE("read pump user data head failure! ret: %d", ret);
+        LOGE("read pump user data head failure! ret: %d, magic: 0x%x, crc: 0x%x, expect_crc: 0x%x",
+             ret, store_pump_data_head->magic, store_pump_data_head->crc, crc);
     }
     u_free(store_pump_data_head);
 
@@ -308,10 +331,17 @@ int read_pump_data_body_from_flash(store_func_args_t args)
     EXCEPTION_CHECK_INT(store_pump_data_body);
     ret = user_database_get(args.ctx, PERSIST_KEY_BREAST_PUMP_DATA_BODY_BEGIN + body_offset, 
                             (uint8_t *)store_pump_data_body, sizeof(breast_pump_body_storage_t));
-    if (ret == 0) {
+    uint16_t crc = CRC16(&store_pump_data_body->pump_data_body, sizeof(pump_result_info_t));
+    if (ret == 0 && store_pump_data_body->magic == STORAGE_BREAST_PUMP_DATA_BODY_MAGIC_NUM &&
+        store_pump_data_body->crc == crc) {
         memcpy(pump_data_body, &store_pump_data_body->pump_data_body, sizeof(pump_result_info_t));
     } else {
-        LOGE("read pump data body failure! ret: %d, body_offset: %d", ret, body_offset);
+        if (ret == 0) {
+            ret = -1;
+        }
+        memset(pump_data_body, 0, sizeof(pump_result_info_t));
+        LOGE("read pump data body failure! ret: %d, body_offset: %d, magic: 0x%x, crc: 0x%x, expect_crc: 0x%x",
+             ret, body_offset, store_pump_data_body->magic, store_pump_data_body->crc, crc);
     }
     u_free(store_pump_data_body);
 
@@ -347,7 +377,7 @@ int write_pump_time_to_ram(store_func_args_t args)
         LOGE("mode: %d, out of range", mode);
         return -1;
     }
-    mode_info->steps_info[mode].total_time = (uint16_t)*pump_time;
+    mode_info->steps_info[mode].total_time = *pump_time;
     LOG_STORE_WRAP("write pump mode: %d, time: %d", mode, *pump_time);
     return 0;
 }
@@ -375,6 +405,7 @@ int write_pump_mode_steps_info_to_ram(store_func_args_t args)
     sys_pump_mode_info_t *mode_info = &st->priv.sys_info.mode_info;
     EXCEPTION_CHECK_INT(mode_info);
     uint8_t mode = args.arg1;
+    EXCEPTION_CHECK_INT(args.val);
     if (mode >= BREAST_PUMP_MODE_MAX) {
         LOGE("mode: %d, out of range", mode);
         return -1;
@@ -463,7 +494,7 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
     for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
         pump_info->setting_wrap[mode].info[i].level[0] = setting->level[0];
         pump_info->setting_wrap[mode].info[i].level[1] = setting->level[1];
-        pump_info->setting_wrap[mode].info[mode_step].speed = setting->speed;
+        pump_info->setting_wrap[mode].info[i].speed = setting->speed;
     }
 #else
     memcpy(&pump_info->setting_wrap[mode].info[mode_step], setting, sizeof(pump_setting_t));
@@ -587,6 +618,10 @@ int write_mode_update_flag_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
+    if (args.arg1 < 0 || args.arg1 >= BREAST_PUMP_MODE_MAX) {
+        LOGE("mode: %d, out of range", args.arg1);
+        return -1;
+    }
     pump_info->mode_update_flag[args.arg1] = 1;
     LOG_STORE_WRAP("write mode update flag: %d", pump_info->mode_update_flag[args.arg1]);
     return 0;
@@ -598,6 +633,10 @@ int read_mode_update_flag_from_ram(store_func_args_t args)
     sys_pump_info_t *pump_info = &args.ctx->priv.sys_info.pump_info;
     int *tmp = (int *)args.val;
     EXCEPTION_CHECK_INT(tmp);
+    if (args.arg1 < 0 || args.arg1 >= BREAST_PUMP_MODE_MAX) {
+        LOGE("mode: %d, out of range", args.arg1);
+        return -1;
+    }
     *tmp = pump_info->mode_update_flag[args.arg1];
     return 0;
 }
@@ -605,6 +644,7 @@ int read_mode_update_flag_from_ram(store_func_args_t args)
 int write_pump_buried_info_to_ram(store_func_args_t args)
 {
     EXCEPTION_CHECK_INT(args.ctx);
+    EXCEPTION_CHECK_INT(args.val);
     uint16_t buried_index = args.ctx->priv.sys_info.buried_info_list.buried_index;
     if (buried_index >= ROOT_BREAST_PUMP_BURY_DATA_NUM) {
         LOGE("buried_index: %d, out of range, reset to 0", buried_index);
