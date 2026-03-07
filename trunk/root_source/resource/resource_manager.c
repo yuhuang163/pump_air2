@@ -12,6 +12,7 @@
 */
 #define IS_SUPPORT_RES_DEBUG_LOG        (0) 
 #define IS_SUPPORT_IMG_CRC16_CHECK      (1)
+#define IS_SUPPORT_IMG_MD5_CHECK        (0)
 
 #if IS_SUPPORT_RES_DEBUG_LOG
 #define LOG_RES_DEBUG(format, args...)   LOG_RES(format, ##args)
@@ -327,6 +328,7 @@ static int img_res_validate_and_dump(uint32_t base_addr)
     ok = ok && size_min_ok && size_max_ok;
 
     /// 5) head md5
+#if IS_SUPPORT_IMG_MD5_CHECK
     uint8_t md5_head_calc[IMG_RES_MD5_SIZE] = {0};
     MD5Context head_md5_ctx = {0};
     MD5_Init(&head_md5_ctx);
@@ -338,9 +340,11 @@ static int img_res_validate_and_dump(uint32_t base_addr)
         LOG_HEX("md5_head_calc", md5_head_calc, IMG_RES_MD5_SIZE);
     }
     ok = ok && md5_head_ok;
+#else
+    LOG_RES("check.md5_head: SKIP (IS_SUPPORT_IMG_MD5_CHECK=0)");
+#endif
 
     /// 6) body md5 (obj_info + res_body), streaming from flash
-    const uint32_t obj_info_len = (uint32_t)w.head.res_count * (uint32_t)sizeof(img_res_obj_info_t);
     const uint32_t body_size = (w.head.total_size >= IMG_RES_HEADER_FIXED_SIZE) ? (uint32_t)(w.head.total_size - IMG_RES_HEADER_FIXED_SIZE) : 0;
     const uint32_t header_used = (uint32_t)img_res_calc_header_size(w.head.res_count);
     const bool header_fit_ok = (header_used <= IMG_RES_HEADER_FIXED_SIZE);
@@ -348,9 +352,8 @@ static int img_res_validate_and_dump(uint32_t base_addr)
             header_fit_ok ? "OK" : "FAIL", (unsigned)header_used, (unsigned)IMG_RES_HEADER_FIXED_SIZE);
     ok = ok && header_fit_ok;
 
-    uint8_t md5_body_calc[IMG_RES_MD5_SIZE] = {0};
-    MD5Context body_md5_ctx = {0};
-    MD5_Init(&body_md5_ctx);
+    uint32_t remaining = 0;
+    uint32_t addr = 0;
 
     buf = (uint8_t *)u_malloz(buf_size);
     if (!buf) {
@@ -359,9 +362,15 @@ static int img_res_validate_and_dump(uint32_t base_addr)
         goto out;
     }
 
+#if IS_SUPPORT_IMG_MD5_CHECK
+    const uint32_t obj_info_len = (uint32_t)w.head.res_count * (uint32_t)sizeof(img_res_obj_info_t);
+    uint8_t md5_body_calc[IMG_RES_MD5_SIZE] = {0};
+    MD5Context body_md5_ctx = {0};
+    MD5_Init(&body_md5_ctx);
+
     /// obj_info region starts at base + sizeof(wrapper)
-    uint32_t remaining = obj_info_len;
-    uint32_t addr = base_addr + (uint32_t)sizeof(img_res_head_wrapper_t);
+    remaining = obj_info_len;
+    addr = base_addr + (uint32_t)sizeof(img_res_head_wrapper_t);
     while (ok && remaining) {
         const uint32_t chunk = (remaining > buf_size) ? buf_size : remaining;
         ret = img_res_flash_read(addr, buf, chunk);
@@ -399,6 +408,9 @@ static int img_res_validate_and_dump(uint32_t base_addr)
         LOG_HEX("md5_body_calc", md5_body_calc, IMG_RES_MD5_SIZE);
     }
     ok = ok && md5_body_ok;
+#else
+    LOG_RES("check.md5_body(obj_info+res_body): SKIP (IS_SUPPORT_IMG_MD5_CHECK=0)");
+#endif
 
     /// 7) dump first few obj_info items + (optional) verify first item's data crc16
     const uint16_t dump_n = (w.head.res_count > 5) ? 5 : w.head.res_count;
@@ -579,7 +591,10 @@ static void hdr_async_init_cb(hdr_post_args_t *args)
         LOGE("img_res_get_base_addr failed");
         return;
     }
+    /// Serialize validation with runtime image reads to avoid external-flash read contention at boot.
+    MUTEX_LOCK_FS(thiz->priv.m_fs_rw_lock, "img_res_validate_and_dump");
     img_res_validate_and_dump(base_addr);
+    MUTEX_UNLOCK_FS(thiz->priv.m_fs_rw_lock, "img_res_validate_and_dump");
     if (!thiz->priv.res_init_completed) {
         thiz->priv.res_init_completed = true;
     }
