@@ -122,3 +122,14 @@ void common_ui_place_dot_on_arc(lv_obj_t * arc, lv_obj_t * dot, uint16_t angle_d
     lv_obj_clear_flag(dot, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_pos(dot, local_x - dot_d / 2, local_y - dot_d / 2);
 }
+
+uint8_t pump_speed_convert_to_ui_speed_idx(uint8_t speed)
+{
+    if (speed == BREAST_PUMP_SPEED_HIGH) {
+        return 0;
+    } else if (speed == BREAST_PUMP_SPEED_MID) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
