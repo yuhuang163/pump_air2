@@ -13,7 +13,7 @@
 */
 #define PUMP_INFO_LOG_INTERVAL                             (10)            
 #define PUMP_WILL_FINISH_TIME_MS                           (3000)
-#define PUMP_TIME_TO_SECOND(time)                          (time)
+#define PUMP_TIME_TO_SECOND(time)                          (time / 1000)
 
 // 比较两数相等，允许一定范围的误差
 #define IS_UINT_EQUAL_IN_ERROR(num_scr, num_dest, diff)           (((num_dest) <= (num_scr)) && ((num_scr) < ((num_dest) + (diff))))
@@ -118,8 +118,10 @@ static int breast_pump_result_info_reset(breast_pump_manager_context_t *ctx, pum
     result_info->work_total_time = 0;
     result_info->timestamp = platform_get_utc_time();
     dump_timestamp(result_info->timestamp);
-    LOG_PMP("target_total_time: %lu, target_valid_time: %lu, setting_time: %lu",
-                result_info->target_total_time, result_info->target_valid_time, result_info->setting_time);
+    LOG_PMP("target_total_time: %d, target_valid_time: %d, setting_time: %d",
+            PUMP_TIME_TO_SECOND(result_info->target_total_time),
+            PUMP_TIME_TO_SECOND(result_info->target_valid_time),
+            PUMP_TIME_TO_SECOND(result_info->setting_time));
 
     return 0;
 }

@@ -34,6 +34,11 @@ void common_ui_img_resource_init(ui_manager_context_t *thiz, uint16_t id, res_im
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(thiz->priv.res);
     EXCEPTION_CHECK_VOID(info);
+    if (info->data != NULL && info->id != id) {
+        lv_draw_wait_for_finish();
+        common_ui_img_resource_deinit(thiz, info);
+    }
+
     int ret = thiz->priv.res->res_ui_img_data_load(id, info);
     if (ret != 0) {
         LOGE("===> load img data failed, id=%u ret=%d", (unsigned)id, ret);
@@ -45,6 +50,9 @@ void common_ui_img_resource_deinit(ui_manager_context_t *thiz, res_img_info_t *i
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(thiz->priv.res);
     EXCEPTION_CHECK_VOID(info);
+    if (info->data != NULL) {
+        lv_draw_wait_for_finish();
+    }
     thiz->priv.res->res_ui_img_data_unload(info);
 }
 
