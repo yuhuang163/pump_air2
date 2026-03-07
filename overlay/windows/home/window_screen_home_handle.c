@@ -56,6 +56,10 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
     ui_proc_home_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc);
     WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_HOME, 0);
+    if (proc->current_ui_type == HOME_UI_TYPE_HOME_IDLE) {
+        LOG_WM("system idle, ignore key event.");
+        return 0;
+    }
     switch (keycode) {
         case KEY_CODE_POWER:
             if (proc->led && proc->led->hook && proc->led->hook->toggle_night_light) {

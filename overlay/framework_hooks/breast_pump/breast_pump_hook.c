@@ -50,7 +50,7 @@ static int breast_pump_completed_route(breast_pump_manager_context_t *ctx)
     int user_bind_info = 0;
     ctx->priv.st->get_store_ram_val(STORE_ID_USER_BIND_INFO, 0, 0, &user_bind_info);
     if (!user_bind_info || result_info->report_flag) {
-        LOG_PMP("no need to save, report_flag: %d", result_info->report_flag);
+        // LOG_PMP("no need to save, report_flag: %d", result_info->report_flag);
         need_save = 0;
     }
 
