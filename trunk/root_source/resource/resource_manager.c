@@ -11,6 +11,7 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_RES_DEBUG_LOG        (0) 
+#define IS_SUPPORT_IMG_CRC16_CHECK      (1)
 
 #if IS_SUPPORT_RES_DEBUG_LOG
 #define LOG_RES_DEBUG(format, args...)   LOG_RES(format, ##args)
@@ -131,23 +132,23 @@ static int img_res_find_obj_info(uint32_t base_addr, const char *partition, uint
     memset(&w, 0, sizeof(w));
     int ret = img_res_flash_read_by_partition(partition, base_addr, &w, sizeof(w));
     if (ret != 0) {
-        LOGE("img_res_find_obj_info: read head failed: ret=%d addr=0x%08X", ret, (unsigned)base_addr);
+        LOGE("read head failed: ret=%d addr=0x%08X", ret, (unsigned)base_addr);
         return -2;
     }
 
     if (!img_res_magic_valid(w.head.magic)) {
-        LOGE("img_res_find_obj_info: bad magic: 0x%08X", (unsigned)w.head.magic);
+        LOGE("bad magic: 0x%08X", (unsigned)w.head.magic);
         return -3;
     }
 
     const uint16_t max_cnt = img_res_get_max_count();
     if (w.head.res_count == 0 || w.head.res_count > max_cnt) {
-        LOGE("img_res_find_obj_info: bad res_count=%u (max=%u)", (unsigned)w.head.res_count, (unsigned)max_cnt);
+        LOGE("bad res_count=%u (max=%u)", (unsigned)w.head.res_count, (unsigned)max_cnt);
         return -4;
     }
 
     if (w.head.total_size < IMG_RES_HEADER_FIXED_SIZE) {
-        LOGE("img_res_find_obj_info: bad total_size=0x%08X", (unsigned)w.head.total_size);
+        LOGE("bad total_size=0x%08X", (unsigned)w.head.total_size);
         return -5;
     }
 
@@ -162,7 +163,7 @@ static int img_res_find_obj_info(uint32_t base_addr, const char *partition, uint
         const uint32_t want = (remaining > sizeof(infos)) ? (uint32_t)sizeof(infos) : remaining;
         ret = img_res_flash_read_by_partition(partition, addr, infos, want);
         if (ret != 0) {
-            LOGE("img_res_find_obj_info: read obj_info failed: ret=%d addr=0x%08X size=%u", ret, (unsigned)addr, (unsigned)want);
+            LOGE("read obj_info failed: ret=%d addr=0x%08X size=%u", ret, (unsigned)addr, (unsigned)want);
             return -6;
         }
 
@@ -188,7 +189,7 @@ static int res_get_img_storage_info(uint16_t img_id, img_res_storage_info_t *inf
 
     uint32_t base_addr = 0;
     if (!img_res_get_base_addr(&base_addr)) {
-        LOGE("res_get_img_storage_info: no base addr");
+        LOGE("no base addr");
         return -2;
     }
     const char *partition = img_res_get_partition_name();
@@ -199,7 +200,7 @@ static int res_get_img_storage_info(uint16_t img_id, img_res_storage_info_t *inf
     int ret = img_res_find_obj_info(base_addr, partition, img_id, &obj);
     MUTEX_UNLOCK_FS(thiz->priv.m_fs_rw_lock, "res_get_img_storage_info");
     if (ret != 0) {
-        LOGE("res_get_img_storage_info: img_id=%u not found/err ret=%d", (unsigned)img_id, ret);
+        LOGE("img_id=%u not found/err ret=%d", (unsigned)img_id, ret);
         return ret;
     }
 
@@ -208,6 +209,7 @@ static int res_get_img_storage_info(uint16_t img_id, img_res_storage_info_t *inf
     info->height = obj.height;
     info->x_offset = obj.x_offset;
     info->y_offset = obj.y_offset;
+    info->crc16 = obj.crc16;
     info->data_size = obj.data_size;
 
     info->storage_addr = base_addr + (uint32_t)IMG_RES_HEADER_FIXED_SIZE + obj.offset_addr;
@@ -494,6 +496,18 @@ static int res_ui_img_data_load_impl(uint16_t img_id, res_img_info_t *out)
     #else
         out->data = (uint8_t *)(uintptr_t)info.storage_addr;
     #endif
+    uint16_t data_crc16 = 0xFFFF;
+    CRC16_UPDATE(data_crc16, out->data, info.data_size);
+    if (data_crc16 != info.crc16) {
+        LOGE("  : img crc mismatch: img_id=%u calc=0x%04X expect=0x%04X",
+                (unsigned)img_id, (unsigned)data_crc16, (unsigned)info.crc16);
+        out->id = 0;
+        out->crc16 = 0;
+        out->data = NULL;
+        out->size = 0;
+        return -5;
+    }
+    out->crc16 = info.crc16;
     out->size = info.data_size;
     return 0;
 
@@ -504,28 +518,40 @@ static int res_ui_img_data_load_impl(uint16_t img_id, res_img_info_t *out)
         out->data = NULL;
         out->size = 0;
         out->id = 0;
+        out->crc16 = 0;
     }
 
     if (!out->data) {
         out->data = (uint8_t *)u_malloz_psram(info.data_size, RES_PSRAM_TYPE);
         if (!out->data) {
-            LOGE("res_ui_img_data_load: u_malloz_psram(%u) failed", (unsigned)info.data_size);
+            LOGE("u_malloz_psram(%u) failed", (unsigned)info.data_size);
             return -3;
         }
     }
 
     ret = res_read_img_data_from_external(info.storage_addr, info.data_size, out->data);
     if (ret != 0) {
-        LOGE("res_ui_img_data_load: read_img_data_from_external failed: img_id=%u ret=%d", (unsigned)img_id, ret);
+        LOGE("  : read_img_data_from_external failed: img_id=%u ret=%d", (unsigned)img_id, ret);
         return ret;
     }
 
+#if IS_SUPPORT_IMG_CRC16_CHECK
+    uint16_t data_crc16 = 0xFFFF;
+    CRC16_UPDATE(data_crc16, out->data, info.data_size);
+    if (data_crc16 != info.crc16) {
+        LOGE("  : img crc mismatch: img_id=%u calc=0x%04X expect=0x%04X",
+                (unsigned)img_id, (unsigned)data_crc16, (unsigned)info.crc16);
+        return -5;
+    }
+#endif
     out->id = info.img_id;
+    out->crc16 = info.crc16;
     out->size = info.data_size;
     return 0;
 
 #else
     out->id = 0;
+    out->crc16 = 0;
     out->data = NULL;
     out->size = 0;
     LOGE("res_ui_img_data_load: unsupported storage type");
