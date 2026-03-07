@@ -56,6 +56,10 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
     ui_proc_home_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc);
     WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_HOME, 0);
+    if (proc->current_ui_type == HOME_UI_TYPE_HOME_IDLE) {
+        LOG_WM("system idle, ignore key event.");
+        return 0;
+    }
     switch (keycode) {
         case KEY_CODE_POWER:
             if (proc->led && proc->led->hook && proc->led->hook->toggle_night_light) {
@@ -138,6 +142,10 @@ static int exit_event_cb(window_lift_cycle_e new_state,
             break;
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("%s window exit: u_free: %p", PAGE_NAME_STR, proc);
+            unregister_broadcast_receiver(&proc->receiver);
+            proc->receiver.context = NULL;
+            proc->receiver.receiver_cb = NULL;
+            proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);
             proc = NULL;
             SET_WINDOW_CONTEXT(NULL);

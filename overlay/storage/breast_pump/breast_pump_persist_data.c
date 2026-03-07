@@ -560,7 +560,7 @@ int write_pump_mode_with_type_to_ram(store_func_args_t args)
     } else {
         pump_info->last_expert_mode = mode;
     }
-    LOG_STORE_WRAP("write pump mode with type: %d, mode: %d", mode_type, mode);
+    LOG_STORE_WRAP("type: %d, mode: %d", mode_type, mode);
     return 0;
 }
 

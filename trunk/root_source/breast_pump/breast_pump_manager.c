@@ -71,7 +71,6 @@ static void notify_breast_pump_completed(void)
     struct __breast_pump_hook *hook = breast_pump_obj->hook;
     if (hook && hook->breast_pump_completed_route) {
         need_save = hook->breast_pump_completed_route(breast_pump_obj);
-        LOG_ALGO("save history");
     }
 
     if (need_save) {
@@ -288,13 +287,12 @@ static void set_breast_pump_status(int status)
     power_manager_context_t *pm_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
 
-    LOG_PMP("enter work: %d", m_info->do_work);
+    // LOG_PMP("enter work: %d", m_info->do_work);
     MUTEX_LOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
     if (status >= BREAST_PUMP_IDLE && status <= BREAST_PUMP_RESET) {
         if (m_info->status != status) {
             m_info->status = status;
             LOG_PMP("status: %d, do_work: %d", status, m_info->do_work);
-
             switch (status) {
                 case BREAST_PUMP_IDLE:
                     if (m_info->do_work) {
@@ -305,7 +303,6 @@ static void set_breast_pump_status(int status)
                         });
                     }
                     break;
-                
                 case BREAST_PUMP_START:
                     breast_pump_obj->reset_breast_pump_result();
                     m_info->step_index = 0;
@@ -317,7 +314,6 @@ static void set_breast_pump_status(int status)
                         start_breast_pump_work(false);
                     }
                     break;
-
                 case BREAST_PUMP_CONTINUE:
                     if (!m_info->do_work) {
                         m_info->do_work = 1;
@@ -327,8 +323,6 @@ static void set_breast_pump_status(int status)
                         start_breast_pump_work(true);
                     }
                     break;
-
-  
                 case BREAST_PUMP_PAUSE:
                     if (m_info->do_work) {
                         m_info->do_work = 0;
@@ -338,7 +332,6 @@ static void set_breast_pump_status(int status)
                         });
                     }
                     break;
-
                 case BREAST_PUMP_FINISH:
                     if (m_info->do_work) {
                         m_info->do_work = 0;
@@ -348,10 +341,9 @@ static void set_breast_pump_status(int status)
                         });
                     }
                     m_info->step_index = 0;
-                    LOG_PMP("brush finish, =>save brush result.");
+                    // LOG_PMP("brush finish, =>save brush result.");
                     notify_breast_pump_completed();
                     break;
-
                 case BREAST_PUMP_FACTORY:
                     notify_breast_pump_completed();
                     if (m_info->do_work) {
@@ -359,7 +351,6 @@ static void set_breast_pump_status(int status)
                         stop_breast_pump_work(status);
                     }
                     break;
-
                 case BREAST_PUMP_RESET: /// 用户app请求重置pump RESET后请将pump状态在设置为IDLE
                     if (m_info->do_work) {
                         m_info->do_work = 0;
@@ -375,7 +366,7 @@ static void set_breast_pump_status(int status)
             SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_STATE_CHANGE, status);
         }
     }
-    //通知app
+    /// 通知app
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_VOID(servers_ctx && servers_ctx->hook);
     servers_publish_data_args_t args = {
@@ -386,7 +377,7 @@ static void set_breast_pump_status(int status)
     servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
 
     MUTEX_UNLOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
-    LOG_PMP("exit work: %d", m_info->do_work);
+    // LOG_PMP("exit work: %d", m_info->do_work);
 }
 
 static const breast_pump_result_t *get_curr_breast_pump_result(void)
