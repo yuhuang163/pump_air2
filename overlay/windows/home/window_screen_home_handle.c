@@ -142,6 +142,10 @@ static int exit_event_cb(window_lift_cycle_e new_state,
             break;
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("%s window exit: u_free: %p", PAGE_NAME_STR, proc);
+            unregister_broadcast_receiver(&proc->receiver);
+            proc->receiver.context = NULL;
+            proc->receiver.receiver_cb = NULL;
+            proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);
             proc = NULL;
             SET_WINDOW_CONTEXT(NULL);
