@@ -239,11 +239,19 @@ static void img_res_dump_header(const img_res_head_wrapper_t *w)
         return;
     }
 
-    LOG_RES_DEBUG("IMG RES @0x%08X (partition: %s)", (uint32_t)IMG_INT_DATA_START_ADDR, PARTITION_IMG_INT_DATA_NAME);
+#if V3_IMG_RES_STORAGE_TYPE == IMG_RES_STORAGE_INTERNAL_FLASH
+    const uint32_t partition_start = (uint32_t)IMG_INT_DATA_START_ADDR;
+    const uint32_t partition_end = (uint32_t)IMG_INT_DATA_END_ADDR;
+#else
+    const uint32_t partition_start = (uint32_t)IMG_EXT_DATA_START_ADDR;
+    const uint32_t partition_end = (uint32_t)IMG_EXT_DATA_END_ADDR;
+#endif
+
+    LOG_RES_DEBUG("IMG RES @0x%08X (partition: %s)", (unsigned)partition_start, img_res_get_partition_name());
     LOG_RES_DEBUG("partition range: [0x%08X, 0x%08X) size=0x%08X",
-            (uint32_t)IMG_INT_DATA_START_ADDR,
-            (uint32_t)IMG_INT_DATA_END_ADDR,
-            (uint32_t)((uint32_t)IMG_INT_DATA_END_ADDR - (uint32_t)IMG_INT_DATA_START_ADDR));
+            (unsigned)partition_start,
+            (unsigned)partition_end,
+            (unsigned)(partition_end - partition_start));
     LOG_RES_DEBUG("head.magic   = 0x%08X", (unsigned)w->head.magic);
     LOG_RES_DEBUG("head.crc16   = 0x%04X", (unsigned)w->head.crc16);
     LOG_RES_DEBUG("head.flags   = 0x%04X", (unsigned)w->head.flags);
@@ -277,7 +285,11 @@ static int img_res_validate_and_dump(uint32_t base_addr)
     uint8_t *buf = NULL;
     const uint32_t buf_size = 1024;
     img_res_obj_info_t *infos = NULL;
+#if V3_IMG_RES_STORAGE_TYPE == IMG_RES_STORAGE_INTERNAL_FLASH
     const uint32_t partition_size = (uint32_t)((uint32_t)IMG_INT_DATA_END_ADDR - (uint32_t)IMG_INT_DATA_START_ADDR);
+#else
+    const uint32_t partition_size = (uint32_t)((uint32_t)IMG_EXT_DATA_END_ADDR - (uint32_t)IMG_EXT_DATA_START_ADDR);
+#endif
 
     /// 1) magic
     const bool magic_ok = img_res_magic_valid(w.head.magic);
