@@ -164,7 +164,7 @@ void pump_speed_key_click_handler(ui_proc_pump_t *proc)
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
     EXCEPTION_CHECK_VOID(proc->led);
-    proc->led->set_led_blink(PUMP_FREQ_SET_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
+
     if (proc->pump->is_on_working() == 0) {
         LOG_UI("pump is not working, ignore.");
         return;
@@ -174,6 +174,7 @@ void pump_speed_key_click_handler(ui_proc_pump_t *proc)
         LOG_UI("pump is breastfeeding mode, ignore.");
         return;
     }
+    proc->led->set_led_blink(PUMP_FREQ_SET_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
     show_pump_speed_ui(proc);
     EXCEPTION_CHECK_VOID(proc->motor);
     uint8_t time_index = proc->pump->get_breast_pump_step_index();

@@ -91,7 +91,7 @@ static const uint16_t bf_mode_component_ids[BF_MODE_COUNT] = {
 
 static const char *bf_mode_name[BF_MODE_COUNT] = {
     "Custom", /// 已使用过的个性化模式
-    "Regular Pumping", /// 常规韵律模式
+    "Ragular Pumping", /// 常规韵律模式
     "Milk Boost", /// 2+8奶量提升模式
     "Power Pumping", /// PP追奶模式
     "Lactation Kickstart", /// 开奶模式
@@ -104,7 +104,7 @@ static const char *bf_mode_desc[BF_MODE_COUNT] = {
     "Smooth, gradual suction\nto help improve low milk\nsupply.",
     "Gentle, frequent\nstimulation to trigger\nmultiple let-downs.",
     "Initiates, builds, and\nmaintains a healthy milk\nsupply.",
-    "Effectively empties\nhindmilk\nto move on with ease.",
+    "Effectively empties\nhindmilk to move on with\nease.",
 };
 
 #if IS_SUPPORT_MODE_COMP_BG

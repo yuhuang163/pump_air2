@@ -73,9 +73,9 @@ typedef struct ui_display_mode_info {
 static mode_display_info_t *mode_info;
 
 static const uint16_t mode_component_ids[MODE_COUNT] = {
-    RESOURCE_ID_FREQ_PAGE_COMFORT_ICON, /// 舒适
-    RESOURCE_ID_FREQ_PAGE_REGULAR_ICON, /// 常规
-    RESOURCE_ID_FREQ_PAGE_BOOST_ICON, /// 快速
+    RESOURCE_ID_MODE_STIMULATE_ICON, /// 舒适
+    RESOURCE_ID_MODE_LACTATION_ICON, /// 常规
+    RESOURCE_ID_MODE_MIX_ICON, /// 快速
 };
 
 static const char *mode_name[MODE_COUNT] = {
