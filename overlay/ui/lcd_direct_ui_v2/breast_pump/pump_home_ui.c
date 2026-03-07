@@ -8,7 +8,6 @@
 #include "ui_manager.h"   // IWYU pragma: keep
 #include "window_screen_pump.h" // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
-#include <stdint.h>
 
 /*
 * DEFINES
@@ -623,6 +622,7 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
         lv_obj_set_style_text_font(pump_info->mode_text[i], &lv_font_oppo_sans_12_medium, 0);
         lv_obj_align(pump_info->mode_text[i], LV_ALIGN_CENTER, 0, 0); /// 设置label文字位置
     }
+    LOG_UI("mode_text: %s, next_mode_text: %s", home_mode_names[sub_mode], home_mode_names[next_sub_mode]);
     pump_info->mode = mode_index;
     pump_info->sub_mode = sub_mode;
 }
