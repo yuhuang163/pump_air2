@@ -34,6 +34,7 @@ typedef enum {
     HOME_UI_TYPE_NONE = 0,
     HOME_UI_TYPE_HOME,
     HOME_UI_TYPE_HOME_IDLE,
+    HOME_UI_TYPE_HOME_WILL_POWER_OFF,
     HOME_UI_TYPE_MAX
 } home_ui_type_e;
 
@@ -51,6 +52,7 @@ typedef struct {
     uint32_t margic; /// 窗口标识.
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     uint16_t current_ui_type; /// 当前UI类型. home_ui_type_e
+    uint8_t popup_ui_type; /// 当前弹窗类型.
 } ui_proc_home_t;
 
 /*
