@@ -97,7 +97,12 @@ static void on_home_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
             } else if (arg1 == PM_BROADCAST_SYS_IDLE_RELEASE) {
                 POST_TASK_HANDLER_DELAYED_ARG2(home_ui_switch_cb, 100, HOME_UI_TYPE_HOME,
                     proc, HOME_IDLE_UI_START_TASK_NAME);
-            }
+            } else if (arg1 == PM_BROADCAST_SYS_WILL_SUSPEND) {
+                if (proc->current_ui_type == HOME_UI_TYPE_HOME_IDLE) {
+                    proc->popup_ui_type = HOME_UI_TYPE_HOME_WILL_POWER_OFF;
+                    LOG_WM("PM_STATE_CHANGE: will power off");
+                }
+            } 
             break;
         default:
             break;
@@ -168,6 +173,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     SET_WINDOW_CONTEXT(proc);
     proc->margic = UI_WINDOW_MARGIC_CODE;
     proc->current_ui_type = HOME_UI_TYPE_NONE;
+    proc->popup_ui_type = HOME_UI_TYPE_NONE;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
