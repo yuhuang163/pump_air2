@@ -21,6 +21,7 @@
 #define WILL_POWER_OFF_ARC_COLOR                                     (0xB25962) // 圆弧颜色（匹配吸奶器粉色）
 #define WILL_POWER_OFF_COUNTDOWN_STEP_TIME                           (75)      // 倒计时步长时间（75ms）
 #define WILL_POWER_OFF_COUNTDOWN_MAX_VALUE                           (3000/WILL_POWER_OFF_COUNTDOWN_STEP_TIME)      // 倒计时最大值（3秒）每75ms递减1
+#define WILL_POWER_OFF_CALLBACK_DELAY_TIME                           (100)     // 倒计时到0后延迟调用回调的时间（100ms）
 #define WILL_POWER_OFF_COUNTDOWN_SECOND_2_THRESHOLD                  ((WILL_POWER_OFF_COUNTDOWN_MAX_VALUE * 2) / 3)  // 显示"2"的阈值
 #define WILL_POWER_OFF_COUNTDOWN_SECOND_1_THRESHOLD                 (WILL_POWER_OFF_COUNTDOWN_MAX_VALUE / 3)        // 显示"1"的阈值
 
@@ -43,8 +44,10 @@ typedef struct {
     lv_obj_t * countdown_arc;            /// 圆弧进度条对象
     uint16_t countdown_value;            /// 倒计时值
     uint32_t start_time;                 /// 倒计时起始时间
+    uint32_t countdown_zero_time;        /// 倒计时到0的时间戳
     uint8_t force_update;
     uint8_t current_display_number;      /// 当前显示的数字，避免重复设置
+    uint8_t callback_triggered;          /// 回调是否已触发
 } will_power_off_tip_display_info_t;
 
 /*
@@ -124,10 +127,13 @@ static void will_power_off_tip_arc_update(ui_manager_context_t *thiz)
 
     /* 3. 计算圆弧角度：从270°开始，按进度均匀绘制 */
     int16_t start, end;
-    if (progress >= WILL_POWER_OFF_COUNTDOWN_MAX_VALUE) {
-      // 倒计时=0 → 满圆，使用360度确保完全闭合
-      start = 0;
-      end = 360; // 使用360度画完整圆，LVGL会自动处理wrap
+    // 当倒计时为0或进度达到最大值时，画完整圆
+    if (will_power_off_tip_info->countdown_value == 0 || progress >= WILL_POWER_OFF_COUNTDOWN_MAX_VALUE) {
+      // 倒计时=0 → 满圆，从270°开始画完整360度
+      // 使用 start = 270, end = 270 + 359 = 629，LVGL会自动处理为 end = 269
+      // 这样从270°顺时针到269°（经过360°），正好是完整圆
+      start = 270;
+      end = 270 + 359;
     } else {
       // 按比例从 270° 开始画，顺时针绘制
       start = 270;
@@ -208,7 +214,9 @@ void ui_prompt_home_will_power_off_prepare(ui_manager_context_t *thiz, lv_obj_t 
     will_power_off_tip_info->force_update = true;
     will_power_off_tip_info->countdown_value = WILL_POWER_OFF_COUNTDOWN_MAX_VALUE;
     will_power_off_tip_info->start_time = get_timestamp();
+    will_power_off_tip_info->countdown_zero_time = 0;  /// 初始化倒计时到0的时间戳
     will_power_off_tip_info->current_display_number = 3;  /// 初始化显示数字
+    will_power_off_tip_info->callback_triggered = 0;  /// 初始化回调触发标志
     will_power_off_tip_sub_root_init(parent);
 }
 
@@ -231,9 +239,21 @@ void ui_prompt_home_will_power_off_process(ui_manager_context_t *thiz)
     }
     will_power_off_tip_animation_update(thiz);
     will_power_off_tip_info->force_update = false;
-    if (will_power_off_tip_info->countdown_value == 0) {
+    
+    /// 当倒计时到0时，记录时间戳
+    if (will_power_off_tip_info->countdown_value == 0 && 
+        will_power_off_tip_info->countdown_zero_time == 0) {
+        will_power_off_tip_info->countdown_zero_time = get_timestamp();
+    }
+    
+    /// 延迟调用回调，确保用户能看到完整的闭合圆和"0"的显示
+    if (will_power_off_tip_info->countdown_value == 0 && 
+        !will_power_off_tip_info->callback_triggered &&
+        will_power_off_tip_info->countdown_zero_time > 0 &&
+        (get_timestamp() - will_power_off_tip_info->countdown_zero_time >= WILL_POWER_OFF_CALLBACK_DELAY_TIME)) {
         ui_animation_play_t *ani = &thiz->priv.play_info;
         EXCEPTION_CHECK_VOID(ani);
+        will_power_off_tip_info->callback_triggered = 1;
         ani->progress_cb(thiz, HOME_UI_TYPE_HOME_WILL_POWER_OFF, ANI_POPUP_DISPLAY_FINISH);
     }
 }
