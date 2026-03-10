@@ -173,6 +173,81 @@ void switch_pump_control_type_ui(ui_proc_pump_t *proc,uint8_t control_type)
     LOG_UI("switch pump control type: %d", control_type);
 }
 
+/// 通过旋钮同时切双边换档位和控制类型为双边模式
+void switch_pump_bilateral_control_type_ui_by_knob(ui_proc_pump_t *proc, bool is_increase)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    EXCEPTION_CHECK_VOID(proc->pump);
+    if (proc->pump->is_on_working() == 0) {
+        // LOG_UI("pump is not working, ignore.");
+        return;
+    }
+
+    if (proc->current_ui_type != PUMP_UI_TYPE_LEVEL) {
+        int time_index = proc->pump->get_breast_pump_step_index();
+        if (time_index >= ROOT_BREAST_PUMP_STEP_MAX) {
+            time_index = 0;
+        }
+        proc->pump->get_breast_pump_setting(&proc->setting, time_index);
+    }
+    /// 设置双边模式时，两侧的灯亮着
+    proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX);
+    proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX);
+
+    /// 设置控制类型为双边模式
+    proc->info.control_type = BREAST_PUMP_CONTROL_TYPE_BILATERAL;
+    proc->pump->set_breast_pump_control_type(BREAST_PUMP_CONTROL_TYPE_BILATERAL);
+    
+
+    if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
+        /// 双侧模式：level_change 表示档位变化值，范围 -15 到 15
+        /// is_increase=true: 增加强度（level_change++, level[i]++）
+        /// is_increase=false: 减小强度（level_change--, level[i]--）
+
+        /// 如果上次档位变化方向与is_increase相反，则清零档位变化值
+        if (proc->level_change_direction != is_increase) {
+            proc->level_change = 0;
+        }
+        /// 更新档位变化方向
+        proc->level_change_direction = is_increase;
+       
+        /// 更新档位变化值
+        if (is_increase) {
+            if (!(proc->setting.level[0] == BREAST_PUMP_LEVEL_0 && proc->setting.level[1] == BREAST_PUMP_LEVEL_0)) {
+                if (proc->level_change > -15) {
+                    proc->level_change--;
+                }
+                LOG_UI("switch pump level --: %d", proc->level_change);
+            }
+        } else {
+            if (!(proc->setting.level[0] == BREAST_PUMP_LEVEL_15 && proc->setting.level[1] == BREAST_PUMP_LEVEL_15)) {
+                if (proc->level_change < 15) {
+                    proc->level_change++;
+                    LOG_UI("switch pump level ++: %d", proc->level_change);
+                }
+            }
+        }
+        // 同步更新两侧的档位值（档位值越小，强度越大）
+        for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+            if (is_increase) {
+                if (proc->setting.level[i] > 0) {
+                    proc->setting.level[i]--;
+                }
+            } else {
+                if (proc->setting.level[i] < BREAST_PUMP_LEVEL_15) {
+                    proc->setting.level[i]++;
+                }
+            }
+        }
+        LOG_UI("switch pump level change: %d, mode: %s", proc->level_change,
+            proc->pump->get_breast_pump_mode_name(proc->pump->get_breast_pump_mode()));
+    }
+    // 延后同步
+    proc->level_sync_flag = true;
+    /// 显示UI
+    show_pump_level_ui(proc);
+}
+
 void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase)
 {
     EXCEPTION_CHECK_VOID(proc);
@@ -222,13 +297,13 @@ void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase)
             proc->level_change_direction = is_increase;
             /// 更新档位变化值
             if (is_increase) {
-                if ((proc->setting.level[0] != BREAST_PUMP_LEVEL_0 && proc->setting.level[1] != BREAST_PUMP_LEVEL_0)) {
+                if (!(proc->setting.level[0] == BREAST_PUMP_LEVEL_0 && proc->setting.level[1] == BREAST_PUMP_LEVEL_0)) {
                     if (proc->level_change > -15) {
                         proc->level_change--;
                     }
                 }
             } else {
-                if ((proc->setting.level[0] != BREAST_PUMP_LEVEL_15 && proc->setting.level[1] != BREAST_PUMP_LEVEL_15)) {
+                if (!(proc->setting.level[0] == BREAST_PUMP_LEVEL_15 && proc->setting.level[1] == BREAST_PUMP_LEVEL_15)) {
                     if (proc->level_change < 15) {
                         proc->level_change++;
                     }

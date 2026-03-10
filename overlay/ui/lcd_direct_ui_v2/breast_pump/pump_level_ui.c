@@ -520,7 +520,7 @@ static void pump_level_text_level_lable_update(ui_manager_context_t *thiz)
         
         lv_fs_path_ex_t add_img_path;
         lv_fs_make_path_from_buffer(&add_img_path, LV_FS_MEMFS_LETTER, 
-            level_info->add_label_info.data, level_info->add_label_info.size, "png");
+            level_info->add_label_info.data, level_info->add_label_info.size, "baj");
         lv_image_set_src(level_info->add_label, (const void *)&add_img_path);
         lv_obj_align(level_info->add_label, LV_ALIGN_TOP_LEFT, 110, 162);
         lv_obj_clear_flag(level_info->add_label, LV_OBJ_FLAG_HIDDEN);

@@ -114,7 +114,7 @@ void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
             switch_breastfeeding_mode_ui(proc, is_left ? false : true);
             break;
         case PUMP_UI_TYPE_HOME:
-            switch_pump_control_type_ui(proc, BREAST_PUMP_CONTROL_TYPE_BILATERAL);
+            switch_pump_bilateral_control_type_ui_by_knob(proc, is_left);
             break;
         default:
             LOG_WM("unknow ui type: %d, ignore.", proc->current_ui_type);
