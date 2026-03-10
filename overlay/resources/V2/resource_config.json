@@ -337,14 +337,14 @@
     {
       "resource_id": "RESOURCE_ID_PUMP_LEVEL_ADD_LABEL_ICON",
       "description": "泵奶档位文本加号图标",
-      "file": "png/icon_level_add.png",
+      "file": "baj/icon_level_add_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_PUMP_LEVEL_SUB_LABEL_ICON",
       "description": "泵奶档位文本减号图标",
-      "file": "png/icon_level_sub.png",
+      "file": "baj/icon_level_sub_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     }
