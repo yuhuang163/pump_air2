@@ -58,8 +58,6 @@ typedef struct {
     lv_obj_t *mode_component_img[BF_CIRCLE_SLOT_COUNT]; /// 模式组件图片
     lv_obj_t *mode_title_label[BF_CIRCLE_SLOT_COUNT]; /// 模式标题标签
     lv_obj_t *mode_desc_label[BF_CIRCLE_SLOT_COUNT]; /// 模式描述标签
-    res_img_info_t circle_bg_info;
-    lv_fs_path_ex_t circle_bg_path;
     res_img_info_t last_usage_icon_info;
     lv_fs_path_ex_t last_usage_icon_path;
     res_img_info_t unconfirmed_icon_info;
@@ -372,21 +370,20 @@ static void circle_carousel_set_mode(ui_manager_context_t *thiz, uint8_t idx, bo
 
 static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_circle_slot_e slot)
 {
-    /// 模式背景图标资源
-    if (bf_mode_info->circle_bg_info.data == NULL) {
-        common_ui_img_resource_init(thiz, RESOURCE_ID_MODE_BG_ICON, &bf_mode_info->circle_bg_info);
-        EXCEPTION_CHECK_VOID(bf_mode_info->circle_bg_info.data);
-        lv_fs_make_path_from_buffer(&bf_mode_info->circle_bg_path,
-                                    LV_FS_MEMFS_LETTER,
-                                    bf_mode_info->circle_bg_info.data,
-                                    bf_mode_info->circle_bg_info.size,
-                                    BF_CIRCLE_BG_EXT);
-    }
+#if LV_USE_SNAPSHOT
+    lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_BG);
+    EXCEPTION_CHECK_VOID(background_snapshot);
+#endif
+
     /// 模式背景图标对象
     if (bf_mode_info->circle_obj[slot] == NULL || !lv_obj_is_valid(bf_mode_info->circle_obj[slot])) {
         bf_mode_info->circle_obj[slot] = lv_image_create(parent);
         EXCEPTION_CHECK_VOID(bf_mode_info->circle_obj[slot]);
-        lv_image_set_src(bf_mode_info->circle_obj[slot], (const void *)&bf_mode_info->circle_bg_path);
+#if LV_USE_SNAPSHOT
+        lv_image_set_src(bf_mode_info->circle_obj[slot], background_snapshot);
+#else
+        lv_obj_add_flag(bf_mode_info->circle_obj[slot], LV_OBJ_FLAG_HIDDEN); /// 隐藏
+#endif
         lv_obj_set_pos(bf_mode_info->circle_obj[slot], (lv_coord_t)slot_target_x(slot), (lv_coord_t)slot_target_y(slot));
     }
     /// 上一次使用模式图标资源  
@@ -602,7 +599,6 @@ void ui_display_breastfeeding_mode_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(bf_mode_info);
-    common_ui_img_resource_deinit(thiz, &bf_mode_info->circle_bg_info);
     common_ui_img_resource_deinit(thiz, &bf_mode_info->last_usage_icon_info);
     common_ui_img_resource_deinit(thiz, &bf_mode_info->unconfirmed_icon_info);
     for (uint8_t i = 0; i < BF_CIRCLE_SLOT_COUNT; i++) {
