@@ -13,6 +13,7 @@ extern "C" {
 #include "hal_gpio.h" // IWYU pragma: keep
 #include "hal_gpadc.h" // IWYU pragma: keep
 #include "project_config.h" // IWYU pragma: keep
+#include "project_support_overlay.h" // IWYU pragma: keep (for IS_SUPPORT_TOUCH_KEY_HYN)
 
 /// GPIO控制宏定义
 #define GPIO_PIN_CTRL(pin, status)      ((status) ? hal_gpio_pin_set(pin) : hal_gpio_pin_clr(pin))
@@ -28,6 +29,9 @@ extern "C" {
 #define POWER_KEY_PIN                   HAL_GPIO_PIN_P4_6
 /// 触摸按键相关定义
 #define TOUCH_INT_PIN                   HAL_GPIO_PIN_P0_0
+#if IS_SUPPORT_TOUCH_KEY_HYN
+#define HYN_TOUCH_RST_PIN               HAL_GPIO_PIN_P2_0  /// 海栎创触摸IC复位脚，请根据实际硬件修改
+#endif
 /// 启动与暂停背光灯
 #define PUMP_START_BL_PIN               HAL_GPIO_PIN_P1_2  
 /// 模式选择背光灯
@@ -119,6 +123,9 @@ extern "C" {
 /// 按键相关定义
 #define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_7
 #define TOUCH_INT_PIN                   HAL_GPIO_PIN_P4_6
+#if IS_SUPPORT_TOUCH_KEY_HYN
+#define HYN_TOUCH_RST_PIN               HAL_GPIO_PIN_P2_0  /// 海栎创触摸IC复位脚，请根据实际硬件修改
+#endif
 #define KNOB_B_PIN                      HAL_GPIO_PIN_P1_0
 #define KNOB_A_PIN                      HAL_GPIO_PIN_P1_1
 /// USB相关定义

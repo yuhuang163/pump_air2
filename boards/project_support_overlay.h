@@ -48,6 +48,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_DATABASE                       (1)
 #define IS_SUPPORT_DEVICE_INPUT_KEY                      (1)
 #define IS_SUPPORT_DEVICE_TOUCH_KEY                      (1)
+#define IS_SUPPORT_TOUCH_KEY_SC09B                      (0)
+#define IS_SUPPORT_TOUCH_KEY_HYN                         (1)
 #define IS_SUPPORT_DEVICE_POWER                          (1)
 #define IS_SUPPORT_DEVICE_PMU                            (1)
 #define IS_SUPPORT_DEVICE_IMU                            (0)
