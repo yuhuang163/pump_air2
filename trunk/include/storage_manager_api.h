@@ -37,6 +37,7 @@ typedef enum {
     STORE_ID_BREAST_PUMP_TIME,              /// 吸奶时间
     STORE_ID_PUMP_SETTING_INFO,             /// 吸奶设置信息
     STORE_ID_PUMP_MODE_STEPS_INFO,          /// 吸奶模式多步设置信息
+    STORE_ID_PUMP_MODE_NAME_INFO,           ///模式名称
     STORE_ID_PUMP_CONTROL_TYPE,             /// 吸奶控制类型
     STORE_ID_BREAST_PUMP_DATA_HEAD,         /// 吸奶器数据头
     STORE_ID_BREAST_PUMP_DATA_BODY,         /// 吸奶器数据体

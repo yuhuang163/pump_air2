@@ -325,6 +325,24 @@ static uint32_t app_old_comm_get_current_custom_pump_mode_total_time(void)
     return (uint32_t)custom_total_time;
 }
 
+static uint8_t app_old_comm_get_current_running_mode_step(void)
+{
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_UINT(pump_ctx);
+    uint8_t step_index = pump_ctx->get_breast_pump_step_index();
+    LOG_SRV("mode_step= %d", step_index);
+    return (uint8_t)step_index;
+}
+
+static uint16_t app_old_comm_get_current_running_mode_step_time(void)
+{
+    motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    EXCEPTION_CHECK_UINT(motor_ctx);
+    uint8_t step_index_time = motor_ctx->get_current_time_policy_remaining_time();
+    LOG_SRV("step_index_time= %d", step_index_time);
+    return (uint16_t)step_index_time;
+}
+
 static uint8_t app_old_comm_get_system_is_airplane_mode(void)
 {
     airplane_mode_context_t *ap = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
@@ -351,13 +369,20 @@ static void pump_copy_trial_mode_to_custom_mode(void)
         storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_MODE, i, &trial_setting);
     }
     LOG_SRV("copy custom trial setting info to custom mode");
+
+    char mode_name[PUMP_MODE_NAME_LEN];   /// 模式名称
+    storage_ctx->get_store_ram_val(STORE_ID_PUMP_MODE_NAME_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, mode_name);
+    storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_NAME_INFO, BREAST_PUMP_CUSTOM_MODE, 0, mode_name);
 }
 
-static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_steps_info)
+static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_steps_info, char *name)
 {
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     EXCEPTION_CHECK_UINT(storage_ctx);
+
+    //更新自定义模式名称
+    storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_NAME_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, name);
     ///是否需要区分设备是否在用户自定义模式下运行，如果运行，是否直接替换用户自定义模式参数
     storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, &pump_steps_info);
     LOG_SRV("put custom trial steps info to ram");
@@ -373,6 +398,38 @@ static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_
             setting.level[j] = pump_steps_info.data[i].level;
         }
         storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, i, &setting);
+    }
+
+    ///同步参数到custom
+    pump_copy_trial_mode_to_custom_mode();
+    ///更新同步标志
+    storage_ctx->put_store_ram_val(STORE_ID_MODE_UPDATE_FLAG, BREAST_PUMP_CUSTOM_MODE, 0, 0);
+    return true;
+}
+
+static uint8_t pump_custom_mode_update_by_app(pump_mode_steps_info_t pump_steps_info, char *name)
+{
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    EXCEPTION_CHECK_UINT(storage_ctx);
+
+    //更新自定义模式名称
+    storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_NAME_INFO, BREAST_PUMP_CUSTOM_MODE, 0, name);
+    ///是否需要区分设备是否在用户自定义模式下运行，如果运行，是否直接替换用户自定义模式参数
+    storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_MODE, 0, &pump_steps_info);
+    LOG_SRV("put custom steps info to ram");
+    motor_ctx->hook->generate_motor_para(motor_ctx, BREAST_PUMP_CUSTOM_MODE, &pump_steps_info, sizeof(pump_steps_info));
+    //custom_mode_update_by_steps_info(&pump_steps_info);
+    pump_setting_t setting;
+    for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+        if (i >= pump_steps_info.policy_num) {
+            break; // 如果步数大于最大步数，则跳出
+        }
+        setting.speed = pump_steps_info.data[i].freq;
+        for (uint8_t j = 0; j < BREAST_PUMP_NUM; j++) {
+            setting.level[j] = pump_steps_info.data[i].level;
+        }
+        storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_MODE, i, &setting);
     }
     return true;
 }
@@ -592,7 +649,24 @@ static void app_pump_custom_trial_mode_start_handler(void)
     }
 }
 
+static void app_pump_custom_mode_start_handler(void)
+{
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump_ctx);
+    if (app_old_comm_get_current_pump_mode() == BREAST_PUMP_CUSTOM_MODE && pump_ctx->is_on_working()) {
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+        app_broadcast_pump_status_to_window(BREAST_PUMP_PAUSE, OLD_BROADCAST_ALL_CT);
+        pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+        app_broadcast_pump_status_to_window(BREAST_PUMP_START, OLD_BROADCAST_ALL_CT);
+    }
+}
+
 static void app_pump_user_define_delay_task_handler(hdr_post_args_t *args)
+{
+    app_pump_custom_mode_start_handler();
+}
+
+static void app_pump_trial_user_define_delay_task_handler(hdr_post_args_t *args)
 {
     app_pump_custom_trial_mode_start_handler();
 }
@@ -629,6 +703,8 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_o
     report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(id); //normal speed //频次（0-低 1-中 2-高）（1字节）
     report_data[data_len++] = 0x00; //预留
     report_data[data_len++] = 0x00; //预留
+    report_data[data_len++] = app_old_comm_get_current_running_mode_step();
+    report_data[data_len++] = app_old_comm_get_current_running_mode_step_time();
     report_data[data_len++] = app_old_comm_get_night_light_onoff();
     report_data[data_len++] = app_old_comm_get_night_light_level();
     report_data[data_len++] = app_old_comm_get_adaptive_dimming_switch();
@@ -663,6 +739,8 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT); //normal speed
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = 0x00; //预留
+    ack_data[data_len++] = app_old_comm_get_current_running_mode_step();
+    ack_data[data_len++] = app_old_comm_get_current_running_mode_step_time();
     ack_data[data_len++] = app_old_comm_get_night_light_onoff();
     ack_data[data_len++] = app_old_comm_get_night_light_level();
     ack_data[data_len++] = app_old_comm_get_adaptive_dimming_switch();
@@ -721,8 +799,13 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     uint8_t section_num = 0, speed = 0, mode_type = 0, level = 0;
     uint16_t time_policy_duration = 0;
 	pump_mode_steps_info_t pump_steps_info = {0};
+    char mode_name[PUMP_MODE_NAME_LEN];   /// 模式名称
     EXCEPTION_CHECK_VOID(cab);
-    memcpy(pump_steps_info.id.dat, cab, 4);
+    //memcpy(pump_steps_info.id.dat, cab, 4);
+    pump_steps_info.id.dat[0] = cab[0];
+    pump_steps_info.id.dat[1] = cab[1];
+    pump_steps_info.id.dat[2] = cab[2];
+    pump_steps_info.id.dat[3] = cab[3];
 	LOG_SRV("cmd ud-mode id = %d", pump_steps_info.id.dat32);
 	if (cab[4] <= ROOT_BREAST_PUMP_STEP_MAX) {
 		section_num = cab[4];
@@ -731,13 +814,22 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 	}
 	else { //超出范围，发送NACK
 		LOG_SRV("section_num: %d, out of range", section_num);
-		app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
+		app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NACK, APP_OLD_COMM_CID_USER_DEFINE, 4, cab);
 		return;
 	}
+
+    ///名称标号
+    if ( cab[5] < 10) {  
+        snprintf(mode_name, sizeof(mode_name), "0%d", cab[5]);
+    } else {
+        snprintf(mode_name, sizeof(mode_name), "%d", cab[5]);
+    }
+    LOG_SRV("mode_name %s", mode_name);
+
 	pump_steps_info.total_time = 0;
     uint8_t step_index = 0, n = 0;
 	for (uint8_t i = 0; i < section_num; i++) {
-		n = 5 + 10 * i;
+		n = 6 + 10 * i;
 		if (cab[n] <= ROOT_BREAST_PUMP_STEP_MAX) {
             mode_type = cab[n + 1];
             level = cab[n + 2] >= BREAST_PUMP_LEVEL_MAX ? BREAST_PUMP_LEVEL_15 : cab[n + 2];
@@ -800,12 +892,132 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
     LOG_SRV("total_time=%d", pump_steps_info.total_time);
     n += 10;
     LOG_SRV("data n = [%d] data len = [%d]", n, cal);
-    pump_custom_trial_mode_update_by_app(pump_steps_info); /// 将自定义模式参数存入
+
+    pump_custom_mode_update_by_app(pump_steps_info,  mode_name); /// 将自定义模式参数存入
+    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    EXCEPTION_CHECK_VOID(wm);
+    if (wm->is_current_window(wm, ID_WINDOW_PUMP)) {
+        app_pump_custom_mode_start_handler();
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 4, cab);
+    } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)
+        ||wm->is_current_window(wm, ID_WINDOW_HOME)) {
+        LOG_SRV("charge or dummy or home mode, dispatch pump window.");
+        multi_func_msg_data_t msg = {0};
+        msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+        wm->dispatch_new_window_args(wm, &msg);
+        POST_TASK_HANDLER_DELAYED_ARG1(app_pump_trial_user_define_delay_task_handler, PUMP_CTRL_TASK_DELAY_TIME, NULL,
+             "app_pump_user_define_delay_task");
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 4, cab);
+    } else {
+        LOG_SRV("not in pump window");
+    }
+}
+
+///0xc5  
+void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
+{
+    uint8_t section_num = 0, speed = 0, mode_type = 0, level = 0;
+    uint16_t time_policy_duration = 0;
+	pump_mode_steps_info_t pump_steps_info = {0};
+    char mode_name[PUMP_MODE_NAME_LEN];   /// 模式名称
+    EXCEPTION_CHECK_VOID(cab);
+    //memcpy(pump_steps_info.id.dat, cab, 4);
+    pump_steps_info.id.dat[0] = cab[0];
+    pump_steps_info.id.dat[1] = cab[1];
+    pump_steps_info.id.dat[2] = cab[2];
+    pump_steps_info.id.dat[3] = cab[3];
+	LOG_SRV("cmd ud-mode id = %d", pump_steps_info.id.dat32);
+	if (cab[4] <= ROOT_BREAST_PUMP_STEP_MAX) {
+		section_num = cab[4];
+		pump_steps_info.time_policy_num = section_num;
+        LOG_SRV("time_policy_num = %d", pump_steps_info.time_policy_num);
+	}
+	else { //超出范围，发送NACK
+		LOG_SRV("section_num: %d, out of range", section_num);
+		app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 4, cab);
+		return;
+	}
+
+    ///名称标号
+    if ( cab[5] < 10) {  
+        snprintf(mode_name, sizeof(mode_name), "0%d", cab[5]);
+    } else {
+        snprintf(mode_name, sizeof(mode_name), "%d", cab[5]);
+    }
+    LOG_SRV("mode_name %s", mode_name);
+
+	pump_steps_info.total_time = 0;
+    uint8_t step_index = 0, n = 0;
+	for (uint8_t i = 0; i < section_num; i++) {
+		n = 6 + 10 * i;
+		if (cab[n] <= ROOT_BREAST_PUMP_STEP_MAX) {
+            mode_type = cab[n + 1];
+            level = cab[n + 2] >= BREAST_PUMP_LEVEL_MAX ? BREAST_PUMP_LEVEL_15 : cab[n + 2];
+            speed = (cab[n + 3] - 1) >= BREAST_PUMP_SPEED_MAX ? BREAST_PUMP_SPEED_HIGH : (cab[n + 3] - 1);
+            time_policy_duration = cab[n + 4] << 8 | cab[n + 5];
+		    if (mode_type == APP_OLD_COMM_MODE_SHORT) {
+                pump_steps_info.data[step_index].mode_type = SUCTION_MODE_SHORT;
+                pump_steps_info.data[step_index].level = level;
+                pump_steps_info.data[step_index].freq = speed;
+                pump_steps_info.data[step_index].loop_num = 1;
+                pump_steps_info.data[step_index].duration = time_policy_duration;
+                step_index++;
+            } else if (mode_type == APP_OLD_COMM_MODE_LONG) {
+                pump_steps_info.data[step_index].mode_type = SUCTION_MODE_LONG;
+                pump_steps_info.data[step_index].level = level;
+                pump_steps_info.data[step_index].freq = speed;
+                pump_steps_info.data[step_index].loop_num = 1;
+                pump_steps_info.data[step_index].duration = time_policy_duration;
+                step_index++;
+            } else if (mode_type == APP_OLD_COMM_MODE_MIX1) {
+                /// 混合1短吸
+                pump_steps_info.data[step_index].mode_type = SUCTION_MODE_MIX_SHORT;
+                pump_steps_info.data[step_index].level = level;
+                pump_steps_info.data[step_index].freq = speed;
+                pump_steps_info.data[step_index].loop_num = 5; 
+                pump_steps_info.data[step_index].duration = time_policy_duration;
+                /// 混合1长吸
+                pump_steps_info.data[step_index + 1].mode_type = SUCTION_MODE_MIX_LONG;
+                pump_steps_info.data[step_index + 1].level = level;
+                pump_steps_info.data[step_index + 1].freq = speed;
+                pump_steps_info.data[step_index + 1].loop_num = 1;
+                pump_steps_info.data[step_index + 1].duration = 0;
+                step_index += 2;
+            } else if (mode_type == APP_OLD_COMM_MODE_MIX2) {
+                /// 混合2短吸
+                pump_steps_info.data[step_index].mode_type = SUCTION_MODE_MIX_SHORT;
+                pump_steps_info.data[step_index].level = level;
+                pump_steps_info.data[step_index].freq = speed;
+                pump_steps_info.data[step_index].loop_num = 2; 
+                pump_steps_info.data[step_index].duration = time_policy_duration;
+                /// 混合2长吸
+                pump_steps_info.data[step_index + 1].mode_type = SUCTION_MODE_MIX_LONG;
+                pump_steps_info.data[step_index + 1].level = level;
+                pump_steps_info.data[step_index + 1].freq = speed;
+                pump_steps_info.data[step_index + 1].loop_num = 1;
+                pump_steps_info.data[step_index + 1].duration = 0;
+                step_index += 2;
+            } else {
+                pump_steps_info.data[step_index].mode_type = SUCTION_MODE_IDLE;
+                pump_steps_info.data[step_index].level = 0;
+                pump_steps_info.data[step_index].freq = 0;
+                pump_steps_info.data[step_index].loop_num = 1;
+                pump_steps_info.data[step_index].duration = time_policy_duration;
+                step_index++;
+            }
+			pump_steps_info.total_time += time_policy_duration;
+		}
+		LOG_SRV("step %d mode=%d, level=%d, freq=%d, duration=%d", i, mode_type, level, speed, time_policy_duration);
+	}
+    LOG_SRV("total_time=%d", pump_steps_info.total_time);
+    n += 10;
+    LOG_SRV("data n = [%d] data len = [%d]", n, cal);
+    pump_custom_trial_mode_update_by_app(pump_steps_info,  mode_name); /// 将自定义模式参数存入
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_VOID(wm);
     if (wm->is_current_window(wm, ID_WINDOW_PUMP)) {
         app_pump_custom_trial_mode_start_handler();
-        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 4, cab);
     } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)
         ||wm->is_current_window(wm, ID_WINDOW_HOME)) {
         LOG_SRV("charge or dummy or home mode, dispatch pump window.");
@@ -814,23 +1026,10 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
         wm->dispatch_new_window_args(wm, &msg);
         POST_TASK_HANDLER_DELAYED_ARG1(app_pump_user_define_delay_task_handler, PUMP_CTRL_TASK_DELAY_TIME, NULL,
              "app_pump_user_define_delay_task");
-        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 0, NULL);
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 4, cab);
     } else {
         LOG_SRV("not in pump window");
     }
-}
-
-//0xc5
-void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
-{
-    // 复制BREAST_PUMP_CUSTOM_TRIAL_MODE的数据到BREAST_PUMP_CUSTOM_MODE
-    pump_copy_trial_mode_to_custom_mode();
-
-    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
-    EXCEPTION_CHECK_VOID(storage_ctx);
-
-    storage_ctx->put_store_ram_val(STORE_ID_MODE_UPDATE_FLAG, BREAST_PUMP_CUSTOM_MODE, 0, 0);
-    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 0, NULL);
 }
 
 //0xf0
@@ -868,6 +1067,14 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     ack_data[data_len++] = handler_ctx->encrypt_key;//encrypt_key;
 #endif
     ack_data[data_len++] = ctx->priv.ver_info.sw_version % 100;
+    ack_data[data_len++] = 0x00;//预留
+    ack_data[data_len++] = 0x00;//预留
+    ack_data[data_len++] = 0x00;//预留
+    ack_data[data_len++] = ctx->priv.sys_info.mode_info.steps_info[BREAST_PUMP_CUSTOM_TRIAL_MODE].id.dat[0];
+    ack_data[data_len++] = ctx->priv.sys_info.mode_info.steps_info[BREAST_PUMP_CUSTOM_TRIAL_MODE].id.dat[1];
+    ack_data[data_len++] = ctx->priv.sys_info.mode_info.steps_info[BREAST_PUMP_CUSTOM_TRIAL_MODE].id.dat[2];
+    ack_data[data_len++] = ctx->priv.sys_info.mode_info.steps_info[BREAST_PUMP_CUSTOM_TRIAL_MODE].id.dat[3];
+
     LOG_SRV(" Sending device info ACK (data len: %d)", data_len);
    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_DEV_INFO, data_len, ack_data);
 }

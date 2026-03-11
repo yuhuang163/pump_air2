@@ -42,6 +42,9 @@ int read_pump_setting_info_from_ram(store_func_args_t args);
 int write_pump_mode_steps_info_to_ram(store_func_args_t args);
 int read_pump_mode_steps_info_from_ram(store_func_args_t args);
 
+int write_pump_mode_name_to_ram(store_func_args_t args);
+int read_pump_mode_name_from_ram(store_func_args_t args);
+
 /// 泵奶时间信息接口
 int write_pump_time_to_ram(store_func_args_t args);
 int read_pump_time_from_ram(store_func_args_t args);
