@@ -137,6 +137,7 @@ typedef struct {
     uint8_t ui_common_mode_index; /// UI普通模式索引.
     uint8_t ui_breastfeeding_mode_index; /// UI追奶模式索引.
     uint16_t current_ui_type; /// 当前UI类型
+    uint16_t start_ui_type;   
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     ui_pump_info_t info; /// 当前泵奶信息.
     pump_setting_t setting; /// 当前泵奶设置信息.
