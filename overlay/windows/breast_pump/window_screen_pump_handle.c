@@ -271,13 +271,13 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
-        if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
+        if (proc->start_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             pump_mode_key_click_handler(proc);
-        } else if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
+        } else if (proc->start_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             breastfeeding_mode_key_click_handler(proc);
-        } else if (proc->current_ui_type == PUMP_UI_TYPE_PUMPING) {
+        } else if (proc->start_ui_type == PUMP_UI_TYPE_PUMPING) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             switch_pump_status_ui(proc);
         } 
@@ -343,11 +343,11 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->margic = UI_WINDOW_MARGIC_CODE;
     LOG_WM("window entry extra arg1: %d.", extra->arg1);
     if (extra->arg1 == KEY_CODE_MODE) {
-        proc->current_ui_type = PUMP_UI_TYPE_COMMON_MODE;
+        proc->start_ui_type = PUMP_UI_TYPE_COMMON_MODE;
     } else if (extra->arg1 == KEY_CODE_START) {
-        proc->current_ui_type = PUMP_UI_TYPE_PUMPING;
+        proc->start_ui_type = PUMP_UI_TYPE_PUMPING;
     } else {
-        proc->current_ui_type = PUMP_UI_TYPE_BREASTFEEDING_MODE;
+        proc->start_ui_type = PUMP_UI_TYPE_BREASTFEEDING_MODE;
     }
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);

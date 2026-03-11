@@ -178,8 +178,8 @@ void pump_mode_key_click_handler(ui_proc_pump_t *proc)
     }
 
     proc->led->set_led_blink(PUMP_MODE_BL, PUMP_BLINK_PERIOD, PUMP_BLINK_TIMES, LED_STATUS_ON);
+    proc->ui_common_mode_index = proc->pump->get_breast_pump_mode_by_type(BREAST_PUMP_MODE_TYPE_COMMON, false);
     if (proc->current_ui_type != PUMP_UI_TYPE_COMMON_MODE) {
-        proc->ui_common_mode_index = proc->pump->get_breast_pump_mode_by_type(BREAST_PUMP_MODE_TYPE_COMMON, false);
         show_pump_mode_ui(proc);
     } else {
         if (proc->pump->is_on_working() > 0) {
