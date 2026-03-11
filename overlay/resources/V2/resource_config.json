@@ -260,7 +260,7 @@
     {
       "resource_id": "RESOURCE_ID_MODE_BG_ICON",
       "description": "模式背景图标",
-      "file": "baj/icon_mode_bg_220x220_a4_q99_422.baj",
+      "file": "png/icon_mode_bg.png",
       "x_offset": 0,
       "y_offset": 0
     },

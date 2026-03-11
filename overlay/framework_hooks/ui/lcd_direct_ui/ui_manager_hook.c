@@ -3,9 +3,11 @@
 *****************************************************************************************
 */
 #include "root_common_api.h" // IWYU pragma: keep
+#include "src/misc/lv_color.h"
 #include "ui_img_define.h" // IWYU pragma: keep
 #include "ui_manager_api.h"
 #include "ui_manager.h"
+#include <stdint.h>
 
 /*
 * DEFINES
@@ -38,6 +40,12 @@ typedef struct {
     ui_play_info_t play_info;
 } ui_lvgl_msg_t;
 
+typedef struct {
+    uint16_t img_id;
+    uint8_t is_need_alpha;
+} ui_snap_shot_info_t;
+
+
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -45,9 +53,10 @@ typedef struct {
 static ui_manager_context_t *ui_ctx = NULL;
 static lv_obj_t *snap_shot_obj = NULL;
 static res_img_info_t snap_shot_info = {0};
-const static uint16_t snap_shot_img_id[LVGL_SNAP_SHORT_SIZE] = {
-    RESOURCE_ID_PUMP_HOME_BG,
-    RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON,
+const static ui_snap_shot_info_t snap_shot_infos[LVGL_SNAP_SHORT_SIZE] = {
+    {RESOURCE_ID_PUMP_HOME_BG, false},
+    {RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON, false},
+    {RESOURCE_ID_MODE_BG_ICON, true},
 };
 
 /*
@@ -419,19 +428,21 @@ static void ui_snap_shot_perpare(struct ui_manager_context *thiz)
     if (snap_shot_obj == NULL || !lv_obj_is_valid(snap_shot_obj)) {
         snap_shot_obj = lv_image_create(lv_screen_active());
         EXCEPTION_CHECK_VOID(snap_shot_obj);
-        lv_obj_add_flag(snap_shot_obj, LV_OBJ_FLAG_HIDDEN); /// 隐藏
         lv_obj_align(snap_shot_obj, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_style_image_opa(snap_shot_obj, LV_OPA_COVER, 0);
+        lv_obj_add_flag(snap_shot_obj, LV_OBJ_FLAG_HIDDEN); /// 隐藏
     }
     
     for(uint8_t i = 0; i < LVGL_SNAP_SHORT_SIZE; i++) {
-        common_ui_img_resource_init(thiz, snap_shot_img_id[i], &snap_shot_info);
+        common_ui_img_resource_init(thiz, snap_shot_infos[i].img_id, &snap_shot_info);
         EXCEPTION_CHECK_VOID(snap_shot_info.data);
         lv_fs_path_ex_t background_path;
         lv_fs_make_path_from_buffer(&background_path, LV_FS_MEMFS_LETTER, snap_shot_info.data,
                 snap_shot_info.size, "png");
         lv_image_set_src(snap_shot_obj, (const void *)&background_path);
         lv_refr_now(NULL); /// 等待渲染完成后再创建快照
-        thiz->priv.lv_snap_shot[i] = lv_snapshot_take(snap_shot_obj, LV_COLOR_FORMAT_NATIVE);
+        thiz->priv.lv_snap_shot[i] = lv_snapshot_take(snap_shot_obj, 
+            snap_shot_infos[i].is_need_alpha ? LV_COLOR_FORMAT_NATIVE_WITH_ALPHA : LV_COLOR_FORMAT_NATIVE);
     }
     common_ui_img_resource_deinit(thiz, &snap_shot_info);
     LVGL_OBJ_DELETE(snap_shot_obj);
