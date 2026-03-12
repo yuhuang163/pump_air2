@@ -12,20 +12,21 @@
 * DEFINES
 *****************************************************************************************
 */
+#define IS_SUPPORT_HOME_QRCODE_COMP_BG                         (1)
 #define HOME_QRCODE_BG_COLOR                                   0xFFFFFF
 #define HOME_QRCODE_FG_COLOR                                   0x000000
 #define HOME_QRCODE_BORDER_COLOR                               (0xFFF2F3)  // 0xA6A6A6
-#define HOME_TEXT_COLOR                                        (0xB25962)
 #define HOME_BIND_TEXT_COLOR                                   (0x6A5A5B)
-#define HOME_ARROW_ICON_X_OFFSET                               (168)
-#define HOME_ARROW_ICON_Y_OFFSET                               (304)
+#define HOME_QRCODE_X_OFFSET                                   (111)
+#define HOME_QRCODE_Y_OFFSET                                   (71 + 12)
 #define HOME_BIND_TEXT_X_OFFSET                                (66)
-#define HOME_BIND_TEXT_Y_OFFSET                                (220 + 8)
-#define HOME_ARROW_TEXT_END_X_OFFSET                           (150 + 3)
-#define HOME_ARROW_TEXT_END_Y_OFFSET                           (328)
+#define HOME_BIND_TEXT_Y_OFFSET                                (228 + 13)
 
 typedef struct {
     lv_obj_t * root;
+#if IS_SUPPORT_HOME_QRCODE_COMP_BG
+    lv_obj_t * backgroud;
+#endif
     lv_obj_t * qrcode_container;
     lv_obj_t * qrcode;
     lv_obj_t * arrow; /// 箭头
@@ -44,6 +45,11 @@ const static char *bind_qr_str[] = {
     "https://lvgl.io",
 };
 
+#if IS_SUPPORT_HOME_QRCODE_COMP_BG
+static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
+    #include "comparison_png2txt/home_ble_cmp_360x360.txt"
+};
+#endif
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -68,10 +74,37 @@ static void ui_home_qrcode_root_init(void)
     lv_obj_clear_flag(home_qrcode_info->root, LV_OBJ_FLAG_SCROLLABLE); /// 禁止滚动
 }
 
+#if IS_SUPPORT_HOME_QRCODE_COMP_BG
+static void ui_home_qrcode_bg_update(ui_manager_context_t *thiz)
+{
+    static uint32_t start_time = 0;
+    static uint8_t status = 0;
+    if (home_qrcode_info->backgroud == NULL || !lv_obj_is_valid(home_qrcode_info->backgroud)) {
+        home_qrcode_info->backgroud = lv_image_create(home_qrcode_info->root);
+        EXCEPTION_CHECK_VOID(home_qrcode_info->backgroud);
+    }
+    lv_fs_path_ex_t bg_img_path;
+    if (status == 0) {
+        lv_obj_add_flag(home_qrcode_info->backgroud, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_clear_flag(home_qrcode_info->backgroud, LV_OBJ_FLAG_HIDDEN);
+        lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, home_bg_data,
+            sizeof(home_bg_data), "png");
+        lv_image_set_src(home_qrcode_info->backgroud, (const void *)&bg_img_path);
+        lv_obj_align(home_qrcode_info->backgroud, LV_ALIGN_CENTER, 0, 0);
+    }
+
+    if (get_timestamp() - start_time > 1000) {
+        start_time = get_timestamp();
+        status = (status == 0) ? 1 : 0;
+    }
+}
+#else
 static void ui_home_qrcode_bg_update(ui_manager_context_t *thiz)
 {
     common_ui_bg_update(thiz, home_qrcode_info->root);
 }
+#endif
 
 static void home_qrcode_update(ui_manager_context_t *thiz)
 {  
@@ -106,7 +139,8 @@ static void home_qrcode_update(ui_manager_context_t *thiz)
     lv_qrcode_set_light_color(home_qrcode_info->qrcode, lv_color_hex(HOME_QRCODE_BG_COLOR));
     lv_qrcode_update(home_qrcode_info->qrcode, bind_qr_str[0], strlen(bind_qr_str[0]));
     lv_obj_center(home_qrcode_info->qrcode);
-    lv_obj_align(home_qrcode_info->qrcode_container, LV_ALIGN_TOP_LEFT, 111, 71);
+    lv_obj_align(home_qrcode_info->qrcode_container, LV_ALIGN_TOP_LEFT, 
+        HOME_QRCODE_X_OFFSET, HOME_QRCODE_Y_OFFSET);
 }
 
 static void home_qrcode_ui_bind_update(ui_manager_context_t *thiz)
@@ -122,43 +156,9 @@ static void home_qrcode_ui_bind_update(ui_manager_context_t *thiz)
     lv_obj_set_style_text_color(home_qrcode_info->text, lv_color_hex(HOME_BIND_TEXT_COLOR), 0);
     lv_obj_set_style_text_font(home_qrcode_info->text, &lv_font_oppo_sans_14_medium, 0);
     lv_obj_set_style_text_align(home_qrcode_info->text, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
-    lv_obj_set_style_text_line_space(home_qrcode_info->text, 4, 0); /// 设置行间距（像素）
+    lv_obj_set_style_text_line_space(home_qrcode_info->text, 6, 0); /// 设置行间距（像素）
     lv_obj_set_style_text_opa(home_qrcode_info->text, LV_OPA_COVER, 0);
     lv_obj_align(home_qrcode_info->text, LV_ALIGN_TOP_LEFT, HOME_BIND_TEXT_X_OFFSET, HOME_BIND_TEXT_Y_OFFSET);
-}
-
-static void home_qrcode_arrow_img_update(ui_manager_context_t *thiz)
-{
-    if (home_qrcode_info->arrow == NULL || !lv_obj_is_valid(home_qrcode_info->arrow)) {
-        home_qrcode_info->arrow = lv_image_create(home_qrcode_info->root);
-        EXCEPTION_CHECK_VOID(home_qrcode_info->arrow);
-    }
-    common_ui_img_resource_init(thiz, RESOURCE_ID_GUIDE_ARROW_ICON, &home_qrcode_info->arrow_info);
-    EXCEPTION_CHECK_VOID(home_qrcode_info->arrow_info.data);
-    lv_fs_path_ex_t arrow_path;
-    lv_fs_make_path_from_buffer(&arrow_path,
-                                LV_FS_MEMFS_LETTER,
-                                home_qrcode_info->arrow_info.data,
-                                home_qrcode_info->arrow_info.size,
-                                "baj");
-    lv_image_set_src(home_qrcode_info->arrow, (const void *)&arrow_path);
-    lv_obj_align(home_qrcode_info->arrow, LV_ALIGN_TOP_LEFT, HOME_ARROW_ICON_X_OFFSET, HOME_ARROW_ICON_Y_OFFSET);
-}
-
-static void home_qrcode_arrow_text_update(ui_manager_context_t *thiz)
-{
-    if (home_qrcode_info->arrow_text == NULL || !lv_obj_is_valid(home_qrcode_info->arrow_text)) {
-        home_qrcode_info->arrow_text = lv_label_create(home_qrcode_info->root);
-        EXCEPTION_CHECK_VOID(home_qrcode_info->arrow_text);
-    }
-    lv_label_set_text(home_qrcode_info->arrow_text, "End  Trip");
-    lv_obj_set_style_text_color(home_qrcode_info->arrow_text, lv_color_hex(HOME_TEXT_COLOR), 0);
-    lv_obj_set_style_text_font(home_qrcode_info->arrow_text, &lv_font_oppo_sans_14_medium, 0);  /// 设置字体
-    lv_obj_set_style_text_line_space(home_qrcode_info->arrow_text, 7, 0);  /// 设置行间距（像素）
-    lv_obj_set_style_text_align(home_qrcode_info->arrow_text, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
-    lv_obj_set_style_text_opa(home_qrcode_info->arrow_text, LV_OPA_COVER, 0);  /// 设置文本透明度
-    lv_obj_align(home_qrcode_info->arrow_text, LV_ALIGN_TOP_LEFT, 
-        HOME_ARROW_TEXT_END_X_OFFSET, HOME_ARROW_TEXT_END_Y_OFFSET);
 }
 
 static void home_qrcode_ui_update(ui_manager_context_t *thiz)
@@ -167,8 +167,6 @@ static void home_qrcode_ui_update(ui_manager_context_t *thiz)
         return;
     }
     home_qrcode_ui_bind_update(thiz);
-    home_qrcode_arrow_img_update(thiz);
-    home_qrcode_arrow_text_update(thiz);
 }
 
 
