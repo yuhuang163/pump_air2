@@ -71,16 +71,15 @@ static uint8_t app_old_comm_get_sys_status(void)
     struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
     uint8_t chage_state = 0;
     if (battery) {
-        chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
+        chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_VBUS_IS_PLUG_IN);
     } else {
         chage_state = CHARGE_STATE_UNCHARGE;
     }
-    int pump_status = 0;
-    READ_PUMP_WORK_STATUS(pump_ctx, pump_status);
-    int pump_mode = 0;
-    READ_PUMP_WORK_MODE(pump_ctx, pump_mode);
-    uint8_t sys_status = APP_OLD_COMM_SYS_STOP;
-    if (BATTERY_IS_CHARGING(chage_state)) {
+    int pump_status = pump_ctx->get_breast_pump_status();
+    int pump_mode = pump_ctx->get_breast_pump_mode();
+    uint8_t sys_status = APP_OLD_COMM_SYS_FINISH;
+
+    if (USB_IS_PLUGIN(chage_state)) {
         LOG_SRV("APP_OLD_COMM_SYS_CHANRGE");
         sys_status = APP_OLD_COMM_SYS_CHANRGE;
     }
@@ -91,21 +90,31 @@ static uint8_t app_old_comm_get_sys_status(void)
     }
 
     if ((BREAST_PUMP_START == pump_status || BREAST_PUMP_CONTINUE == pump_status)
-        && BATTERY_IS_CHARGING(chage_state)) {
+        && USB_IS_PLUGIN(chage_state)) {
         LOG_SRV("APP_OLD_COMM_PUMP_RUN_IN_CHARGE");
         sys_status = APP_OLD_COMM_PUMP_RUN_IN_CHARGE;
     }
 
-    if (BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_PAUSE == pump_status
-        || BREAST_PUMP_FINISH == pump_status) {
+    if (BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_FINISH == pump_status) {
         LOG_SRV("APP_OLD_COMM_SYS_STOP");
-        sys_status = APP_OLD_COMM_SYS_STOP;
+        sys_status = APP_OLD_COMM_SYS_FINISH;
     }
 
-    if ((BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_PAUSE == pump_status || BREAST_PUMP_FINISH == pump_status)
-        && BATTERY_IS_CHARGING(chage_state)) {
-        LOG_SRV("APP_OLD_COMM_PUMP_STOP_IN_CHARGE");
-        sys_status = APP_OLD_COMM_PUMP_STOP_IN_CHARGE;
+    if (BREAST_PUMP_PAUSE == pump_status) {
+        LOG_SRV("APP_OLD_COMM_SYS_PAUSE");
+        sys_status = APP_OLD_COMM_SYS_PAUSE;
+    }
+
+    if ((BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_FINISH == pump_status)
+        && USB_IS_PLUGIN(chage_state)) {
+        LOG_SRV("APP_OLD_COMM_PUMP_FINISH_IN_CHARGE");
+        sys_status = APP_OLD_COMM_PUMP_FINISH_IN_CHARGE;
+    }
+
+    if ((BREAST_PUMP_PAUSE == pump_status)
+        && USB_IS_PLUGIN(chage_state)) {
+        LOG_SRV("APP_OLD_COMM_PUMP_PAUSE_IN_CHARGE");
+        sys_status = APP_OLD_COMM_PUMP_PAUSE_IN_CHARGE;
     }
 
     if (BREAST_PUMP_RESET == pump_status) {
@@ -261,9 +270,13 @@ static uint8_t app_old_comm_get_current_custom_pump_level(app_old_commd_l_r_ctrl
 static uint8_t app_old_comm_get_current_mode_pump_speed(servers_old_protocol_publish_data_id_e id)
 {
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+
     EXCEPTION_CHECK_UINT(pump_ctx);
-    int time_index = 0;
-    READ_PUMP_MODE_STEP_INDEX(pump_ctx, time_index);
+    uint8_t time_index = pump_ctx->get_breast_pump_step_index();
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    EXCEPTION_CHECK_UINT(storage_ctx);
+    int last_store_mode = BREAST_PUMP_PUMP_MODE_DEFAULT;
+    storage_ctx->get_store_ram_val(STORE_ID_BREAST_PUMP_MODE, 0, 0, &last_store_mode);
     /// 当前系统在处于自定义模式步骤，应该上报什么，就默认上报吸乳第一步参数
     pump_setting_t setting;
     int pump_mode = 0;
@@ -271,7 +284,7 @@ static uint8_t app_old_comm_get_current_mode_pump_speed(servers_old_protocol_pub
     if (pump_mode == BREAST_PUMP_CUSTOM_MODE) {
         storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
         EXCEPTION_CHECK_UINT(storage_ctx);
-        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_LACTATION_MODE, 0, &setting);
+        storage_ctx->get_store_ram_val(STORE_ID_PUMP_SETTING_INFO, last_store_mode, 0, &setting);
         LOG_SRV("setting.speed =%d", setting.speed);
         return (uint8_t)setting.speed;
     } else {
@@ -625,18 +638,18 @@ static uint8_t app_old_comm_pump_run_status_ctrl(uint8_t status)
     int pump_status = 0;
     READ_PUMP_WORK_STATUS(pump_ctx, pump_status);
     if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE) {
-        if (status == APP_OLD_COMM_SYS_RUN) {
-            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START);
+        if (status == APP_OLD_COMM_PUMP_CTRL_RUN) {
+            pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
             app_broadcast_pump_status_to_window(BREAST_PUMP_START, OLD_BROADCAST_ALL_CT);
         }
     } else if (pump_status == BREAST_PUMP_START || pump_status == BREAST_PUMP_CONTINUE) {
-        if (status == APP_OLD_COMM_SYS_STOP) {
-            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE);
+        if (status == APP_OLD_COMM_PUMP_CTRL_STOP) {
+            pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
             app_broadcast_pump_status_to_window(BREAST_PUMP_PAUSE,OLD_BROADCAST_ALL_CT);
         }
     } else if (pump_status == BREAST_PUMP_PAUSE) {
-        if (status == APP_OLD_COMM_SYS_RUN) {
-            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_CONTINUE);
+        if (status == APP_OLD_COMM_PUMP_CTRL_RUN) {
+            pump_ctx->set_breast_pump_status(BREAST_PUMP_CONTINUE);
             app_broadcast_pump_status_to_window(BREAST_PUMP_CONTINUE,OLD_BROADCAST_ALL_CT);
         }
     }
@@ -925,7 +938,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PUMP;
         wm->dispatch_new_window_args(wm, &msg);
-        POST_TASK_HANDLER_DELAYED_ARG1(app_pump_trial_user_define_delay_task_handler, PUMP_CTRL_TASK_DELAY_TIME, NULL,
+        POST_TASK_HANDLER_DELAYED_ARG1(app_pump_user_define_delay_task_handler, PUMP_CTRL_TASK_DELAY_TIME, NULL,
              "app_pump_user_define_delay_task");
         app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_USER_DEFINE, 4, cab);
     } else {
@@ -1044,7 +1057,7 @@ void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PUMP;
         wm->dispatch_new_window_args(wm, &msg);
-        POST_TASK_HANDLER_DELAYED_ARG1(app_pump_user_define_delay_task_handler, PUMP_CTRL_TASK_DELAY_TIME, NULL,
+        POST_TASK_HANDLER_DELAYED_ARG1(app_pump_trial_user_define_delay_task_handler, PUMP_CTRL_TASK_DELAY_TIME, NULL,
              "app_pump_user_define_delay_task");
         app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 4, cab);
     } else {

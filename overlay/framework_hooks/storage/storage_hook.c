@@ -104,7 +104,7 @@ const static get_store_ram_val_handle_t get_store_ram_val_list[] = {
     {STORE_ID_BREAST_PUMP_TIME, read_pump_time_from_ram},
     {STORE_ID_PUMP_SETTING_INFO, read_pump_setting_info_from_ram},
     {STORE_ID_PUMP_MODE_STEPS_INFO, read_pump_mode_steps_info_from_ram},
-    {STORE_ID_PUMP_MODE_NAME_INFO, read_pump_mode_from_ram},
+    {STORE_ID_PUMP_MODE_NAME_INFO, read_pump_mode_name_from_ram},
     {STORE_ID_PUMP_CONTROL_TYPE, read_pump_control_type_from_ram},
     {STORE_ID_SYS_NIGHT_LIGHT_ADAPTIVE_SWITCH, read_night_light_adaptive_switch_from_ram},
     {STORE_ID_SYS_AIRPLANE_MODE_STATE, read_airplane_mode_state_from_ram},
