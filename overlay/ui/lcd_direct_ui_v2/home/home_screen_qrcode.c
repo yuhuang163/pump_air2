@@ -12,7 +12,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_HOME_QRCODE_COMP_BG                         (1)
+#define IS_SUPPORT_HOME_QRCODE_COMP_BG                         (0)
 #define HOME_QRCODE_BG_COLOR                                   0xFFFFFF
 #define HOME_QRCODE_FG_COLOR                                   0x000000
 #define HOME_QRCODE_BORDER_COLOR                               (0xFFF2F3)  // 0xA6A6A6

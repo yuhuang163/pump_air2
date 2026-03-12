@@ -784,6 +784,7 @@ static int on_post_breast_pump_init(void *ptr)
         /// 读取存储器中个性化韵律激活状态
         ctx->priv.st->get_store_ram_val(STORE_ID_PUMP_MODE_ACTIVATE_STATUS, BREAST_PUMP_CUSTOM_MODE, 0, &store_value);
         ctx->priv.m_info.custom_activate = store_value > 0 ? true : false;
+        LOG_PMP("custom_activate: %d", ctx->priv.m_info.custom_activate);
         if (ctx->priv.m_info.custom_activate == false && ctx->priv.m_info.breastfeeding_mode == BREAST_PUMP_CUSTOM_MODE) {
             ctx->priv.m_info.breastfeeding_mode = BREAST_PUMP_REGULAR_PUMPING_MODE;
             ctx->priv.st->put_store_ram_val(STORE_ID_BREAST_PUMP_MODE_WITH_TYPE, BREAST_PUMP_REGULAR_PUMPING_MODE,
