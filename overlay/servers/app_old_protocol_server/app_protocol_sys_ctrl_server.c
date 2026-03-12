@@ -98,17 +98,17 @@ void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
         EXCEPTION_CHECK_VOID(pbus);
         struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
         uint8_t chage_state = 0;
-        //如果V3电池不存在，则认为电池充满，不进行关机操作
+        //如果V3电池不存在，则认为电池充满，
         if (battery) {
-            chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_GET_CHARGE_STATUS);
+            chage_state = DEVICE_IOCTL(battery, OP_CODE_BAT_VBUS_IS_PLUG_IN);
         } else {
             chage_state = CHARGE_STATE_CHARGING;
         }
         LOG_SRV("chage_state=%d", chage_state);
-        if (BATTERY_IS_CHARGING(chage_state)) {
-            LOG_SRV("CMD-poweroff, but charging, not power off");
-            return;
-        }
+        //if (USB_IS_PLUGIN(chage_state)) {
+            //LOG_SRV("CMD-poweroff, but charging, not power off");
+            //return;
+        //}
         SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_OFF);
     } else if (ctrl_cmd == APP_OLD_COMM_SYS_REBOOT) {
         LOG_SRV("CMD-softreset");
