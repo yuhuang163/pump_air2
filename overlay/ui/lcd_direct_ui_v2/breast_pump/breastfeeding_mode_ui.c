@@ -214,7 +214,8 @@ static uint8_t slot_mode_for_center(uint8_t center_mode, bf_circle_slot_e slot)
     return mode;
 }
 
-static void update_slot_content(ui_manager_context_t *thiz, bf_circle_slot_e slot, uint8_t mode_idx)
+static void update_slot_content(ui_manager_context_t *thiz, bf_circle_slot_e slot, 
+    uint8_t mode_idx, uint8_t last_mode_idx)
 {
     lv_obj_t *item = bf_mode_info->circle_obj[slot];
     lv_obj_t *img = bf_mode_info->mode_component_img[slot];
@@ -228,9 +229,6 @@ static void update_slot_content(ui_manager_context_t *thiz, bf_circle_slot_e slo
     if (bf_mode_info->slot_mode_idx[slot] == mode_idx) {
         return;
     }
-
-    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
-    EXCEPTION_CHECK_VOID(pump_ctx);
 
     uint16_t res_id = bf_mode_component_ids[mode_idx];
     if (bf_mode_info->slot_res_id[slot] != res_id) {
@@ -250,11 +248,8 @@ static void update_slot_content(ui_manager_context_t *thiz, bf_circle_slot_e slo
             bf_mode_info->slot_res_id[slot] = res_id;
         }
     }
-    int last_mode_idx = 0;
-    READ_PUMP_EXPERT_MODE(pump_ctx, true, last_mode_idx);
-    last_mode_idx = last_mode_idx - BREAST_PUMP_CUSTOM_MODE;
-    LOG_UI("slot:%d, last_mode_idx:%d, mode_idx:%d, name:%s", 
-        slot, last_mode_idx, mode_idx, bf_mode_name[mode_idx]);
+    LOG_UI("slot:%d, last_mode_idx:%d, mode_idx:%d, name:%s", slot, last_mode_idx, 
+        mode_idx, bf_mode_name[mode_idx]);
     if (last_mode_idx == mode_idx) {
         lv_obj_clear_flag(bf_mode_info->last_usage_icon[slot], LV_OBJ_FLAG_HIDDEN);
     } else {
@@ -369,12 +364,15 @@ static void circle_carousel_set_mode(ui_manager_context_t *thiz, uint8_t idx, bo
         direction = 0;
         anim = false;
     }
-
-    update_slot_content(thiz, BF_SLOT_LEFT, slot_mode_for_center(idx, BF_SLOT_LEFT));
-    update_slot_content(thiz, BF_SLOT_CENTER, slot_mode_for_center(idx, BF_SLOT_CENTER));
-    update_slot_content(thiz, BF_SLOT_RIGHT, slot_mode_for_center(idx, BF_SLOT_RIGHT));
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump_ctx);
+    int last_mode_idx = 0;
+    READ_PUMP_EXPERT_MODE(pump_ctx, true, last_mode_idx);
+    last_mode_idx = last_mode_idx - BREAST_PUMP_REGULAR_PUMPING_MODE;
+    update_slot_content(thiz, BF_SLOT_LEFT, slot_mode_for_center(idx, BF_SLOT_LEFT) , last_mode_idx);
+    update_slot_content(thiz, BF_SLOT_CENTER, slot_mode_for_center(idx, BF_SLOT_CENTER) , last_mode_idx);
+    update_slot_content(thiz, BF_SLOT_RIGHT, slot_mode_for_center(idx, BF_SLOT_RIGHT) , last_mode_idx);
     circle_layout_apply(direction, anim);
-
     bf_mode_info->cur_mode = idx;
     update_dots(slot_mode_for_center(idx, BF_SLOT_CENTER));
 }
