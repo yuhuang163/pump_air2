@@ -75,10 +75,12 @@ static uint8_t app_old_comm_get_sys_status(void)
     } else {
         chage_state = CHARGE_STATE_UNCHARGE;
     }
-    int pump_status = pump_ctx->get_breast_pump_status();
-    int pump_mode = pump_ctx->get_breast_pump_mode();
-    uint8_t sys_status = APP_OLD_COMM_SYS_FINISH;
 
+    int pump_status = 0;
+    READ_PUMP_WORK_STATUS(pump_ctx, pump_status);
+    int pump_mode = 0;
+    READ_PUMP_WORK_MODE(pump_ctx, pump_mode);
+    uint8_t sys_status = APP_OLD_COMM_SYS_FINISH;
     if (USB_IS_PLUGIN(chage_state)) {
         LOG_SRV("APP_OLD_COMM_SYS_CHANRGE");
         sys_status = APP_OLD_COMM_SYS_CHANRGE;
@@ -272,7 +274,8 @@ static uint8_t app_old_comm_get_current_mode_pump_speed(servers_old_protocol_pub
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
 
     EXCEPTION_CHECK_UINT(pump_ctx);
-    uint8_t time_index = pump_ctx->get_breast_pump_step_index();
+    int time_index = 0;
+    READ_PUMP_MODE_STEP_INDEX(pump_ctx, time_index);
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     EXCEPTION_CHECK_UINT(storage_ctx);
     int last_store_mode = BREAST_PUMP_PUMP_MODE_DEFAULT;
@@ -639,17 +642,17 @@ static uint8_t app_old_comm_pump_run_status_ctrl(uint8_t status)
     READ_PUMP_WORK_STATUS(pump_ctx, pump_status);
     if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE) {
         if (status == APP_OLD_COMM_PUMP_CTRL_RUN) {
-            pump_ctx->set_breast_pump_status(BREAST_PUMP_START);
+            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START);
             app_broadcast_pump_status_to_window(BREAST_PUMP_START, OLD_BROADCAST_ALL_CT);
         }
     } else if (pump_status == BREAST_PUMP_START || pump_status == BREAST_PUMP_CONTINUE) {
         if (status == APP_OLD_COMM_PUMP_CTRL_STOP) {
-            pump_ctx->set_breast_pump_status(BREAST_PUMP_PAUSE);
+            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE);
             app_broadcast_pump_status_to_window(BREAST_PUMP_PAUSE,OLD_BROADCAST_ALL_CT);
         }
     } else if (pump_status == BREAST_PUMP_PAUSE) {
         if (status == APP_OLD_COMM_PUMP_CTRL_RUN) {
-            pump_ctx->set_breast_pump_status(BREAST_PUMP_CONTINUE);
+            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_CONTINUE);
             app_broadcast_pump_status_to_window(BREAST_PUMP_CONTINUE,OLD_BROADCAST_ALL_CT);
         }
     }
