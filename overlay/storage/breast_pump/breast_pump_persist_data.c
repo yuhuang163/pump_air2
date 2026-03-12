@@ -432,6 +432,34 @@ int read_pump_mode_steps_info_from_ram(store_func_args_t args)
     return 0;
 }
 
+int write_pump_mode_activate_to_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+    EXCEPTION_CHECK_INT(pump_info);
+    uint8_t mode = args.arg1;
+    if (mode == BREAST_PUMP_CUSTOM_MODE) {
+        pump_info->custom_activate = args.arg2 > 0 ? true : false; 
+    }   
+    return 0;
+}
+
+int read_pump_mode_activate_from_ram(store_func_args_t args)
+{
+    struct storage_manager_context *st = args.ctx;
+    EXCEPTION_CHECK_INT(st);
+    sys_pump_info_t *pump_info = &st->priv.sys_info.pump_info;
+    uint8_t mode = args.arg1;
+    uint32_t *custom_activate = (uint32_t *)args.val;
+    if (mode != BREAST_PUMP_CUSTOM_MODE) {
+        *custom_activate = true;
+    } else {
+        *custom_activate = pump_info->custom_activate;
+    }
+    return 0;
+}
+
 int write_pump_mode_name_to_ram(store_func_args_t args)
 {
     struct storage_manager_context *st = args.ctx;
