@@ -58,6 +58,7 @@ int write_pump_info_to_flash(store_func_args_t args)
 void reset_pump_info(storage_manager_context_t *ctx, sys_pump_info_t *pump_info)
 {
     const motor_policy_cfg_t *cfg = NULL;
+    pump_info->custom_activate               = 0;
     pump_info->last_expert_mode              = 255;
     pump_info->last_regular_mode             = 255;
     pump_info->last_pump_mode                = BREAST_PUMP_PUMP_MODE_DEFAULT;
