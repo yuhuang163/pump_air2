@@ -345,6 +345,7 @@ static void set_breast_pump_status(int status)
                 case BREAST_PUMP_RESET: /// 用户app请求重置pump RESET后请将pump状态在设置为IDLE
                     if (m_info->do_work) {
                         m_info->do_work = 0;
+                        notify_breast_pump_completed();
                         stop_breast_pump_work(status);
                         CHECK_IF_VALID(pm_ctx, {
                             pm_ctx->release_wakelock(PUMP_THD_WAKELOCK);

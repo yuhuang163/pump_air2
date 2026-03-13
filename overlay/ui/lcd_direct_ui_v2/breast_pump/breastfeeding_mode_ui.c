@@ -80,12 +80,12 @@ typedef struct {
 static bf_mode_display_info_t *bf_mode_info;
 
 static const uint16_t bf_mode_component_ids[BF_MODE_COUNT] = {
-    RESOURCE_ID_MODE_CUSTOM_RDE_ICON,  
     RESOURCE_ID_MODE_CUSTOM_URD_ICON,  
     RESOURCE_ID_MODE_CUSTOM_URD_ICON,  
-    RESOURCE_ID_MODE_CUSTOM_URD_ICON, 
     RESOURCE_ID_MODE_CUSTOM_URD_ICON,  
     RESOURCE_ID_MODE_CUSTOM_URD_ICON, 
+    RESOURCE_ID_MODE_CUSTOM_URD_ICON,  
+    RESOURCE_ID_MODE_CUSTOM_RDE_ICON,
 };
 
 static const char *bf_mode_name[BF_MODE_COUNT] = {
