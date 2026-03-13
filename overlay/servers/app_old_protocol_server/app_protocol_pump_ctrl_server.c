@@ -409,8 +409,10 @@ static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_
 {
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(storage_ctx);
-
+    EXCEPTION_CHECK_UINT(motor_ctx);
+    EXCEPTION_CHECK_UINT(pump_ctx);
     //更新自定义模式名称
     storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_NAME_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, name);
     ///是否需要区分设备是否在用户自定义模式下运行，如果运行，是否直接替换用户自定义模式参数
@@ -434,6 +436,9 @@ static uint8_t pump_custom_trial_mode_update_by_app(pump_mode_steps_info_t pump_
     pump_copy_trial_mode_to_custom_mode();
     ///更新同步标志
     storage_ctx->put_store_ram_val(STORE_ID_MODE_UPDATE_FLAG, BREAST_PUMP_CUSTOM_MODE, 0, 0);
+    ///更新激活标识 自定义模式激活
+    WRITE_PUMP_MODE_ACTIVATE(pump_ctx, BREAST_PUMP_CUSTOM_MODE, 1);
+    LOG_SRV("update custom trial mode activate state");
     return true;
 }
 
@@ -441,7 +446,10 @@ static uint8_t pump_custom_mode_update_by_app(pump_mode_steps_info_t pump_steps_
 {
     storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_UINT(storage_ctx);
+    EXCEPTION_CHECK_UINT(motor_ctx);
+    EXCEPTION_CHECK_UINT(pump_ctx);
 
     //更新自定义模式名称
     storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_NAME_INFO, BREAST_PUMP_CUSTOM_MODE, 0, name);
@@ -461,6 +469,9 @@ static uint8_t pump_custom_mode_update_by_app(pump_mode_steps_info_t pump_steps_
         }
         storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_MODE, i, &setting);
     }
+    ///更新激活标识 自定义模式激活
+    WRITE_PUMP_MODE_ACTIVATE(pump_ctx, BREAST_PUMP_CUSTOM_MODE, 1);
+
     return true;
 }
 
@@ -950,7 +961,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 }
 
 ///0xc5  
-void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab)
+void app_old_comm_handle_set_trail_user_define_req(uint8_t cal, uint8_t *cab)
 {
     uint8_t section_num = 0, speed = 0, mode_type = 0, level = 0;
     uint16_t time_policy_duration = 0;
@@ -1098,7 +1109,7 @@ void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab)
     ctx->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &factory_dev_info);
     memcpy(ack_data + data_len, factory_dev_info.sn, factory_dev_info.sn_len);
     data_len += factory_dev_info.sn_len;
-#if BLE_PAYLOAD_CRYPTION
+#if 1
     ack_data[data_len++] = handler_ctx->encrypt_status;//encrypt_status;
     ack_data[data_len++] = handler_ctx->encrypt_key;//encrypt_key;
 #endif
@@ -1243,4 +1254,80 @@ void app_old_comm_handle_get_record_data_req(uint8_t cal, uint8_t *cab)
     /// 发送响应（11字节：3字节日期 + 8字节工作记录）
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_RECORD_DATA, 
                                                 sizeof(app_old_comm_pump_ble_record_t), (uint8_t *)&record);
+}
+
+/// 0xE9 清除自定义模式设置参数
+void app_old_comm_handle_clear_trail_custom_mode_req(uint8_t cal, uint8_t *cab)
+{
+    storage_manager_context_t *storage_ctx = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(storage_ctx);
+    EXCEPTION_CHECK_VOID(pump_ctx);
+    EXCEPTION_CHECK_VOID(cab);
+
+    // 检查参数长度
+    if (cal != 4) {
+        LOG_SRV("Invalid parameter length: %d, expected 4", cal);
+        app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NACK, APP_OLD_COMM_CID_CLEAR_CUSTOM_MODE, 4, cab);
+        return;
+    }
+
+    // 读取自定义模式ID（与现有代码保持一致的方式）
+    pump_mode_steps_info_t clear_steps_info = {0};
+    clear_steps_info.id.dat[0] = cab[0];
+    clear_steps_info.id.dat[1] = cab[1];
+    clear_steps_info.id.dat[2] = cab[2];
+    clear_steps_info.id.dat[3] = cab[3];
+    uint32_t clear_mode_id = clear_steps_info.id.dat32;
+    LOG_SRV("Clear custom mode request, mode_id=0x%08X (%u)", clear_mode_id, clear_mode_id);
+
+    // 获取当前自定义模式ID
+    pump_mode_steps_info_t current_steps_info = {0};
+    storage_ctx->get_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, &current_steps_info);
+    uint32_t current_mode_id = current_steps_info.id.dat32;
+
+    // 如果ID为0x00000000，清除所有自定义模式参数
+    // 如果ID不为0，需要匹配当前ID才清除
+    bool should_clear = false;
+    if (clear_mode_id == 0x00000000) {
+        should_clear = true;
+        LOG_SRV("Clear all custom mode parameters (ID=0x00000000)");
+    } else if (clear_mode_id == current_mode_id) {
+        should_clear = true;
+        LOG_SRV("Clear custom mode parameters with ID=0x%08X", clear_mode_id);
+    } else {
+        LOG_SRV("Mode ID mismatch: request=0x%08X, current=0x%08X, skip clear", clear_mode_id, current_mode_id);
+    }
+
+    if (should_clear) {
+        // 清除自定义模式步骤信息
+        pump_mode_steps_info_t empty_steps_info = {0};
+        storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, &empty_steps_info);
+        
+        // 清除自定义模式名称
+        char empty_name[PUMP_MODE_NAME_LEN] = {0};
+        storage_ctx->put_store_ram_val(STORE_ID_PUMP_MODE_NAME_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, empty_name);
+        
+        // 清除自定义模式设置信息
+        pump_setting_t empty_setting = {0};
+        for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
+            storage_ctx->put_store_ram_val(STORE_ID_PUMP_SETTING_INFO, BREAST_PUMP_CUSTOM_TRIAL_MODE, i, &empty_setting);
+        }
+        
+        // 清除试用模式激活标识
+        WRITE_PUMP_MODE_ACTIVATE(pump_ctx, BREAST_PUMP_CUSTOM_MODE, 0);
+        
+        // 清除更新标志
+        storage_ctx->put_store_ram_val(STORE_ID_MODE_UPDATE_FLAG, BREAST_PUMP_CUSTOM_TRIAL_MODE, 0, 0);
+        
+        LOG_SRV("Custom mode parameters cleared successfully");
+    }
+
+    // 发送ACK响应，返回清除的自定义模式ID（4字节）
+    uint8_t ack_data[4] = {0};
+    ack_data[0] = cab[0];
+    ack_data[1] = cab[1];
+    ack_data[2] = cab[2];
+    ack_data[3] = cab[3];
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_CLEAR_CUSTOM_MODE, 4, ack_data);
 }

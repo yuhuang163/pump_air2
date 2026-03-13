@@ -116,13 +116,14 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct);
 void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_get_dev_info_req(uint8_t cal, uint8_t *cab);
-void app_old_comm_handle_set_user_define_wr_flash_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_set_trail_user_define_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_ctrl_taste_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_ctrl_reset_dev_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_get_taste_dev_status_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_report_taste_dev_status(servers_old_protocol_publish_data_id_e id, void *val);
 void app_old_comm_handle_get_record_num_req(uint8_t cal, uint8_t *cab);
 void app_old_comm_handle_get_record_data_req(uint8_t cal, uint8_t *cab);
+void app_old_comm_handle_clear_trail_custom_mode_req(uint8_t cal, uint8_t *cab);
 #ifdef __cplusplus
 }
 #endif

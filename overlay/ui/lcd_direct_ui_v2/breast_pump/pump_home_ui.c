@@ -518,14 +518,14 @@ static void pump_home_common_mode_update(ui_manager_context_t *thiz, uint8_t mod
         lv_obj_set_style_bg_grad_dir(pump_info->mode_label[0], LV_GRAD_DIR_NONE, 0); /// 关闭渐变
         lv_obj_set_style_radius(pump_info->mode_label[0], 14, 0);  /// 高度 24 → 圆角设 12（或更大）
     } else {
-        lv_obj_clear_flag(pump_info->mode_label[0], LV_OBJ_FLAG_HIDDEN); /// 隐藏
+        lv_obj_clear_flag(pump_info->mode_label[0], LV_OBJ_FLAG_HIDDEN); /// 显示
     }
 
     if (pump_info->mode_text[0] == NULL || !lv_obj_is_valid(pump_info->mode_text[0])) {
         pump_info->mode_text[0] = lv_label_create(pump_info->mode_label[0]);
         EXCEPTION_CHECK_VOID(pump_info->mode_text[0]);
     } else {
-        lv_obj_clear_flag(pump_info->mode_text[0], LV_OBJ_FLAG_HIDDEN); /// 隐藏
+        lv_obj_clear_flag(pump_info->mode_text[0], LV_OBJ_FLAG_HIDDEN); /// 显示
     }
     lv_obj_align(pump_info->mode_label[0], LV_ALIGN_TOP_LEFT, 141 + 1, 71);    /// 设置label位置
     lv_obj_set_style_text_color(pump_info->mode_text[0], lv_color_hex(MODE_TEXT_SEL_COLOR), 0);
@@ -589,7 +589,7 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
             lv_obj_set_style_bg_grad_dir(pump_info->mode_label[i], LV_GRAD_DIR_NONE, 0); /// 关闭渐变
             lv_obj_set_style_radius(pump_info->mode_label[i], 14, 0);  /// 高度 24 → 圆角设 12（或更大）
         } else {
-            lv_obj_clear_flag(pump_info->mode_label[i], LV_OBJ_FLAG_HIDDEN); /// 隐藏
+            lv_obj_clear_flag(pump_info->mode_label[i], LV_OBJ_FLAG_HIDDEN); /// 显示
         }
         if (i == 0) {
             lv_obj_align(pump_info->mode_label[i], LV_ALIGN_TOP_LEFT, 95, 91);    /// 设置label位置
@@ -601,7 +601,7 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
             pump_info->mode_text[i] = lv_label_create(pump_info->mode_label[i]);
             EXCEPTION_CHECK_VOID(pump_info->mode_text[i]);
         } else {
-            lv_obj_clear_flag(pump_info->mode_text[i], LV_OBJ_FLAG_HIDDEN); /// 隐藏
+            lv_obj_clear_flag(pump_info->mode_text[i], LV_OBJ_FLAG_HIDDEN); /// 显示
         }
 
         if (i == 0) {
