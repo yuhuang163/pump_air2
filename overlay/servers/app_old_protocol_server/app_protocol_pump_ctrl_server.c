@@ -97,7 +97,7 @@ static uint8_t app_old_comm_get_sys_status(void)
         sys_status = APP_OLD_COMM_PUMP_RUN_IN_CHARGE;
     }
 
-    if (BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_FINISH == pump_status) {
+    if (BREAST_PUMP_IDLE == pump_status) {
         LOG_SRV("APP_OLD_COMM_SYS_STOP");
         sys_status = APP_OLD_COMM_SYS_FINISH;
     }
@@ -107,7 +107,7 @@ static uint8_t app_old_comm_get_sys_status(void)
         sys_status = APP_OLD_COMM_SYS_PAUSE;
     }
 
-    if ((BREAST_PUMP_IDLE == pump_status || BREAST_PUMP_FINISH == pump_status)
+    if ((BREAST_PUMP_IDLE == pump_status )
         && USB_IS_PLUGIN(chage_state)) {
         LOG_SRV("APP_OLD_COMM_PUMP_FINISH_IN_CHARGE");
         sys_status = APP_OLD_COMM_PUMP_FINISH_IN_CHARGE;
@@ -119,7 +119,7 @@ static uint8_t app_old_comm_get_sys_status(void)
         sys_status = APP_OLD_COMM_PUMP_PAUSE_IN_CHARGE;
     }
 
-    if (BREAST_PUMP_RESET == pump_status) {
+    if (BREAST_PUMP_RESET == pump_status || BREAST_PUMP_FINISH == pump_status) {
         LOG_SRV("APP_OLD_COMM_SYS_RESET");
         sys_status = APP_OLD_COMM_SYS_RESET;
     }
