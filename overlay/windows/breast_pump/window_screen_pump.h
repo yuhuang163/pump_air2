@@ -35,7 +35,7 @@ extern "C" {
 /// 循环显示超时时间
 #define LOOP_SHOW_TIMEOUT                      (5000) /// 5s
 /// 泵奶子UI显示时间
-#define PUMP_SUB_UI_DISPLAY_TIME               (2000) /// 4s
+#define PUMP_SUB_UI_DISPLAY_TIME               (5000) /// 5s
 /// 泵奶运行时长更新间隔
 #define PUMP_RUNNING_TIME_UPDATE_INTERVAL      (1000) /// 1s
 /// 泵奶模式切换超时时间
