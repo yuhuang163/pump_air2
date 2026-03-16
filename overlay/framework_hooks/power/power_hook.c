@@ -338,7 +338,7 @@ static int on_power_popup_window_exit_cb(void *user_data, int args1, int args2)
     POST_TASK_HANDLER_NO_DELAY_ARG1(system_power_event_cb, ctx, HDR_ACTION_POWER_OFF,
         POWER_OFF_TASK_NAME);
     ///广播关机事件
-    SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_OFF);
+    ///SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_OFF);
     return 0;
 }
 
