@@ -58,35 +58,35 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_TIME_COLON",
+      "resource_id": "RESOURCE_ID_PUMP_TIME_COLON",
       "description": "首页时间冒号",
       "file": "baj/time_colon_12x42_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_SPEED_SLOW_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_SPEED_SLOW_ICON",
       "description": "首页-慢速图标",
       "file": "baj/icon_speed_slow_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_SPEED_REGULAR_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_SPEED_REGULAR_ICON",
       "description": "首页-常规图标",
       "file": "baj/icon_speed_regular_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_SPEED_BOOST_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_SPEED_BOOST_ICON",
       "description": "首页-快速图标",
       "file": "baj/icon_speed_fast_24x24_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_DASHED_ARC_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_DASHED_ARC_ICON",
       "description": "首页-虚线弧线图标",
       "file": "baj/icon_dashed_arc_97x10_a4_q99_422.baj",
       "x_offset": 0,
@@ -100,14 +100,14 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_IDLE_TEXT_AREA_ICON",
+      "resource_id": "RESOURCE_ID_HOME_IDLE_LABLE_ICON",
       "description": "空闲界面文本区域图标",
       "file": "baj/icon_idle_text_area_280x106_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_IDLE_BUTTOM_ICON",
+      "resource_id": "RESOURCE_ID_HOME_IDLE_BUTTOM_ICON",
       "description": "空闲界面按钮指示图标",
       "file": "baj/icon_idle_button_20x20_a4_q99_422.baj",
       "x_offset": 0,
@@ -128,7 +128,7 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_DUMMY_ICON",
+      "resource_id": "RESOURCE_ID_HOME_DUMMY_ICON",
       "description": "dummy图标",
       "file": "baj/icon_dummy_240x134_a4_q99_422.baj",
       "x_offset": 0,
@@ -163,63 +163,63 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_HOME_BG",
+      "resource_id": "RESOURCE_ID_COMMON_BG",
       "description": "泵奶首页背景",
       "file": "png/home_bg.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_LRM_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_SETTING_GUIDE_ICON",
       "description": "左+右+模式",
       "file": "baj/icon_LRMode_128x32_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_PLAYPAUSE_ICON",
+      "resource_id": "RESOURCE_ID_PLAY_PAUSE_GUIDE_ICON",
       "description": "启动暂停",
       "file": "baj/icon_Playpause_32x32_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_MODESTAR_ICON",
+      "resource_id": "RESOURCE_ID_MODE_SEL_GUIDE_ICON",
       "description": "Mode+Star",
       "file": "baj/icon_ModeStar_80x32_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_ARROW_ICON",
+      "resource_id": "RESOURCE_ID_ARROW_GUIDE_ICON",
       "description": "向下箭头",
       "file": "baj/icon_Arrow_24x12_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_PUMPING_ABB_ICON",
+      "resource_id": "RESOURCE_ID_EXPERT_PUMP_GUIDE_ICON",
       "description": "pumping缩略图",
       "file": "baj/icon_pumping_abb_160x160_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_PUMPING_START_ABB_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_START_GUIDE_ICON",
       "description": "pumping启动缩略图",
       "file": "baj/icon_pumpingstart_abb_183x160_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_KN_ABB_0",
+      "resource_id": "RESOURCE_ID_KNOB_GUIDE_0",
       "description": "旋钮指示缩略图0",
       "file": "baj/icon_knob_abb_0_196x185_a4_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_GUIDE_KN_ABB_1",
+      "resource_id": "RESOURCE_ID_KNOB_GUIDE_1",
       "description": "旋钮指示缩略图1",
       "file": "baj/icon_knob_abb_1_222x214_a4_q99_422.baj",
       "x_offset": 0,

@@ -54,7 +54,7 @@ static ui_manager_context_t *ui_ctx = NULL;
 static lv_obj_t *snap_shot_obj = NULL;
 static res_img_info_t snap_shot_info = {0};
 const static ui_snap_shot_info_t snap_shot_infos[LVGL_SNAP_SHORT_SIZE] = {
-    {RESOURCE_ID_PUMP_HOME_BG, false},
+    {RESOURCE_ID_COMMON_BG, false},
     {RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON, false},
     {RESOURCE_ID_MODE_BG_ICON, true},
 };

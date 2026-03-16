@@ -44,7 +44,7 @@ typedef struct {
 */
 static home_screen_saver_display_info_t *saver_info;
 const static saver_img_info_t saver_img_infos[HOME_SCREEN_SAVER_ICON_MAX_COUNT] = {
-    { "saver_icon", RESOURCE_ID_DUMMY_ICON, HOME_SCREEN_SAVER_ICON_X, HOME_SCREEN_SAVER_ICON_Y },
+    { "saver_icon", RESOURCE_ID_HOME_DUMMY_ICON, HOME_SCREEN_SAVER_ICON_X, HOME_SCREEN_SAVER_ICON_Y },
 };  
 /*
 * GLOBAL VARIABLE DEFINITIONS
