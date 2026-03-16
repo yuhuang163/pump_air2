@@ -80,12 +80,12 @@ typedef struct {
 static bf_mode_display_info_t *bf_mode_info;
 
 static const uint16_t bf_mode_component_ids[BF_MODE_COUNT] = {
-    RESOURCE_ID_MODE_CUSTOM_RDE_ICON,  
-    RESOURCE_ID_MODE_CUSTOM_URD_ICON,  
-    RESOURCE_ID_MODE_CUSTOM_URD_ICON,  
-    RESOURCE_ID_MODE_CUSTOM_URD_ICON, 
-    RESOURCE_ID_MODE_CUSTOM_URD_ICON,  
-    RESOURCE_ID_MODE_CUSTOM_URD_ICON, 
+    RESOURCE_ID_MODE_EXPERT_ICON,  
+    RESOURCE_ID_MODE_EXPERT_ICON,  
+    RESOURCE_ID_MODE_EXPERT_ICON,  
+    RESOURCE_ID_MODE_EXPERT_ICON, 
+    RESOURCE_ID_MODE_EXPERT_ICON,  
+    RESOURCE_ID_MODE_CUSTOM_ICON, 
 };
 
 static const char *bf_mode_name[BF_MODE_COUNT] = {
@@ -144,29 +144,34 @@ static void apply_slot_children_opa(uint8_t slot)
         lv_obj_set_style_image_opa(circle, LV_OPA_TRANSP, 0);
     #else
         lv_obj_set_style_image_opa(circle, opa, 0);
+        LOG_UI("circle, slot:%d, opa:%d", slot, opa);
     #endif
     // lv_obj_invalidate(circle); /// 刷新
 
     if (bf_mode_info->mode_component_img[slot] != NULL && lv_obj_is_valid(bf_mode_info->mode_component_img[slot])) {
-        opa =(slot == BF_SLOT_CENTER) ? LV_OPA_COVER : LV_OPA_80;
+        opa = (slot == BF_SLOT_CENTER) ? LV_OPA_COVER : LV_OPA_80;
         lv_obj_set_style_image_opa(bf_mode_info->mode_component_img[slot], opa, 0);;
+        // LOG_UI("mode img, slot:%d, opa:%d", slot, opa);
         // lv_obj_invalidate(bf_mode_info->mode_component_img[slot]);
     }
 
     if (bf_mode_info->mode_title_label[slot] != NULL && lv_obj_is_valid(bf_mode_info->mode_title_label[slot])) {
-        opa =(slot == BF_SLOT_CENTER) ? LV_OPA_COVER : LV_OPA_80;
+        opa = (slot == BF_SLOT_CENTER) ? LV_OPA_COVER : LV_OPA_80;
         lv_obj_set_style_text_opa(bf_mode_info->mode_title_label[slot], opa, 0);
+        // LOG_UI("mode title, slot:%d, opa:%d", slot, opa);
     }
     
     if (bf_mode_info->mode_desc_label[slot] != NULL && lv_obj_is_valid(bf_mode_info->mode_desc_label[slot])) {
-        opa =(slot == BF_SLOT_CENTER) ? 240 : 210;
+        opa = (slot == BF_SLOT_CENTER) ? 230 : 210;
         lv_obj_set_style_text_opa(bf_mode_info->mode_desc_label[slot], opa, 0);
+        // LOG_UI("mode desc, slot:%d, opa:%d", slot, opa);
         // lv_obj_invalidate(bf_mode_info->mode_desc_label[slot]);
     }
 }
 
 static void apply_all_children_opa(void)
 {
+    // LOG_UI("apply_all_children_opa");
     for (uint8_t i = 0; i < BF_CIRCLE_SLOT_COUNT; i++) {
         apply_slot_children_opa(i);
     }
@@ -417,7 +422,7 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
 
     /// 新模式未确认图标资源
     if (bf_mode_info->unconfirmed_icon_info.data == NULL) {
-        common_ui_img_resource_init(thiz, RESOURCE_ID_NEW_MODE_UNCONFIRMED_ICON, &bf_mode_info->unconfirmed_icon_info);
+        common_ui_img_resource_init(thiz, RESOURCE_ID_NEW_MODE_STEPS_PROMPT_ICON, &bf_mode_info->unconfirmed_icon_info);
         EXCEPTION_CHECK_VOID(bf_mode_info->unconfirmed_icon_info.data);
         lv_fs_make_path_from_buffer(&bf_mode_info->unconfirmed_icon_path,
                                     LV_FS_MEMFS_LETTER,

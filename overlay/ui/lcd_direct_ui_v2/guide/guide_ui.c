@@ -12,7 +12,7 @@
 #define IS_SUPPORT_GUIDE_COMP_BG                                (0)
 #define GUIDE_QRCODE_BG_COLOR                                   0xFFFFFF
 #define GUIDE_QRCODE_FG_COLOR                                   0x000000
-#define GUIDE_QRCODE_BORDER_COLOR                               (0xFFF2F3)  // 0xA6A6A6
+#define GUIDE_QRCODE_BORDER_COLOR                               (0xFFEAE6)  // 0xA6A6A6
 #define GUIDE_IMG_NUM                                           (2)
 #define GUIDE_TEXT_NUM                                          (3)
 /// 箭头图标和文本框的偏移量
@@ -23,6 +23,7 @@
 #define GUIDE_ARROW_TEXT_END_X_OFFSET                           (150 + 3)
 #define GUIDE_ARROW_TEXT_END_Y_OFFSET                           (328)
 #define GUIDE_TEXT_COLOR                                        (0xB25962)
+#define GUIDE_SUB_TEXT_COLOR                                    (0xC5747C)
 #define GUIDE_BIND_TEXT_COLOR                                   (0x6A5A5B)
 
 /*
@@ -56,7 +57,8 @@ typedef struct {
     const lv_font_t *font;
     uint16_t text_x;
     uint16_t text_y;
-    lv_opa_t text_opa;
+    // lv_opa_t text_opa;
+    uint32_t text_color;
 } ui_guide_text_info_t;
 
 typedef struct {
@@ -88,64 +90,64 @@ static PSRAM_DATA_LOC uint8_t guide_bg_data[] = {
 
 /// 首页
 const static ui_guide_img_info_t guide_home_img_infos[] = {
-    {RESOURCE_ID_GUIDE_KN_ABB_1, 57, 122}
+    {RESOURCE_ID_KNOB_GUIDE_1, 57, 122}
 };
 
 const static ui_guide_text_info_t guide_home_text_infos[] = {
-    {"Pumping  Trip", &lv_font_oppo_sans_20_medium, 120 + 1, 38 + 16, LV_OPA_COVER},
-    {"Turn right to start", &lv_font_oppo_sans_14_medium, 118 + 8, 76 + 8, LV_OPA_70}
+    {"Pumping  Trip", &lv_font_oppo_sans_20_medium, 120 + 1, 38 + 16, GUIDE_TEXT_COLOR},
+    {"Turn right to start", &lv_font_oppo_sans_14_medium, 118 + 8, 76 + 8, GUIDE_SUB_TEXT_COLOR}
 };
 
 /// 开始泵奶
 const static ui_guide_img_info_t guide_start_pump_img_infos[] = {
-    {RESOURCE_ID_GUIDE_PUMPING_START_ABB_ICON, 87, 131}
+    {RESOURCE_ID_PUMP_START_GUIDE_ICON, 87, 131}
 };
 
 const static ui_guide_text_info_t guide_start_pump_text_infos[] = {
-    {"Regular  Pumping", &lv_font_oppo_sans_20_medium, 102, 48 + 5, LV_OPA_COVER},
+    {"Regular  Pumping", &lv_font_oppo_sans_20_medium, 102, 48 + 5, GUIDE_TEXT_COLOR},
     {"2 min Stimulation  +  20 min Expression for\n most moms.                               ", 
-    &lv_font_oppo_sans_14_medium, 48 + 2, 80 + 4, LV_OPA_70},
-    {"Press to start", &lv_font_oppo_sans_14_bold, 128 + 49, 88 + 13, LV_OPA_70}
+    &lv_font_oppo_sans_14_medium, 48 + 2, 80 + 4, GUIDE_SUB_TEXT_COLOR},
+    {"Press to start", &lv_font_oppo_sans_14_bold, 128 + 49, 88 + 13, GUIDE_SUB_TEXT_COLOR}
 };
 
 /// 设置泵奶
 const static ui_guide_img_info_t guide_setting_pump_img_infos[] = {
-    {RESOURCE_ID_GUIDE_PUMPING_ABB_ICON, 100, 32 + 1},
-    {RESOURCE_ID_GUIDE_LRM_ICON, 116, 248}
+    {RESOURCE_ID_EXPERT_PUMP_GUIDE_ICON, 100, 32 + 1},
+    {RESOURCE_ID_PUMP_SETTING_GUIDE_ICON, 116, 248}
 };
 
 const static ui_guide_text_info_t guide_setting_pump_text_infos[] = {
     {"Adjust suction and speed per side by\n pressing buttons or knobs, or switch modes",
-    &lv_font_oppo_sans_14_medium, 40 + 2, 204 + 4, LV_OPA_70},
+    &lv_font_oppo_sans_14_medium, 40 + 2, 204 + 4, GUIDE_SUB_TEXT_COLOR},
 };
 
 /// 停止泵奶
 const static ui_guide_img_info_t guide_stop_pump_img_infos[] = {
-    {RESOURCE_ID_GUIDE_PUMPING_ABB_ICON, 100, 32},
-    {RESOURCE_ID_GUIDE_PLAYPAUSE_ICON, 164, 248}
+    {RESOURCE_ID_EXPERT_PUMP_GUIDE_ICON, 100, 32},
+    {RESOURCE_ID_PLAY_PAUSE_GUIDE_ICON, 164, 248}
 };
 
 const static ui_guide_text_info_t guide_stop_pump_text_infos[] = {
     {"Press and hold for 3  seconds to stop\n pumping", 
-    &lv_font_oppo_sans_14_medium, 60 + 6, 204 + 4, LV_OPA_70},
+    &lv_font_oppo_sans_14_medium, 60 + 6, 204 + 4, GUIDE_SUB_TEXT_COLOR},
 };
 
 /// 泵奶模式选择
 const static ui_guide_img_info_t guide_pump_mode_select_img_infos[] = {
-    {RESOURCE_ID_GUIDE_KN_ABB_0, 74, 47},
-    {RESOURCE_ID_GUIDE_MODESTAR_ICON, 140, 248}
+    {RESOURCE_ID_KNOB_GUIDE_0, 74, 47},
+    {RESOURCE_ID_MODE_SEL_GUIDE_ICON, 140, 248}
 };
 
 const static ui_guide_text_info_t guide_pump_mode_select_text_infos[] = {
     {"More pumping options:3 modes, 6\nprograms.                                             ", 
-    &lv_font_oppo_sans_14_medium, 66 + 4, 204 + 4, LV_OPA_70},
-    {"Turn right to switch", &lv_font_oppo_sans_14_bold, 101 + 50, 224 + 2, LV_OPA_70}
+    &lv_font_oppo_sans_14_medium, 66 + 4, 204 + 4, GUIDE_SUB_TEXT_COLOR},
+    {"Turn right to switch", &lv_font_oppo_sans_14_bold, 101 + 50, 224 + 2, GUIDE_SUB_TEXT_COLOR}
 };
 
 /// 绑定引导
 const static ui_guide_text_info_t guide_bind_guide_text_infos[] = {
     {"Scan to connect for tracking,  remote\ncontrol, custom modes... ",
-    &lv_font_oppo_sans_14_medium, 66, 220 + 8, LV_OPA_COVER}
+    &lv_font_oppo_sans_14_medium, 66, 220 + 8, GUIDE_BIND_TEXT_COLOR}
 };
 
 /*
@@ -206,7 +208,7 @@ static void guide_common_img_update(ui_manager_context_t *thiz)
         guide_info->arrow = lv_image_create(guide_info->root);
         EXCEPTION_CHECK_VOID(guide_info->arrow);
     }
-    common_ui_img_resource_init(thiz, RESOURCE_ID_GUIDE_ARROW_ICON, &guide_info->arrow_info);
+    common_ui_img_resource_init(thiz, RESOURCE_ID_ARROW_GUIDE_ICON, &guide_info->arrow_info);
     EXCEPTION_CHECK_VOID(guide_info->arrow_info.data);
     lv_fs_path_ex_t arrow_path;
     lv_fs_make_path_from_buffer(&arrow_path,
@@ -225,24 +227,26 @@ static void guide_common_text_update(ui_manager_context_t *thiz, uint8_t page_in
         EXCEPTION_CHECK_VOID(guide_info->arrow_text);
     }
     char *text_str = NULL;
-    lv_opa_t text_opa = LV_OPA_COVER;
+    // lv_opa_t text_opa = LV_OPA_COVER;
+    uint32_t text_color = GUIDE_TEXT_COLOR;
     uint16_t text_x = 0, text_y = 0;
     if (page_index == GUIDE_PAGE_BIND_GUIDE) {
         text_str = "End  Trip";
         text_x = GUIDE_ARROW_TEXT_END_X_OFFSET;
-        text_y = GUIDE_ARROW_TEXT_END_Y_OFFSET;
+        text_y = GUIDE_ARROW_TEXT_END_Y_OFFSET - 1;
     } else {
         text_str = "Press down to exit";
         text_x = GUIDE_ARROW_TEXT_X_OFFSET;
         text_y = GUIDE_ARROW_TEXT_Y_OFFSET;
-        text_opa = LV_OPA_70;
+        // text_opa = LV_OPA_70;
+        text_color = GUIDE_SUB_TEXT_COLOR;
     }
     lv_label_set_text(guide_info->arrow_text, text_str);
-    lv_obj_set_style_text_color(guide_info->arrow_text, lv_color_hex(GUIDE_TEXT_COLOR), 0);
+    lv_obj_set_style_text_color(guide_info->arrow_text, lv_color_hex(text_color), 0);
     lv_obj_set_style_text_font(guide_info->arrow_text, &lv_font_oppo_sans_14_medium, 0);  /// 设置字体
     lv_obj_set_style_text_line_space(guide_info->arrow_text, 7, 0);  /// 设置行间距（像素）
     lv_obj_set_style_text_align(guide_info->arrow_text, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
-    lv_obj_set_style_text_opa(guide_info->arrow_text, text_opa, 0);  /// 设置文本透明度
+    // lv_obj_set_style_text_opa(guide_info->arrow_text, text_opa, 0);  /// 设置文本透明度
     lv_obj_align(guide_info->arrow_text, LV_ALIGN_TOP_LEFT, text_x, text_y);
 }
 
@@ -275,10 +279,11 @@ static void guide_ui_home_update(ui_manager_context_t *thiz)
             lv_obj_clear_flag(guide_info->text[i], LV_OBJ_FLAG_HIDDEN);
         }
         lv_label_set_text(guide_info->text[i], guide_home_text_infos[i].text);
-        lv_obj_set_style_text_color(guide_info->text[i], lv_color_hex(GUIDE_TEXT_COLOR), 0);
+        lv_obj_set_style_text_color(guide_info->text[i], 
+            lv_color_hex(guide_home_text_infos[i].text_color), 0);
         lv_obj_set_style_text_font(guide_info->text[i], guide_home_text_infos[i].font, 0);
         lv_obj_set_style_text_align(guide_info->text[i], LV_TEXT_ALIGN_CENTER, 0);
-        lv_obj_set_style_text_opa(guide_info->text[i], guide_home_text_infos[i].text_opa, 0);
+        // lv_obj_set_style_text_opa(guide_info->text[i], guide_home_text_infos[i].text_opa, 0);
         lv_obj_align(guide_info->text[i], LV_ALIGN_TOP_LEFT, guide_home_text_infos[i].text_x, guide_home_text_infos[i].text_y);
     }
 }
@@ -314,12 +319,13 @@ static void guide_ui_start_pump_update(ui_manager_context_t *thiz)
             lv_obj_clear_flag(guide_info->text[i], LV_OBJ_FLAG_HIDDEN);
         }   
         lv_label_set_text(guide_info->text[i], guide_start_pump_text_infos[i].text);
-        lv_obj_set_style_text_color(guide_info->text[i], lv_color_hex(GUIDE_TEXT_COLOR), 0);
+        lv_obj_set_style_text_color(guide_info->text[i], 
+            lv_color_hex(guide_start_pump_text_infos[i].text_color), 0);
         lv_obj_set_style_text_font(guide_info->text[i], guide_start_pump_text_infos[i].font, 0);
         lv_obj_set_style_text_align(guide_info->text[i], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
         lv_obj_set_style_text_line_space(guide_info->text[i], 4, 0); /// 设置行间距（像素）
         // lv_obj_set_style_text_letter_space(guide_info->text[i], 1, 0); /// 设置字间距（像素）
-        lv_obj_set_style_text_opa(guide_info->text[i], guide_start_pump_text_infos[i].text_opa, 0);
+        // lv_obj_set_style_text_opa(guide_info->text[i], guide_start_pump_text_infos[i].text_opa, 0);
         lv_obj_align(guide_info->text[i], LV_ALIGN_TOP_LEFT, guide_start_pump_text_infos[i].text_x,
             guide_start_pump_text_infos[i].text_y);
     }
@@ -356,12 +362,13 @@ static void guide_ui_setting_pump_update(ui_manager_context_t *thiz)
             lv_obj_clear_flag(guide_info->text[i], LV_OBJ_FLAG_HIDDEN);
         }   
         lv_label_set_text(guide_info->text[i], guide_setting_pump_text_infos[i].text);
-        lv_obj_set_style_text_color(guide_info->text[i], lv_color_hex(GUIDE_TEXT_COLOR), 0);
+        lv_obj_set_style_text_color(guide_info->text[i], 
+            lv_color_hex(guide_setting_pump_text_infos[i].text_color), 0);
         lv_obj_set_style_text_font(guide_info->text[i], guide_setting_pump_text_infos[i].font, 0);
         lv_obj_set_style_text_align(guide_info->text[i], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
         lv_obj_set_style_text_line_space(guide_info->text[i], 4, 0); /// 设置行间距（像素）
         // lv_obj_set_style_text_letter_space(guide_info->text[i], 1, 0); /// 设置字间距（像素）
-        lv_obj_set_style_text_opa(guide_info->text[i], guide_setting_pump_text_infos[i].text_opa, 0);
+        // lv_obj_set_style_text_opa(guide_info->text[i], guide_setting_pump_text_infos[i].text_opa, 0);
         lv_obj_align(guide_info->text[i], LV_ALIGN_TOP_LEFT, guide_setting_pump_text_infos[i].text_x,
             guide_setting_pump_text_infos[i].text_y);
     }
@@ -398,12 +405,13 @@ static void guide_ui_stop_pump_update(ui_manager_context_t *thiz)
             lv_obj_clear_flag(guide_info->text[i], LV_OBJ_FLAG_HIDDEN);
         }   
         lv_label_set_text(guide_info->text[i], guide_stop_pump_text_infos[i].text);
-        lv_obj_set_style_text_color(guide_info->text[i], lv_color_hex(GUIDE_TEXT_COLOR), 0);
+        lv_obj_set_style_text_color(guide_info->text[i], 
+            lv_color_hex(guide_stop_pump_text_infos[i].text_color), 0);
         lv_obj_set_style_text_font(guide_info->text[i], guide_stop_pump_text_infos[i].font, 0);
         lv_obj_set_style_text_align(guide_info->text[i], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
         lv_obj_set_style_text_line_space(guide_info->text[i], 4, 0); /// 设置行间距（像素）
         // lv_obj_set_style_text_letter_space(guide_info->text[i], 1, 0); /// 设置字间距（像素）
-        lv_obj_set_style_text_opa(guide_info->text[i], guide_stop_pump_text_infos[i].text_opa, 0);
+        // lv_obj_set_style_text_opa(guide_info->text[i], guide_stop_pump_text_infos[i].text_opa, 0);
         lv_obj_align(guide_info->text[i], LV_ALIGN_TOP_LEFT, guide_stop_pump_text_infos[i].text_x,
             guide_stop_pump_text_infos[i].text_y);
     }
@@ -440,12 +448,13 @@ static void guide_ui_pump_mode_select_update(ui_manager_context_t *thiz)
             lv_obj_clear_flag(guide_info->text[i], LV_OBJ_FLAG_HIDDEN);
         }   
         lv_label_set_text(guide_info->text[i], guide_pump_mode_select_text_infos[i].text);
-        lv_obj_set_style_text_color(guide_info->text[i], lv_color_hex(GUIDE_TEXT_COLOR), 0);
+        lv_obj_set_style_text_color(guide_info->text[i], 
+            lv_color_hex(guide_pump_mode_select_text_infos[i].text_color), 0);
         lv_obj_set_style_text_font(guide_info->text[i], guide_pump_mode_select_text_infos[i].font, 0);
         lv_obj_set_style_text_align(guide_info->text[i], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
         lv_obj_set_style_text_line_space(guide_info->text[i], 4, 0); /// 设置行间距（像素）
         // lv_obj_set_style_text_letter_space(guide_info->text[i], 1, 0); /// 设置字间距（像素）
-        lv_obj_set_style_text_opa(guide_info->text[i], guide_pump_mode_select_text_infos[i].text_opa, 0);
+        // lv_obj_set_style_text_opa(guide_info->text[i], guide_pump_mode_select_text_infos[i].text_opa, 0);
         lv_obj_align(guide_info->text[i], LV_ALIGN_TOP_LEFT, guide_pump_mode_select_text_infos[i].text_x,
             guide_pump_mode_select_text_infos[i].text_y);
     }
@@ -465,6 +474,7 @@ static void guide_qrcode_update(ui_manager_context_t *thiz)
         ///  设置容器边框样式（灰色边框，宽度2像素）
         lv_obj_set_style_border_color(guide_info->qrcode_container, lv_color_hex(GUIDE_QRCODE_BORDER_COLOR), 0);
         lv_obj_set_style_border_width(guide_info->qrcode_container, 2, 0);
+        lv_obj_set_style_radius(guide_info->qrcode_container, 4, 0);
         ///  设置内边距为4像素，让边框和二维码内容之间有白色间距
         lv_obj_set_style_pad_all(guide_info->qrcode_container, 10, 0);
         ///  禁用容器的滚动功能
@@ -498,11 +508,12 @@ static void guide_ui_bind_guide_update(ui_manager_context_t *thiz)
             lv_obj_clear_flag(guide_info->text[i], LV_OBJ_FLAG_HIDDEN);
         }   
         lv_label_set_text(guide_info->text[i], guide_bind_guide_text_infos[i].text);
-        lv_obj_set_style_text_color(guide_info->text[i], lv_color_hex(GUIDE_BIND_TEXT_COLOR), 0);
+        lv_obj_set_style_text_color(guide_info->text[i], 
+            lv_color_hex(guide_bind_guide_text_infos[i].text_color), 0);
         lv_obj_set_style_text_font(guide_info->text[i], guide_bind_guide_text_infos[i].font, 0);
         lv_obj_set_style_text_align(guide_info->text[i], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
         lv_obj_set_style_text_line_space(guide_info->text[i], 4, 0); /// 设置行间距（像素）
-        lv_obj_set_style_text_opa(guide_info->text[i], guide_bind_guide_text_infos[i].text_opa, 0);
+        // lv_obj_set_style_text_opa(guide_info->text[i], guide_bind_guide_text_infos[i].text_opa, 0);
         lv_obj_align(guide_info->text[i], LV_ALIGN_TOP_LEFT, guide_bind_guide_text_infos[i].text_x,
             guide_bind_guide_text_infos[i].text_y);
     }
