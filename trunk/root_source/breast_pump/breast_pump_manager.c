@@ -345,6 +345,7 @@ static void set_breast_pump_status(int status)
                 case BREAST_PUMP_RESET: /// 用户app请求重置pump RESET后请将pump状态在设置为IDLE
                     if (m_info->do_work) {
                         m_info->do_work = 0;
+                        notify_breast_pump_completed();
                         stop_breast_pump_work(status);
                         CHECK_IF_VALID(pm_ctx, {
                             pm_ctx->release_wakelock(PUMP_THD_WAKELOCK);
@@ -365,8 +366,13 @@ static void set_breast_pump_status(int status)
         .arg2 = 0,
         .val = NULL,
     };
+    /// APP请求强制上报系统状态复位
+    if (status == BREAST_PUMP_FINISH) {
+        args.arg1 = OLD_PUBLISH_DATA_SYSTEM_STATUS_RESET;
+        servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    }
+    args.arg1 = OLD_PUBLISH_DATA_SYSTEM_STATUS_CHANGE;
     servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
-
     MUTEX_UNLOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
     // LOG_PMP("exit work: %d", m_info->do_work);
 }
