@@ -79,7 +79,7 @@ void platform_log_init(void)
 {
     /// 设置日志等级
 #if IS_SUPPORT_LOG_OUT
-    hal_trace_set_log_level(TR_LEVEL_ERROR);
+    // hal_trace_set_log_level(TR_LEVEL_ERROR);
 #else
     hal_trace_set_log_level(TR_LEVEL_CRITICAL);
 #endif
