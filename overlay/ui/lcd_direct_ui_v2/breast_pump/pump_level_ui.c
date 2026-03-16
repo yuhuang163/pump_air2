@@ -410,6 +410,10 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
         lv_obj_set_style_text_font(level_info->control_type_lable_text1, &lv_font_oppo_sans_24_semibold, 0); /// 设置文本字体
         lv_obj_align(level_info->control_type_lable_text1, LV_ALIGN_CENTER, 0, 3); /// 设置文本位置
         lv_obj_clear_flag(level_info->control_type_lable_text1, LV_OBJ_FLAG_HIDDEN); /// 显示文本
+        lv_obj_add_flag(level_info->control_type_lable2, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(level_info->control_type_lable_text2, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(level_info->control_type_lable_text3, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(level_info->control_type_lable_text4, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
