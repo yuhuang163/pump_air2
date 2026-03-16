@@ -35,6 +35,7 @@ typedef struct {
     lv_obj_t * title_text;
     lv_obj_t * number_text;
     lv_obj_t * countdown_arc;            /// 圆弧进度条对象
+    lv_obj_t * mask_layer;                /// 遮罩层
     uint16_t countdown_value;            /// 倒计时值
     uint32_t start_time;                 /// 倒计时起始时间
     uint32_t countdown_zero_time;        /// 倒计时到0的时间戳
@@ -64,15 +65,15 @@ static void will_power_off_tip_root_init(void)
     if (will_power_off_tip_info->root == NULL || !lv_obj_is_valid(will_power_off_tip_info->root)) {
         will_power_off_tip_info->root = lv_obj_create(lv_screen_active());
         EXCEPTION_CHECK_VOID(will_power_off_tip_info->root);
+        lv_obj_set_size(will_power_off_tip_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%
+        lv_obj_set_style_bg_color(will_power_off_tip_info->root, lv_color_black(), 0);     /// 黑色背景
+        lv_obj_set_style_bg_opa(will_power_off_tip_info->root, LV_OPA_TRANSP, 0);          /// 背景填充透明（不画背景色，避免遮挡底图）
+        lv_obj_set_style_border_width(will_power_off_tip_info->root, 0, 0);                /// 无边框
+        lv_obj_set_style_pad_all(will_power_off_tip_info->root, 0, 0);                     /// 无内边距
+        lv_obj_align(will_power_off_tip_info->root, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_clear_flag(will_power_off_tip_info->root, LV_OBJ_FLAG_CLICKABLE);           /// 不拦截点击事件
+        lv_obj_clear_flag(will_power_off_tip_info->root, LV_OBJ_FLAG_SCROLLABLE);          /// 禁止滚动
     }
-    lv_obj_set_size(will_power_off_tip_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-    lv_obj_set_style_bg_color(will_power_off_tip_info->root, lv_color_black(), 0);     /// 设置背景颜色为黑色
-    lv_obj_set_style_bg_opa(will_power_off_tip_info->root, LV_OPA_50, 0);              /// 设置背景透明度为50%
-    lv_obj_set_style_border_width(will_power_off_tip_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
-    lv_obj_set_style_pad_all(will_power_off_tip_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
-    lv_obj_align(will_power_off_tip_info->root, LV_ALIGN_CENTER, 0, 0);                /// 设置容器居中
-    lv_obj_clear_flag(will_power_off_tip_info->root, LV_OBJ_FLAG_CLICKABLE);           /// 让 root 不吃事件，防止挡子控件
-    lv_obj_clear_flag(will_power_off_tip_info->root, LV_OBJ_FLAG_SCROLLABLE);          /// 禁止滚动
 }
 
 static int will_power_off_tip_text_update(ui_manager_context_t *thiz)
@@ -207,6 +208,25 @@ static int will_power_off_tip_countdown_update(ui_manager_context_t *thiz)
     return 0;
 }
 
+static int will_power_off_tip_mask_layer_update(ui_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_INT(thiz);
+    if (will_power_off_tip_info->mask_layer == NULL || !lv_obj_is_valid(will_power_off_tip_info->mask_layer)) {
+        will_power_off_tip_info->mask_layer = lv_obj_create(will_power_off_tip_info->root);
+        EXCEPTION_CHECK_INT(will_power_off_tip_info->mask_layer);
+        lv_obj_set_size(will_power_off_tip_info->mask_layer, LV_PCT(100), LV_PCT(100));
+        lv_obj_center(will_power_off_tip_info->mask_layer);
+        lv_obj_set_style_bg_color(will_power_off_tip_info->mask_layer, lv_color_black(), 0);
+        lv_obj_set_style_bg_opa(will_power_off_tip_info->mask_layer, 190, 0); /// 黑色背景透明度190
+        lv_obj_set_style_border_width(will_power_off_tip_info->mask_layer, 0, 0);
+        lv_obj_set_style_pad_all(will_power_off_tip_info->mask_layer, 0, 0);
+        lv_obj_clear_flag(will_power_off_tip_info->mask_layer, LV_OBJ_FLAG_CLICKABLE);
+        /// 确保遮罩层在最底层（作为背景遮罩）
+        lv_obj_move_background(will_power_off_tip_info->mask_layer);
+    }
+    return 0;
+}
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -243,6 +263,7 @@ int ui_display_will_power_off_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(will_power_off_tip_info);
     EXCEPTION_CHECK_INT(will_power_off_tip_info->root);
+    will_power_off_tip_mask_layer_update(thiz);
     will_power_off_tip_text_update(thiz);
     will_power_off_tip_arc_update(thiz);
     will_power_off_tip_countdown_update(thiz);

@@ -51,7 +51,7 @@ static void airplane_mode_exit_root_init(lv_obj_t *parent)
         EXCEPTION_CHECK_VOID(display_info->root);
         lv_obj_set_size(display_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%
         lv_obj_set_style_bg_color(display_info->root, lv_color_black(), 0);     /// 黑色背景
-        lv_obj_set_style_bg_opa(display_info->root, LV_OPA_TRANSP, 0);          /// 背景透明度50%
+        lv_obj_set_style_bg_opa(display_info->root, LV_OPA_TRANSP, 0);          /// 背景填充透明（不画背景色，避免遮挡底图）
         lv_obj_set_style_border_width(display_info->root, 0, 0);                /// 无边框
         lv_obj_set_style_pad_all(display_info->root, 0, 0);                     /// 无内边距
         lv_obj_align(display_info->root, LV_ALIGN_CENTER, 0, 0);
