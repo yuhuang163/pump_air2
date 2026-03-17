@@ -21,21 +21,20 @@ typedef enum {
     /* 主界面组 [100..150] */
     RESOURCE_ID_COMMON_BG = 100,               /// 通用背景
     RESOURCE_ID_START_LOGO_ICON,               /// 启动LOGO
-    RESOURCE_ID_HOME_IDLE_LABLE_ICON,           /// 空闲界面文本区域图标
-    RESOURCE_ID_HOME_IDLE_BUTTOM_ICON,              /// 空闲界面按钮指示图标
+    RESOURCE_ID_HOME_IDLE_LABLE_ICON,          /// 空闲界面文本区域图标
+    RESOURCE_ID_HOME_IDLE_BUTTOM_ICON,         /// 空闲界面按钮指示图标
     RESOURCE_ID_AIRPLANE_UNLOCK_BUTTON_ICON,   /// 飞行模式解锁按钮图标
-    RESOURCE_ID_HOME_DUMMY_ICON,                    /// dummy图标
+    RESOURCE_ID_HOME_DUMMY_ICON,               /// dummy图标
     RESOURCE_ID_CHARGE_ADAPTER_ICON,           /// 首页充电适配器图标
+    RESOURCE_ID_HOME_IDLE_PAGE_IMG,            /// 首页屏幕保护图片
 
     /* 引导组 [150..200] */
-    RESOURCE_ID_PUMP_SETTING_GUIDE_ICON = 150,          /// 左+右+模式
-    RESOURCE_ID_PLAY_PAUSE_GUIDE_ICON,          /// 启动暂停
-    RESOURCE_ID_MODE_SEL_GUIDE_ICON,           /// Mode+Star
-    RESOURCE_ID_ARROW_GUIDE_ICON,              /// 向下箭头
-    RESOURCE_ID_EXPERT_PUMP_GUIDE_ICON,        /// pumping缩略图
-    RESOURCE_ID_PUMP_START_GUIDE_ICON,  /// pumping启动缩略图
-    RESOURCE_ID_KNOB_GUIDE_0,                /// 旋钮指示缩略图0
-    RESOURCE_ID_KNOB_GUIDE_1,                /// 旋钮指示缩略图1
+    RESOURCE_ID_GUIDE_PAGE1_IMG = 150,        /// 引导-页1图片
+    RESOURCE_ID_GUIDE_PAGE2_IMG,              /// 引导-页2图片
+    RESOURCE_ID_GUIDE_PAGE3_IMG,              /// 引导-页3图片
+    RESOURCE_ID_GUIDE_PAGE4_IMG,              /// 引导-页4图片
+    RESOURCE_ID_GUIDE_PAGE5_IMG,              /// 引导-页5图片
+    RESOURCE_ID_GUIDE_PAGE6_IMG,              /// 引导-页6图片
 
     /* 模式相关组 [301..400]（大图 + 小图标） */
     RESOURCE_ID_PUMP_SPEED_SLOW_ICON = 200,    /// 泵奶首页-慢速图标
