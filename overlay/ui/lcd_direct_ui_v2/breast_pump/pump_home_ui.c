@@ -310,7 +310,7 @@ static int pump_home_left_level_text_update(ui_manager_context_t *thiz, uint8_t 
         pump_info->left_progress_text = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_INT(pump_info->left_progress_text);
         lv_obj_set_style_text_color(pump_info->left_progress_text, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
-        lv_obj_set_style_text_font(pump_info->left_progress_text, &lv_font_oppo_sans_14_medium, 0);
+        lv_obj_set_style_text_font(pump_info->left_progress_text, &lv_font_oppo_sans_16_medium, 0);
     }
     sprintf(level_text, "%d", level);
     lv_label_set_text(pump_info->left_progress_text, level_text);
@@ -461,7 +461,7 @@ static int pump_home_right_level_text_update(ui_manager_context_t *thiz, uint8_t
         pump_info->right_progress_text = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_INT(pump_info->right_progress_text);
         lv_obj_set_style_text_color(pump_info->right_progress_text, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
-        lv_obj_set_style_text_font(pump_info->right_progress_text, &lv_font_oppo_sans_14_medium, 0);
+        lv_obj_set_style_text_font(pump_info->right_progress_text, &lv_font_oppo_sans_16_medium, 0);
         // lv_obj_set_style_text_outline_stroke_color(pump_info->right_progress_text,
         //     lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
         // lv_obj_set_style_text_outline_stroke_width(pump_info->right_progress_text, 1, 0);
@@ -608,7 +608,7 @@ static void pump_home_common_mode_update(ui_manager_context_t *thiz, uint8_t mod
         lv_obj_set_style_bg_color(pump_info->mode_label[0], lv_color_hex(MODE_LABEL_SEL_COLOR), 0);
         lv_obj_set_style_bg_grad_color(pump_info->mode_label[0], lv_color_hex(MODE_LABEL_SEL_COLOR), 0);
         lv_obj_set_style_bg_grad_dir(pump_info->mode_label[0], LV_GRAD_DIR_NONE, 0); /// 关闭渐变
-        lv_obj_set_style_radius(pump_info->mode_label[0], 14, 0);  /// 高度 24 → 圆角设 12（或更大）
+        lv_obj_set_style_radius(pump_info->mode_label[0], 13, 0);  /// 高度 24 → 圆角设 12（或更大）
     } else {
         lv_obj_clear_flag(pump_info->mode_label[0], LV_OBJ_FLAG_HIDDEN); /// 显示
     }
@@ -679,7 +679,7 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
                 lv_obj_set_style_bg_grad_color(pump_info->mode_label[i], lv_color_hex(MODE_LABEL_UNSEL_COLOR), 0);
             }
             lv_obj_set_style_bg_grad_dir(pump_info->mode_label[i], LV_GRAD_DIR_NONE, 0); /// 关闭渐变
-            lv_obj_set_style_radius(pump_info->mode_label[i], 14, 0);  /// 高度 24 → 圆角设 12（或更大）
+            lv_obj_set_style_radius(pump_info->mode_label[i], 13, 0);  /// 高度 24 → 圆角设 12（或更大）
         } else {
             lv_obj_clear_flag(pump_info->mode_label[i], LV_OBJ_FLAG_HIDDEN); /// 显示
         }

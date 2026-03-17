@@ -118,58 +118,44 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_SETTING_GUIDE_ICON",
-      "description": "左+右+模式",
-      "file": "baj/icon_pump_setting_guide_128x32_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_PAGE1_IMG",
+      "description": "引导-页1图片",
+      "file": "png/img_guide_page_1.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PLAY_PAUSE_GUIDE_ICON",
-      "description": "启动暂停",
-      "file": "baj/icon_play_pause_guide_32x32_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_PAGE2_IMG",
+      "description": "引导-页2图片",
+      "file": "png/img_guide_page_2.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_MODE_SEL_GUIDE_ICON",
-      "description": "模式选择引导图标",
-      "file": "baj/icon_mode_select_guide_80x32_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_PAGE3_IMG",
+      "description": "引导-页3图片",
+      "file": "png/img_guide_page_3.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_ARROW_GUIDE_ICON",
-      "description": "向下箭头引导图标",
-      "file": "baj/icon_arrow_guide_24x12_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_PAGE4_IMG",
+      "description": "引导-页4图片",
+      "file": "png/img_guide_page_4.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_EXPERT_PUMP_GUIDE_ICON",
-      "description": "pumping专家模式引导图标",
-      "file": "baj/icon_pump_expert_guide_160x160_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_PAGE5_IMG",
+      "description": "引导-页5图片",
+      "file": "png/img_guide_page_5.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_START_GUIDE_ICON",
-      "description": "pumping启动引导图标",
-      "file": "baj/icon_pump_start_guide_183x160_a8_q99_444.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_KNOB_GUIDE_0",
-      "description": "旋钮指示引导图标0",
-      "file": "baj/icon_knob_guide_0_196x185_a8_q99_444.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_KNOB_GUIDE_1",
-      "description": "旋钮指示引导图标1",
-      "file": "baj/icon_knob_guide_1_222x214_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_GUIDE_PAGE6_IMG",
+      "description": "引导-页6图片",
+      "file": "png/img_guide_page_6.png",
       "x_offset": 0,
       "y_offset": 0
     },

@@ -144,7 +144,7 @@ static void apply_slot_children_opa(uint8_t slot)
         lv_obj_set_style_image_opa(circle, LV_OPA_TRANSP, 0);
     #else
         lv_obj_set_style_image_opa(circle, opa, 0);
-        LOG_UI("circle, slot:%d, opa:%d", slot, opa);
+        // LOG_UI("circle, slot:%d, opa:%d", slot, opa);
     #endif
     // lv_obj_invalidate(circle); /// 刷新
 
@@ -399,7 +399,16 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
         lv_obj_add_flag(bf_mode_info->circle_obj[slot], LV_OBJ_FLAG_HIDDEN); /// 隐藏
 #endif
         lv_obj_set_pos(bf_mode_info->circle_obj[slot], (lv_coord_t)slot_target_x(slot), (lv_coord_t)slot_target_y(slot));
+        lv_obj_set_style_image_opa(bf_mode_info->circle_obj[slot], LV_OPA_COVER, 0);
     }
+
+    /// 模式组件图片对象
+    if (bf_mode_info->mode_component_img[slot] == NULL || !lv_obj_is_valid(bf_mode_info->mode_component_img[slot])) {
+        bf_mode_info->mode_component_img[slot] = lv_image_create(bf_mode_info->circle_obj[slot]);
+        EXCEPTION_CHECK_VOID(bf_mode_info->mode_component_img[slot]);
+        lv_obj_align(bf_mode_info->mode_component_img[slot], LV_ALIGN_CENTER, 0, -58);
+    }
+
     /// 上一次使用模式图标资源  
     if (bf_mode_info->last_usage_icon_info.data == NULL) {
         common_ui_img_resource_init(thiz, RESOURCE_ID_LAST_USED_MODE_ICON, &bf_mode_info->last_usage_icon_info);
@@ -410,6 +419,7 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
                                     bf_mode_info->last_usage_icon_info.size,
                                     "baj");
     }
+
     /// 上一次使用模式图标对象
     if (bf_mode_info->last_usage_icon[slot] == NULL || !lv_obj_is_valid(bf_mode_info->last_usage_icon[slot])) {
         bf_mode_info->last_usage_icon[slot] = lv_image_create(bf_mode_info->circle_obj[slot]);
@@ -430,6 +440,7 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
                                     bf_mode_info->unconfirmed_icon_info.size,
                                     "baj");
     }
+    
     /// 新模式未确认图标
     if (bf_mode_info->unconfirmed_icon[slot] == NULL || !lv_obj_is_valid(bf_mode_info->unconfirmed_icon[slot])) {
         bf_mode_info->unconfirmed_icon[slot] = lv_image_create(bf_mode_info->circle_obj[slot]);
@@ -439,12 +450,7 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
         lv_obj_set_style_image_opa(bf_mode_info->unconfirmed_icon[slot], LV_OPA_COVER, 0);
         lv_obj_add_flag(bf_mode_info->unconfirmed_icon[slot], LV_OBJ_FLAG_HIDDEN);
     }
-    /// 模式组件图片对象
-    if (bf_mode_info->mode_component_img[slot] == NULL || !lv_obj_is_valid(bf_mode_info->mode_component_img[slot])) {
-        bf_mode_info->mode_component_img[slot] = lv_image_create(bf_mode_info->circle_obj[slot]);
-        EXCEPTION_CHECK_VOID(bf_mode_info->mode_component_img[slot]);
-        lv_obj_align(bf_mode_info->mode_component_img[slot], LV_ALIGN_CENTER, 0, -58);
-    }
+
     /// 模式标题标签
     if (bf_mode_info->mode_title_label[slot] == NULL || !lv_obj_is_valid(bf_mode_info->mode_title_label[slot])) {
         bf_mode_info->mode_title_label[slot] = lv_label_create(bf_mode_info->circle_obj[slot]);
@@ -454,6 +460,7 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_ci
         lv_obj_set_style_text_align(bf_mode_info->mode_title_label[slot], LV_TEXT_ALIGN_CENTER, 0);  /// 居中对齐
         lv_obj_align(bf_mode_info->mode_title_label[slot], LV_ALIGN_CENTER, 0, -15);
     }
+
     /// 模式描述标签
     if (bf_mode_info->mode_desc_label[slot] == NULL || !lv_obj_is_valid(bf_mode_info->mode_desc_label[slot])) {
         bf_mode_info->mode_desc_label[slot] = lv_label_create(bf_mode_info->circle_obj[slot]);
