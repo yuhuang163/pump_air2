@@ -57,6 +57,7 @@ typedef enum {
     RESOURCE_ID_MODE_RELAX_PROMPT_ICON,        /// 模式-放松确认提示图标
 
     RESOURCE_ID_MODE_BG_ICON,                  /// 模式背景图标
+    RESOURCE_ID_MODE_BG_2_ICON,                /// 模式背景图标2
     RESOURCE_ID_LAST_USED_MODE_ICON,           /// 上一次使用模式图标
     RESOURCE_ID_NEW_MODE_STEPS_PROMPT_ICON,     /// 新模式未确认图标
     RESOURCE_ID_MODE_LACTATION_ICON,           /// 模式-泌乳图标

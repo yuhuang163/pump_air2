@@ -106,7 +106,7 @@
     {
       "resource_id": "RESOURCE_ID_HOME_DUMMY_ICON",
       "description": "dummy图标",
-      "file": "baj/icon_home_dummy_240x134_a8_q99_444.baj",
+      "file": "baj/icon_home_dummy_226x134_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -197,14 +197,14 @@
     {
       "resource_id": "RESOURCE_ID_PUMP_LEFT_LEVEL_ICON",
       "description": "泵奶首页左档位图标",
-      "file": "baj/icon_pump_home_left_level_29x20_a8_q99_444.baj",
+      "file": "baj/icon_pump_home_left_level_106x257_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON",
       "description": "首页右档位图标",
-      "file": "baj/icon_pump_home_right_Level_29x20_a8_q99_444.baj",
+      "file": "baj/icon_pump_home_right_Level_106x257_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -275,6 +275,13 @@
       "resource_id": "RESOURCE_ID_MODE_BG_ICON",
       "description": "模式背景图标",
       "file": "png/icon_mode_bg.png",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_MODE_BG_2_ICON",
+      "description": "模式背景图标2",
+      "file": "png/icon_mode_bg_2.png",
       "x_offset": 0,
       "y_offset": 0
     },
