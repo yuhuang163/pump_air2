@@ -56,8 +56,6 @@ static res_img_info_t snap_shot_info = {0};
 const static ui_snap_shot_info_t snap_shot_infos[UI_SNAP_SHOT_ID_MAX] = {
     {RESOURCE_ID_COMMON_BG, false},
     {RESOURCE_ID_PUMP_LEVEL_BG, false},
-    {RESOURCE_ID_MODE_CENTER_BG, true},
-    {RESOURCE_ID_MODE_SIDE_BG, true},
     {RESOURCE_ID_REGULAR_PUMPING_BG, false},
     {RESOURCE_ID_EXPERT_PUMPING_BG, false},
 };

@@ -156,6 +156,7 @@ int os_create_timer_wrapper(os_timer_id *timer_id, const char *name_s, void *use
 
     hw_timer_def->hw_timer_id = hwtimer_alloc(hw_timer_timeout_handler, hw_timer_def);
     if (hw_timer_def->hw_timer_id == NULL) {
+        LOGE("Oops! hwtimer_alloc(%s): fail", name_s);
         u_free(hw_timer_def);
         return -1;
     }

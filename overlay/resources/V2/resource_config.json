@@ -244,20 +244,6 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_MODE_CENTER_BG",
-      "description": "模式中心背景",
-      "file": "png/bg_pump_mode_center.png",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_MODE_SIDE_BG",
-      "description": "模式侧边背景",
-      "file": "png/bg_pump_mode_side.png",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
       "resource_id": "RESOURCE_ID_LAST_USED_MODE_ICON",
       "description": "上一次使用模式图标",
       "file": "baj/icon_last_usage_mode_20x20_a8_q99_444.baj",
