@@ -770,7 +770,7 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_o
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     report_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     report_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(id); //normal speed //频次（0-低 1-中 2-高）（1字节）
+    report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(id) + 1; //normal speed //频次（1-低 2-中 3-高）（1字节）
     report_data[data_len++] = 0x00; //预留
     report_data[data_len++] = 0x00; //预留
     report_data[data_len++] = app_old_comm_get_current_running_mode_step();
@@ -807,7 +807,7 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 0) & 0xFF;
     ack_data[data_len++] = (app_old_comm_get_current_custom_pump_mode_total_time() >> 8) & 0xFF;
     ack_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
-    ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT); //normal speed
+    ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT) + 1; //normal speed
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = 0x00; //预留
     ack_data[data_len++] = app_old_comm_get_current_running_mode_step();
@@ -837,7 +837,7 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     app_old_comm_pump_ctrl_date.user_define_pump_level = cab[4];
     app_old_comm_pump_ctrl_date.user_define_pump_speed = cab[5] - 1; //频次（1-低 2-中 3-高）（1字节）
     app_old_comm_pump_ctrl_date.pump_mode_lr_or_all = cab[6];//0:左 1:右 2:双
-    app_old_comm_pump_ctrl_date.normal_pump_speed = cab[7]; //频次（0-低 1-中 2-高）（1字节）
+    app_old_comm_pump_ctrl_date.normal_pump_speed = cab[7] - 1; //频次（1-低 2-中 3-高）（1字节）
     ///查看窗口，是否需要唤醒pump窗口
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_VOID(wm);
