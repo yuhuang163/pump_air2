@@ -57,6 +57,7 @@ const static ui_snap_shot_info_t snap_shot_infos[LVGL_SNAP_SHORT_SIZE] = {
     {RESOURCE_ID_COMMON_BG, false},
     {RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON, false},
     {RESOURCE_ID_MODE_BG_ICON, true},
+    {RESOURCE_ID_MODE_BG_2_ICON, true},
 };
 
 /*

@@ -24,7 +24,7 @@ extern "C" {
 #endif
 #define LVGL_HDR_TASK_PERIOD (16)
 
-#define LVGL_SNAP_SHORT_SIZE      3   /// 会占用lvgl静态内存
+#define LVGL_SNAP_SHORT_SIZE      4   /// 会占用lvgl静态内存
 
 typedef enum {
     ANI_TIMER_DRAW_BEFORE = 0, /// 背景合并之前
@@ -36,7 +36,8 @@ typedef enum {
 typedef enum {
     UI_SNAP_SHOT_COMMON_BG = 0, /// 通用PNG背景
     UI_SNAP_SHOT_PUMP_LEVEL_BG,  /// 力度调节页面背景
-    UI_SNAP_SHOT_PUMP_MODE_BG,  /// 力度调节页面背景
+    UI_SNAP_SHOT_PUMP_MODE_BG,  /// 模式背景图标1
+    UI_SNAP_SHOT_PUMP_MODE_BG_2,  /// 模式背景图标1
     UI_SNAP_SHOT_ID_MAX
 } ui_snap_shot_id_e;
 

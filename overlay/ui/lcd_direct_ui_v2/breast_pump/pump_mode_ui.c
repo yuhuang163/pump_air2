@@ -27,8 +27,9 @@
 #define MODE_TEXT_COLOR                        (0xB25962)
 #define MODE_TEXT_CENTER_COLOR                 (0xFFFFFF)
 #define MODE_TITLE_TEXT_COLOR                  (0xFFFFFF)
-#define MODE_DESC_TEXT_COLOR                   (0xFFFFFF)
 #define MODE_TEXT_SIDE_COLOR                   (0xE7D4D9)
+#define MODE_DESC_TEXT_COLOR                   (0xFFDDDF)
+#define MODE_CENTER_DESC_TEXT_COLOR            (0xFFEAEA)
 #define MODE_TEXT_CENTER_OPA                   (LV_OPA_COVER)
 #define MODE_TEXT_SIDE_OPA                     (100)
 #define MODE_SWITCH_ANIM_TIME_MS               (260)
@@ -122,6 +123,7 @@ static int32_t slot_target_y(mode_circle_slot_e slot)
 
 static void apply_slot_children_opa(uint8_t slot)
 {
+#if 0
     lv_opa_t opa = (slot == MODE_SLOT_CENTER) ? LV_OPA_COVER : 20;
     if (mode_info->circle_obj[slot] != NULL && lv_obj_is_valid(mode_info->circle_obj[slot])) {
         lv_obj_set_style_image_opa(mode_info->circle_obj[slot], opa, 0);
@@ -139,13 +141,16 @@ static void apply_slot_children_opa(uint8_t slot)
         lv_obj_set_style_text_opa(mode_info->mode_desc_label[slot], opa, 0);
         lv_obj_invalidate(mode_info->mode_desc_label[slot]); /// 刷新
     }
+#endif
 }
 
 static void apply_all_children_opa(void)
 {
+#if 0
     for (uint8_t i = 0; i < MODE_CIRCLE_SLOT_COUNT; i++) {
         apply_slot_children_opa(i);
     }
+#endif
 }
 
 static void update_dots(uint8_t cur)
@@ -338,13 +343,16 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, mode_
 #if LV_USE_SNAPSHOT
     lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_BG);
     EXCEPTION_CHECK_VOID(background_snapshot);
+    lv_draw_buf_t *background_snapshot_2 = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_BG_2);
+    EXCEPTION_CHECK_VOID(background_snapshot_2);
 #endif
 
     if (mode_info->circle_obj[slot] == NULL || !lv_obj_is_valid(mode_info->circle_obj[slot])) {
         mode_info->circle_obj[slot] = lv_image_create(parent);
         EXCEPTION_CHECK_VOID(mode_info->circle_obj[slot]);
 #if LV_USE_SNAPSHOT
-        lv_image_set_src(mode_info->circle_obj[slot], background_snapshot);
+        lv_image_set_src(mode_info->circle_obj[slot], 
+            slot == MODE_SLOT_CENTER ? background_snapshot : background_snapshot_2);
 #else
         lv_obj_add_flag(mode_info->circle_obj[slot], LV_OBJ_FLAG_HIDDEN); /// 隐藏
 #endif
@@ -365,16 +373,18 @@ static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, mode_
         lv_obj_set_style_text_font(mode_info->mode_title_label[slot], &lv_font_oppo_sans_16_medium, 0);
         lv_obj_set_style_text_align(mode_info->mode_title_label[slot], LV_TEXT_ALIGN_CENTER, 0);  /// 居中对齐
         lv_obj_align(mode_info->mode_title_label[slot], LV_ALIGN_CENTER, 0, -15);
+        lv_obj_set_style_text_opa(mode_info->mode_title_label[slot], LV_OPA_COVER, 0);
     }
 
     if (mode_info->mode_desc_label[slot] == NULL || !lv_obj_is_valid(mode_info->mode_desc_label[slot])) {
         mode_info->mode_desc_label[slot] = lv_label_create(mode_info->circle_obj[slot]);
         EXCEPTION_CHECK_VOID(mode_info->mode_desc_label[slot]);
-        lv_obj_set_style_text_color(mode_info->mode_desc_label[slot], lv_color_hex(MODE_DESC_TEXT_COLOR), 0);
+        lv_obj_set_style_text_color(mode_info->mode_desc_label[slot], 
+            lv_color_hex(slot == MODE_SLOT_CENTER ? MODE_CENTER_DESC_TEXT_COLOR : MODE_DESC_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(mode_info->mode_desc_label[slot], &lv_font_oppo_sans_14_medium, 0);
         lv_obj_set_style_text_align(mode_info->mode_desc_label[slot], LV_TEXT_ALIGN_CENTER, 0);  /// 居中对齐
         lv_obj_set_style_text_line_space(mode_info->mode_desc_label[slot], 4, 0); /// 设置行间距（像素）
-        lv_obj_set_style_text_opa(mode_info->mode_desc_label[slot], 240, 0); /// 94% 透明度
+        lv_obj_set_style_text_opa(mode_info->mode_desc_label[slot], LV_OPA_COVER, 0);
         lv_obj_align(mode_info->mode_desc_label[slot], LV_ALIGN_CENTER, 0, MODE_DESC_BASE_Y_OFFSET);
     }
 }
