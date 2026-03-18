@@ -71,7 +71,7 @@
     {
       "resource_id": "RESOURCE_ID_COMMON_BG",
       "description": "通用背景",
-      "file": "png/common_background.png",
+      "file": "png/bg_common_ui.png",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -111,9 +111,9 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_ICON",
-      "description": "充电适配器图标",
-      "file": "png/icon_charge_adapter_error.png",
+      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_IMG",
+      "description": "充电适配器错误背景",
+      "file": "png/img_charge_adapter_error.png",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -181,44 +181,16 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_DASHED_ARC_ICON",
-      "description": "泵奶首页-虚线弧线图标",
-      "file": "baj/icon_dashed_arc_97x10_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_REGULAR_PUMPING_BG",
+      "description": "泵奶首页-常规泵奶背景",
+      "file": "png/bg_regular_pumping.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_TIME_COLON",
-      "description": "泵奶首页时间冒号",
-      "file": "baj/icon_pump_time_colon_12x42_a8_q99_444.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_PUMP_LEFT_LEVEL_ICON",
-      "description": "泵奶首页左档位图标",
-      "file": "baj/icon_pump_home_left_level_106x257_a8_q99_444.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON",
-      "description": "首页右档位图标",
-      "file": "baj/icon_pump_home_right_Level_106x257_a8_q99_444.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_PUMP_LEFT_DIR_ICON",
-      "description": "首页左方向图标",
-      "file": "baj/icon_pump_home_left_20x20_a8_q99_444.baj",
-      "x_offset": 0,
-      "y_offset": 0
-    },
-    {
-      "resource_id": "RESOURCE_ID_PUMP_RIGHT_DIR_ICON",
-      "description": "首页右方向图标",
-      "file": "baj/icon_pump_home_right_20x20_a8_q99_444.baj",
+      "resource_id": "RESOURCE_ID_EXPERT_PUMPING_BG",
+      "description": "泵奶首页-专家泵奶背景",
+      "file": "png/bg_expert_pumping.png",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -272,16 +244,16 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_MODE_BG_ICON",
-      "description": "模式背景图标",
-      "file": "png/icon_mode_bg.png",
+      "resource_id": "RESOURCE_ID_MODE_CENTER_BG",
+      "description": "模式中心背景",
+      "file": "png/bg_pump_mode_center.png",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_MODE_BG_2_ICON",
-      "description": "模式背景图标2",
-      "file": "png/icon_mode_bg_2.png",
+      "resource_id": "RESOURCE_ID_MODE_SIDE_BG",
+      "description": "模式侧边背景",
+      "file": "png/bg_pump_mode_side.png",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -349,9 +321,9 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON",
-      "description": "泵奶档位背景图标",
-      "file": "png/icon_level_bg.png",
+      "resource_id": "RESOURCE_ID_PUMP_LEVEL_BG",
+      "description": "泵奶档位背景",
+      "file": "png/bg_pump_level_page.png",
       "x_offset": 0,
       "y_offset": 0
     },

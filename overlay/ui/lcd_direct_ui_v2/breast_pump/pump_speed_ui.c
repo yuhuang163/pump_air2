@@ -351,9 +351,9 @@ static void circle_carousel_set_speed(ui_manager_context_t *thiz, uint8_t idx, b
 static void create_speed_item(ui_manager_context_t *thiz, lv_obj_t *parent, speed_circle_slot_e slot)
 {
 #if LV_USE_SNAPSHOT
-    lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_BG);
+    lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_CENTER_BG);
     EXCEPTION_CHECK_VOID(background_snapshot);
-    lv_draw_buf_t *background_snapshot_2 = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_BG_2);
+    lv_draw_buf_t *background_snapshot_2 = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_SIDE_BG);
     EXCEPTION_CHECK_VOID(background_snapshot_2);
 #endif
     if (speed_info->circle_obj[slot] == NULL || !lv_obj_is_valid(speed_info->circle_obj[slot])) {

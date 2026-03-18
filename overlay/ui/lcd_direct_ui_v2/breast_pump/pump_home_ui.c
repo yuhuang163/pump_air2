@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
@@ -14,17 +13,12 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_HOME_COMP_BG                    (0)
-#define IS_SUPPORT_LEVEL_CIRCLE_IMG                (0)
-#define IS_SUPPORT_PUMP_LEVEL_ARC_IMG              (1)
-#define LEVEL_TEXT_COUNT                           (3)
 #define HOME_MODE_MAX_COUNT                        (4)
 #define HOME_SPEED_MAX_COUNT                       (3)
 #define HOME_ANIMATION_MAX_COUNT                   (RESOURCE_ID_PUMP_MODE_ANIMATION_END - RESOURCE_ID_PUMP_MODE_ANIMATION_START + 1)
 #define PUMP_ARC_COLOR                             (0xB3636D)
 #define PUMP_LEVEL_CIRCLE_COLOR                    (0xFFFFFF) /// (0xFFEDEF)
 #define PUMP_TIME_TEXT_COLOR                       (0xB25962)
-#define MODE_LABEL_UNSEL_COLOR                     (0xD99095)
-#define MODE_LABEL_SEL_COLOR                       (0xB25962)
 #define MODE_TEXT_SEL_COLOR                        (0xFFFFFF)
 #define MODE_TEXT_UNSEL_COLOR                      (0xFFE5E7)
 #define PUMP_LEVEL_MAX                             (15)
@@ -36,86 +30,30 @@
 #define PUMP_RIGHT_ARC_END_ANGLE                   (404 - 8)
 #define PUMP_LEVEL_ARC_WIDTH                       (6)
 #define PUMP_LEVEL_CIRCLE_SIZE                     (9)
+#define HOME_CUSTOM_MODE_TEXT_Y                    (91 + 9)
+#define HOME_CUSTOM_LEFT_TEXT_CENTER_X             (136 - 4)
+#define HOME_CUSTOM_RIGHT_TEXT_CENTER_X            (224 + 2)
 #define NEXT_RING_SIZE                             (309)
 #define NEXT_RING_R                                (NEXT_RING_SIZE / 2 - 43)
 #define NEXT_TEXT_CENTER_Y_OFFSET                  (60)
 
-#define IS_SUPPORT_LEFT_DIR_IMG                    (1)
-#define IS_SUPPORT_RIGHT_DIR_IMG                   (1)
-#define IS_SUPPORT_LEFT_LEVEL_IMG                  (1)
-#define IS_SUPPORT_RIGHT_LEVEL_IMG                 (1)
-
 typedef struct {    
     lv_obj_t * root;
-    #if IS_SUPPORT_HOME_COMP_BG
     lv_obj_t * backgroud;
-    #endif
-    lv_obj_t * mode_label[2];
     lv_obj_t * mode_text[2];
-    lv_obj_t * mode_icon;
-    lv_obj_t * mode_icon_text;
     lv_obj_t * speed_icon;
-    lv_obj_t * time_colon;
     lv_obj_t * time_minute;
     lv_obj_t * time_second;
     lv_obj_t * left_level_arc;
     lv_obj_t * left_level_circle; /// 圆圈
     lv_obj_t * left_progress_text; /// 进度文字
-#if IS_SUPPORT_PUMP_LEVEL_ARC_IMG
-    lv_obj_t * left_level_arc_img; /// 进度弧线图片
-#else
-#if IS_SUPPORT_LEFT_DIR_IMG
-    lv_obj_t * left_dir_icon; /// 方向图标
-#else
-    lv_obj_t * left_dir_text; /// 方向文字
-    lv_obj_t * left_dir_circle; /// 方向圆圈
-#endif
-#if IS_SUPPORT_LEFT_LEVEL_IMG
-    lv_obj_t * left_end_icon; /// 终点图标
-#else
-    lv_obj_t * left_end_text; /// 终点文字
-#endif
-#endif
     lv_obj_t * right_level_arc;
     lv_obj_t * right_level_circle; /// 圆圈
     lv_obj_t * right_progress_text; /// 进度文字
-#if IS_SUPPORT_PUMP_LEVEL_ARC_IMG
-    lv_obj_t * right_level_arc_img; /// 进度弧线图片
-#else
-#if IS_SUPPORT_RIGHT_DIR_IMG
-    lv_obj_t * right_dir_icon; /// 方向图标
-#else
-    lv_obj_t * right_dir_text; /// 方向文字
-    lv_obj_t * right_dir_circle; /// 方向圆圈
-#endif
-#if IS_SUPPORT_RIGHT_LEVEL_IMG
-    lv_obj_t * right_end_icon; /// 终点图标
-#else
-    lv_obj_t * right_end_text; /// 终点文字
-#endif
-#endif
     lv_obj_t * animation;
-    res_img_info_t time_colon_info;
     res_img_info_t speed_icon_info;
-    res_img_info_t mode_icon_info;
     res_img_info_t animation_info;
-#if IS_SUPPORT_PUMP_LEVEL_ARC_IMG
-    res_img_info_t left_level_arc_img_info;
-    res_img_info_t right_level_arc_img_info;
-#else
-#if IS_SUPPORT_LEFT_DIR_IMG
-    res_img_info_t left_dir_icon_info;
-#endif
-#if IS_SUPPORT_RIGHT_DIR_IMG
-    res_img_info_t right_dir_icon_info;
-#endif
-#if IS_SUPPORT_LEFT_LEVEL_IMG
-    res_img_info_t left_end_icon_info;
-#endif
-#if IS_SUPPORT_RIGHT_LEVEL_IMG
-    res_img_info_t right_end_icon_info;
-#endif
-#endif
+    res_img_info_t background_info;
     uint8_t force_update;
     uint8_t popup_ui_index; /// 当前弹窗索引.
     uint8_t percent;
@@ -137,12 +75,6 @@ typedef struct {
 #if IS_SUPPORT_HOME_COMP_BG
 static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
     #include "comparison_png2txt/pump_home_2_360x360.txt"
-};
-#endif
-
-#if IS_SUPPORT_LEVEL_CIRCLE_IMG
-static PSRAM_DATA_LOC uint8_t level_circle_data[] = {
-    #include "comparison_png2txt/BG_press_10x10.txt"
 };
 #endif
 
@@ -175,7 +107,7 @@ static void pump_home_init(void)
     if (pump_info->root == NULL || !lv_obj_is_valid(pump_info->root)) {
         pump_info->root = lv_obj_create(lv_screen_active());
         lv_obj_set_size(pump_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-        lv_obj_set_style_bg_color(pump_info->root, lv_color_white(), 0);     /// 设置背景颜色为白色
+        lv_obj_set_style_bg_color(pump_info->root, lv_color_black(), 0);     /// 设置背景颜色为黑色
         lv_obj_set_style_bg_opa(pump_info->root, LV_OPA_COVER, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
         lv_obj_set_style_border_width(pump_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
         lv_obj_set_style_pad_all(pump_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
@@ -186,7 +118,7 @@ static void pump_home_init(void)
 }
 
 #if IS_SUPPORT_HOME_COMP_BG
-static void pump_home_bg_update(ui_manager_context_t *thiz)
+static void pump_home_bg_update(ui_manager_context_t *thiz, uint8_t is_regular_mode)
 {
     static uint32_t start_time = 0;
     static uint8_t status = 0;
@@ -211,9 +143,19 @@ static void pump_home_bg_update(ui_manager_context_t *thiz)
     }
 }
 #else
-static void pump_home_bg_update(ui_manager_context_t *thiz)
+static void pump_home_bg_update(ui_manager_context_t *thiz, uint8_t is_regular_mode)
 {
-   common_ui_bg_update(thiz, pump_info->root);
+    if (pump_info->backgroud == NULL || !lv_obj_is_valid(pump_info->backgroud)) {
+        pump_info->backgroud = lv_image_create(pump_info->root);
+        EXCEPTION_CHECK_VOID(pump_info->backgroud);
+#if LV_USE_SNAPSHOT
+        lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(is_regular_mode ? \
+             UI_SNAP_SHOT_REGULAR_PUMPING_BG : UI_SNAP_SHOT_EXPERT_PUMPING_BG);
+        EXCEPTION_CHECK_VOID(background_snapshot);
+#endif
+        lv_image_set_src(pump_info->backgroud, background_snapshot);
+        lv_obj_align(pump_info->backgroud, LV_ALIGN_CENTER, 0, 0);
+    }
 }
 #endif
 
@@ -251,96 +193,11 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint16_t hold_time
     char second_value[4] = {0};
     sprintf(second_value, "%02d", seconds >= 60 ? 59 : seconds);
     lv_label_set_text(pump_info->time_second, second_value);
-
-    if (pump_info->time_colon == NULL || !lv_obj_is_valid(pump_info->time_colon)) {
-        pump_info->time_colon = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->time_colon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_TIME_COLON, &pump_info->time_colon_info);
-        EXCEPTION_CHECK_VOID(pump_info->time_colon_info.data);
-        lv_fs_path_ex_t colon_img_path;
-        lv_fs_make_path_from_buffer(&colon_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->time_colon_info.data, pump_info->time_colon_info.size, "baj");
-        lv_image_set_src(pump_info->time_colon, (const void *)&colon_img_path);
-        lv_obj_align(pump_info->time_colon, LV_ALIGN_TOP_LEFT, 174, 135 + y_offset);
-    }
     pump_info->hold_time = hold_time;
 }
 
 static int pump_home_left_level_text_update(ui_manager_context_t *thiz, uint8_t level, uint16_t end_angle)
 {
-#if IS_SUPPORT_PUMP_LEVEL_ARC_IMG
-    if (pump_info->left_level_arc_img == NULL || !lv_obj_is_valid(pump_info->left_level_arc_img)) {
-        pump_info->left_level_arc_img = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->left_level_arc_img);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_LEFT_LEVEL_ICON, &pump_info->left_level_arc_img_info);
-        EXCEPTION_CHECK_INT(pump_info->left_level_arc_img_info.data);
-        lv_fs_path_ex_t level_arc_img_path;
-        lv_fs_make_path_from_buffer(&level_arc_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->left_level_arc_img_info.data, pump_info->left_level_arc_img_info.size, "baj");
-        lv_image_set_src(pump_info->left_level_arc_img, (const void *)&level_arc_img_path);
-        lv_obj_align(pump_info->left_level_arc_img, LV_ALIGN_TOP_LEFT, 28, 35);
-    }
-#else
-#if IS_SUPPORT_LEFT_DIR_IMG
-    if (pump_info->left_dir_icon == NULL || !lv_obj_is_valid(pump_info->left_dir_icon)) {
-        pump_info->left_dir_icon = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->left_dir_icon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_LEFT_DIR_ICON, &pump_info->left_dir_icon_info);
-        EXCEPTION_CHECK_INT(pump_info->left_dir_icon_info.data);
-        lv_fs_path_ex_t dir_icon_img_path;
-        lv_fs_make_path_from_buffer(&dir_icon_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->left_dir_icon_info.data, pump_info->left_dir_icon_info.size, "baj");
-        lv_image_set_src(pump_info->left_dir_icon, (const void *)&dir_icon_img_path);
-        lv_obj_align(pump_info->left_dir_icon, LV_ALIGN_TOP_LEFT, 59, 272);
-    }
-#else
-    if (pump_info->left_dir_circle == NULL || !lv_obj_is_valid(pump_info->left_dir_circle)) {
-        pump_info->left_dir_circle = lv_obj_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->left_dir_circle);
-        lv_obj_set_size(pump_info->left_dir_circle, 20, 20); /// 设置大小（必须宽高相等）
-        lv_obj_center(pump_info->left_dir_circle); /// 居中
-        lv_obj_set_scrollbar_mode(pump_info->left_dir_circle, LV_SCROLLBAR_MODE_OFF); /// 去掉滚动条
-        lv_obj_set_style_radius(pump_info->left_dir_circle, LV_RADIUS_CIRCLE, 0); /// 设置为圆形
-        lv_obj_set_style_border_width(pump_info->left_dir_circle, 0, 0); /// 去掉边框
-        lv_obj_set_style_bg_color(pump_info->left_dir_circle, lv_color_hex(0xC16872), 0); /// 设置背景颜色
-        lv_obj_set_style_bg_opa(pump_info->left_dir_circle, LV_OPA_COVER, 0); /// 设置完全不透明
-        lv_obj_align(pump_info->left_dir_circle, LV_ALIGN_TOP_LEFT, 59, 272); /// 设置位置
-    }
-
-    if (pump_info->left_dir_text == NULL || !lv_obj_is_valid(pump_info->left_dir_text)) {
-        pump_info->left_dir_text = lv_label_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->left_dir_text);
-        lv_label_set_text(pump_info->left_dir_text, "L");
-        lv_obj_set_style_text_color(pump_info->left_dir_text, lv_color_hex(MODE_TEXT_SEL_COLOR), 0);
-        lv_obj_set_style_text_font(pump_info->left_dir_text, &lv_font_oppo_sans_14_medium, 0);
-        common_ui_text_place_in_circle(pump_info->left_dir_text, 
-            PUMP_LEFT_ARC_START_ANGLE - 7, PUMP_LEVEL_RING_R - 1, true); /// 设置文字位置
-    }
-#endif
-#if IS_SUPPORT_LEFT_LEVEL_IMG
-    if (pump_info->left_end_icon == NULL || !lv_obj_is_valid(pump_info->left_end_icon)) {
-        pump_info->left_end_icon = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->left_end_icon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_LEFT_LEVEL_ICON, &pump_info->left_end_icon_info);
-        EXCEPTION_CHECK_INT(pump_info->left_end_icon_info.data);
-        lv_fs_path_ex_t end_icon_img_path;
-        lv_fs_make_path_from_buffer(&end_icon_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->left_end_icon_info.data, pump_info->left_end_icon_info.size, "baj");
-        lv_image_set_src(pump_info->left_end_icon, (const void *)&end_icon_img_path);
-        lv_obj_align(pump_info->left_end_icon, LV_ALIGN_TOP_LEFT, 102, 37);
-    }
-#else
-    if (pump_info->left_end_text == NULL || !lv_obj_is_valid(pump_info->left_end_text)) {
-        pump_info->left_end_text = lv_label_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->left_end_text);
-        lv_label_set_text(pump_info->left_end_text, "Level");
-        lv_obj_set_style_text_color(pump_info->left_end_text, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
-        lv_obj_set_style_text_font(pump_info->left_end_text, &lv_font_oppo_sans_12_medium, 0);
-        common_ui_text_place_in_circle(pump_info->left_end_text, 
-            PUMP_LEFT_ARC_END_ANGLE + 8, PUMP_LEVEL_RING_R - 4, false); /// 设置文字位置
-    }
-#endif
-#endif
     char level_text[4] = {0};
     if (pump_info->left_progress_text == NULL || !lv_obj_is_valid(pump_info->left_progress_text)) {
         pump_info->left_progress_text = lv_label_create(pump_info->root);
@@ -383,16 +240,6 @@ static int pump_home_left_level_arc_update(ui_manager_context_t *thiz, uint16_t 
 
 static int pump_home_left_level_circle_update(ui_manager_context_t *thiz, uint16_t end_angle)
 {
-#if IS_SUPPORT_LEVEL_CIRCLE_IMG
-    if (pump_info->left_level_circle == NULL || !lv_obj_is_valid(pump_info->left_level_circle)) {
-        pump_info->left_level_circle = lv_image_create(pump_info->left_level_arc); // 关键：挂到 arc 下
-        lv_fs_path_ex_t circle_img_path;
-        lv_fs_make_path_from_buffer(&circle_img_path, LV_FS_MEMFS_LETTER, 
-            (const void *)level_circle_data, sizeof(level_circle_data), "png");
-        lv_image_set_src(pump_info->left_level_circle, (const void *)&circle_img_path);
-        // lv_obj_align(pump_info->left_level_circle, LV_ALIGN_TOP_LEFT, 0, 0);
-    }
-#else
     if (pump_info->left_level_circle == NULL || !lv_obj_is_valid(pump_info->left_level_circle)) {
         pump_info->left_level_circle = lv_obj_create(pump_info->left_level_arc); // 关键：挂到 arc 下
         lv_obj_remove_style_all(pump_info->left_level_circle);
@@ -401,7 +248,6 @@ static int pump_home_left_level_circle_update(ui_manager_context_t *thiz, uint16
         lv_obj_set_style_bg_color(pump_info->left_level_circle, lv_color_hex(PUMP_LEVEL_CIRCLE_COLOR), 0);
         lv_obj_set_style_bg_opa(pump_info->left_level_circle, LV_OPA_COVER, 0);
     }
-#endif
     common_ui_place_dot_on_arc(pump_info->left_level_arc, pump_info->left_level_circle, end_angle,
                                PUMP_LEVEL_ARC_WIDTH,   /// 弧线宽度
                                PUMP_LEVEL_CIRCLE_SIZE,   /// 白点直径
@@ -415,6 +261,7 @@ static void pump_home_left_level_update(ui_manager_context_t *thiz, uint8_t leve
     if (pump_info->left_level == level && pump_info->force_update == false) {
         return;
     }
+
     int ret = 0;
     uint16_t end_angle = 0;
     if (level > PUMP_LEVEL_MAX) {
@@ -423,7 +270,8 @@ static void pump_home_left_level_update(ui_manager_context_t *thiz, uint8_t leve
     } else if (level == 0) {
         end_angle = PUMP_LEFT_ARC_START_ANGLE;
     } else {
-        end_angle = ((PUMP_LEFT_ARC_END_ANGLE - PUMP_LEFT_ARC_START_ANGLE) * level / PUMP_LEVEL_MAX) + PUMP_LEFT_ARC_START_ANGLE;
+        end_angle = ((PUMP_LEFT_ARC_END_ANGLE - PUMP_LEFT_ARC_START_ANGLE) * level / PUMP_LEVEL_MAX) +
+                PUMP_LEFT_ARC_START_ANGLE;
     }
     
     ret = pump_home_left_level_text_update(thiz, level, end_angle);
@@ -445,79 +293,6 @@ static void pump_home_left_level_update(ui_manager_context_t *thiz, uint8_t leve
 
 static int pump_home_right_level_text_update(ui_manager_context_t *thiz, uint8_t level, uint16_t end_angle)
 {
-#if IS_SUPPORT_PUMP_LEVEL_ARC_IMG
-    if (pump_info->right_level_arc_img == NULL || !lv_obj_is_valid(pump_info->right_level_arc_img)) {
-        pump_info->right_level_arc_img = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->right_level_arc_img);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON, &pump_info->right_level_arc_img_info);
-        EXCEPTION_CHECK_INT(pump_info->right_level_arc_img_info.data);
-        lv_fs_path_ex_t level_arc_img_path;
-        lv_fs_make_path_from_buffer(&level_arc_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->right_level_arc_img_info.data, pump_info->right_level_arc_img_info.size, "baj");
-        lv_image_set_src(pump_info->right_level_arc_img, (const void *)&level_arc_img_path);
-        lv_obj_align(pump_info->right_level_arc_img, LV_ALIGN_TOP_LEFT, 226, 35);
-    }   
-#else
-#if IS_SUPPORT_RIGHT_DIR_IMG
-    if (pump_info->right_dir_icon == NULL || !lv_obj_is_valid(pump_info->right_dir_icon)) {
-        pump_info->right_dir_icon = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->right_dir_icon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_RIGHT_DIR_ICON, &pump_info->right_dir_icon_info);
-        EXCEPTION_CHECK_INT(pump_info->right_dir_icon_info.data);
-        lv_fs_path_ex_t dir_icon_img_path;
-        lv_fs_make_path_from_buffer(&dir_icon_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->right_dir_icon_info.data, pump_info->right_dir_icon_info.size, "baj");
-        lv_image_set_src(pump_info->right_dir_icon, (const void *)&dir_icon_img_path);
-        lv_obj_align(pump_info->right_dir_icon, LV_ALIGN_TOP_LEFT, 281, 272);
-    }
-#else
-    if (pump_info->right_dir_circle == NULL || !lv_obj_is_valid(pump_info->right_dir_circle)) {
-        pump_info->right_dir_circle = lv_obj_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->right_dir_circle);
-        lv_obj_set_size(pump_info->right_dir_circle, 20, 20); /// 设置大小（必须宽高相等）
-        lv_obj_center(pump_info->right_dir_circle); /// 居中
-        lv_obj_set_scrollbar_mode(pump_info->right_dir_circle, LV_SCROLLBAR_MODE_OFF); /// 去掉滚动条
-        lv_obj_set_style_radius(pump_info->right_dir_circle, LV_RADIUS_CIRCLE, 0); /// 设置为圆形
-        lv_obj_set_style_border_width(pump_info->right_dir_circle, 0, 0); /// 去掉边框
-        lv_obj_set_style_bg_color(pump_info->right_dir_circle, lv_color_hex(0xC16872), 0); /// 设置背景颜色
-        lv_obj_set_style_bg_opa(pump_info->right_dir_circle, LV_OPA_COVER, 0); /// 设置完全不透明
-        lv_obj_align(pump_info->right_dir_circle, LV_ALIGN_TOP_LEFT, 281, 272); /// 设置位置
-    }
-
-    if (pump_info->right_dir_text == NULL || !lv_obj_is_valid(pump_info->right_dir_text)) {
-        pump_info->right_dir_text = lv_label_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->right_dir_text);
-        common_ui_text_place_in_circle(pump_info->right_dir_text, 
-            PUMP_RIGHT_ARC_END_ANGLE + 5, PUMP_LEVEL_RING_R - 8, true);    
-        lv_label_set_text(pump_info->right_dir_text, "R");
-        lv_obj_set_style_text_color(pump_info->right_dir_text, lv_color_hex(MODE_TEXT_SEL_COLOR), 0);
-        lv_obj_set_style_text_font(pump_info->right_dir_text, &lv_font_oppo_sans_14_medium, 0);
-    }
-#endif
-#if IS_SUPPORT_RIGHT_LEVEL_IMG
-    if (pump_info->right_end_icon == NULL || !lv_obj_is_valid(pump_info->right_end_icon)) {
-        pump_info->right_end_icon = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->right_end_icon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON, &pump_info->right_end_icon_info);
-        EXCEPTION_CHECK_INT(pump_info->right_end_icon_info.data);
-        lv_fs_path_ex_t end_icon_img_path;
-        lv_fs_make_path_from_buffer(&end_icon_img_path, LV_FS_MEMFS_LETTER, 
-            pump_info->right_end_icon_info.data, pump_info->right_end_icon_info.size, "baj");
-        lv_image_set_src(pump_info->right_end_icon, (const void *)&end_icon_img_path);
-        lv_obj_align(pump_info->right_end_icon, LV_ALIGN_TOP_LEFT, 231, 36);
-    }
-#else
-    if (pump_info->right_end_text == NULL || !lv_obj_is_valid(pump_info->right_end_text)) {
-        pump_info->right_end_text = lv_label_create(pump_info->root);
-        EXCEPTION_CHECK_INT(pump_info->right_end_text);
-        common_ui_text_place_in_circle(pump_info->right_end_text,
-            PUMP_RIGHT_ARC_START_ANGLE - 8, PUMP_LEVEL_RING_R - 4, false);
-        lv_label_set_text(pump_info->right_end_text, "Level");
-        lv_obj_set_style_text_color(pump_info->right_end_text, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
-        lv_obj_set_style_text_font(pump_info->right_end_text, &lv_font_oppo_sans_12_medium, 0);
-    }
-#endif
-#endif
     char level_text[4] = {0};
     if (pump_info->right_progress_text == NULL || !lv_obj_is_valid(pump_info->right_progress_text)) {
         pump_info->right_progress_text = lv_label_create(pump_info->root);
@@ -559,16 +334,6 @@ static int pump_home_right_level_arc_update(ui_manager_context_t *thiz, uint16_t
 
 static int pump_home_right_level_circle_update(ui_manager_context_t *thiz, uint16_t end_angle)
 {
-#if IS_SUPPORT_LEVEL_CIRCLE_IMG
-    if (pump_info->right_level_circle == NULL || !lv_obj_is_valid(pump_info->right_level_circle)) {
-        pump_info->right_level_circle = lv_image_create(pump_info->right_level_arc); // 关键：挂到 arc 下
-        lv_fs_path_ex_t circle_img_path;
-        lv_fs_make_path_from_buffer(&circle_img_path, LV_FS_MEMFS_LETTER, 
-            (const void *)level_circle_data, sizeof(level_circle_data), "png");
-        lv_image_set_src(pump_info->right_level_circle, (const void *)&circle_img_path);
-        // lv_obj_align(pump_info->right_level_circle, LV_ALIGN_TOP_LEFT, 0, 0);
-    }
-#else
     if (pump_info->right_level_circle == NULL || !lv_obj_is_valid(pump_info->right_level_circle)) {
         pump_info->right_level_circle = lv_obj_create(pump_info->right_level_arc); // 关键：挂到 arc 下
         lv_obj_remove_style_all(pump_info->right_level_circle);
@@ -577,7 +342,6 @@ static int pump_home_right_level_circle_update(ui_manager_context_t *thiz, uint1
         lv_obj_set_style_bg_color(pump_info->right_level_circle, lv_color_hex(PUMP_LEVEL_CIRCLE_COLOR), 0);
         lv_obj_set_style_bg_opa(pump_info->right_level_circle, LV_OPA_COVER, 0);
     }
-#endif
     common_ui_place_dot_on_arc(pump_info->right_level_arc, pump_info->right_level_circle, end_angle,
                                PUMP_LEVEL_ARC_WIDTH,      /// 弧线宽度
                                PUMP_LEVEL_CIRCLE_SIZE,      /// 白点直径
@@ -651,48 +415,20 @@ static void pump_home_common_mode_update(ui_manager_context_t *thiz, uint8_t mod
         return;
     }
     
-    if (pump_info->mode_icon) {
-        lv_obj_add_flag(pump_info->mode_icon, LV_OBJ_FLAG_HIDDEN); /// 隐藏
-    }
-
-    if (pump_info->mode_icon_text) {
-        lv_obj_add_flag(pump_info->mode_icon_text, LV_OBJ_FLAG_HIDDEN); /// 隐藏
-    }
-
-    if (pump_info->mode_label[1]) {
-        lv_obj_add_flag(pump_info->mode_label[1], LV_OBJ_FLAG_HIDDEN); /// 隐藏
-    }
-
     if (pump_info->mode_text[1]) {
         lv_obj_add_flag(pump_info->mode_text[1], LV_OBJ_FLAG_HIDDEN); /// 隐藏
     }
 
-    if (pump_info->mode_label[0] == NULL || !lv_obj_is_valid(pump_info->mode_label[0])) {
-        pump_info->mode_label[0] = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->mode_label[0]);
-        lv_obj_clear_flag(pump_info->mode_label[0], LV_OBJ_FLAG_SCROLLABLE);   /// 不要滚动条
-        lv_obj_set_size(pump_info->mode_label[0], 77, 28); /// 设置容器尺寸
-        lv_obj_set_style_border_width(pump_info->mode_label[0], 0, 0);         /// 无边框
-        lv_obj_set_style_bg_opa(pump_info->mode_label[0], LV_OPA_COVER, 0);    /// 背景不透明
-        lv_obj_set_style_bg_color(pump_info->mode_label[0], lv_color_hex(MODE_LABEL_SEL_COLOR), 0);
-        lv_obj_set_style_bg_grad_color(pump_info->mode_label[0], lv_color_hex(MODE_LABEL_SEL_COLOR), 0);
-        lv_obj_set_style_bg_grad_dir(pump_info->mode_label[0], LV_GRAD_DIR_NONE, 0); /// 关闭渐变
-        lv_obj_set_style_radius(pump_info->mode_label[0], 13, 0);  /// 高度 24 → 圆角设 12（或更大）
-    } else {
-        lv_obj_clear_flag(pump_info->mode_label[0], LV_OBJ_FLAG_HIDDEN); /// 显示
-    }
-
     if (pump_info->mode_text[0] == NULL || !lv_obj_is_valid(pump_info->mode_text[0])) {
-        pump_info->mode_text[0] = lv_label_create(pump_info->mode_label[0]);
+        pump_info->mode_text[0] = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->mode_text[0]);
     } else {
         lv_obj_clear_flag(pump_info->mode_text[0], LV_OBJ_FLAG_HIDDEN); /// 显示
     }
-    lv_obj_align(pump_info->mode_label[0], LV_ALIGN_TOP_LEFT, 141 + 1, 71);    /// 设置label位置
     lv_obj_set_style_text_color(pump_info->mode_text[0], lv_color_hex(MODE_TEXT_SEL_COLOR), 0);
     lv_obj_set_style_text_font(pump_info->mode_text[0], &lv_font_oppo_sans_12_medium, 0);
     lv_label_set_text(pump_info->mode_text[0], home_mode_names[mode_index]);  /// 设置 label 文字内容和样式
-    lv_obj_align(pump_info->mode_text[0], LV_ALIGN_CENTER, 0, 0); /// 设置label文字位置
+    lv_obj_align(pump_info->mode_text[0], LV_ALIGN_TOP_MID, 0, 81); /// 设置label文字位置
     pump_info->mode = mode_index;
 }
 
@@ -705,65 +441,15 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
         return;
     }
 
-    if (pump_info->mode_icon == NULL || !lv_obj_is_valid(pump_info->mode_icon)) {
-        pump_info->mode_icon = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->mode_icon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_DASHED_ARC_ICON,
-            &pump_info->mode_icon_info);
-        EXCEPTION_CHECK_VOID(pump_info->mode_icon_info.data);
-        lv_fs_path_ex_t img_path;
-        lv_fs_make_path_from_buffer(&img_path,
-                                    LV_FS_MEMFS_LETTER,
-                                    pump_info->mode_icon_info.data,   
-                                    pump_info->mode_icon_info.size,
-                                    "baj");
-        lv_image_set_src(pump_info->mode_icon, (const void *)&img_path);
-        lv_obj_align(pump_info->mode_icon, LV_ALIGN_TOP_LEFT, 133, 83);
-    }
-
-    if (pump_info->mode_icon_text == NULL || !lv_obj_is_valid(pump_info->mode_icon_text )) {
-        pump_info->mode_icon_text = lv_label_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->mode_icon_text);
-        lv_label_set_text(pump_info->mode_icon_text, "Next");
-        lv_obj_set_style_text_color(pump_info->mode_icon_text, lv_color_hex(MODE_LABEL_SEL_COLOR), 0);
-        lv_obj_set_style_text_font(pump_info->mode_icon_text, &lv_font_oppo_sans_14_medium, 0);
-        lv_obj_set_style_text_align(pump_info->mode_icon_text, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
-        lv_obj_set_style_text_opa(pump_info->mode_icon_text, LV_OPA_COVER, 0);
-        common_ui_text_place_in_circle(pump_info->mode_icon_text, 270, NEXT_RING_R, false);
-    }
-
     for (uint8_t i = 0; i < 2; i++) {
-        if (pump_info->mode_label[i] == NULL || !lv_obj_is_valid(pump_info->mode_label[i])) {
-            pump_info->mode_label[i] = lv_image_create(pump_info->root);
-            EXCEPTION_CHECK_VOID(pump_info->mode_label[i]);
-            lv_obj_clear_flag(pump_info->mode_label[i], LV_OBJ_FLAG_SCROLLABLE);   /// 不要滚动条
-            lv_obj_set_size(pump_info->mode_label[i], 77, 28); /// 设置容器尺寸
-            lv_obj_set_style_border_width(pump_info->mode_label[i], 0, 0);         /// 无边框
-            lv_obj_set_style_bg_opa(pump_info->mode_label[i], LV_OPA_COVER, 0);    /// 背景不透明
-            if (i == 0) {
-                lv_obj_set_style_bg_color(pump_info->mode_label[i], lv_color_hex(MODE_LABEL_SEL_COLOR), 0);
-                lv_obj_set_style_bg_grad_color(pump_info->mode_label[i], lv_color_hex(MODE_LABEL_SEL_COLOR), 0);
-            } else {
-                lv_obj_set_style_bg_color(pump_info->mode_label[i], lv_color_hex(MODE_LABEL_UNSEL_COLOR), 0);
-                lv_obj_set_style_bg_grad_color(pump_info->mode_label[i], lv_color_hex(MODE_LABEL_UNSEL_COLOR), 0);
-            }
-            lv_obj_set_style_bg_grad_dir(pump_info->mode_label[i], LV_GRAD_DIR_NONE, 0); /// 关闭渐变
-            lv_obj_set_style_radius(pump_info->mode_label[i], 13, 0);  /// 高度 24 → 圆角设 12（或更大）
-        } else {
-            lv_obj_clear_flag(pump_info->mode_label[i], LV_OBJ_FLAG_HIDDEN); /// 显示
-        }
-        if (i == 0) {
-            lv_obj_align(pump_info->mode_label[i], LV_ALIGN_TOP_LEFT, 95, 91);    /// 设置label位置
-        } else {
-            lv_obj_align(pump_info->mode_label[i], LV_ALIGN_TOP_LEFT, 188, 91);    /// 设置label位置
-        }
-
         if (pump_info->mode_text[i] == NULL || !lv_obj_is_valid(pump_info->mode_text[i])) {
-            pump_info->mode_text[i] = lv_label_create(pump_info->mode_label[i]);
+            pump_info->mode_text[i] = lv_label_create(pump_info->root);
             EXCEPTION_CHECK_VOID(pump_info->mode_text[i]);
         } else {
             lv_obj_clear_flag(pump_info->mode_text[i], LV_OBJ_FLAG_HIDDEN); /// 显示
         }
+
+        lv_obj_set_style_text_font(pump_info->mode_text[i], &lv_font_oppo_sans_12_medium, 0);
 
         if (i == 0) {
             if (sub_mode >= HOME_MODE_MAX_COUNT) {
@@ -771,17 +457,22 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
             }
             lv_label_set_text(pump_info->mode_text[i], home_mode_names[sub_mode]);  /// 设置 label 文字内容和样式
             lv_obj_set_style_text_color(pump_info->mode_text[i], lv_color_hex(MODE_TEXT_SEL_COLOR), 0);
-            lv_obj_set_style_text_opa(pump_info->mode_text[i], LV_OPA_COVER, 0);
+            lv_obj_update_layout(pump_info->mode_text[i]);
+            lv_coord_t text_width = lv_obj_get_width(pump_info->mode_text[i]);
+            lv_obj_align(pump_info->mode_text[i], LV_ALIGN_TOP_LEFT,
+                HOME_CUSTOM_LEFT_TEXT_CENTER_X - text_width / 2, HOME_CUSTOM_MODE_TEXT_Y); /// 根据文字宽度动态居中
         } else {
             if (next_sub_mode >= HOME_MODE_MAX_COUNT) {
                 next_sub_mode = HOME_MODE_MAX_COUNT - 1;
             }
             lv_label_set_text(pump_info->mode_text[i], home_mode_names[next_sub_mode]);  /// 设置 label 文字内容和样式
             lv_obj_set_style_text_color(pump_info->mode_text[i], lv_color_hex(MODE_TEXT_UNSEL_COLOR), 0);
-            lv_obj_set_style_text_opa(pump_info->mode_text[i], LV_OPA_COVER, 0); /// 设置文字透明度
+            lv_obj_update_layout(pump_info->mode_text[i]);
+            lv_coord_t text_width = lv_obj_get_width(pump_info->mode_text[i]);
+            lv_obj_align(pump_info->mode_text[i], LV_ALIGN_TOP_LEFT,
+                HOME_CUSTOM_RIGHT_TEXT_CENTER_X - text_width / 2, HOME_CUSTOM_MODE_TEXT_Y); /// 根据文字宽度动态居中
         }
-        lv_obj_set_style_text_font(pump_info->mode_text[i], &lv_font_oppo_sans_12_medium, 0);
-        lv_obj_align(pump_info->mode_text[i], LV_ALIGN_CENTER, 0, 0); /// 设置label文字位置
+   
     }
     LOG_UI("mode_text: %s, next_mode_text: %s", home_mode_names[sub_mode], home_mode_names[next_sub_mode]);
     pump_info->mode = mode_index;
@@ -886,7 +577,6 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     pump_home_init();  
     ble_ui_init(thiz);
-    common_ui_bg_init(thiz);
     pump_info->animation_index = 0;
     pump_info->animation_play_complete = false;
     pump_info->force_update = true;
@@ -897,29 +587,10 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
-    common_ui_img_resource_deinit(thiz, &pump_info->mode_icon_info);
     common_ui_img_resource_deinit(thiz, &pump_info->speed_icon_info);
     common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
-    common_ui_img_resource_deinit(thiz, &pump_info->time_colon_info);
-#if IS_SUPPORT_PUMP_LEVEL_ARC_IMG
-    common_ui_img_resource_deinit(thiz, &pump_info->left_level_arc_img_info);
-    common_ui_img_resource_deinit(thiz, &pump_info->right_level_arc_img_info);
-#else
-#if IS_SUPPORT_LEFT_DIR_IMG
-    common_ui_img_resource_deinit(thiz, &pump_info->left_dir_icon_info);
-#endif
-#if IS_SUPPORT_RIGHT_DIR_IMG
-    common_ui_img_resource_deinit(thiz, &pump_info->right_dir_icon_info);
-#endif
-#if IS_SUPPORT_LEFT_LEVEL_IMG
-    common_ui_img_resource_deinit(thiz, &pump_info->left_end_icon_info);
-#endif
-#if IS_SUPPORT_RIGHT_LEVEL_IMG
-    common_ui_img_resource_deinit(thiz, &pump_info->right_end_icon_info);
-#endif
-#endif
+    common_ui_img_resource_deinit(thiz, &pump_info->background_info);
     ble_ui_deinit(thiz);
-    common_ui_bg_deinit(thiz);
     pump_home_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(pump_info->root);
     u_free(pump_info);
@@ -939,32 +610,27 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     const pump_result_info_t *result_info = NULL;
     READ_PUMP_RESULT_INFO(proc->pump, BREAST_PUMP_RESULT_PUMPING, &result_info);
     EXCEPTION_CHECK_INT(result_info);
-    uint16_t hold_time = 0;
-    if (result_info != NULL) {
-        hold_time = result_info->work_valid_time / 1000;
-    }
-    pump_home_bg_update(thiz);
-    ble_ui_update(thiz, pump_info->root, proc->ble, 150, 24);
+    uint16_t hold_time = result_info->work_valid_time / 1000;
     pump_setting_t setting;
     uint8_t time_index = proc->motor->get_runtime_policy_index(MOTOR_TIME_POLICY);
     READ_PUMP_SETTING_INFO(proc->pump, time_index, setting);
     int pump_mode = 0;
     READ_PUMP_WORK_MODE(proc->pump, pump_mode);
-    if (PUMP_IS_COMMON_MODE(pump_mode)) {
-        pump_home_time_update(thiz, hold_time, 0);
+    uint8_t is_regular_mode = PUMP_IS_COMMON_MODE(pump_mode);
+    pump_home_bg_update(thiz, is_regular_mode);
+    ble_ui_update(thiz, pump_info->root, proc->ble, 150, 24);
+    pump_home_time_update(thiz, hold_time, is_regular_mode ? 0 : 19);
+    if (is_regular_mode) {
         pump_home_animation_update(thiz, RESOURCE_ID_COMMON_MODE_ANIMATION_START, 
             RESOURCE_ID_COMMON_MODE_ANIMATION_END - RESOURCE_ID_COMMON_MODE_ANIMATION_START + 1,
             85, 168);
         pump_home_common_mode_update(thiz, pump_mode);  
     } else {
-        pump_home_time_update(thiz, hold_time, 19);
         uint8_t sub_mode = 0;
         uint8_t next_sub_mode = 0;
         if (proc->motor->get_runtime_mode_type) {
             sub_mode = proc->motor->get_runtime_mode_type(false);
             next_sub_mode = proc->motor->get_runtime_mode_type(true);
-        } else {
-            LOG_UI("get_runtime_mode_type is null");
         }
         pump_home_animation_update(thiz, RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START, 
             RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_END - RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START + 1,
