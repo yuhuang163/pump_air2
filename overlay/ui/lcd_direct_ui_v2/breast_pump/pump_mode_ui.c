@@ -13,6 +13,7 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_MODE_COMP_BG                (0)
+#define IS_SUPPORT_MODE_BG_IMG                 (0)
 #define MODE_COUNT                             (3)
 #define MODE_CIRCLE_SLOT_COUNT                 (3)   /// 仅保留左/中/右 3 个圆槽位
 #define MODE_VIEW_W                            (360)
@@ -25,6 +26,10 @@
 #define MODE_CHILD_SIDE_OPA                    (LV_OPA_20)
 #define MODE_DOT_COLOR                         (0xB25962)
 #define MODE_TEXT_COLOR                        (0xB25962)
+#define MODE_CENTER_CIRCLE_GRAD_TOP_COLOR      (0xEB7581)
+#define MODE_CENTER_CIRCLE_GRAD_BOTTOM_COLOR   (0xF0868A)
+#define MODE_SIDE_CIRCLE_GRAD_TOP_COLOR        (0xF7A1A8)
+#define MODE_SIDE_CIRCLE_GRAD_BOTTOM_COLOR     (0xF7A1A8)
 #define MODE_TEXT_CENTER_COLOR                 (0xFFFFFF)
 #define MODE_TITLE_TEXT_COLOR                  (0xFFFFFF)
 #define MODE_TEXT_SIDE_COLOR                   (0xE7D4D9)
@@ -338,28 +343,54 @@ static void circle_carousel_set_mode(ui_manager_context_t *thiz, uint8_t idx, bo
     update_dots(idx);
 }
 
-static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, mode_circle_slot_e slot)
+#if IS_SUPPORT_MODE_BG_IMG
+static void create_mode_bg_by_lvgl_snapshot(ui_manager_context_t *thiz, lv_obj_t *parent, mode_circle_slot_e slot)
 {
 #if LV_USE_SNAPSHOT
-    lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_CENTER_BG);
+    lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(slot == MODE_SLOT_CENTER ? \
+         UI_SNAP_SHOT_PUMP_MODE_CENTER_BG : UI_SNAP_SHOT_PUMP_MODE_SIDE_BG);
     EXCEPTION_CHECK_VOID(background_snapshot);
-    lv_draw_buf_t *background_snapshot_2 = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_SIDE_BG);
-    EXCEPTION_CHECK_VOID(background_snapshot_2);
 #endif
-
     if (mode_info->circle_obj[slot] == NULL || !lv_obj_is_valid(mode_info->circle_obj[slot])) {
         mode_info->circle_obj[slot] = lv_image_create(parent);
         EXCEPTION_CHECK_VOID(mode_info->circle_obj[slot]);
-#if LV_USE_SNAPSHOT
-        lv_image_set_src(mode_info->circle_obj[slot], 
-            slot == MODE_SLOT_CENTER ? background_snapshot : background_snapshot_2);
-#else
-        lv_obj_add_flag(mode_info->circle_obj[slot], LV_OBJ_FLAG_HIDDEN); /// 隐藏
-#endif
-        lv_obj_set_pos(mode_info->circle_obj[slot], (lv_coord_t)slot_target_x(slot), (lv_coord_t)slot_target_y(slot));
-        lv_obj_set_style_image_opa(mode_info->circle_obj[slot], slot == MODE_SLOT_CENTER ? LV_OPA_COVER : LV_OPA_20, 0);
     }
+#if LV_USE_SNAPSHOT
+    lv_image_set_src(mode_info->circle_obj[slot], background_snapshot);
+#else
+    lv_obj_add_flag(bf_mode_info->circle_obj[slot], LV_OBJ_FLAG_HIDDEN); /// 隐藏
+#endif
+    lv_obj_set_pos(mode_info->circle_obj[slot], (lv_coord_t)slot_target_x(slot), (lv_coord_t)slot_target_y(slot));
+    lv_obj_set_style_image_opa(mode_info->circle_obj[slot], LV_OPA_COVER, 0);
+}
+#else
+static void create_mode_bg_by_lvgl_draw(ui_manager_context_t *thiz, lv_obj_t *parent, mode_circle_slot_e slot)
+{
+    if (mode_info->circle_obj[slot] == NULL || !lv_obj_is_valid(mode_info->circle_obj[slot])) {
+        mode_info->circle_obj[slot] = lv_obj_create(parent);
+        EXCEPTION_CHECK_VOID(mode_info->circle_obj[slot]);
+    }
+    lv_obj_remove_style_all(mode_info->circle_obj[slot]);
+    lv_obj_set_size(mode_info->circle_obj[slot], MODE_CIRCLE_W, MODE_CIRCLE_H); /// 设置白点大小
+    lv_obj_set_style_radius(mode_info->circle_obj[slot], LV_RADIUS_CIRCLE, 0); /// 圆角
+    lv_obj_set_style_bg_color(mode_info->circle_obj[slot], 
+        lv_color_hex(slot == MODE_SLOT_CENTER ? MODE_CENTER_CIRCLE_GRAD_TOP_COLOR : MODE_SIDE_CIRCLE_GRAD_TOP_COLOR), 0);
+    lv_obj_set_style_bg_grad_color(mode_info->circle_obj[slot], 
+        lv_color_hex(slot == MODE_SLOT_CENTER ? MODE_CENTER_CIRCLE_GRAD_BOTTOM_COLOR : MODE_SIDE_CIRCLE_GRAD_BOTTOM_COLOR), 0);
+    lv_obj_set_style_bg_grad_dir(mode_info->circle_obj[slot], LV_GRAD_DIR_VER, 0);
+    lv_obj_set_style_bg_main_stop(mode_info->circle_obj[slot], 0, 0); /// 主颜色停止位置
+    lv_obj_set_style_bg_grad_stop(mode_info->circle_obj[slot], 255, 0); /// 渐变颜色停止位置
+    lv_obj_set_style_bg_opa(mode_info->circle_obj[slot], LV_OPA_COVER, 0);
+}
+#endif
 
+static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, mode_circle_slot_e slot)
+{
+#if IS_SUPPORT_MODE_BG_IMG
+    create_mode_bg_by_lvgl_snapshot(thiz, parent, slot);
+#else
+    create_mode_bg_by_lvgl_draw(thiz, parent, slot);
+#endif
     if (mode_info->mode_component_img[slot] == NULL || !lv_obj_is_valid(mode_info->mode_component_img[slot])) {
         mode_info->mode_component_img[slot] = lv_image_create(mode_info->circle_obj[slot]);
         EXCEPTION_CHECK_VOID(mode_info->mode_component_img[slot]);
