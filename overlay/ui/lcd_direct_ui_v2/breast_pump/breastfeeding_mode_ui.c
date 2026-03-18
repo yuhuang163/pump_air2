@@ -389,9 +389,9 @@ static void circle_carousel_set_mode(ui_manager_context_t *thiz, uint8_t idx, bo
 static void create_mode_item(ui_manager_context_t *thiz, lv_obj_t *parent, bf_circle_slot_e slot)
 {
 #if LV_USE_SNAPSHOT
-    lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_BG);
+    lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_CENTER_BG);
     EXCEPTION_CHECK_VOID(background_snapshot);
-    lv_draw_buf_t *background_snapshot_2 = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_BG_2);
+    lv_draw_buf_t *background_snapshot_2 = thiz->get_lvgl_snap_shot(UI_SNAP_SHOT_PUMP_MODE_SIDE_BG);
     EXCEPTION_CHECK_VOID(background_snapshot_2);
 #endif
 

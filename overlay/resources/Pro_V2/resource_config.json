@@ -121,7 +121,7 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_ICON",
+      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_IMG",
       "description": "充电适配器图标",
       "file": "baj/icon_charge_adapter_error_210x210_a4_q99_422.baj",
       "x_offset": 0,
@@ -240,7 +240,7 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_MODE_BG_ICON",
+      "resource_id": "RESOURCE_ID_MODE_CENTER_BG",
       "description": "模式背景图标",
       "file": "baj/icon_mode_bg_220x220_a4_q99_422.baj",
       "x_offset": 0,
@@ -268,7 +268,7 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_LEVEL_BG",
       "description": "泵奶档位背景图标",
       "file": "png/icon_level_bg.png",
       "x_offset": 0,

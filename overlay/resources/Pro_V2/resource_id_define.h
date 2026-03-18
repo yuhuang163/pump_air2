@@ -28,7 +28,7 @@ typedef enum {
     RESOURCE_ID_HOME_UNCHARGE,               /// 首页未充电图标
     RESOURCE_ID_PUMP_TIME_COLON,             /// 首页时间冒号
 
-    RESOURCE_ID_CHARGE_ADAPTER_ICON,         /// 首页充电适配器图标
+    RESOURCE_ID_CHARGE_ADAPTER_IMG,         /// 首页充电适配器图标
     RESOURCE_ID_HOME_DUMMY_ICON,                  /// dummy图标
 
     RESOURCE_ID_HOME_IDLE_LABLE_ICON,           /// 空闲界面文本区域图标
@@ -61,7 +61,7 @@ typedef enum {
 
     RESOURCE_ID_PUMP_FINISH_ICON,               /// 泵奶完成图标
     RESOURCE_ID_PUMP_PAUSE_PROMPT_ICON,         /// 泵奶暂停提示图标
-    RESOURCE_ID_PUMP_LEVEL_BACKGROUND_ICON,     /// 泵奶档位背景图标
+    RESOURCE_ID_PUMP_LEVEL_BG,     /// 泵奶档位背景图标
 
     RESOURCE_ID_GUIDE_QR_ICON = 250,
     RESOURCE_ID_PUMP_SETTING_GUIDE_ICON,
@@ -81,7 +81,7 @@ typedef enum {
     RESOURCE_ID_HUE_ICON,
     RESOURCE_ID_HEART_ICON,
     RESOURCE_ID_EXPRESSION_ICON,
-    RESOURCE_ID_MODE_BG_ICON,
+    RESOURCE_ID_MODE_CENTER_BG,
     RESOURCE_ID_MODE_VECTOR_ICON,
     RESOURCE_ID_COMMON_MODE_ANIMATION_START = 300,   /// 泵奶模式动画-开始
     RESOURCE_ID_COMMON_MODE_ANIMATION_END = 414,     /// 泵奶模式动画-结束
