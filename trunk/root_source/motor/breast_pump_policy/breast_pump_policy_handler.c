@@ -158,12 +158,13 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     } else if (action == MOTOR_POLICY_CONTINUE) {
         if (body->breast_pump_mode == pump_mode) {
             LOG_MOTOR("continue %s policy, step_index: %d", mode_name, body->current_timed_policy_index);
-            body->current_policy_index = 0;
+            //body->current_policy_index = 0;
+            body->timed_policy_start_time = get_timestamp();
             negative_pressure_release(thiz);
             for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
-                memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
+                //memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
                 pump_policy_info_reset(thiz, body, i);
-            }
+            } 
             return;
         } else {
             LOG_MOTOR("breast pump mode changed, need to restart policy");
