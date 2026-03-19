@@ -533,6 +533,11 @@ static uint8_t app_old_comm_set_nommal_pump_speed(app_old_comm_pump_ctrl *app_ol
     EXCEPTION_CHECK_UINT(storage_ctx);
     pump_setting_t setting; /// 当前泵奶设置信息.
     READ_PUMP_SETTING_INFO(pump_ctx, time_index, setting); 
+    //是否变动speed
+    if (setting.speed == app_old_comm_pump_ctrl_date->normal_pump_speed) {
+        LOG_SRV("pump speed no change %d", setting.speed);
+        return false;
+    }
     //只允许常规模式设置 speed，并且左右同步控制
     setting.speed = app_old_comm_pump_ctrl_date->normal_pump_speed;
     LOG_SRV("pump speed  %d", setting.speed);
@@ -1103,9 +1108,10 @@ void app_old_comm_handle_set_trail_user_define_req(uint8_t cal, uint8_t *cab)
     n += 10;
     LOG_SRV("data n = [%d] data len = [%d]", n, cal);
     pump_custom_trial_mode_update_by_app(pump_steps_info,  mode_name); /// 将自定义模式参数存入
-    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 4, cab);
+    /*window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_VOID(wm);
-    if (wm->is_current_window(wm, ID_WINDOW_PUMP)) {
+   if (wm->is_current_window(wm, ID_WINDOW_PUMP)) {
         app_pump_custom_trial_mode_start_handler();
         app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 4, cab);
     } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)
@@ -1119,7 +1125,7 @@ void app_old_comm_handle_set_trail_user_define_req(uint8_t cal, uint8_t *cab)
         app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_PARA_DOWNLOAD, 4, cab);
     } else {
         LOG_SRV("not in pump window");
-    }
+    }*/
 }
 
 //0xf0
