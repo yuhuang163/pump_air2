@@ -635,7 +635,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
         }
         pump_home_animation_update(thiz, RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START, 
             RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_END - RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START + 1,
-            0, 0);
+            0, 108);
         pump_home_custom_mode_update(thiz, pump_mode, sub_mode, next_sub_mode);
     }
     pump_home_left_level_update(thiz, setting.level[0]);
