@@ -528,6 +528,7 @@ static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t
     switch (proc->popup_ui_type) {
         case PUMP_POPUP_UI_NONE:
             pump_home_popup_ui_remove(thiz);
+            pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
             break;
         case PUMP_POPUP_UI_MODE_PROMPT:
             if (PUMP_IS_COMMON_MODE(pump_info->mode) == 0) {
