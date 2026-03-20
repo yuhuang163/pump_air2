@@ -28,7 +28,7 @@ static breast_pump_manager_context_t *breast_pump_obj = NULL;
 */
 static int get_breast_pump_mode(void);
 static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode);
-static void set_breast_pump_status(int status);
+static void set_breast_pump_status(int status, int is_report);
 static int get_breast_pump_status(void);
 static pump_result_info_t * get_breast_pump_result(breast_pump_result_id_e result_id);
 static const char *get_breast_pump_mode_name(uint8_t mode);
@@ -47,7 +47,7 @@ static void on_motor_error_check_callback(uint8_t pump_id, motor_dev_status_e st
             SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_PUMP_ERROR);
         }
         
-        set_breast_pump_status(BREAST_PUMP_PAUSE);
+        set_breast_pump_status(BREAST_PUMP_PAUSE, 1);
         LOG_PMP("motor error check callback, pump_id: %d, status: %d", pump_id, status);
     }
     else if (status == MOTOR_STATUS_OK) {
@@ -273,7 +273,7 @@ static int get_breast_pump_status(void)
     return status;
 }
 
-static void set_breast_pump_status(int status)
+static void set_breast_pump_status(int status, int is_report)
 {
     power_manager_context_t *pm_ctx = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
@@ -371,8 +371,10 @@ static void set_breast_pump_status(int status)
         args.arg1 = OLD_PUBLISH_DATA_SYSTEM_STATUS_RESET;
         servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
     }
-    args.arg1 = OLD_PUBLISH_DATA_SYSTEM_STATUS_CHANGE;
-    servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    if (is_report) {
+        args.arg1 = OLD_PUBLISH_DATA_SYSTEM_STATUS_CHANGE;
+        servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    }
     MUTEX_UNLOCK_BHT("set_status", breast_pump_obj->priv.breast_pump_state_lock);
     // LOG_PMP("exit work: %d", m_info->do_work);
 }
@@ -511,7 +513,7 @@ static int get_breast_pump_control_type(void)
     return m_info->control_type;
 }
 
-static void set_breast_pump_control_type(uint8_t control_type)
+static void set_breast_pump_control_type(uint8_t control_type, uint8_t is_report)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     m_info->control_type = control_type;
@@ -527,10 +529,11 @@ static void set_breast_pump_control_type(uint8_t control_type)
         .arg2 = 0,
         .val = NULL,
     };
-    servers_ctx->hook->app_old_protocol_server_data_publish(
-        APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    if (is_report) {
+        servers_ctx->hook->app_old_protocol_server_data_publish(
+            APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    }
     LOG_UI("switch pump control type: %d", control_type);
-
 }
 
 static int get_pump_mode_activate_state(uint8_t mode)
@@ -665,7 +668,7 @@ static void set_pump_composite_state(pump_state_type_e type, int arg1, int arg2,
             set_breast_pump_setting(in_data, arg1, arg2);
             break;
         case BREAST_PUMP_WORK_STATE: 
-            set_breast_pump_status(arg1);
+            set_breast_pump_status(arg1, arg2);
             break;
         case BREAST_PUMP_MODE_ACTIVATE_STATE: 
             set_pump_mode_activate_state(arg1, arg2);
@@ -674,7 +677,7 @@ static void set_pump_composite_state(pump_state_type_e type, int arg1, int arg2,
             set_pump_mode_steps_update_state(arg1, arg2);
             break;
         case BREAST_PUMP_LEVEL_CONTROL_TYPE:
-            set_breast_pump_control_type(arg1);
+            set_breast_pump_control_type(arg1, arg2);
             break;
         case BREAST_PUMP_WORK_MODE: 
             set_breast_pump_mode(arg1, arg2);
@@ -782,7 +785,7 @@ static int on_post_breast_pump_init(void *ptr)
         if (store_value >= BREAST_PUMP_CONTROL_TYPE_MAX) {
             store_value = BREAST_PUMP_CONTROL_TYPE_LEFT;
         }
-        set_breast_pump_control_type(store_value);
+        set_breast_pump_control_type(store_value,1);
         /// 读取存储器中个性化韵律激活状态
         ctx->priv.st->get_store_ram_val(STORE_ID_PUMP_MODE_ACTIVATE_STATUS, BREAST_PUMP_CUSTOM_MODE, 0, &store_value);
         ctx->priv.m_info.custom_activate = store_value > 0 ? true : false;

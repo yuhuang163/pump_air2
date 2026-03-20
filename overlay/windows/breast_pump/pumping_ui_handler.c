@@ -143,12 +143,12 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
             // proc->led->set_led_level(PUMP_FREQ_SET_BL, 0);
         }
         int next_status = (pump_status == BREAST_PUMP_PAUSE) ? BREAST_PUMP_CONTINUE : BREAST_PUMP_START;    
-        WRITE_PUMP_WORK_STATUS(proc->pump, next_status);
+        WRITE_PUMP_WORK_STATUS(proc->pump, next_status, 1);
         proc->popup_ui_type = PUMP_POPUP_UI_NONE;
         show_pump_home_ui(proc);
         LOG_UI("pump start ui create: %d", pump_status);
     } else {
-        WRITE_PUMP_WORK_STATUS(proc->pump, BREAST_PUMP_PAUSE);
+        WRITE_PUMP_WORK_STATUS(proc->pump, BREAST_PUMP_PAUSE, 1);
         show_pump_home_ui(proc);
         proc->led->set_led_level(PUMP_FREQ_SET_BL, 100);
         proc->popup_ui_type = PUMP_POPUP_UI_PUMP_PAUSE_PROMPT;

@@ -63,8 +63,8 @@ typedef enum {
     ctx->get_pump_composite_state(BREAST_PUMP_IS_WORKING, 0, 0, &is_working)
 #define READ_PUMP_WORK_STATUS(ctx, status) \
     ctx->get_pump_composite_state(BREAST_PUMP_WORK_STATE, 0, 0, &status)    
-#define WRITE_PUMP_WORK_STATUS(ctx, status) \
-    ctx->set_pump_composite_state(BREAST_PUMP_WORK_STATE, status, 0, NULL)  
+#define WRITE_PUMP_WORK_STATUS(ctx, status, is_report) \
+    ctx->set_pump_composite_state(BREAST_PUMP_WORK_STATE, status, is_report, NULL)  
 
 /// 泵奶模式
 #define READ_PUMP_WORK_MODE(ctx, mode) \
@@ -93,8 +93,8 @@ typedef enum {
 /// 泵奶力度控制类型
 #define READ_PUMP_LEVEL_CONTROL_TYPE(ctx, type) \
     ctx->get_pump_composite_state(BREAST_PUMP_LEVEL_CONTROL_TYPE, 0, 0, &type)    
-#define WRITE_PUMP_LEVEL_CONTROL_TYPE(ctx, type) \
-    ctx->set_pump_composite_state(BREAST_PUMP_LEVEL_CONTROL_TYPE, type, 0, NULL)
+#define WRITE_PUMP_LEVEL_CONTROL_TYPE(ctx, type , is_report) \
+    ctx->set_pump_composite_state(BREAST_PUMP_LEVEL_CONTROL_TYPE, type, is_report, NULL)
 /// 泵奶结果信息
 #define READ_PUMP_RESULT_INFO(ctx, id, info) \
     ctx->get_pump_composite_state(BREAST_PUMP_RESULT_INFO, id, 0,  info)  
