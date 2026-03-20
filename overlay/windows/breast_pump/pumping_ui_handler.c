@@ -35,7 +35,7 @@ static void pumping_work_ui_popup_ui_update(ui_manager_context_t *ui, uint8_t po
             int is_pump_working = 0; 
             READ_PUMP_IS_WORKING(proc->pump, is_pump_working);
             if (is_pump_working) {
-                WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_common_mode_index, true);
+                WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_common_mode_index, true, 1);
             }
             break;
         }
@@ -131,9 +131,9 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
     READ_PUMP_WORK_STATUS(proc->pump, pump_status);
     if (pump_status == BREAST_PUMP_PAUSE || pump_status == BREAST_PUMP_IDLE || pump_status == BREAST_PUMP_FINISH) {
         if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
-            WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_common_mode_index, true);
+            WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_common_mode_index, true, 1);
         } else if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
-            WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_breastfeeding_mode_index, true);
+            WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_breastfeeding_mode_index, true, 1);
         }
         int pump_mode = 0;
         READ_PUMP_WORK_MODE(proc->pump, pump_mode);

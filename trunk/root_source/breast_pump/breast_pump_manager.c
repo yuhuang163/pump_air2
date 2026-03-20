@@ -27,7 +27,7 @@ static breast_pump_manager_context_t *breast_pump_obj = NULL;
 *****************************************************************************************
 */
 static int get_breast_pump_mode(void);
-static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode);
+static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode, uint8_t is_report);
 static void set_breast_pump_status(int status, int is_report);
 static int get_breast_pump_status(void);
 static pump_result_info_t * get_breast_pump_result(breast_pump_result_id_e result_id);
@@ -146,7 +146,7 @@ static void get_breast_pump_setting(pump_setting_t *setting, uint8_t step_index)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
-        set_breast_pump_mode(BREAST_PUMP_PUMP_MODE_DEFAULT, 1);
+        set_breast_pump_mode(BREAST_PUMP_PUMP_MODE_DEFAULT, 1, 1);
         LOG_PMP("invalid mode, set default mode");
     } 
 
@@ -201,7 +201,7 @@ static void set_breast_pump_setting(pump_setting_t *setting, uint8_t step_index,
     }
 }
 
-static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
+static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode, uint8_t is_report)
 {
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     struct storage_manager_context *st = breast_pump_obj->priv.st;
@@ -236,7 +236,9 @@ static void set_breast_pump_mode(uint32_t mode, uint8_t is_store_mode)
         .arg2 = 0,
         .val = NULL,
     };
-    servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    if (is_report) {
+        servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_STATUS, &args);
+    }
 
 }
 
@@ -245,7 +247,7 @@ static int get_breast_pump_mode(void)
     breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
     if (m_info->mode >= BREAST_PUMP_MODE_MAX) {
         LOG_PMP("invalid, set default mode");
-        set_breast_pump_mode(BREAST_PUMP_PUMP_MODE_DEFAULT, 1);
+        set_breast_pump_mode(BREAST_PUMP_PUMP_MODE_DEFAULT, 1, 1);
     }
     return m_info->mode;
 }
@@ -661,7 +663,7 @@ static void get_pump_composite_state(pump_state_type_e type, int arg1, int arg2,
     }
 }
 
-static void set_pump_composite_state(pump_state_type_e type, int arg1, int arg2, void *in_data)
+static void set_pump_composite_state(pump_state_type_e type, int arg1, int arg2, int arg3, void *in_data)
 {
     switch (type) {
         case BREAST_PUMP_MODE_SETTING_INFO: 
@@ -680,7 +682,7 @@ static void set_pump_composite_state(pump_state_type_e type, int arg1, int arg2,
             set_breast_pump_control_type(arg1, arg2);
             break;
         case BREAST_PUMP_WORK_MODE: 
-            set_breast_pump_mode(arg1, arg2);
+            set_breast_pump_mode(arg1, arg2, arg3);
             break;
         default:
             LOG_PMP("unknow type!!!!");
@@ -765,7 +767,7 @@ static int on_post_breast_pump_init(void *ptr)
         if (store_value >= BREAST_PUMP_MODE_MAX) {
             store_value = BREAST_PUMP_PUMP_MODE_DEFAULT;      
         }
-        set_breast_pump_mode(store_value, 0); /// 设置泵奶模式
+        set_breast_pump_mode(store_value, 0, 1); /// 设置泵奶模式
         /// 读取存储器中的常规模式
         ctx->priv.st->get_store_ram_val(STORE_ID_BREAST_PUMP_MODE_WITH_TYPE, BREAST_PUMP_MODE_TYPE_COMMON, 0, &store_value);
         if (store_value >= BREAST_PUMP_MODE_MAX) {
