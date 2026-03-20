@@ -12,7 +12,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PUMP_CTRL_TASK_DELAY_TIME 1000
+#define PUMP_CTRL_TASK_DELAY_TIME 100
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -537,6 +537,8 @@ static uint8_t app_old_comm_set_nommal_pump_level(app_old_comm_pump_ctrl *app_ol
             LOG_SRV("all pump level %d, %d", setting.level[0], setting.level[1]);
             app_broadcast_pump_level_to_window(setting.level[0], OLD_BROADCAST_LEFT_CT);
             app_broadcast_pump_level_to_window(setting.level[1], OLD_BROADCAST_RIGHT_CT);
+            ///双边模式不要设置，通过EA设置
+            return false;
         }
     }
     WRITE_PUMP_SETTING_INFO(pump_ctx, time_index, true, setting);
@@ -651,6 +653,8 @@ static uint8_t app_old_comm_set_custom_pump_level(app_old_comm_pump_ctrl *app_ol
             LOG_SRV("all pump level %d, %d", setting.level[0], setting.level[1]);
             app_broadcast_pump_level_to_window(setting.level[0] ,OLD_BROADCAST_LEFT_CT);
             app_broadcast_pump_level_to_window(setting.level[1] ,OLD_BROADCAST_RIGHT_CT);
+            ///双边模式不要设置，通过EA设置
+            return false;
         }
     }
     WRITE_PUMP_SETTING_INFO(pump_ctx, time_index, true, setting);
@@ -696,7 +700,7 @@ static uint8_t app_old_comm_pump_control_handler(app_old_comm_pump_ctrl *app_old
         }
     } else {
         /// 如果模式改变，则改变模式,忽略参数
-        WRITE_PUMP_WORK_MODE(pump_ctx, app_old_comm_pump_ctrl_date->pump_mode, true);
+        WRITE_PUMP_WORK_MODE(pump_ctx, app_old_comm_pump_ctrl_date->pump_mode, true, 1);
         app_broadcast_pump_mode_to_window(app_old_comm_pump_ctrl_date->pump_mode,OLD_BROADCAST_ALL_CT);
         /// prd 模式记忆
         LOG_SRV("app change pump_mode %d",app_old_comm_pump_ctrl_date->pump_mode);
@@ -877,6 +881,8 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     if (cal < 0x0A) {
         LOG_SRV(" Invalid data length for CTRL_DEV (expected >=0X0A, got %d)", cal);
     }
+    breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump_ctx);
     // TODO: Send parameters to pump valve component
     app_old_comm_pump_ctrl app_old_comm_pump_ctrl_date;
     app_old_comm_pump_ctrl_date.pump_mode = cab[1] - 1; //0x01~0x05（按摩-吸乳-混合-自定义-智能吸乳）
@@ -899,7 +905,6 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PUMP;
         wm->dispatch_new_window_args(wm, &msg);
-
         ///等待窗口弹出延时投递处理
         // 注意：POST_TASK_HANDLER_DELAYED_ARG2 会先删除同名旧任务，然后投递新任务
         // 使用静态变量避免内存泄漏，但如果删除失败，旧任务可能使用新数据
