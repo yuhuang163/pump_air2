@@ -62,9 +62,21 @@ static int on_tests_event_handler(void *context, uint16_t keycode, uint16_t keyt
     LOG_TEST("keycode = %d, keytype = %d", keycode, keytype);
     servers_manager_context_t *servers_ctx = (servers_manager_context_t *)find_module(ID_MODULE_SERVERS);
     EXCEPTION_CHECK_INT(servers_ctx);
+    /* 计算按键编号: 将按键bit位索引转为 1-based 的按键编号 */
+    uint8_t key_id = 0;
+    if (keycode) {
+        uint16_t temp = keycode;
+        uint8_t index = 0;
+        while ((temp & 0x1) == 0 && index < 16) {
+            temp >>= 1;
+            index++;
+        }
+        /* key_index_e 从0开始定义，协议按键编号为1起始 */
+        key_id = (uint8_t)(index + 1);
+    }
     servers_publish_data_args_t args = {
         .arg1 = 0x01, /// 短按
-        .arg2 = 0x00, 
+        .arg2 = key_id, 
         .val = NULL,
     };
     uint16_t server_id = SERVERS_PUBLISH_DATA_TESTS_KEY_STATUS;
@@ -90,7 +102,7 @@ static int on_tests_event_handler(void *context, uint16_t keycode, uint16_t keyt
         default:
             return 0;
     }
-    servers_ctx->hook->factory_server_data_publish(SERVERS_PUBLISH_DATA_TESTS_KEY_STATUS, &args);
+    servers_ctx->hook->factory_server_data_publish(server_id, &args);
     return 0;
 }
 
@@ -152,8 +164,8 @@ int factory_tests_aging_test_enter_mode1(void)
     EXCEPTION_CHECK_INT(pump_ctx);
     motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
     EXCEPTION_CHECK_INT(motor_ctx);
-    WRITE_PUMP_WORK_MODE(pump_ctx, BREAST_PUMP_LACTATION_MODE, false);
-    WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START);
+    WRITE_PUMP_WORK_MODE(pump_ctx, BREAST_PUMP_LACTATION_MODE, false, 1);
+    WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START, 1);
     msleep(100);
     int time_index = 0;
     READ_PUMP_MODE_STEP_INDEX(pump_ctx, time_index);
@@ -184,7 +196,7 @@ void factory_tests_aging_test_check_result(void)
     EXCEPTION_CHECK_VOID(thiz);
     breast_pump_manager_context_t *pump_ctx = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
     EXCEPTION_CHECK_VOID(pump_ctx);
-    WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE);
+    WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE, 1);
     st->get_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
     if (thiz->priv.current_mode == TST_AGING_TEST_TYPE
         && thiz->priv.factory_ctx.aging_target_info.aging_type == AGING_MODE_TYPE_1) {
@@ -304,7 +316,7 @@ int factory_tests_aging_test_exit(tests_func_args_t args)
     }
     st->put_store_val(STORE_ID_FACTORY_FLAG_INFO, 0, 0, &flag_info);
     LOG_TEST("factory test aging test exit: age_flag = %d, age_time = %d", flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_flag, flag_info.age_info[thiz->priv.factory_ctx.aging_target_info.aging_type - 1].age_time);
-    WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE);
+    WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE, 1);
 
     return 0;
 }
@@ -318,9 +330,9 @@ int factory_tests_suction_test(tests_func_args_t args)
     motor_manager_context_t *motor_ctx = pump_ctx->priv.motor;
     EXCEPTION_CHECK_INT(motor_ctx);
     if (args.arg1 == 1) {
-        WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE);
-        WRITE_PUMP_WORK_MODE(pump_ctx, BREAST_PUMP_LACTATION_MODE, false);
-        WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START);
+        WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE, 1);
+        WRITE_PUMP_WORK_MODE(pump_ctx, BREAST_PUMP_LACTATION_MODE, false, 1);
+        WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START, 1);
         msleep(100);
         int time_index = 0;
         READ_PUMP_MODE_STEP_INDEX(pump_ctx, time_index);
@@ -332,7 +344,7 @@ int factory_tests_suction_test(tests_func_args_t args)
         LOG_TEST("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
                 setting.level[1]);
     } else {
-        WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE);
+        WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE, 1);
     }
     return 0;
 }

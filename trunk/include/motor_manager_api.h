@@ -128,6 +128,9 @@ typedef struct motor_manager_context {
     /// 获取策略运行时间，单位ms
     uint32_t (*get_policy_running_time)(void);
 #endif
+    uint32_t (*get_current_time_policy_remaining_time)(void);
+    /// 获取所有定时策略执行完毕标志
+    uint8_t (*get_timed_policy_finish_flag)(void);
     /// 外部钩子函数.
     struct __motor_manager_hook {
         int (*on_post_init_route)(struct motor_manager_context *ctx);

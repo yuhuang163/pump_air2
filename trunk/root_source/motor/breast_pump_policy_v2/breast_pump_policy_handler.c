@@ -57,6 +57,7 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
             motor.un.pump.action = MOTOR_PUMP_ON;
             motor.un.pump.duration_ms = info->original.pumping_time == 0 ? 10 : info->original.pumping_time;
             info->state.pump_duty = motor.un.pump.pulse_width / PUMP_DUTY_SCALE_FACTOR;
+            info->state.release_wait_time_ms = info->original.valve_on_time;
             DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_START_PLAY, &motor);
             info->state.n_pressure_flag = 1;
             break;
@@ -94,6 +95,7 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
             motor.un.pump.pump_id = id;
             motor.un.pump.action = MOTOR_VALVE_OFF;
             motor.un.pump.duration_ms = info->original.sleep_time == 0 ? 2 : info->original.sleep_time;
+            info->state.release_wait_time_ms = 0;
             DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, &motor);
             info->state.n_pressure_flag = 0;
             break;
@@ -163,7 +165,6 @@ static void breast_pump_start_prepare(struct motor_manager_context *thiz, const 
     body->policy_running_time_ms = 0;
     body->time_policy_remaining_time = body->timed_policy->duration_seconds;
     body->time_policy_target_time =  body->timed_policy->duration_seconds;
-
 #if IS_SUPPORT_CLIMB_POLICY
     body->climb.onoff = 1;
     body->climb.count = 0;  
@@ -172,7 +173,7 @@ static void breast_pump_start_prepare(struct motor_manager_context *thiz, const 
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         memcpy(&body->policy[i], &body->manager->head.policy, sizeof(motor_policy_node_t));
     }
-    negative_pressure_release(thiz);
+    negative_pressure_release(thiz, 200);
     if (!body->taste_run_flag) {
         thiz->priv.pump_ctx->priv.m_info.step_index = 0;
     }
@@ -186,13 +187,14 @@ static void breast_pump_start_prepare(struct motor_manager_context *thiz, const 
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void negative_pressure_release(struct motor_manager_context *thiz)
+void negative_pressure_release(struct motor_manager_context *thiz, uint16_t wait_time_ms)
 {   
     motor_para_t motor = {0};
     motor.un.pump.pulse_width = 0;
     motor.un.pump.freq = BREAST_PUMP_VALVE_FREQ;
     motor.un.pump.action = MOTOR_PUMP_OFF_AND_VALVE_OFF;
     motor.un.pump.duration_ms = 0;
+    LOG_MOTOR("wait_time_ms: %d", wait_time_ms);
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         motor.un.pump.pump_id = i;
         DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, &motor);
@@ -200,6 +202,7 @@ void negative_pressure_release(struct motor_manager_context *thiz)
     msleep(5);
     LOG_MOTOR("-->step 2");
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+        motor.un.pump.pump_id = i;
         motor.un.pump.pulse_width = BREAST_PUMP_VALVE_DUTY * PUMP_DUTY_SCALE_FACTOR;
         motor.un.pump.freq = BREAST_PUMP_VALVE_FREQ;
         motor.un.pump.action = MOTOR_PUMP_OFF_AND_VALVE_ON;
@@ -208,10 +211,9 @@ void negative_pressure_release(struct motor_manager_context *thiz)
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
         pump_policy_info_reset(thiz, &thiz->priv.runtime, i);
     }
-    uint16_t wait_time = 120;
-    while (wait_time) {
+    while (wait_time_ms) {
         msleep(10);
-        wait_time = wait_time > 10 ? wait_time - 10 : 0;
+        wait_time_ms = wait_time_ms > 10 ? wait_time_ms - 10 : 0;
     }
     LOG_MOTOR("-->step 3");
     for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
@@ -240,7 +242,7 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     } else if (action == MOTOR_POLICY_CONTINUE) {
         if (body->breast_pump_mode == pump_mode) {
             LOG_MOTOR("continue %s policy, step_index: %d", mode_name, body->current_timed_policy_index);
-            negative_pressure_release(thiz);
+            negative_pressure_release(thiz, 200);
             return;
         } else {
             LOG_MOTOR("breast pump mode changed, need to restart policy");
@@ -286,7 +288,13 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
             update_para_to_motor_device(thiz, i, &runtime->info[i]);   
         }    
     }
-    negative_pressure_release(thiz);
+    uint16_t wait_time_ms = 0;
+    for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+        if (runtime->info[i].state.release_wait_time_ms > wait_time_ms) {
+            wait_time_ms = runtime->info[i].state.release_wait_time_ms;
+        }
+    }
+    negative_pressure_release(thiz, wait_time_ms == 0 ? 200 : wait_time_ms);
     STOP_TIMER(policy_work_timer);
     if (runtime->taste_run_flag) {
         notify_app_motor_status_change(OLD_PUBLISH_DATA_TASTE_STOP_REPORT);
@@ -298,6 +306,7 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
  
 void motor_policy_init(struct motor_manager_context *thiz)
 {
+    // negative_pressure_release(thiz, 200);
     CREATE_TIMER(&policy_work_timer, "policy_work", thiz, OS_TIMER_PERIODIC, policy_work_timer_cb);
     CREATE_MSG_TYPE_QUEUE(&policy_work_msg_id, POLICY_WORK_MSG_NUM, sizeof(motor_timer_event_msg_t));
     DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_ADD_TIMER_EVENT_CALLBACK, &on_motor_timer_event_cb);

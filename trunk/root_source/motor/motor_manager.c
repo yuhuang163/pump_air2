@@ -271,6 +271,10 @@ static uint32_t get_policy_running_time(void)
     return motor_obj->priv.runtime.policy_running_time_ms;
 }
 #endif
+static uint8_t get_timed_policy_finish_flag(void)
+{
+    return motor_obj->priv.runtime.all_timed_policy_finish_flag;
+}
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -290,6 +294,7 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
 #if MOTOR_DRIVER_VERSION == MOTOR_DRIVER_V2
     ptr->get_policy_running_time = get_policy_running_time; 
 #endif
+    ptr->get_timed_policy_finish_flag = get_timed_policy_finish_flag;
     ptr->synchronous_stop_motor = synchronous_stop_motor;
     motor_obj = ptr;
     

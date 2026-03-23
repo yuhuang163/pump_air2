@@ -179,12 +179,7 @@ typedef struct {
     uint8_t pump_duty;            /// 泵奶占空比
     uint8_t valve_duty;           /// 电磁阀门占空比
     uint8_t target_pressure;      /// 目标压力
-#if IS_SUPPORT_RELATIVE_RUN_TIME
-    uint32_t run_time;            /// 运行时间，单位ms
-#else
-    uint32_t start_time;          /// 参数启用时间，单位ms
-    uint32_t run_time;            /// 运行时间，单位ms
-#endif
+    uint16_t release_wait_time_ms; /// 负压释放等待时间，单位ms
 } motor_policy_state_t;
 
 /// 马达组件状态, 给算法采集用，顺序与motor_policy_state_t保持一致
@@ -268,6 +263,7 @@ typedef struct {
     uint8_t next_mode_type; /// 下一个模式类型
     uint8_t breast_pump_mode; /// 泵奶模式
     uint8_t current_timed_policy_index; /// 当前定时策略索引
+    uint8_t all_timed_policy_finish_flag; /// 所有定时策略执行完毕标志
 #if IS_SUPPORT_CLIMB_POLICY
     pump_climb_policy_t climb; /// 爬升策略状态
 #endif
