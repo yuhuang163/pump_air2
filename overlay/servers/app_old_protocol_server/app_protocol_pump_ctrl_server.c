@@ -380,7 +380,7 @@ static uint16_t app_old_comm_get_current_running_mode_step_time(void)
 {
     motor_manager_context_t *motor_ctx = (motor_manager_context_t *)find_module(ID_MODULE_MOTOR);
     EXCEPTION_CHECK_UINT(motor_ctx);
-    uint8_t step_index_time = motor_ctx->get_current_time_policy_remaining_time();
+    uint8_t step_index_time = motor_ctx->get_time_policy_remaining_time();
     LOG_SRV("step_index_time= %d", step_index_time);
     return (uint16_t)step_index_time;
 }
