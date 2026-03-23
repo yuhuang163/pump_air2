@@ -12,7 +12,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define PUMP_CTRL_TASK_DELAY_TIME 100
+#define PUMP_CTRL_TASK_DELAY_TIME 500
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -739,7 +739,7 @@ static void app_pump_ctrl_delay_task_handler(hdr_post_args_t *args)
     int status = (int)args->arg1;
     app_old_comm_pump_ctrl *app_old_comm_pump_ctrl_date = (app_old_comm_pump_ctrl *)args->user_data;
     EXCEPTION_CHECK_VOID(app_old_comm_pump_ctrl_date);
-    app_old_comm_pump_control_handler(app_old_comm_pump_ctrl_date);
+    ///app_old_comm_pump_control_handler(app_old_comm_pump_ctrl_date);
     app_old_comm_pump_run_status_ctrl(status);
     LOG_SRV("status: %d", status);
 }
@@ -902,6 +902,8 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)
         || wm->is_current_window(wm, ID_WINDOW_HOME)) {
         LOG_SRV("charge or dummy, dispatch pump window.");
+        ///先把参数和模式发给pump组件，再dispatch窗口
+        app_old_comm_pump_control_handler(&app_old_comm_pump_ctrl_date);
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PUMP;
         wm->dispatch_new_window_args(wm, &msg);
