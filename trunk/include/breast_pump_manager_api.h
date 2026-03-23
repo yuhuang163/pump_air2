@@ -89,11 +89,11 @@ typedef enum {
 #define READ_PUMP_SETTING_INFO(ctx, index, setting) \
     ctx->get_pump_composite_state(BREAST_PUMP_MODE_SETTING_INFO, index, 0, &setting)    
 #define WRITE_PUMP_SETTING_INFO(ctx, index, is_store, setting) \
-    ctx->set_pump_composite_state(BREAST_PUMP_MODE_SETTING_INFO, index, is_store, 0, &setting)
+    ctx->set_pump_composite_state(BREAST_PUMP_MODE_SETTING_INFO, index, is_store, 0, &setting)  
 /// 泵奶力度控制类型
 #define READ_PUMP_LEVEL_CONTROL_TYPE(ctx, type) \
     ctx->get_pump_composite_state(BREAST_PUMP_LEVEL_CONTROL_TYPE, 0, 0, &type)    
-#define WRITE_PUMP_LEVEL_CONTROL_TYPE(ctx, type, is_report) \
+#define WRITE_PUMP_LEVEL_CONTROL_TYPE(ctx, type , is_report) \
     ctx->set_pump_composite_state(BREAST_PUMP_LEVEL_CONTROL_TYPE, type, is_report, 0, NULL)
 /// 泵奶结果信息
 #define READ_PUMP_RESULT_INFO(ctx, id, info) \
