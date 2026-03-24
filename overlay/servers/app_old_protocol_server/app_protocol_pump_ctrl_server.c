@@ -7,7 +7,10 @@
 #include "breast_pump_mode.h"
 #include "pump_mode_default_config.h"
 #include "app_protocol_broadcast_to_window.h"
+#include "app_protocol_key_simulation.h"
 #include "breast_pump_persist_data.h"
+#include "input_key_code.h"
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -46,6 +49,16 @@ static uint8_t app_old_comm_get_adaptive_dimming_switch(void)
     led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     EXCEPTION_CHECK_UINT(led && led->hook && led->hook->get_night_light_adaptive_switch);
     return led->hook->get_night_light_adaptive_switch(led);
+}
+
+static void app_pump_safe_start_key_sim_task(void)
+{
+    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    EXCEPTION_CHECK_VOID(wm);
+    /* Only simulate key when pump window is active to avoid stale UI context access. */
+    if (wm->is_current_window(wm, ID_WINDOW_PUMP)) {
+        app_start_key_simulation();
+    }
 }
 
 static uint8_t app_old_comm_get_night_light_level(void)
@@ -717,18 +730,21 @@ static uint8_t app_old_comm_pump_run_status_ctrl(uint8_t status)
     READ_PUMP_WORK_STATUS(pump_ctx, pump_status);
     if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE) {
         if (status == APP_OLD_COMM_PUMP_CTRL_RUN) {
-            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START, 1);
+            //WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START, 1);
             app_broadcast_pump_status_to_window(BREAST_PUMP_START, OLD_BROADCAST_ALL_CT);
+            app_pump_safe_start_key_sim_task();
         }
     } else if (pump_status == BREAST_PUMP_START || pump_status == BREAST_PUMP_CONTINUE) {
         if (status == APP_OLD_COMM_PUMP_CTRL_STOP) {
-            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE, 1);
+            //WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_PAUSE, 1);
             app_broadcast_pump_status_to_window(BREAST_PUMP_PAUSE,OLD_BROADCAST_ALL_CT);
+            app_pump_safe_start_key_sim_task();
         }
     } else if (pump_status == BREAST_PUMP_PAUSE) {
         if (status == APP_OLD_COMM_PUMP_CTRL_RUN) {
-            WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_CONTINUE, 1);
+            //WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_CONTINUE, 1);
             app_broadcast_pump_status_to_window(BREAST_PUMP_CONTINUE,OLD_BROADCAST_ALL_CT);
+            app_pump_safe_start_key_sim_task();
         }
     }
     return true;
@@ -885,6 +901,7 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     EXCEPTION_CHECK_VOID(pump_ctx);
     // TODO: Send parameters to pump valve component
     app_old_comm_pump_ctrl app_old_comm_pump_ctrl_date;
+    app_old_comm_pump_ctrl_date.pump_ctrl_status = cab[0];
     app_old_comm_pump_ctrl_date.pump_mode = cab[1] - 1; //0x01~0x05（按摩-吸乳-混合-自定义-智能吸乳）
     app_old_comm_pump_ctrl_date.normal_pump_level = cab[2];
     app_old_comm_pump_ctrl_date.user_define_pump_step_mode = cab[3];
@@ -902,9 +919,12 @@ void app_old_comm_handle_ctrl_dev_req(uint8_t cal, uint8_t *cab)
     } else if (wm->is_current_window(wm, ID_WINDOW_CHARGE) || wm->is_current_window(wm, ID_WINDOW_DUMMY)
         || wm->is_current_window(wm, ID_WINDOW_HOME)) {
         LOG_SRV("charge or dummy, dispatch pump window.");
+        multi_func_msg_data_t msg = {0};
+        /// 根据目标模式和运行状态，确定进入子界面的按键参数
+        msg.union_body.extra.arg1 = KEY_CODE_START;
+        
         ///先把参数和模式发给pump组件，再dispatch窗口
         app_old_comm_pump_control_handler(&app_old_comm_pump_ctrl_date);
-        multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PUMP;
         wm->dispatch_new_window_args(wm, &msg);
         ///等待窗口弹出延时投递处理
