@@ -15,7 +15,7 @@ extern "C" {
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-int pump_motor_stall_detection_start(uint8_t pump_id, uint16_t duration_ms);
+int pump_motor_stall_detection_start(uint8_t pump_id, uint16_t duration_ms, uint16_t pulse_width);
 int pump_motor_stall_detection_stop(uint8_t pump_id);
 bool pump_motor_is_stalled(uint8_t pump_id);
 

@@ -8,7 +8,6 @@
 #include "bsp_config.h"
 #include "motor_stall_detection.h" // IWYU pragma: keep
 #include "root_log_define.h"
-#include <stdint.h>
 #include "motor_pump.h" // IWYU pragma: keep
 
 /*
@@ -16,7 +15,7 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_PUMP_RUN_TIME_TEST          (0)
-#define IS_SUPPORT_PUMP_DEBUG_LOG              (0)
+#define IS_SUPPORT_PUMP_DEBUG_LOG              (1)
 #define IS_SUPPORT_PUMP_PWM_IDLE_HIGH          (1)
 #define PUMP_PWM_TIME_NUMBER                   (2)   /// 泵1和泵2各一个定时器
 #define MOTOR_PUMP_IDLE_PWM_DUTY               (100)
@@ -279,7 +278,7 @@ int bsp_motor_pump_parameter_set(void *args)
 
     switch (pump_para->action) {
         case MOTOR_PUMP_ON:
-            pump_motor_stall_detection_start(pump_id, pump_para->duration_ms);
+            pump_motor_stall_detection_start(pump_id, pump_para->duration_ms, pump_para->pulse_width);
             uint16_t start_pulse_width = MOTOR_PUMP_START_PWM_DUTY * PUMP_DUTY_SCALE_FACTOR;
             pump_status[pump_id].pump_is_running = true;
             uint16_t target_pulse_width = MOTOR_PUMP_PULSE_WIDTH_MAX - pump_para->pulse_width;
@@ -336,9 +335,9 @@ int bsp_motor_pump_parameter_set(void *args)
             pump_status[pump_id].target_pulse_width = 0;
             pump_status[pump_id].current_pulse_width = 0;
             pump_status[pump_id].pump_is_running = false;
-            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, MOTOR_VALVE_IDLE_PWM_DUTY);
+            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].pump_pwm_id, MOTOR_PUMP_IDLE_PWM_DUTY);
             if (ret != BSP_OK) {
-                LOGE("set valve off failed, ret=%d", ret);
+                LOGE("set pump off failed, ret=%d", ret);
             }
             pump_status[pump_id].valve_is_running = true;
             pump_status[pump_id].valve_duty = MOTOR_VALVE_START_PWM_DUTY;
@@ -387,13 +386,13 @@ int bsp_motor_pump_parameter_set(void *args)
         case MOTOR_PUMP_OFF_AND_VALVE_OFF:
             memset(&pump_status[pump_id], 0, sizeof(motor_pump_status_t));
             bsp_motor_pump_timer_stop(pump_id);
-            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, MOTOR_VALVE_IDLE_PWM_DUTY);
-            if (ret != BSP_OK) {
-                LOGE("set valve off failed, ret=%d", ret);
-            }
             ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].pump_pwm_id, MOTOR_PUMP_IDLE_PWM_DUTY);
             if (ret != BSP_OK) {
                 LOGE("set pump off failed, ret=%d", ret);
+            }
+            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, MOTOR_VALVE_IDLE_PWM_DUTY);
+            if (ret != BSP_OK) {
+                LOGE("set valve off failed, ret=%d", ret);
             }
             break;
         default:
