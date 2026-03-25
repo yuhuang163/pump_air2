@@ -502,17 +502,16 @@ UI_MODULE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/trunk/root_source/ui
 
 ifeq ($(CFG_LVGL_ENABLE),1)
+UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui
+
 ifeq ($(V3_UI_VERSION), $(V3_UI_V1))
 UI_MODULE_INC_FLAGS += $(UI_INC_DIRECT_FLAGS)
-UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui
-else 
-UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui_v2
-ifeq ($(ROOT_PRODUCT_ID), $(ROOT_PRODUCT_V3PRO_ID))
+else ifeq ($(ROOT_PRODUCT_ID), $(ROOT_PRODUCT_V3PRO_ID))
 UI_MODULE_INC_FLAGS += $(UI_INC_DIRECT_V3PRO_V2_FLAGS)
 else
 UI_MODULE_INC_FLAGS += $(UI_INC_DIRECT_V2_FLAGS)
 endif
-endif
+
 else
 UI_MODULE_INC_FLAGS += $(UI_INC_UART_FLAGS)
 UI_MODULE_INC_FLAGS += -I$(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_uart_ui
@@ -1096,16 +1095,18 @@ INPUT_KEY_MODULE_SRCS := \
 UI_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) 
 ifeq ($(CFG_LVGL_ENABLE),1)
+UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_direct_ui/*.c) 
+
 ifeq ($(V3_UI_VERSION), $(V3_UI_V1))
 UI_MODULE_SRCS += $(UI_LCD_DIRECT_SRCS)
-else 
-ifeq ($(ROOT_PRODUCT_ID), $(ROOT_PRODUCT_V3PRO_ID))
+else ifeq ($(ROOT_PRODUCT_ID), $(ROOT_PRODUCT_V3PRO_ID))
 UI_MODULE_SRCS += $(UI_LCD_DIRECT_V3PRO_V2_SRCS)
 else
 UI_MODULE_SRCS += $(UI_LCD_DIRECT_V2_SRCS)
 endif
-endif
+
 else
+UI_MODULE_SRCS += $(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/lcd_uart_ui/*.c) 
 UI_MODULE_SRCS += $(UI_LCD_UART_SRCS)
 endif
 
