@@ -250,6 +250,16 @@ static int get_runtime_policy_index(motor_policy_type_e type)
         return 0;
     }
 }
+static int set_runtime_policy_index(motor_policy_type_e type, int index)
+{
+    if (type == MOTOR_TIME_POLICY) {
+        motor_obj->priv.runtime.current_timed_policy_index = index;
+    } else {
+        LOG_MOTOR("set runtime policy index error, type: %d", type);
+    }
+    return 0;
+}
+
 
 static uint8_t get_runtime_mode_type(uint8_t is_next_mode)
 {
@@ -263,6 +273,12 @@ static uint8_t get_runtime_mode_type(uint8_t is_next_mode)
 static uint32_t get_time_policy_remaining_time(void)
 {
     return motor_obj->priv.runtime.time_policy_remaining_time;
+}
+
+static int set_time_policy_remaining_time(uint32_t remaining_time)
+{
+    motor_obj->priv.runtime.time_policy_remaining_time = remaining_time;
+    return 0;
 }
 
 #if MOTOR_DRIVER_VERSION == MOTOR_DRIVER_V2
@@ -289,8 +305,10 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
     ptr->is_on_motor_task_running = is_on_motor_task_running;
     ptr->is_can_play_now = motor_is_can_play_now;
     ptr->get_runtime_policy_index = get_runtime_policy_index;
+    ptr->set_runtime_policy_index = set_runtime_policy_index;
     ptr->get_runtime_mode_type = get_runtime_mode_type;
     ptr->get_time_policy_remaining_time = get_time_policy_remaining_time;
+    ptr->set_time_policy_remaining_time = set_time_policy_remaining_time;
 #if MOTOR_DRIVER_VERSION == MOTOR_DRIVER_V2
     ptr->get_policy_running_time = get_policy_running_time; 
 #endif
