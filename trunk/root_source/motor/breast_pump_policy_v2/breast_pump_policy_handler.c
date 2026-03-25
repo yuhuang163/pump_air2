@@ -256,8 +256,9 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
         LOG_MOTOR("%s mode policy", mode_name);
     }
     breast_pump_start_prepare(thiz, policy_obj);
-    notify_app_motor_status_change(body->taste_run_flag ? OLD_PUBLISH_DATA_TASTE_START_REPORT : \
-         OLD_PUBLISH_DATA_PUMP_STEP_ALL_PARAM_CHANGE);
+    if (body->taste_run_flag) {
+        notify_app_motor_status_change(OLD_PUBLISH_DATA_TASTE_START_REPORT);
+    }
 }
 
 int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_task_para_t *play_para)
