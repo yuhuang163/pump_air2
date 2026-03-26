@@ -580,6 +580,7 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     pump_home_init();  
     ble_ui_init(thiz);
+    battery_ui_init(thiz);
     pump_info->animation_index = 0;
     pump_info->animation_play_complete = false;
     pump_info->force_update = true;
@@ -594,6 +595,7 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
     common_ui_img_resource_deinit(thiz, &pump_info->background_info);
     ble_ui_deinit(thiz);
+    battery_ui_deinit(thiz);
     pump_home_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(pump_info->root);
     u_free(pump_info);
@@ -623,6 +625,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     uint8_t is_regular_mode = PUMP_IS_COMMON_MODE(pump_mode);
     pump_home_bg_update(thiz, is_regular_mode);
     ble_ui_update(thiz, pump_info->root, proc->ble, 150, 24);
+    battery_ui_update(thiz, pump_info->root, proc->battery, UI_BATTERY_STATE_NONE);
     pump_home_time_update(thiz, hold_time, is_regular_mode ? 0 : 19);
     if (is_regular_mode) {
         pump_home_animation_update(thiz, RESOURCE_ID_COMMON_MODE_ANIMATION_START, 
