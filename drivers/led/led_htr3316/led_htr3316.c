@@ -66,6 +66,13 @@ static const led_address_data_t led_address_data[LED_TOTAL_SIZE] = {
     {led1_address, sizeof(led1_address)},/// PUMP_BREASTFEEDING_BL
     {led3_address, sizeof(led3_address)},/// PUMP_LEFT_CONTROL_BL
     {led4_address, sizeof(led4_address)},/// PUMP_RIGHT_CONTROL_BL
+#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
+    {led3_address, sizeof(led3_address)},/// PUMP_START_BL
+    {led5_address, sizeof(led5_address)},/// PUMP_MODE_BL
+    {led6_address, sizeof(led6_address)},/// PUMP_FREQ_SET_BL
+    {led1_address, sizeof(led1_address)},/// PUMP_BREASTFEEDING_BL
+    {led2_address, sizeof(led2_address)},/// PUMP_LEFT_CONTROL_BL
+    {led4_address, sizeof(led4_address)},/// PUMP_RIGHT_CONTROL_BL
 #else
     {led1_address, sizeof(led1_address)},/// PUMP_START_BL
     {led2_address, sizeof(led2_address)},/// PUMP_MODE_BL

@@ -4,8 +4,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR="$PROJECT_DIR/project/bin"
 SHARE_DIR="$PROJECT_DIR/../../v3_firmware"
-# 触摸按键芯片: hyn=海栎创, sc09b=旧方案。与 boards/project_support_overlay.h 中 IS_SUPPORT_TOUCH_KEY_* 保持一致
-MAKE_ARGS=("TOUCH_KEY_CHIP=hyn" "T=ble_only_lt" "-j16")
+MAKE_ARGS=("T=ble_only_lt" "-j16")
 
 # 若构建阶段已明确目标产物信息，则在拷贝阶段优先使用
 FORCED_OUTPUT_DIR=""
