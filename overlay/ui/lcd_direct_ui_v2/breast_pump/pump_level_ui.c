@@ -398,6 +398,7 @@ static void pump_level_control_type_lable_update(ui_manager_context_t *thiz)
         lv_obj_set_style_bg_opa(level_info->control_type_lable1, LV_OPA_20, 0); /// 透明20%
         lv_obj_set_style_radius(level_info->control_type_lable1, capsule_radius, 0);
         lv_obj_set_style_border_opa(level_info->control_type_lable1, LV_OPA_TRANSP, 0);  /// 无边框
+        lv_obj_clear_flag(level_info->control_type_lable1, LV_OBJ_FLAG_HIDDEN); /// 显示单侧标签容器
         if (level_info->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
             lv_label_set_text(level_info->control_type_lable_text1, "L");
         } else if (level_info->control_type == BREAST_PUMP_CONTROL_TYPE_RIGHT) {

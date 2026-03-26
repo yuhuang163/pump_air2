@@ -28,12 +28,12 @@
  static uint16_t s_key_state = 0;
  /// 0x22 寄存器位定义: 与硬件/丝印一致
  static const uint16_t s_key_mask[HYN_TOUCH_KEY_NUM] = {
-     0x01,  /// Start/Pause 启动/暂停
-     0x02,  /// Left 左
-     0x04,  /// Right 右
-     0x08,  /// Speed 速度
-     0x10,  /// Program 模式
-     0x20,  /// Mode 模式
+     0x02,  /// 启动键
+     0x20,  /// 模式键
+     0x08,  /// 频段键
+     0x10,  /// 追奶键
+     0x01,  /// 左按键
+     0x04,  /// 右按键
  };
  
  static int hyn_i2c_write(uint8_t reg_addr, const uint8_t *buf, uint16_t len)
@@ -83,7 +83,7 @@
  
  static void hyn_reset_ic(void)
  {
- #if IS_SUPPORT_TOUCH_KEY_HYN
+ #if IS_SUPPORT_TOUCH_KEY_RESET_PIN
      hal_gpio_pin_clr(HYN_TOUCH_RST_PIN);
      msleep(10);
      hal_gpio_pin_set(HYN_TOUCH_RST_PIN);
@@ -235,7 +235,7 @@
  
  static void hyn_rst_pin_init(void)
  {
- #if IS_SUPPORT_TOUCH_KEY_HYN
+ #if IS_SUPPORT_TOUCH_KEY_RESET_PIN
      struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
          (enum HAL_IOMUX_PIN_T)HYN_TOUCH_RST_PIN,
          HAL_IOMUX_FUNC_AS_GPIO,

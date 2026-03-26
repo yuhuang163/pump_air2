@@ -82,7 +82,7 @@ extern "C" {
 #define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm6
 #define MOTOR_VALVE2_PWM_ID             HAL_PWM_ID_0
 #define MOTOR_VALVE2_PWM_IMUX           hal_iomux_set_pwm0
-#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3)
+#elif (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
 /// ADC相关定义
 #define BATT_ADC_CHANNEL                HAL_GPADC_CHAN_4
 #define PUMP1_ADC_CHANNEL               HAL_GPADC_CHAN_2
@@ -123,7 +123,7 @@ extern "C" {
 /// 按键相关定义
 #define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_7
 #define TOUCH_INT_PIN                   HAL_GPIO_PIN_P4_6
-#if IS_SUPPORT_TOUCH_KEY_HYN
+#if IS_SUPPORT_TOUCH_KEY_RESET_PIN
 #define HYN_TOUCH_RST_PIN               HAL_GPIO_PIN_P2_0  /// 海栎创触摸IC复位脚，请根据实际硬件修改
 #endif
 #define KNOB_B_PIN                      HAL_GPIO_PIN_P1_0
