@@ -499,6 +499,9 @@ static void pump_level_text_level_lable_update(ui_manager_context_t *thiz)
         lv_obj_align(level_info->add_label, LV_ALIGN_TOP_LEFT, 110 - 5, 162 - 2);
         lv_obj_clear_flag(level_info->add_label, LV_OBJ_FLAG_HIDDEN);
     } else {
+        //将add_label隐藏
+        lv_obj_add_flag(level_info->add_label, LV_OBJ_FLAG_HIDDEN);
+
         // 单侧模式：使用两个独立标签显示等级值（十位和个位）
         uint8_t display_level = (level_info->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) ? 
                                 level_info->left_level : level_info->right_level;

@@ -120,10 +120,14 @@ typedef struct motor_manager_context {
     bool (*is_on_motor_task_running)(struct motor_manager_context *ctx);
     /// 获取马达策略索引
     int (*get_runtime_policy_index)(motor_policy_type_e type);
+    /// 设置马达策略索引
+    int (*set_runtime_policy_index)(motor_policy_type_e type, int index);
     /// 获取模式类型
     uint8_t (*get_runtime_mode_type)(uint8_t is_next_mode);
     /// 获取当前时间策略剩余时间，单位s
     uint32_t (*get_time_policy_remaining_time)(void);
+    /// 设置当前时间策略剩余时间，单位s
+    int (*set_time_policy_remaining_time)(uint32_t remaining_time);
 #if MOTOR_DRIVER_VERSION == MOTOR_DRIVER_V2
     /// 获取策略运行时间，单位ms
     uint32_t (*get_policy_running_time)(void);

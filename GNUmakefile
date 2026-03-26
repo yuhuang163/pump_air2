@@ -357,10 +357,14 @@ DRIVERS_I2C_INC_FLAGS := \
 DRIVERS_IMU_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/imu
 
-# 按键驱动头文件
-DRIVERS_KEY_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/drivers/key \
-	-I$(PROJECT_ROOT)/drivers/key/chip/sc09b
+# 按键驱动头文件（触摸芯片二选一：sc09b 旧方案 / hyn 海栎创）
+TOUCH_KEY_CHIP ?= hyn
+DRIVERS_KEY_INC_FLAGS := -I$(PROJECT_ROOT)/drivers/key
+ifeq ($(TOUCH_KEY_CHIP), hyn)
+DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/hyn
+else
+DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/sc09b
+endif
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3)),)
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
 endif
@@ -949,10 +953,15 @@ DRIVERS_I2C_SRCS := \
 DRIVERS_IMU_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/imu/*.c)
 
-# 按键驱动源码
-DRIVERS_KEY_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/drivers/key/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c)
+# 按键驱动源码（触摸芯片二选一）
+DRIVERS_KEY_SRCS := $(wildcard $(PROJECT_ROOT)/drivers/key/*.c)
+ifeq ($(TOUCH_KEY_CHIP), hyn)
+DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/hyn/*.c)
+$(info [KEY] TOUCH_KEY_CHIP=hyn -> building HYN driver)
+else
+DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/sc09b/*.c)
+$(info [KEY] TOUCH_KEY_CHIP=$(TOUCH_KEY_CHIP) -> building SC09B driver)
+endif
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3)),)
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/knob/*.c)
 endif
