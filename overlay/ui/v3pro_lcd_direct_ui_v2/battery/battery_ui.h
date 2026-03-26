@@ -10,19 +10,22 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 #include "ui_manager_api.h" // IWYU pragma: keep
+#include "battery_manager_api.h" // IWYU pragma: keep
+
+typedef enum {
+    UI_BATTERY_STATE_NONE = 0,
+    UI_BATTERY_STATE_CHARGING = 1,
+    UI_BATTERY_STATE_LOW_POWER = 2,
+} ui_battery_state_e;
 
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-void battery_icon_init(ui_manager_context_t *thiz);
-void battery_icon_deinit(ui_manager_context_t *thiz);
-int battery_icon_update(ui_manager_context_t *thiz, lv_obj_t *root, uint8_t percent, uint8_t is_charging);
-
-/// 充电中页面
-void ui_display_charge_screen_prepare(ui_manager_context_t *thiz);
-void ui_display_charge_screen_remove(ui_manager_context_t *thiz);
-int ui_display_charge_screen_process(ui_manager_context_t *thiz);
+/// 电池
+void battery_ui_init(ui_manager_context_t *thiz);
+void battery_ui_deinit(ui_manager_context_t *thiz);
+int battery_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, battery_manager_context_t *battery, ui_battery_state_e state);
 
 /// 低电量页面
 void ui_display_battery_low_power_prepare(ui_manager_context_t *thiz);
