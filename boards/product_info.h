@@ -29,8 +29,8 @@ extern "C" {
 /**
  * 硬件版本从1-999
 */
-#define ROOT_HARDWARE_VERSION                          3
-#define ROOT_HW_VERSION_STR                            "03"
+#define ROOT_HARDWARE_VERSION                          4
+#define ROOT_HW_VERSION_STR                            "04"
 
 
 /**
@@ -46,8 +46,8 @@ extern "C" {
 #define ROOT_FIRMWARE_VERSION                          201
 #define ROOT_FW_VERSION_STR                            "201"
 #else
-#define ROOT_FIRMWARE_VERSION                          213
-#define ROOT_FW_VERSION_STR                            "213"
+#define ROOT_FIRMWARE_VERSION                          214
+#define ROOT_FW_VERSION_STR                            "214"
 #endif
 
 /**
