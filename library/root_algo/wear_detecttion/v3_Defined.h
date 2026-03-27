@@ -1,6 +1,7 @@
 #ifndef __V3_DEFINED_H__
 #define __V3_DEFINED_H__
 
+#include "algo_fusion_lib.h"
 
 #ifndef abs
 #define abs(x)			((x) < 0 ? -(x) : (x))
@@ -78,31 +79,7 @@ typedef enum {
 	SUCTION_STATUS_SLEEP,       /// 休眠
 } suction_status_e;
 
-
-typedef struct _PUMP_STATE
-{
-	unsigned char		level;       /// 0-15
-	unsigned char		mode;        /// 0:刺激模式 1:吸乳模式 2:混合模式 3:个性化模式 4:PP追奶模式 5:2+8奶量提升模式 6:开奶模式
-	unsigned char		state;       /// 吸力状态 suction_status_e
-	unsigned char		pump_duty;        /// 泵奶力度
-	unsigned char		valve_duty;       /// 吸乳器电磁阀门力度
-	unsigned char		target_pressure;  /// 目标压力
-	unsigned short		run_time;        /// 运行时间，单位ms
-}algo_pump_state_t;
-
-
-/// 气压数据
-typedef struct _AIR_PRESSURE
-{
-	unsigned char		do_work;     /// 是否正在泵奶
-	unsigned int		timestamp;
-	float				air_pressure[CHANNEL_NUM];
-	algo_pump_state_t	pump_state[CHANNEL_NUM];
-}algo_air_pressure_data_t;
 ///////////////////////////////////////////////////////
-
-
-
 
 
 /////////////////////////////////////////////////////// for algorithm

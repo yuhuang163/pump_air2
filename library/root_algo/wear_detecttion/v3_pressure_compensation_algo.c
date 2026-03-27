@@ -30,7 +30,7 @@ SGLOBAL_INFO		tGlobalInfo;
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void V3ProAlgoInit(algo_air_pressure_data_t sPressureData)
+void V3ProAlgoInit(aglo_air_pressure_data_t sPressureData)
 {
 	// 把sPressureData的数据拆解出来
 	tGlobalInfo.currtimestamp = 0;
@@ -123,7 +123,7 @@ unsigned int V3ProBufferCircleNextIndex(unsigned int uPos, unsigned int uIndent,
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void V3ProPressureDataPreprocess(algo_air_pressure_data_t sPressureData, unsigned char uchannelIdx)
+void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigned char uchannelIdx)
 {
 	// 更新时间戳--实际时间戳分辨度不够
 	tGlobalInfo.prevtimestamp = tGlobalInfo.currtimestamp;
@@ -208,7 +208,7 @@ void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tFeatureInf
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void V3ProAlgoMain(algo_air_pressure_data_t sPressureData)
+void V3ProAlgoMain(aglo_air_pressure_data_t sPressureData)
 {
 
 #if DEBUG == 1
