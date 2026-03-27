@@ -20,13 +20,12 @@
 #include "v3_Defined.h"
 
 // functions
-void V3ProModeReset(unsigned char uLevel, unsigned char uMode, unsigned int uChannelIdx);
-void V3ProPressureDataPreprocess(algo_air_pressure_data_t sPressureData, unsigned char uchannelIdx);
-void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO tFeatureInfoTemp, SDEVICE_INFO tDeviceInfoTemp);
-// 
+void V3ProModeReset(algo_pump_state_t pump_state, unsigned char channel_idx);
+void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigned char uchannelIdx);
+void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tFeatureInfoTemp, SDEVICE_INFO *tDeviceInfoTemp);
 // interface
-void V3ProAlgoInit(algo_air_pressure_data_t sPressureData);
-void V3ProAlgoMain(algo_air_pressure_data_t sPressureData);
-void GetCompensationStatus(unsigned char* uCompsStatus, unsigned char *uDeltaPWM);
+void V3ProAlgoInit(aglo_air_pressure_data_t sPressureData);
+void V3ProAlgoMain(aglo_air_pressure_data_t sPressureData);
+void GetCompensationResult(unsigned char* compensation_status, int *compensation_delta_pwm);
 
 #endif

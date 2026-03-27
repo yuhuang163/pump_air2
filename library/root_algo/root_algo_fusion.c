@@ -55,7 +55,7 @@ static void wear_detection_process_data(void)
 
         // TODO: 实现气压补偿算法
         V3ProAlgoMain(s_air_pressure_data);
-        GetCompensationStatus(s_result.compensation_status, s_result.compensation_delta_pwm);
+        GetCompensationResult(s_result.compensation_status, s_result.compensation_delta_pwm);
     }
 }
 
