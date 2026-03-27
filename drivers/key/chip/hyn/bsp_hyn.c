@@ -16,6 +16,7 @@
  #if HYN_TOUCH_USE_POLL
  #define HYN_POLL_PERIOD_MS             (20)  /// 轮询周期，IRQ 不触发时靠轮询保证触摸有响应
  #endif
+ #define HYN_TOUCH_KEY_DEBUG            (0) /// 触摸按键调试开关
  
  static uint16_t s_touch_abnormal_count = 0;
  #if HYN_TOUCH_USE_POLL
@@ -169,7 +170,9 @@
  
  static void hyn_irq_callback(enum HAL_GPIO_PIN_T pin)
  {
+    #if HYN_TOUCH_KEY_DEBUG
      LOGE("HYN irq pin=%d", (int)pin);
+    #endif
      if (pin == TOUCH_INT_PIN && s_key_device_thd.msg_id) {
          uint8_t msg = 0;
          MSG_QUEUE_SEND(s_key_device_thd.msg_id, &msg, 0);
@@ -313,7 +316,9 @@
          }
  
          s_key_state = (uint16_t)(read_buff[1] << 8) | read_buff[0];
+         #if HYN_TOUCH_KEY_DEBUG
          LOGE("HYN reg 0x22(scan): 0x%04x", (unsigned)s_key_state);
+         #endif
          for (uint8_t i = 0; i < HYN_TOUCH_KEY_NUM; i++) {
              s_touch_key[i] = (s_key_state & s_key_mask[i]) ? 1 : 0;
          }
