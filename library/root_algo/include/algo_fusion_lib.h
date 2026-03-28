@@ -16,6 +16,8 @@ extern "C" {
 #define ALGO_AIR_PRESSURE_NUM 2
 #endif
 
+#define IS_SUPPORT_ALGO_LIB_LOG_OUTPUT     0
+
 typedef struct {
     uint8_t wear_status[2];   /// 0: 未佩戴 1: 正常佩戴
     uint8_t compensation_status[2];     // 0: 不补偿, 1: 减小气压; 2:加大气压

@@ -66,7 +66,9 @@ static void algo_fusion_work_thread(void *args)
     ALGO_QUEUE_CREATE(&algo_msg_queue_id, "algo_fusion_queue", ALGO_FUSION_QUEUE_SIZE, ALGO_FUSION_QUEUE_ITEM_SIZE);
     for (;;) {
         ALGO_QUEUE_RECV(algo_msg_queue_id, &data_type, ALGO_OS_WAIT_FOREVER);
-        // ALGO_LOG_INFO("algo_fusion_work_thread: %d", data_type);
+        #if IS_SUPPORT_ALGO_LIB_LOG_OUTPUT
+        ALGO_LOG_INFO("algo_fusion_work_thread: %d", data_type);
+        #endif
         switch (data_type) {
             case ALGO_SENSOR_ATTR_AIR_PRESSURE: {
                 wear_detection_process_data();
@@ -107,7 +109,9 @@ void algo_fusion_lib_input(algo_fusion_input_data_t *input)
     /// TODO: 是否需要缓存数据，比如未泵奶的情况
     /// TODO: 缓存数据到本地，避免阻塞
     /// TODO: 监听缓存是否满，满了发消息给算法线程
-    
+    #if IS_SUPPORT_ALGO_LIB_LOG_OUTPUT
+    ALGO_LOG_INFO("algo_fusion_lib_input: %d", data_type);
+    #endif
     // data type
     switch (data_type){
         case ALGO_SENSOR_ATTR_AIR_PRESSURE:
