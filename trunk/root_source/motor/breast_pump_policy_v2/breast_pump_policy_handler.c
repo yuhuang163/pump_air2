@@ -305,11 +305,23 @@ int breast_pump_mode_policy_handler(struct motor_manager_context *thiz, motor_ta
     return exit_code;
 }
  
+
+static void on_algo_compensation_callback(void *user_data, algo_breast_pump_data_t *result)
+{
+    /// 气压补偿回调打印
+    //LOG_MOTOR("on_algo_compensation_callback: %d/%d %d/%d", result->wear_detection.compensation_status[0], result->wear_detection.compensation_status[1], \
+    //    result->wear_detection.compensation_delta_pwm[0], result->wear_detection.compensation_delta_pwm[1]);
+}
+
 void motor_policy_init(struct motor_manager_context *thiz)
 {
     // negative_pressure_release(thiz, 200);
     CREATE_TIMER(&policy_work_timer, "policy_work", thiz, OS_TIMER_PERIODIC, policy_work_timer_cb);
     CREATE_MSG_TYPE_QUEUE(&policy_work_msg_id, POLICY_WORK_MSG_NUM, sizeof(motor_timer_event_msg_t));
     DEVICE_IOCTL_ARGS(thiz->priv.motor_dev, OP_CODE_MOTOR_ADD_TIMER_EVENT_CALLBACK, &on_motor_timer_event_cb);
+    /// 注册算法气压补偿回调
+    algo_manager_context_t *algo_ctx = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
+    EXCEPTION_CHECK_VOID(algo_ctx && algo_ctx->hook);
+    algo_ctx->add_algo_result_listener(thiz, (on_algo_result_cb_ptr)on_algo_compensation_callback);
 }
 
