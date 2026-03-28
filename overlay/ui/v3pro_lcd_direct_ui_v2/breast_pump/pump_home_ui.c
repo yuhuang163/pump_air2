@@ -406,7 +406,7 @@ static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t spe
     lv_fs_make_path_from_buffer(&speed_icon_path, LV_FS_MEMFS_LETTER, 
         pump_info->speed_icon_info.data, pump_info->speed_icon_info.size, "baj");
     lv_image_set_src(pump_info->speed_icon, (const void *)&speed_icon_path);
-    lv_obj_align(pump_info->speed_icon, LV_ALIGN_TOP_LEFT, 186, 24);
+    lv_obj_align(pump_info->speed_icon, LV_ALIGN_TOP_LEFT, 206, 26);
     pump_info->speed = speed; 
 }
 
@@ -624,8 +624,8 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     READ_PUMP_WORK_MODE(proc->pump, pump_mode);
     uint8_t is_regular_mode = PUMP_IS_COMMON_MODE(pump_mode);
     pump_home_bg_update(thiz, is_regular_mode);
-    ble_ui_update(thiz, pump_info->root, proc->ble, 150, 24);
-    battery_ui_update(thiz, pump_info->root, proc->battery, UI_BATTERY_STATE_NONE);
+    ble_ui_update(thiz, pump_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
+    battery_ui_update(thiz, pump_info->root, proc->battery, false);
     pump_home_time_update(thiz, hold_time, is_regular_mode ? 0 : 19);
     if (is_regular_mode) {
         pump_home_animation_update(thiz, RESOURCE_ID_COMMON_MODE_ANIMATION_START, 
