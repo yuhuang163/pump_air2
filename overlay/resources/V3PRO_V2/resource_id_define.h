@@ -25,7 +25,8 @@ typedef enum {
     RESOURCE_ID_BATT_CAP_100_ICON,             /// 电池电量100%
     RESOURCE_ID_CHARGE_ICON,                   /// 电池充电图标
     RESOURCE_ID_LOW_POWER_ICON,                /// 电池低电量图标
-
+    RESOURCE_ID_CLOCK_COLON_ICON,              /// 时钟冒号图标
+    RESOURCE_ID_CHARGE_PAGE_BG,                /// 充电页背景
 
     /* 主界面组 [100..150] */
     RESOURCE_ID_COMMON_BG = 100,               /// 通用背景
@@ -90,6 +91,9 @@ typedef enum {
 
     RESOURCE_ID_PUMP_LEVEL_START = 900,   /// 泵奶档位图片-开始
     RESOURCE_ID_PUMP_LEVEL_END = 914,     /// 泵奶档位图片-结束
+
+    RESOURCE_ID_HOME_LIGHT_ANIMATION_START = 1000,   /// 首页夜灯动画-开始
+    RESOURCE_ID_HOME_LIGHT_ANIMATION_END = 1119,     /// 首页夜灯动画-结束
 
     RESOURCE_ID_TYPE_MAX
 } resource_id_type_e;

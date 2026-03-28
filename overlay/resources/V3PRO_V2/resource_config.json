@@ -113,7 +113,28 @@
     {
       "resource_id": "RESOURCE_ID_CHARGE_ICON",
       "description": "电池充电图标",
-      "file": "baj/icon_charge_49x16_a8_q99_444.baj",
+      "file": "baj/icon_charge_16x16_a8_q99_444.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_LOW_POWER_ICON",
+      "description": "电池低电量图标",
+      "file": "baj/icon_low_battery_16x16_a8_q99_444.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CLOCK_COLON_ICON",
+      "description": "时钟冒号图标",
+      "file": "baj/icon_time_colon_12x42_a8_q99_444.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_CHARGE_PAGE_BG",
+      "description": "充电页背景",
+      "file": "baj/bg_charge_page_360x360_a8_q99_422.baj",
       "x_offset": 0,
       "y_offset": 0
     },
@@ -148,7 +169,7 @@
     {
       "resource_id": "RESOURCE_ID_HOME_LIGHT_LABLE_ICON",
       "description": "首页光线图标",
-      "file": "baj/icon_home_light_lable_272x86_a8_q99_444.baj",
+      "file": "baj/icon_home_light_lable_280x86_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },

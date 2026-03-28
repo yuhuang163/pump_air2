@@ -200,6 +200,7 @@ void ui_display_airplane_mode_prepare(ui_manager_context_t *thiz)
     }
     airplane_mode_info->force_update = true;
     ble_ui_init(thiz);
+    battery_ui_init(thiz);
     airplane_mode_root_init();
     common_ui_bg_init(thiz);
     thiz->priv.fps_count = 0;
@@ -212,6 +213,7 @@ void ui_display_airplane_mode_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(airplane_mode_info);
     EXCEPTION_CHECK_VOID(airplane_mode_info->root);
     ble_ui_deinit(thiz);
+    battery_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
     common_ui_img_resource_deinit(thiz, &airplane_mode_info->unlock_button_icon_info);
     ui_display_airplane_mode_exit_remove(thiz);
@@ -229,8 +231,9 @@ int ui_display_airplane_mode_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->ble);
     airplane_mode_bg_update(thiz);
+    battery_ui_update(thiz, airplane_mode_info->root, proc->battery, true);
     airplane_mode_button_icon_update(thiz);
-    ble_ui_update(thiz, airplane_mode_info->root, proc->ble, 168, 22);
+    ble_ui_update(thiz, airplane_mode_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
     for (uint8_t i = 0; i < AIRPLANE_MODE_TEXT_COUNT; i++) {
         airplane_mode_texts_update(thiz, i);
     }

@@ -12,12 +12,6 @@ extern "C" {
 #include "ui_manager_api.h" // IWYU pragma: keep
 #include "battery_manager_api.h" // IWYU pragma: keep
 
-typedef enum {
-    UI_BATTERY_STATE_NONE = 0,
-    UI_BATTERY_STATE_CHARGING = 1,
-    UI_BATTERY_STATE_LOW_POWER = 2,
-} ui_battery_state_e;
-
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
@@ -25,7 +19,8 @@ typedef enum {
 /// 电池
 void battery_ui_init(ui_manager_context_t *thiz);
 void battery_ui_deinit(ui_manager_context_t *thiz);
-int battery_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, battery_manager_context_t *battery, ui_battery_state_e state);
+int battery_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, 
+    battery_manager_context_t *battery, uint8_t is_display_state);
 
 /// 低电量页面
 void ui_display_battery_low_power_prepare(ui_manager_context_t *thiz);
