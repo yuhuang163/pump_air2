@@ -66,13 +66,17 @@ typedef enum {
 typedef enum {
     MOTOR_TASK_HEARTBEAT_TIMER_MSG = 100, /// 任务心跳定时器消息
     MOTOR_DRIVER_TIMER_EVENT_MSG, /// 驱动定时器事件消息
+    MOTOR_PUMP_LEVEL_ADJUST_MSG, /// 泵档位动态调整消息
     MOTOR_TIMER_MSG_TYPE_MAX,
 } motor_timer_msg_type_e;
 
 typedef struct motor_timer_event_msg {
-    motor_timer_msg_type_e msg_type;
-    motor_pump_status_e action;
     uint8_t pump_id;
+    motor_timer_msg_type_e msg_type;
+    union { 
+        motor_pump_status_e action;
+        int16_t pulse_width[BREAST_PUMP_NUM];
+    } un;
 } motor_timer_event_msg_t;
 
 /// 马达播放请求参数.
