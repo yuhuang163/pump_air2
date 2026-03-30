@@ -111,23 +111,24 @@ static void airplane_mode_exit_progress_arc_update(ui_manager_context_t *thiz)
 
 static void airplane_mode_exit_countdown_num_update(ui_manager_context_t *thiz)
 {
-    if (display_info->force_update == false &&
-        display_info->display_number == display_info->countdown_value) {
-        return;
-    }
-
     if (display_info->number_text == NULL || !lv_obj_is_valid(display_info->number_text)) {
         display_info->number_text = lv_label_create(display_info->root);
         EXCEPTION_CHECK_VOID(display_info->number_text);
     }
     char num_buf[8] = {0};
     uint8_t num = get_timestamp_ms(display_info->start_time) / 1000;
-    snprintf(num_buf, sizeof(num_buf), "%d", (num > 5 ? 0 : 5 - num));
+    uint8_t show_num = (num > 5 ? 0 : 5 - num);
+    if (display_info->force_update == false &&
+        display_info->display_number == show_num) {
+        return;
+    }
+    snprintf(num_buf, sizeof(num_buf), "%d", show_num);
     lv_label_set_text(display_info->number_text, num_buf);
     lv_obj_set_style_text_color(display_info->number_text, lv_color_white(), 0);
     lv_obj_set_style_text_font(display_info->number_text, &lv_font_oppo_sans_96_bold, 0);
     lv_obj_set_style_text_align(display_info->number_text, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(display_info->number_text, LV_ALIGN_CENTER, 0, 0);
+    display_info->display_number = show_num;
 }
 
 static void airplane_mode_exit_mask_layer_update(ui_manager_context_t *thiz)
@@ -186,9 +187,9 @@ void ui_display_airplane_mode_exit_process(ui_manager_context_t *thiz)
     airplane_mode_exit_mask_layer_update(thiz);
     airplane_mode_exit_progress_arc_update(thiz);
     airplane_mode_exit_countdown_num_update(thiz);
-    display_info->display_number = display_info->countdown_value;
     display_info->force_update = false;
-    if (get_timestamp_ms(display_info->start_time) >= AIRPLANE_MODE_EXIT_DISPLAY_TIME) {
+    //过早退出不显示0
+    if (get_timestamp_ms(display_info->start_time) > AIRPLANE_MODE_EXIT_DISPLAY_TIME + 200) {
         ui_animation_play_t *ani = &thiz->priv.play_info;
         EXCEPTION_CHECK_VOID(ani);
         LOG_UI("display completed");
