@@ -101,16 +101,14 @@ static int internal_start_motor(uint8_t action)
     return 0;
 }
  
-static int internal_stop_motor(void)
+static int internal_stop_motor(const char *reason)
 {
-    int ret = -1;
-    uint32_t args[1] = {MOTOR_PWM_ALL_ID};
-    if (motor_obj->priv.motor_dev && motor_obj->priv.motor_dev->ioctl) {
-        ret = DEVICE_IOCTL_ARGS(motor_obj->priv.motor_dev, OP_CODE_MOTOR_STOP_PLAY, args);
+    if (reason) {
+        update_play_interrupt_reason(reason);
+    } else {
+        update_play_interrupt_reason("unknown-reason");
     }
-    memset(motor_obj->priv.runtime.info, 0, sizeof(motor_policy_info_t) * BREAST_PUMP_NUM);
-    LOG_MOTOR("ret: %d", ret);
-    return ret;
+    return 0;
 }
  
 static void on_motor_broadcast_receiver(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
@@ -197,24 +195,24 @@ static int stop_motor(void)
 {
     motor_obj->priv.is_user_stoped = 1;
     motor_obj->priv.user_debug_status = 0;
-    return internal_stop_motor();
+    return internal_stop_motor("user-stop");
 }
 
 static int synchronous_stop_motor(void)
 {
     motor_obj->priv.is_user_stoped = 1;
     motor_obj->priv.user_debug_status = 0;
-    internal_stop_motor();
+    internal_stop_motor("synchronous-stop");
     uint32_t start_time = get_timestamp();
     while (is_on_motor_task_running(motor_obj)) {
         msleep(10);
         if (get_timestamp_ms(start_time) > 100) {
-            LOG_MOTOR("synchronous stop motor timeout");
+            LOGE("==> stop timeout");
             return -1;
         }
         start_time = get_timestamp();
     }
-    LOG_MOTOR("synchronous stop motor success");
+    LOG_MOTOR("==> stop success");
     return 0;
 }
 
