@@ -79,7 +79,6 @@ void ui_display_charge_screen_prepare(ui_manager_context_t *thiz)
     charge_ui_root_init();
     battery_ui_init(thiz);
     ble_ui_init(thiz);
-    common_ui_bg_init(thiz);
     charge_info->force_update = true;
 }
 

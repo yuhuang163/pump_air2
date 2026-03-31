@@ -25,8 +25,10 @@ typedef enum {
     RESOURCE_ID_BATT_CAP_100_ICON,             /// 电池电量100%
     RESOURCE_ID_CHARGE_ICON,                   /// 电池充电图标
     RESOURCE_ID_LOW_POWER_ICON,                /// 电池低电量图标
+    RESOURCE_ID_LOW_POWER_PEOPLE_ICON,         /// 低电量页面人物图标
     RESOURCE_ID_CLOCK_COLON_ICON,              /// 时钟冒号图标
     RESOURCE_ID_CHARGE_PAGE_BG,                /// 充电页背景
+
 
     /* 主界面组 [100..150] */
     RESOURCE_ID_COMMON_BG = 100,               /// 通用背景
