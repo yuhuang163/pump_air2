@@ -27,6 +27,11 @@ void ui_display_battery_low_power_prepare(ui_manager_context_t *thiz);
 void ui_display_battery_low_power_remove(ui_manager_context_t *thiz);
 int ui_display_battery_low_power_process(ui_manager_context_t *thiz);
 
+/// 低电量弹窗页面
+void ui_display_battery_low_power_pop_prepare(ui_manager_context_t *thiz);
+void ui_display_battery_low_power_pop_remove(ui_manager_context_t *thiz);
+int ui_display_battery_low_power_pop_process(ui_manager_context_t *thiz);
+
 #ifdef __cplusplus
 }
 #endif

@@ -125,6 +125,13 @@
       "y_offset": 0
     },
     {
+      "resource_id": "RESOURCE_ID_LOW_POWER_PEOPLE_ICON",
+      "description": "低电量页面人物图标",
+      "file": "baj/icon_battery_low_power_340x247_a8_q99_422.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
       "resource_id": "RESOURCE_ID_CLOCK_COLON_ICON",
       "description": "时钟冒号图标",
       "file": "baj/icon_time_colon_12x42_a8_q99_444.baj",

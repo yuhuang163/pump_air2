@@ -36,6 +36,10 @@ static bool check_if_low_battery(void)
     EXCEPTION_CHECK_BOOL(thiz->priv.battery);
     int percent = 0;
     DEVICE_READ_ARGS(thiz->priv.battery, &percent, sizeof(percent));
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_CHARGE_STATUS, ret);
+    if (ret == CHARGE_STATE_CHARGING || ret == CHARGE_STATE_FULL) {
+        return 0;
+    }
     return percent <= LOW_BAT_PERCENTAGE ? 1 : 0;
 }
 
