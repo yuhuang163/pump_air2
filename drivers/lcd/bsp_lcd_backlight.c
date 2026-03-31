@@ -142,7 +142,7 @@ static int8_t bsp_lcd_backlight_timer_register(void)
     return 0;
 }
 
-static void lcd_backlight_level_set(uint8_t level)
+static void lcd_backlight_level_set(uint16_t level)
 {    
     if (backlight_info.onoff == 0 && level > 0) {
         struct HAL_PWM_CFG_T pwm_cfg = {
@@ -159,8 +159,14 @@ static void lcd_backlight_level_set(uint8_t level)
         LOG_PBUS("lcd backlight on");
     } 
     
-    if (backlight_info.target_duty != level) {
-        backlight_info.target_duty = level > 100 ? 100 : level;
+    uint8_t target_duty = 0;
+    if (level > LCD_BACKLIGHT_LEVEL_MAX) {
+        target_duty = 100;
+    } else {
+        target_duty = ((level * 100) / LCD_BACKLIGHT_LEVEL_MAX);
+    }
+    if (backlight_info.target_duty != target_duty) {
+        backlight_info.target_duty = target_duty;
         bsp_lcd_backlight_climb_start();
         LOG_PBUS("duty: %d, level: %d", backlight_info.target_duty, backlight_info.current_duty);
     }
