@@ -148,8 +148,13 @@ extern "C" {
 #define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
 #define LED_I2C_ID                      I2C_MASTER_ID_1
 #define TOUCH_KEY_I2C_ID                I2C_MASTER_ID_1
+#if 0
 #define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_0
 #define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_3
+#else
+#define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_3
+#define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_0
+#endif
 #define CHARGE_I2C_ID                   I2C_MASTER_ID_1
 #define CHARGE_PD_I2C_ID                I2C_MASTER_ID_2
 /// 充电芯片相关定义
