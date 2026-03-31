@@ -56,6 +56,9 @@ static void wear_detection_process_data(void)
         // TODO: 实现气压补偿算法
         V3ProAlgoMain(s_air_pressure_data);
         GetCompensationResult(s_result.compensation_status, s_result.compensation_delta_pwm);
+        ALGO_LOG_INFO("time_stamp: %d, air pressure: p1: %f, p2: %f", s_air_pressure_data.timestamp, s_air_pressure_data.air_pressure[0], s_air_pressure_data.air_pressure[1]);
+        ALGO_LOG_INFO("pump state: %d, %d", s_air_pressure_data.pump_state[0].state, s_air_pressure_data.pump_state[1].state);
+        ALGO_LOG_INFO("status: %d/%d, delta_pwm: %d, %d", s_result.compensation_status[0], s_result.compensation_status[1], s_result.compensation_delta_pwm[0], s_result.compensation_delta_pwm[1]);
     }
 }
 
@@ -123,13 +126,16 @@ void algo_fusion_lib_input(algo_fusion_input_data_t *input)
             s_air_pressure_data.pump_state[0].mode = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[0].mode;
             s_air_pressure_data.pump_state[1].mode = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[1].mode;
             s_air_pressure_data.pump_state[0].state = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[0].state;
-            s_air_pressure_data.pump_state[1].state = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[1].state;
+            s_air_pressure_data.pump_state[1].state = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[0].state;     // 用于测试气压补偿
+            // s_air_pressure_data.pump_state[1].state = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[1].state;
             s_air_pressure_data.pump_state[0].pump_duty = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[0].pump_duty;
             s_air_pressure_data.pump_state[1].pump_duty = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[1].pump_duty;
             s_air_pressure_data.pump_state[0].valve_duty = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[0].valve_duty;
             s_air_pressure_data.pump_state[1].valve_duty = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[1].valve_duty;
             s_air_pressure_data.pump_state[0].target_pressure = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[0].target_pressure;
-            s_air_pressure_data.pump_state[1].target_pressure = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[1].target_pressure;
+            s_air_pressure_data.pump_state[1].target_pressure = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[0].target_pressure;     // 用于测试气压补偿
+            // s_air_pressure_data.pump_state[1].target_pressure = ((aglo_air_pressure_data_t*)input->sensor_data)->pump_state[1].target_pressure;
+            s_air_pressure_data.timestamp = ((aglo_air_pressure_data_t*)input->sensor_data)->timestamp;
             break;
         }
         default:

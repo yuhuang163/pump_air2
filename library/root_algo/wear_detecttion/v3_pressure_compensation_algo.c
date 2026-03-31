@@ -86,7 +86,6 @@ void V3ProModeReset(algo_pump_state_t pump_state, unsigned char channel_idx)
 		tFeatureInfo[channel_idx].fSlope = expression_K_slope[tDeviceInfo[channel_idx].uLevel];
 		tFeatureInfo[channel_idx].fIntercept = expression_intercep[tDeviceInfo[channel_idx].uLevel];
 	}
-
 }
 
 /*************************************************************************************************************************************************
@@ -126,7 +125,6 @@ unsigned int V3ProBufferCircleNextIndex(unsigned int uPos, unsigned int uIndent,
 void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigned char uchannelIdx)
 {
 	// 更新时间戳--实际时间戳分辨度不够
-	tGlobalInfo.prevtimestamp = tGlobalInfo.currtimestamp;
 	tGlobalInfo.currtimestamp = sPressureData.timestamp;
 
 	// 如果发生模式/档位变更，重置
@@ -136,11 +134,7 @@ void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigne
 		V3ProModeReset(sPressureData.pump_state[uchannelIdx], uchannelIdx);
 	}
 	tDataBuffer[uchannelIdx].fDataBuff[tDataBuffer[uchannelIdx].uCurrPos] = sPressureData.air_pressure[uchannelIdx];
-	// 更新泵状态
-	tFeatureInfo[uchannelIdx].uState = sPressureData.pump_state[uchannelIdx].state;
-	if (sPressureData.pump_state[uchannelIdx].state == SUCTION_STATUS_GENERATE || 
-		sPressureData.pump_state[uchannelIdx].state == SUCTION_STATUS_HOLD)
-		tFeatureInfo[uchannelIdx].pumping_time += 1;
+
 	//tFeatureInfo->remain_time[uchannelIdx] = sPressureData.timestamp;
 
 }
@@ -157,44 +151,38 @@ void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigne
 */
 void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tFeatureInfoTemp, SDEVICE_INFO *tDeviceInfoTemp)
 {
-
-	// 判断当前是否接近结束泵工作ms级运算
-	if (tDeviceInfoTemp->run_time - tFeatureInfoTemp->pumping_time * SAMPLE_RATE <= 3 * SAMPLE_RATE)
+	if (tFeatureInfoTemp->uCompsStatus != 0)
 	{
-		float fPredPressure = tFeatureInfoTemp->fSlope * fDataBuff + tFeatureInfoTemp->fIntercept;
+		tFeatureInfoTemp->uCompsStatus == 0;
+		tFeatureInfoTemp->iDelta_pwm = 0;
+	}
+	// 判断当前是否接近结束泵工作ms级运算
+	else if (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp) <  2 * SAMPLE_RATE && tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp > 0)	{
+		//float fPredPressure = tFeatureInfoTemp->fSlope * fDataBuff + tFeatureInfoTemp->fIntercept;
+		float fPredPressure = fDataBuff + 2;
 #if DEBUG == 1
-		printf("%d, %f\n", tFeatureInfoTemp->pumping_time, fPredPressure);
+		//printf("%d, %f\n", tFeatureInfoTemp->pumping_time, fPredPressure);
 #endif
 		// 预测值有问题时，不进行处理
-		if (fPredPressure < fDataBuff || (fPredPressure > fDataBuff + 10))
+		//float fPredPressure = fDataBuff + 2;
+		// 当前已超过目标负压最大值，则直接反馈补偿
+		if ((fPredPressure + tDeviceInfoTemp->uTargetPressure) < (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.05)
+		{
+			tFeatureInfoTemp->uCompsStatus = 1;
+			// 需要反馈iDelta_pwm (超出目标负压，反馈减小pwm）
+			tFeatureInfoTemp->iDelta_pwm = -100 - (fPredPressure + tDeviceInfoTemp->uTargetPressure)*10;
+		}
+		else if ((tDeviceInfoTemp->uTargetPressure + fPredPressure) > (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.1)
+		{
+			tFeatureInfoTemp->uCompsStatus = 2;
+			// 需要反馈iDelta_pwm (低于目标负压，反馈减小pwm）
+			tFeatureInfoTemp->iDelta_pwm = 100 + (fPredPressure + tDeviceInfoTemp->uTargetPressure) * 10;
+		}
+		else
 		{
 			tFeatureInfoTemp->uCompsStatus = 0;
 			tFeatureInfoTemp->iDelta_pwm = 0;
 		}
-		else
-		{
-			//float fPredPressure = fDataBuff + 2;
-			// 当前已超过目标负压最大值-2，则直接反馈补偿
-			if (fPredPressure < -tDeviceInfoTemp->uTargetPressure - 2)
-			{
-				tFeatureInfoTemp->uCompsStatus = 1;
-				// 需要反馈iDelta_pwm (超出目标负压，反馈减小pwm）
-				tFeatureInfoTemp->iDelta_pwm = -100;
-				//tFeatureInfoTemp->iDelta_pwm = (fPredPressure - (-tDeviceInfoTemp->uTargetPressure - 2));
-			}
-			else if (fPredPressure > -tDeviceInfoTemp->uTargetPressure + 4)
-			{
-				tFeatureInfoTemp->uCompsStatus = 2;
-				// 需要反馈iDelta_pwm (低于目标负压，反馈减小pwm）
-				tFeatureInfoTemp->iDelta_pwm = 100;
-			}
-			else
-			{
-				tFeatureInfoTemp->uCompsStatus = 0;
-				tFeatureInfoTemp->iDelta_pwm = 0;
-			}
-		}
-
 	}
 }
 
@@ -210,13 +198,17 @@ void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tFeatureInf
 */
 void V3ProAlgoMain(aglo_air_pressure_data_t sPressureData)
 {
-
 #if DEBUG == 1
 	// processing left and right data
 	// for debug, process one channel
 	unsigned int i = 0;
-	if (((sPressureData.pump_state[i].state == SUCTION_STATUS_GENERATE) || (sPressureData.pump_state[i].state == SUCTION_STATUS_HOLD)) && tFeatureInfo[i].uCompsStatus == 0)
+	if ((sPressureData.pump_state[i].state == SUCTION_STATUS_GENERATE) || (sPressureData.pump_state[i].state == SUCTION_STATUS_HOLD))	//  
 	{
+		tFeatureInfo[i].pumping_time += 1;
+		if (tFeatureInfo[i].pumping_time == 1)
+		{
+			tGlobalInfo.prevtimestamp = sPressureData.timestamp;
+		}
 		V3ProPressureDataPreprocess(sPressureData, i);
 		PressureCompensationAnalysis(tDataBuffer[i].fDataBuff[tDataBuffer[i].uCurrPos], &tFeatureInfo[i], &tDeviceInfo[i]);
 		// update current index
@@ -234,8 +226,13 @@ void V3ProAlgoMain(aglo_air_pressure_data_t sPressureData)
 
 	for (unsigned int i = 0; i < CHANNEL_NUM; i++)
 	{
-		if (((sPressureData.pump_state[i].state == SUCTION_STATUS_GENERATE) || (sPressureData.pump_state[i].state == SUCTION_STATUS_HOLD)) && tFeatureInfo[i].uCompsStatus == 0)
+		if (((sPressureData.pump_state[i].state == SUCTION_STATUS_GENERATE) || (sPressureData.pump_state[i].state == SUCTION_STATUS_HOLD)))
 		{
+			tFeatureInfo[i].pumping_time += 1;
+			if (tFeatureInfo[i].pumping_time == 1)
+			{
+				tGlobalInfo.prevtimestamp = sPressureData.timestamp;
+			}
 			V3ProPressureDataPreprocess(sPressureData, i);
 			PressureCompensationAnalysis(tDataBuffer[i].fDataBuff[tDataBuffer[i].uCurrPos], &tFeatureInfo[i], &tDeviceInfo[i]);
 			// update current index
