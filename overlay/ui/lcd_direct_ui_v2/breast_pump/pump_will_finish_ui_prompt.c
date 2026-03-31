@@ -27,9 +27,6 @@
   
 typedef struct {
     lv_obj_t * root;
-#if IS_SUPPORT_WILL_FINISH_TIP_COMP_BG
-    lv_obj_t * background;
-#endif
     lv_obj_t * text;
     lv_obj_t * arc;            /// 圆弧进度条对象
     lv_obj_t * mask_layer;               /// 遮罩层对象
@@ -43,12 +40,6 @@ typedef struct {
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
-#if IS_SUPPORT_COMPLETE_TIP_COMP_BG
-static PSRAM_DATA_LOC uint8_t will_finish_tip_bg_data[] = {
-    #include "comparison_png2txt/pump_finish_comp_360x360.txt"
-};
-#endif
-
 static will_finish_tip_display_info_t *tip_info;
 
 
