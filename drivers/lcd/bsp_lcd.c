@@ -107,7 +107,7 @@ static int lcd_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
     if (op_code == OP_CODE_PANEL_SET_BL) {
         uint32_t *tmp = (uint32_t *)args;
         if (tmp) {
-            bsp_lcd_backlight_control((uint8_t)(tmp[0]));
+            bsp_lcd_backlight_control((uint16_t)(tmp[0]));
         }
         return 0;
     }
