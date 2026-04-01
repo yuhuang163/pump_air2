@@ -56,9 +56,11 @@ static void wear_detection_process_data(void)
         // TODO: 实现气压补偿算法
         V3ProAlgoMain(s_air_pressure_data);
         GetCompensationResult(s_result.compensation_status, s_result.compensation_delta_pwm);
+        #if IS_SUPPORT_ALGO_LIB_LOG_OUTPUT
         ALGO_LOG_INFO("time_stamp: %d, air pressure: p1: %f, p2: %f", s_air_pressure_data.timestamp, s_air_pressure_data.air_pressure[0], s_air_pressure_data.air_pressure[1]);
         ALGO_LOG_INFO("pump state: %d, %d", s_air_pressure_data.pump_state[0].state, s_air_pressure_data.pump_state[1].state);
         ALGO_LOG_INFO("status: %d/%d, delta_pwm: %d, %d", s_result.compensation_status[0], s_result.compensation_status[1], s_result.compensation_delta_pwm[0], s_result.compensation_delta_pwm[1]);
+        #endif
     }
 }
 
