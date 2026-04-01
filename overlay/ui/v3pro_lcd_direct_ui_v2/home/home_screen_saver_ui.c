@@ -204,6 +204,7 @@ static void home_screen_saver_clock_ui_update(ui_manager_context_t *thiz, bool i
 
 static home_screen_saver_display_type_e home_screen_saver_display_type_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
 {
+#if 0
     static home_screen_saver_display_type_e home_screen_saver_display_type_test = HOME_SCREEN_SAVER_DISPLAY_CLOCK; /// TODO: 测试用，后续删除
     static uint32_t count = 0; /// TODO: 测试用，后续删除
     count++;
@@ -215,6 +216,9 @@ static home_screen_saver_display_type_e home_screen_saver_display_type_update(ui
         }
     }
     return home_screen_saver_display_type_test;
+#else
+    return HOME_SCREEN_SAVER_DISPLAY_DEFAULT;
+#endif
 }
 
 static void home_screen_saver_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)

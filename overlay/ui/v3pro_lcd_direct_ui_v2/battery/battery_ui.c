@@ -117,9 +117,7 @@ int battery_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, battery_manage
     uint8_t percent = battery->get_battery_percent();
     uint8_t battery_status = UI_BATTERY_STATE_NONE;
     uint8_t charge_status = battery->get_charge_status();
-    uint16_t battery_img_id = RESOURCE_ID_BATT_CAP_0_ICON;
-    charge_status = CHARGE_STATE_CHARGING;
-    percent = 2;    
+    uint16_t battery_img_id = RESOURCE_ID_BATT_CAP_0_ICON;   
     if (BATTERY_IS_CHARGING(charge_status)) {
         battery_img_id = get_charge_battery_img_id(percent);
         battery_status = is_display_state > 0 ? UI_BATTERY_STATE_CHARGING : UI_BATTERY_STATE_NONE;
