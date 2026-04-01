@@ -6,8 +6,7 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
-#include "window_screen_home.h"   // IWYU pragma: keep
-#include "home_ui.h" // IWYU pragma: keep
+#include "window_screen_popup.h"   // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -168,7 +167,7 @@ static int will_power_off_tip_mask_layer_update(ui_manager_context_t *thiz)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void ui_display_will_power_off_prepare(ui_manager_context_t *thiz)
+void ui_display_power_off_popup_prepare(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     if (power_off_info == NULL) {
@@ -183,7 +182,7 @@ void ui_display_will_power_off_prepare(ui_manager_context_t *thiz)
     power_off_info->start_time = get_timestamp();
 }
 
-void ui_display_will_power_off_remove(ui_manager_context_t *thiz)
+void ui_display_power_off_popup_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     if (power_off_info == NULL) {
@@ -194,7 +193,7 @@ void ui_display_will_power_off_remove(ui_manager_context_t *thiz)
     power_off_info = NULL;
 }
 
-int ui_display_will_power_off_process(ui_manager_context_t *thiz)
+int ui_display_power_off_popup_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     if (power_off_info == NULL || power_off_info->root == NULL) {
