@@ -113,7 +113,7 @@ extern "C" {
 /// 支持充电
 #define IS_SUPPORT_DEVICE_CHARGE                         (1)
 /// 支持泵占空比动态调整
-#define IS_SUPPORT_PUMP_DUTY_ADJUST                      (1)
+#define IS_SUPPORT_PUMP_DUTY_ADJUST                      (0)
 #else
 /// 支持漏气提醒
 #define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
