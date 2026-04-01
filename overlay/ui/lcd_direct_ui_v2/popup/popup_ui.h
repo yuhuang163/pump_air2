@@ -16,9 +16,15 @@ extern "C" {
 *****************************************************************************************
 */
 
+/// 低电量弹窗页面
 void ui_display_low_power_popup_prepare(ui_manager_context_t *thiz);
 void ui_display_low_power_popup_remove(ui_manager_context_t *thiz);
 int ui_display_low_power_popup_process(ui_manager_context_t *thiz);
+
+/// 关机弹窗页面
+void ui_display_power_off_popup_prepare(ui_manager_context_t *thiz);
+void ui_display_power_off_popup_remove(ui_manager_context_t *thiz);
+int ui_display_power_off_popup_process(ui_manager_context_t *thiz);
 
 #ifdef __cplusplus
 }
