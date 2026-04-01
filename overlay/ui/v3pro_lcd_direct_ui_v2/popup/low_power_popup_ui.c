@@ -166,7 +166,7 @@ static void battery_low_power_pop_ui_mask_layer_update(ui_manager_context_t *thi
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void ui_display_battery_low_power_pop_prepare(ui_manager_context_t *thiz)
+void ui_display_low_power_popup_prepare(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     if (low_power_info == NULL) {
@@ -181,7 +181,7 @@ void ui_display_battery_low_power_pop_prepare(ui_manager_context_t *thiz)
     low_power_info->start_time = get_timestamp();
 }
 
-void ui_display_battery_low_power_pop_remove(ui_manager_context_t *thiz)
+void ui_display_low_power_popup_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(low_power_info);
@@ -190,7 +190,7 @@ void ui_display_battery_low_power_pop_remove(ui_manager_context_t *thiz)
     low_power_info = NULL;
 }
 
-int ui_display_battery_low_power_pop_process(ui_manager_context_t *thiz)
+int ui_display_low_power_popup_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(low_power_info);

@@ -56,17 +56,17 @@ typedef struct {
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void ui_display_battery_low_power_pop_prepare(ui_manager_context_t *thiz)
+void ui_display_low_power_popup_prepare(ui_manager_context_t *thiz)
 {
 
 }
 
-void ui_display_battery_low_power_pop_remove(ui_manager_context_t *thiz)
+void ui_display_low_power_popup_remove(ui_manager_context_t *thiz)
 {
 
 }
 
-int ui_display_battery_low_power_pop_process(ui_manager_context_t *thiz)
+int ui_display_low_power_popup_process(ui_manager_context_t *thiz)
 {
     return 0;
 }
