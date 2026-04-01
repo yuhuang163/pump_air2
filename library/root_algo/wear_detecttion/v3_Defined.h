@@ -53,7 +53,7 @@ static float EXPRESSION_WORK_TIME[] = { 370, 404, 425, 440, 468,
 										  600, 620, 650, 685, 710 };
 
 static float STIMULATION_WORK_TIME[] = { 270, 245, 270, 270, 260,
-										  303, 29, 302, 285, 305,
+										  303, 290, 302, 285, 305,
 										  285, 305, 313, 340, 322 };
 
 static float MIXED_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -20,

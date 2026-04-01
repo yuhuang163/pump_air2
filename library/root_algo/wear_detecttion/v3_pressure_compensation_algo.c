@@ -124,7 +124,7 @@ unsigned int V3ProBufferCircleNextIndex(unsigned int uPos, unsigned int uIndent,
 */
 void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigned char uchannelIdx)
 {
-	// 更新时间戳--实际时间戳分辨度不够
+	// 更新时间戳
 	tGlobalInfo.currtimestamp = sPressureData.timestamp;
 
 	// 如果发生模式/档位变更，重置
@@ -134,9 +134,7 @@ void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigne
 		V3ProModeReset(sPressureData.pump_state[uchannelIdx], uchannelIdx);
 	}
 	tDataBuffer[uchannelIdx].fDataBuff[tDataBuffer[uchannelIdx].uCurrPos] = sPressureData.air_pressure[uchannelIdx];
-
 	//tFeatureInfo->remain_time[uchannelIdx] = sPressureData.timestamp;
-
 }
 
 /*************************************************************************************************************************************************
@@ -151,13 +149,14 @@ void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigne
 */
 void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tFeatureInfoTemp, SDEVICE_INFO *tDeviceInfoTemp)
 {
+	ALGO_LOG_INFO("run_time: %d, prev: %d, curr: %d", tDeviceInfoTemp->run_time, tGlobalInfo.prevtimestamp, tGlobalInfo.currtimestamp);
 	if (tFeatureInfoTemp->uCompsStatus != 0)
 	{
 		tFeatureInfoTemp->uCompsStatus == 0;
 		tFeatureInfoTemp->iDelta_pwm = 0;
 	}
 	// 判断当前是否接近结束泵工作ms级运算
-	else if (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp) <  2 * SAMPLE_RATE && tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp > 0)	{
+	else if (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp) <  100 && tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp > 0)	{
 		//float fPredPressure = tFeatureInfoTemp->fSlope * fDataBuff + tFeatureInfoTemp->fIntercept;
 		float fPredPressure = fDataBuff + 2;
 #if DEBUG == 1
@@ -166,17 +165,19 @@ void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tFeatureInf
 		// 预测值有问题时，不进行处理
 		//float fPredPressure = fDataBuff + 2;
 		// 当前已超过目标负压最大值，则直接反馈补偿
-		if ((fPredPressure + tDeviceInfoTemp->uTargetPressure) < (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.05)
+		//if ((fPredPressure + tDeviceInfoTemp->uTargetPressure) < (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.05)
+		if (fDataBuff < -tDeviceInfoTemp->uTargetPressure)
 		{
 			tFeatureInfoTemp->uCompsStatus = 1;
 			// 需要反馈iDelta_pwm (超出目标负压，反馈减小pwm）
-			tFeatureInfoTemp->iDelta_pwm = -100 - (fPredPressure + tDeviceInfoTemp->uTargetPressure)*10;
-		}
-		else if ((tDeviceInfoTemp->uTargetPressure + fPredPressure) > (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.1)
+			tFeatureInfoTemp->iDelta_pwm = -100;		//  - (fPredPressure - tDeviceInfoTemp->uTargetPressure) * 10
+		}	
+		//else if ((tDeviceInfoTemp->uTargetPressure + fPredPressure) > (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.1)
+		else if (fDataBuff > -tDeviceInfoTemp->uTargetPressure)
 		{
 			tFeatureInfoTemp->uCompsStatus = 2;
 			// 需要反馈iDelta_pwm (低于目标负压，反馈减小pwm）
-			tFeatureInfoTemp->iDelta_pwm = 100 + (fPredPressure + tDeviceInfoTemp->uTargetPressure) * 10;
+			tFeatureInfoTemp->iDelta_pwm = 100;			//  + (fPredPressure - tDeviceInfoTemp->uTargetPressure) * 10
 		}
 		else
 		{
