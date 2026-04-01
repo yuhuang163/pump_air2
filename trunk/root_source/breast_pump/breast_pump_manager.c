@@ -5,6 +5,7 @@
 #include "persist_storage.h"
 #include "root_common_api.h"
 #include "breast_pump_manager.h" // IWYU pragma: keep
+#include "breast_pump_mode.h"
 
 /*
 * DEFINES
