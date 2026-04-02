@@ -284,6 +284,11 @@ static int set_time_policy_remaining_time(uint32_t remaining_time)
     return 0;
 }
 
+static uint32_t get_current_policy_pump_time(uint8_t pump_id)
+{
+    return motor_obj->priv.runtime.info[pump_id].original.pumping_time;
+}
+
 #if MOTOR_DRIVER_VERSION == MOTOR_DRIVER_V2
 static uint32_t get_policy_running_time(void)
 {
@@ -313,6 +318,7 @@ void *register_module_for_motor_manager_new(list_head_t *list_head)
     ptr->get_runtime_policy_mode_type = get_runtime_policy_mode_type;
     ptr->get_time_policy_remaining_time = get_time_policy_remaining_time;
     ptr->set_time_policy_remaining_time = set_time_policy_remaining_time;
+    ptr->get_current_policy_pump_time = get_current_policy_pump_time;
 #if MOTOR_DRIVER_VERSION == MOTOR_DRIVER_V2
     ptr->get_policy_running_time = get_policy_running_time; 
 #endif
