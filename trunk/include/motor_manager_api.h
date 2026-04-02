@@ -134,6 +134,8 @@ typedef struct motor_manager_context {
     uint32_t (*get_time_policy_remaining_time)(void);
     /// 设置当前时间策略剩余时间，单位s
     int (*set_time_policy_remaining_time)(uint32_t remaining_time);
+    /// 获取当前策略泵档位对应的pump目标时间，单位ms
+    uint32_t (*get_current_policy_pump_time)(uint8_t pump_id);
 #if MOTOR_DRIVER_VERSION == MOTOR_DRIVER_V2
     /// 获取策略运行时间，单位ms
     uint32_t (*get_policy_running_time)(void);
