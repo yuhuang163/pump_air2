@@ -83,7 +83,8 @@ typedef struct {
     uint8_t pump_duty;        /// 泵奶力度
     uint8_t valve_duty;       /// 吸乳器电磁阀门力度
     uint8_t target_pressure;  /// 目标压力
-    uint16_t run_time;        /// 运行时间，单位ms
+    uint32_t target_pump_time;       /// 泵工作目标时间，单位ms
+    uint32_t run_time;        /// 运行时间，单位ms
 } algo_pump_state_t;
 
 /// 气压数据
