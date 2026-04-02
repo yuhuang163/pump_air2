@@ -128,6 +128,8 @@ typedef struct motor_manager_context {
     int (*set_runtime_policy_index)(motor_policy_type_e type, int index);
     /// 获取模式类型
     uint8_t (*get_runtime_mode_type)(uint8_t is_next_mode);
+    /// 获取当前策略运行的模式类型
+    uint8_t (*get_runtime_policy_mode_type)(void);
     /// 获取当前时间策略剩余时间，单位s
     uint32_t (*get_time_policy_remaining_time)(void);
     /// 设置当前时间策略剩余时间，单位s
