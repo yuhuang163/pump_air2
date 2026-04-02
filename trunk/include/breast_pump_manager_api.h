@@ -107,6 +107,12 @@ typedef enum {
 /// 泵奶状态名称
 #define READ_PUMP_STATE_NAME(ctx, name_str) \
     ctx->get_pump_composite_state(BREAST_PUMP_WORK_STATE_NAME, 0, 0, name_str)        
+/// 当前是否由APP启动pump控制
+#define READ_PUMP_IS_START_FROM_APP(ctx, is_start_from_app) \
+    ctx->get_pump_composite_state(BREAST_PUMP_IS_START_FROM_APP, 0, 0, &is_start_from_app)
+/// 当前是否由APP启动pump控制
+#define WRITE_PUMP_IS_START_FROM_APP(ctx, is_start_from_app) \
+    ctx->set_pump_composite_state(BREAST_PUMP_IS_START_FROM_APP, is_start_from_app, 0, 0, NULL)
 
 typedef struct {
     uint8_t breast_pump_state;
@@ -142,6 +148,7 @@ typedef struct breast_pump_info_t {
     uint8_t common_mode;      /// 常规模式
     uint8_t last_common_mode;      /// 上次常规模式
     uint8_t custom_activate;   /// 个性化韵律激活
+    uint8_t is_start_from_app;   /// 当前是否由APP启动pump控制
 } breast_pump_info_t;
 
 /// 吸奶结果ID
@@ -175,6 +182,7 @@ typedef enum{
     BREAST_PUMP_MODE_NAME,    /// 泵奶当前模式
     BREAST_PUMP_RESULT_INFO,    /// 泵奶结果信息
     BREAST_PUMP_MODE_SETTING_INFO,    /// 
+    BREAST_PUMP_IS_START_FROM_APP,    /// 当前是否由APP启动pump控制
 } pump_state_type_e;
 
 struct peripheral_bus_context;

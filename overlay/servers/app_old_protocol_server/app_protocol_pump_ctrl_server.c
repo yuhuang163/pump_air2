@@ -733,6 +733,7 @@ static uint8_t app_old_comm_pump_run_status_ctrl(uint8_t status)
             //WRITE_PUMP_WORK_STATUS(pump_ctx, BREAST_PUMP_START, 1);
             app_broadcast_pump_status_to_window(BREAST_PUMP_START, OLD_BROADCAST_ALL_CT);
             app_pump_safe_start_key_sim_task();
+            WRITE_PUMP_IS_START_FROM_APP(pump_ctx, true);
         }
     } else if (pump_status == BREAST_PUMP_START || pump_status == BREAST_PUMP_CONTINUE) {
         if (status == APP_OLD_COMM_PUMP_CTRL_STOP) {
