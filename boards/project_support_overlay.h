@@ -116,6 +116,8 @@ extern "C" {
 #define IS_SUPPORT_PUMP_DUTY_ADJUST                      (0)
 /// 支持插电自动开机
 #define IS_SUPPORT_PWR_ON_WHEN_PLUG_IN                   (1)
+/// 支持夜灯
+#define IS_SUPPORT_NIGHT_LIGHT                           (1)
 #else
 /// 支持漏气提醒
 #define IS_SUPPORT_AIR_LEAKAGE_WARNING                   (0)
@@ -127,6 +129,8 @@ extern "C" {
 #define IS_SUPPORT_PUMP_DUTY_ADJUST                      (0)
 /// 支持插电自动开机
 #define IS_SUPPORT_PWR_ON_WHEN_PLUG_IN                   (0)
+/// 支持夜灯
+#define IS_SUPPORT_NIGHT_LIGHT                           (0)
 #endif
 /// 支持LOGO界面背景颜色测试
 #define IS_SUPPORT_LOGO_BG_COLOR_TEST                    (0)
