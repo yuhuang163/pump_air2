@@ -137,6 +137,7 @@ static void ui_factory_reset_confirm_arc_update(ui_manager_context_t *thiz, uint
     /// 隐藏或显示圆弧
     if (display_progress == 0) {
         lv_obj_add_flag(ui_info->arc, LV_OBJ_FLAG_HIDDEN); /// 隐藏
+        return;
     } else {
         lv_obj_clear_flag(ui_info->arc, LV_OBJ_FLAG_HIDDEN); /// 显示
     }

@@ -59,8 +59,8 @@ static void pump_level_root_init(void)
     if (level_info->root == NULL || !lv_obj_is_valid(level_info->root)) {
         level_info->root = lv_obj_create(lv_screen_active());
         lv_obj_set_size(level_info->root, LV_PCT(100), LV_PCT(100));
-        // lv_obj_set_style_bg_color(level_info->root, lv_color_black(), 0);
-        lv_obj_set_style_bg_color(level_info->root, lv_color_white(), 0);
+        lv_obj_set_style_bg_color(level_info->root, lv_color_black(), 0);
+        // lv_obj_set_style_bg_color(level_info->root, lv_color_white(), 0);
         lv_obj_set_style_bg_opa(level_info->root, LV_OPA_COVER, 0);
         lv_obj_set_style_border_width(level_info->root, 0, 0);
         lv_obj_set_style_pad_all(level_info->root, 0, 0);
