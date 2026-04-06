@@ -26,6 +26,13 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void home_qrcode_popup_ui_finish_policy(ui_manager_context_t *ui, int index)
+{
+    LOG_WM("===> popup %d ui display complete.", index);
+    ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
+    home_popup_ui_type_update(proc, HOME_POPUP_UI_NONE);
+}
+
 static void home_qrcode_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_home_t *proc = (ui_proc_home_t *)args->user_data;
@@ -58,6 +65,9 @@ static void home_qrcode_animation_progress_cb(void *user_data, int index, ui_ani
             break;
         case ANI_TIMER_DRAW_AFTER:
             home_qrcode_ui_after_policy(ui, index);
+            break;
+        case ANI_POPUP_DISPLAY_FINISH:
+            home_qrcode_popup_ui_finish_policy(ui, index);
             break;
         default:
             break;

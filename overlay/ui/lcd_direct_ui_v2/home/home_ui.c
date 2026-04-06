@@ -48,6 +48,8 @@ typedef struct {
     res_img_info_t animation_info;
     uint16_t animation_index;
     uint8_t force_update;
+    uint8_t popup_ui_index;
+    uint8_t rsv[12];
 } home_display_info_t;
 
 typedef struct {
@@ -231,6 +233,7 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     home_info->force_update = true;
     home_info->animation_index = 0;
+    home_info->popup_ui_index = HOME_POPUP_UI_NONE;
 }
 
 void ui_display_home_remove(ui_manager_context_t *thiz)
@@ -242,6 +245,7 @@ void ui_display_home_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &home_info->animation_info);
     ble_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
+    home_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(home_info->root);
     u_free(home_info);
     home_info = NULL;
@@ -259,6 +263,7 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     home_root_text_update(thiz);
     home_root_animation_update(thiz);
     ble_ui_update(thiz, home_info->root, proc->ble, 168, 22);
+    home_tip_popup_ui_update(thiz, proc, home_info->root, &home_info->popup_ui_index);
     home_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
