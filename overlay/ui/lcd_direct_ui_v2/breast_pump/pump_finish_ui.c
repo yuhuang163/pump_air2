@@ -33,6 +33,7 @@ typedef struct {
     lv_obj_t * texts[COMPLETE_TIP_TEXT_COUNT];
     res_img_info_t icon_info;
     uint8_t force_update;
+    uint8_t rsv[15];
 } complete_tip_display_info_t;
 
 /*

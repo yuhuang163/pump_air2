@@ -67,6 +67,7 @@ typedef struct {
     uint16_t hold_time;
     uint16_t animation_index;
     uint8_t animation_play_complete; /// 动画播放完成标志
+    uint8_t rsv[5];
 } pump_display_info_t;
 
 /*
@@ -171,8 +172,8 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint16_t hold_time
         pump_info->time_minute = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->time_minute);
         lv_obj_set_width(pump_info->time_minute, 120);
-        lv_label_set_long_mode(pump_info->time_minute, LV_LABEL_LONG_CLIP);
-        lv_obj_set_style_text_align(pump_info->time_minute, LV_TEXT_ALIGN_RIGHT, 0);
+        lv_label_set_long_mode(pump_info->time_minute, LV_LABEL_LONG_CLIP); /// 截断过长文本
+        lv_obj_set_style_text_align(pump_info->time_minute, LV_TEXT_ALIGN_RIGHT, 0); /// 右对齐
         lv_obj_set_style_text_color(pump_info->time_minute, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(pump_info->time_minute, &lv_font_quicksand_96_bold, 0);
         lv_obj_align(pump_info->time_minute, LV_ALIGN_TOP_LEFT, 46, 108 + 15 + y_offset);
@@ -519,7 +520,7 @@ static void pump_home_popup_ui_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
-    ui_prompt_mode_switch_remove(thiz);
+    ui_common_operation_tip_remove(thiz);
     ui_prompt_pump_will_finish_remove(thiz);
     ui_prompt_pump_status_remove(thiz);
     pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
@@ -532,16 +533,22 @@ static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t
             pump_home_popup_ui_remove(thiz);
             pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
             break;
-        case PUMP_POPUP_UI_MODE_PROMPT:
-            if (PUMP_IS_COMMON_MODE(pump_info->mode) == 0) {
-                return; /// 普通模式下不显示模式切换提示
-            }
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_MODE_PROMPT) {
+            case PUMP_POPUP_UI_OPERATION_SUCCESS:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_OPERATION_SUCCESS) {
                 pump_home_popup_ui_remove(thiz);
-                ui_prompt_mode_switch_prepare(thiz, pump_info->root);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_MODE_PROMPT;
+                ui_common_operation_tip_prepare(thiz, pump_info->root);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_SUCCESS;
             } else {
-                ui_prompt_mode_switch_process(thiz, proc->ui_common_mode_index);
+                ui_common_operation_tip_process(thiz, COMMON_OPERATION_SUCCESS, proc->popup_ui_start_time);
+            }
+            break;
+        case PUMP_POPUP_UI_OPERATION_FAILED:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_OPERATION_FAILED) {
+                pump_home_popup_ui_remove(thiz);
+                ui_common_operation_tip_prepare(thiz, pump_info->root);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_FAILED;
+            } else {
+                ui_common_operation_tip_process(thiz, COMMON_OPERATION_FAILED, proc->popup_ui_start_time);
             }
             break;
         case PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP:
@@ -603,13 +610,9 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(pump_info);
-    EXCEPTION_CHECK_INT(pump_info->root);
+    EXCEPTION_CHECK_INT(pump_info && pump_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->pump);
-    EXCEPTION_CHECK_INT(proc->motor);
-    EXCEPTION_CHECK_INT(proc->ble);
+    EXCEPTION_CHECK_INT(proc && proc->pump && proc->motor && proc->ble);
     const pump_result_info_t *result_info = NULL;
     READ_PUMP_RESULT_INFO(proc->pump, BREAST_PUMP_RESULT_PUMPING, &result_info);
     EXCEPTION_CHECK_INT(result_info);

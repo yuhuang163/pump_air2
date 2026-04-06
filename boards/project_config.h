@@ -126,6 +126,10 @@ extern "C" {
 #define IS_SUPPORT_SLEEP_POWER_OFF_COUNTDOWN           (1)
 /// 支持关机强制保存
 #define IS_SUPPORT_POWER_OFF_FORCE_SAVE                (1)
+/// 操作失败弹窗展示时间
+#define OPERATION_FAILURE_DISPLAY_TIMEOUT              (1000) /// 1s
+/// 操作成功弹窗展示时间
+#define OPERATION_SUCCESS_DISPLAY_TIMEOUT              (1000) /// 1s
 
 #ifdef __cplusplus
 }
