@@ -55,14 +55,14 @@
   ],
   "resources": [
     {
-      "resource_id": "RESOURCE_ID_BLE_CONNECT",
+      "resource_id": "RESOURCE_ID_BLE_CONNECT_ICON",
       "description": "蓝牙连接图标",
       "file": "baj/icon_ble_connect_24x24_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_BLE_DISCONNECT",
+      "resource_id": "RESOURCE_ID_BLE_DISCONNECT_ICON",
       "description": "蓝牙断开图标",
       "file": "baj/icon_ble_disconnect_24x24_a8_q99_444.baj",
       "x_offset": 0,
