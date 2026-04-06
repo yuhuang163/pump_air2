@@ -417,6 +417,16 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
             POWER_ON_VBUS_PLUG_IN_TASK_NAME);
         return 0;
     }
+#else
+    if (platform_is_startup_caused_by_reboot()) {
+        key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+        if (key && key->is_key_triggered(KEY_INDEX_POWER)) {
+            ctx->priv.is_power_on_timeout_detect = 1;
+        }
+        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 500, HDR_ACTION_POWER_ON, ctx,
+            POWER_ON_VBUS_PLUG_IN_TASK_NAME);
+        return 0;
+    }
 #endif
     uint32_t timeout_ms = POWER_ON_TIMEOUT_MS;
     if (timeout_ms > POWER_ON_TIMEOUT_MS_DEFAULT) {
