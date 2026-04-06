@@ -119,6 +119,5 @@ static void show_low_power_ui(ui_proc_popup_t *proc)
 void start_low_power_ui_animation(ui_proc_popup_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc);
-    LOG_UI("start low power pop ui animation.");
     show_low_power_ui(proc);
 }

@@ -71,7 +71,7 @@ static void show_system_will_power_off_ui(ui_proc_popup_t *proc)
     EXCEPTION_CHECK_VOID(ui);
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_overlay_init);
     ui_play_info_t play_info = {
-        .tag = "low_power_screen",
+        .tag = "power_off_screen",
         .fps = POPUP_ANIMATION_FREQ,
         .progress_cb = system_will_power_off_ui_animation_progress_cb,
         .display_prepare_cb = system_will_power_off_ui_display_prepare,
@@ -88,6 +88,5 @@ static void show_system_will_power_off_ui(ui_proc_popup_t *proc)
 void start_system_will_power_off_ui_animation(ui_proc_popup_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc);
-    LOG_UI("start system will power off ui animation.");
     show_system_will_power_off_ui(proc);
 }

@@ -31,6 +31,7 @@ typedef struct {
     uint8_t display_number; /// 显示倒计时数字
     uint16_t ring_progress; /// 圆弧进度
     uint32_t start_time; /// 开始显示时间
+    uint8_t rsv[8];
 } airplane_mode_exit_display_info_t;
 /*
 * TYPEDEFS

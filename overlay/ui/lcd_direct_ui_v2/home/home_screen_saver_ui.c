@@ -29,6 +29,7 @@ typedef struct {
     res_img_info_t saver_img_info;
     uint8_t force_update;
     uint8_t popup_ui_index;
+    uint8_t rsv[14];
 } home_screen_saver_display_info_t;
 
 typedef struct {
@@ -148,6 +149,7 @@ void ui_display_home_screen_saver_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     ble_ui_init(thiz);
     saver_info->force_update = true;
+    saver_info->popup_ui_index = HOME_POPUP_UI_NONE;
 }
 
 void ui_display_home_screen_saver_remove(ui_manager_context_t *thiz)
@@ -159,6 +161,7 @@ void ui_display_home_screen_saver_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &saver_info->saver_img_info);
     ble_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
+    home_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(saver_info->root);
     u_free(saver_info);
     saver_info = NULL;
@@ -175,6 +178,7 @@ int ui_display_home_screen_saver_process(ui_manager_context_t *thiz)
     home_screen_saver_root_bg_update(thiz);
     home_screen_saver_root_icon_update(thiz);
     ble_ui_update(thiz, saver_info->root, proc->ble, 168, 22);
+    home_tip_popup_ui_update(thiz, proc, saver_info->root, &saver_info->popup_ui_index);
     saver_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

@@ -15,8 +15,8 @@ typedef enum {
     RESOURCE_ID_NONE = 0x00, /// 无资源
 
     /* 通用组 [1..100] */
-    RESOURCE_ID_BLE_CONNECT = 0x01,            /// 蓝牙连接图标
-    RESOURCE_ID_BLE_DISCONNECT,                /// 蓝牙断开图标
+    RESOURCE_ID_BLE_CONNECT_ICON = 0x01,            /// 蓝牙连接图标
+    RESOURCE_ID_BLE_DISCONNECT_ICON,                /// 蓝牙断开图标
     RESOURCE_ID_BATT_CAP_0_ICON,               /// 电池电量0%
     RESOURCE_ID_BATT_CAP_20_ICON,              /// 电池电量20%
     RESOURCE_ID_BATT_CAP_40_ICON,              /// 电池电量40%

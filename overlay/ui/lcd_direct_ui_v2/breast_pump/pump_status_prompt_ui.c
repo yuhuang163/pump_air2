@@ -31,8 +31,7 @@ typedef struct {
     res_img_info_t status_img_info;
     lv_obj_t * status_text[2];
     uint8_t force_update;
-    // uint8_t status;                 // 当前泵状态
-    // uint32_t start_time; /// 开始显示时间
+    uint8_t rsv[15];
 } pump_status_display_info_t;
 
 typedef struct {

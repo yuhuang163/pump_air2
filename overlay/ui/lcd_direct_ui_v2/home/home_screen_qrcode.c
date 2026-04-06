@@ -35,6 +35,8 @@ typedef struct {
     lv_obj_t * text;
     res_img_info_t arrow_info;
     uint8_t force_update;
+    uint8_t popup_ui_index;
+    uint8_t rsv[14];
 } home_qrcode_display_info_t;
 
 /*
@@ -188,6 +190,7 @@ void ui_display_home_qrcode_prepare(ui_manager_context_t *thiz)
     ui_home_qrcode_root_init(); /// 初始化 root 容器
     common_ui_bg_init(thiz);
     home_qrcode_info->force_update = true;
+    home_qrcode_info->popup_ui_index = HOME_POPUP_UI_NONE;
 }
 
 void ui_display_home_qrcode_remove(ui_manager_context_t *thiz)
@@ -197,6 +200,7 @@ void ui_display_home_qrcode_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(home_qrcode_info->root);
     common_ui_img_resource_deinit(thiz, &home_qrcode_info->arrow_info);
     common_ui_bg_deinit(thiz);
+    home_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(home_qrcode_info->root);
     u_free(home_qrcode_info);
     home_qrcode_info = NULL;
@@ -207,8 +211,11 @@ int ui_display_home_qrcode_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(home_qrcode_info);
     EXCEPTION_CHECK_INT(home_qrcode_info->root);
+    ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
+    EXCEPTION_CHECK_INT(proc);
     ui_home_qrcode_bg_update(thiz);
     home_qrcode_ui_update(thiz);
+    home_tip_popup_ui_update(thiz, proc, home_qrcode_info->root, &home_qrcode_info->popup_ui_index);
     home_qrcode_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

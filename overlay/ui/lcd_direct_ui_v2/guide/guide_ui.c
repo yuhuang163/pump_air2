@@ -30,6 +30,7 @@ typedef struct {
     res_img_info_t img_info;
     uint8_t force_update;
     uint8_t page_index;
+    uint8_t rsv[14];
 } guide_display_info_t;
 
 typedef struct {

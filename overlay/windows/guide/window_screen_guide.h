@@ -77,6 +77,7 @@ void stop_guide_ui_animation(ui_proc_guide_t *proc);
 void guide_key_event_handler_v1(ui_proc_guide_t *proc, uint16_t keycode);
 void guide_key_event_handler_v2(ui_proc_guide_t *proc, uint16_t keycode);
 void guide_key_3s_press_handler_v2(ui_proc_guide_t *proc, uint16_t keycode);
+void guide_knob_left_event_handler(ui_proc_guide_t *proc);
 #ifdef __cplusplus
 }
 #endif
