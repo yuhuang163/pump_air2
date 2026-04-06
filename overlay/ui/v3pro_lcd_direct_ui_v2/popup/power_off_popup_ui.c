@@ -83,8 +83,7 @@ static void will_power_off_tip_text_update(ui_manager_context_t *thiz)
         lv_label_set_text(power_off_info->text, "Shut down soon");
         lv_obj_set_style_text_color(power_off_info->text, lv_color_hex(WILL_POWER_OFF_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(power_off_info->text, &lv_font_oppo_sans_16_medium, 0);
-        lv_coord_t w = lv_obj_get_width(power_off_info->text);
-        lv_obj_align(power_off_info->text, LV_ALIGN_TOP_MID, -(w / 2), 111);
+        lv_obj_align(power_off_info->text, LV_ALIGN_TOP_MID, 0, 111);
     }
 
     if (power_off_info->number_text == NULL || !lv_obj_is_valid(power_off_info->number_text)) {

@@ -28,11 +28,12 @@
 typedef struct {
     lv_obj_t * root;
     lv_obj_t * text;
-    lv_obj_t * arc;            /// 圆弧进度条对象
-    lv_obj_t * mask_layer;               /// 遮罩层对象
-    uint8_t force_update;
+    lv_obj_t * arc;                    /// 圆弧进度条对象
+    lv_obj_t * mask_layer;             /// 遮罩层对象
+    uint32_t start_time;               /// 倒计时起始时间
     uint16_t ring_progress;            /// 圆弧进度
-    uint32_t start_time;                 /// 倒计时起始时间
+    uint8_t force_update;
+    uint8_t rsv[13];
 } will_finish_tip_display_info_t;
 
 /*

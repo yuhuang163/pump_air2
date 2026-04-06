@@ -36,6 +36,7 @@ typedef struct {
     res_img_info_t unlock_button_icon_info;
     uint8_t force_update;
     uint8_t popup_ui_index; /// 当前弹窗索引.
+    uint8_t rsv[14];
 } airplane_mode_display_info_t;
 
 typedef struct {

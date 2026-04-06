@@ -130,8 +130,7 @@ static void battery_low_power_pop_ui_text_update(ui_manager_context_t *thiz)
         lv_label_set_text(low_power_info->text, "Powering off in");
         lv_obj_set_style_text_color(low_power_info->text, lv_color_hex(BATTERY_LOW_POWER_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(low_power_info->text, &lv_font_oppo_sans_16_medium, 0);
-        lv_coord_t w = lv_obj_get_width(low_power_info->text);
-        lv_obj_align(low_power_info->text, LV_ALIGN_TOP_MID, -(w / 2), 111);
+        lv_obj_align(low_power_info->text, LV_ALIGN_TOP_MID, 0, 111);
     }
 
     if (low_power_info->number_text == NULL || !lv_obj_is_valid(low_power_info->number_text)) {
