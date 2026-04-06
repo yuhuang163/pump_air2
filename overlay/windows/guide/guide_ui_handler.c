@@ -195,3 +195,49 @@ void guide_key_3s_press_handler_v2(ui_proc_guide_t *proc, uint16_t keycode)
         proc->led->set_led_level(PUMP_START_BL, 0);
     }
 }
+
+void guide_knob_left_event_handler(ui_proc_guide_t *proc)
+{
+   switch (proc->page_index) {
+        case GUIDE_PAGE_START_PUMP:
+            proc->page_index = GUIDE_PAGE_HOME;
+            if (proc->led && proc->led->hook && proc->led->hook->set_key_backlight) {
+                proc->led->hook->set_key_backlight(proc->led, 0);
+            }
+            break;
+        case GUIDE_PAGE_SETTING_PUMP:
+            proc->page_index = GUIDE_PAGE_START_PUMP;
+            if (proc->led) {       
+                proc->led->set_led_level(PUMP_MODE_BL, 0);
+                proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, 0);
+                proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, 0);  
+                proc->led->set_led_blink(PUMP_START_BL, 200, 0, LED_STATUS_OFF);
+            }
+            break;
+        case GUIDE_PAGE_STOP_PUMP:
+            proc->page_index = GUIDE_PAGE_SETTING_PUMP;
+            if (proc->led) {
+                proc->led->set_led_level(PUMP_START_BL, 0);
+                proc->led->set_led_level(PUMP_MODE_BL, LED_LEVEL_MAX);
+                proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX);
+                proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, LED_LEVEL_MAX);
+            }
+            break;
+        case GUIDE_PAGE_PUMP_MODE_SELECT:
+            proc->page_index = GUIDE_PAGE_STOP_PUMP;
+            if (proc->led) {
+                proc->led->set_led_level(PUMP_MODE_BL, 0);
+                proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, 0);
+                proc->led->set_led_level(PUMP_RIGHT_CONTROL_BL, 0);
+                proc->led->set_led_blink(PUMP_START_BL, 200, 0, LED_STATUS_OFF);
+            }
+            break;
+        case GUIDE_PAGE_BIND_GUIDE:
+            proc->page_index = GUIDE_PAGE_PUMP_MODE_SELECT;
+            if (proc->led && proc->led->hook && proc->led->hook->set_key_backlight) {
+                proc->led->hook->set_key_backlight(proc->led, 0);
+            }
+        default:
+            break;
+   }
+}
