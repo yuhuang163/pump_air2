@@ -30,6 +30,12 @@ typedef enum {
     OTA_UI_TYPE_MAX
 } ota_ui_type_e;
 
+typedef enum {
+    OTA_UI_STATUS_DOWNLOADING = 0,
+    OTA_UI_STATUS_ERROR = 1,
+    OTA_UI_STATUS_COMPLETE = 2,
+} ota_ui_status_e;
+
 /// ota UI结构体
 typedef struct {
     uint32_t ani_timer_cnt;
@@ -43,6 +49,7 @@ typedef struct {
     uint32_t margic; /// 窗口标识.
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
     uint16_t current_ui_type; /// 当前UI类型. ota_ui_type_e
+    uint8_t ota_status; /// OTA状态. ota_status_e
 } ui_proc_ota_t;
 
 /*

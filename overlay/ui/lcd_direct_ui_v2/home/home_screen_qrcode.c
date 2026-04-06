@@ -68,7 +68,7 @@ static void ui_home_qrcode_root_init(void)
         home_qrcode_info->root = lv_obj_create(lv_screen_active());
     }
     lv_obj_set_size(home_qrcode_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-    lv_obj_set_style_bg_color(home_qrcode_info->root, lv_color_white(), 0);     /// 设置背景颜色为黑色
+    lv_obj_set_style_bg_color(home_qrcode_info->root, lv_color_black(), 0);     /// 设置背景颜色为黑色
     lv_obj_set_style_bg_opa(home_qrcode_info->root, LV_OPA_COVER, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
     lv_obj_set_style_border_width(home_qrcode_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
     lv_obj_set_style_pad_all(home_qrcode_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
