@@ -33,9 +33,11 @@ typedef struct {
     lv_obj_t * icon;
     res_img_info_t icon_info;
     uint32_t start_time;
+    uint32_t display_time;
     uint8_t force_update;
     uint8_t ota_status;
-    uint8_t rsv[14];
+    uint8_t progress;
+    uint8_t rsv[13];
 } ota_display_info_t;
 
 /*
@@ -107,26 +109,38 @@ static void ui_ota_progress_arc_update(ui_manager_context_t *thiz, uint8_t ota_s
     lv_obj_invalidate(ota_info->progress_arc); /// 使圆弧/图片区域重绘
 }
 
-static void ui_ota_text_update(ui_manager_context_t *thiz, uint8_t ota_status)
+static void ui_ota_text_update(ui_manager_context_t *thiz, uint8_t ota_status, uint8_t progress)
 {
+    if (ota_info->force_update == false && ota_info->ota_status == ota_status && 
+        ota_info->progress == progress) {
+        return;
+    }
+
     if (ota_info->status_text == NULL || !lv_obj_is_valid(ota_info->status_text)) {
         ota_info->status_text = lv_label_create(ota_info->root);
         EXCEPTION_CHECK_VOID(ota_info->status_text);
+        lv_obj_set_style_text_font(ota_info->status_text, &lv_font_oppo_sans_20_medium, 0);
+        lv_obj_set_style_text_color(ota_info->status_text, lv_color_hex(OTA_PROGRESS_ARC_TEXT_COLOR), 0);
+        lv_obj_align(ota_info->status_text, LV_ALIGN_TOP_MID, 0, 210); /// 设置文本位置
     }
+
     if (ota_status == OTA_UI_STATUS_DOWNLOADING) {
-        lv_label_set_text(ota_info->status_text, "ota updating...");
+        char text[32] = {0};
+        sprintf(text, "ota progress:%d%%", progress);
+        lv_label_set_text(ota_info->status_text, text);
     } else if (ota_status == OTA_UI_STATUS_ERROR) {
-        lv_label_set_text(ota_info->status_text, "ota update failed");
+        lv_label_set_text(ota_info->status_text, "ota upgrade failed");
     } else if (ota_status == OTA_UI_STATUS_COMPLETE) {
-        lv_label_set_text(ota_info->status_text, "ota update complete");
+        lv_label_set_text(ota_info->status_text, "ota upgrade complete");
     }
-    lv_obj_set_style_text_font(ota_info->status_text, &lv_font_oppo_sans_20_medium, 0);
-    lv_obj_set_style_text_color(ota_info->status_text, lv_color_hex(OTA_PROGRESS_ARC_TEXT_COLOR), 0);
-    lv_obj_align(ota_info->status_text, LV_ALIGN_TOP_MID, 0, 210); /// 设置文本位置
 }
 
 static void ui_ota_icon_update(ui_manager_context_t *thiz, uint8_t ota_status)
 {
+    if (ota_info->force_update == false && ota_info->ota_status == ota_status) {
+        return;
+    }
+
     if (ota_info->icon == NULL || !lv_obj_is_valid(ota_info->icon)) {
         ota_info->icon = lv_image_create(ota_info->root);
         EXCEPTION_CHECK_VOID(ota_info->icon);
@@ -187,10 +201,13 @@ void ui_display_ota_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     ui_ota_root_init(); /// 初始化 root 容器
     ota_info->force_update = true;
+    ota_info->progress = 0;
+    LOG_UI("ota_info->progress: %d", ota_info->progress);
 }
 
 void ui_display_ota_remove(ui_manager_context_t *thiz)
 {
+    LOG_UI("ui_display_ota_remove");
     EXCEPTION_CHECK_VOID(thiz && ota_info && ota_info->root); 
     common_ui_img_resource_deinit(thiz, &ota_info->icon_info);
     LVGL_OBJ_DELETE(ota_info->root);
@@ -201,27 +218,36 @@ void ui_display_ota_remove(ui_manager_context_t *thiz)
 int ui_display_ota_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz && ota_info && ota_info->root);
-    // ui_proc_ota_t *proc = (ui_proc_ota_t *)thiz->priv.play_info.user_data;
-    // EXCEPTION_CHECK_INT(proc);
-    // uint8_t ota_status = proc->ota_status;
-    uint8_t ota_status = OTA_UI_STATUS_DOWNLOADING;
+    ui_proc_ota_t *proc = (ui_proc_ota_t *)thiz->priv.play_info.user_data;
+    EXCEPTION_CHECK_INT(proc);
+    uint8_t ota_status = proc->ota_status;
+    uint8_t progress = proc->ota->get_ota_upgrade_progress();
 #if IS_SUPPORT_OTA_COMP_BG
     ui_ota_background_update(thiz);
 #endif
     ui_ota_progress_arc_update(thiz, ota_status);
-    if (ota_info->force_update == true || 
-        ota_info->ota_status != ota_status) {
-        ui_ota_text_update(thiz, ota_status);
-        ui_ota_icon_update(thiz, ota_status);
-
-        ota_info->ota_status = ota_status;
-    }
+    ui_ota_text_update(thiz, ota_status, progress);
+    ui_ota_icon_update(thiz, ota_status);
+    ota_info->ota_status = ota_status;
+    ota_info->progress = progress;
     ota_info->force_update = false;
     thiz->priv.fps_count++;
+    if (ota_status == OTA_UI_STATUS_DOWNLOADING) {
+        ota_info->display_time = get_timestamp();
+    } else {
+        if (get_timestamp_ms(ota_info->display_time) > OTA_RESULT_DISPLAY_TIME) {
+            ui_animation_play_t *ani = &thiz->priv.play_info;
+            EXCEPTION_CHECK_INT(ani);
+            LOG_UI("ota result display timeout");
+            ani->progress_cb(thiz, 0, ANI_TIMER_DRAW_FINISH);
+        }
+    }
+
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
         LOG_UI("===> ota fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
+    
     return 0;
 }
