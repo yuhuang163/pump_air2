@@ -7,7 +7,6 @@
 #include "ui_manager.h"
 #include "window_screen_pump.h"
 #include "breast_pump_ui.h"
-#include <stdint.h>
 
 /*
 * DEFINES

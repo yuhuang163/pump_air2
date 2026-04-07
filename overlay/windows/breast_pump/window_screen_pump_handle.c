@@ -281,9 +281,15 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         if (proc->start_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             pump_mode_key_click_handler(proc);
+            if (proc->led) {
+                proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+            }
         } else if (proc->start_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             breastfeeding_mode_key_click_handler(proc);
+            if (proc->led) {
+                proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+            }
         } else if (proc->start_ui_type == PUMP_UI_TYPE_PUMPING) {
             proc->current_ui_type = PUMP_UI_TYPE_NONE;
             proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;

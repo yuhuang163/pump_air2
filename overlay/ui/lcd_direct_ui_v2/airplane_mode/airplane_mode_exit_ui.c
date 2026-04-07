@@ -88,10 +88,6 @@ static void airplane_mode_exit_progress_arc_update(ui_manager_context_t *thiz)
         lv_obj_remove_style(display_info->arc, NULL, LV_PART_KNOB); /// 去掉旋钮
     }
 
-    if (ring_progress > AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE) {
-        ring_progress = AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE;
-    }
-
     if (ring_progress >= AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE) {
         lv_obj_set_style_arc_opa(display_info->arc, LV_OPA_COVER, LV_PART_MAIN);      /// 最后一帧直接显示完整闭环
         lv_obj_set_style_arc_opa(display_info->arc, LV_OPA_TRANSP, LV_PART_INDICATOR);

@@ -135,6 +135,7 @@ static void polling_battery_status(void *user_data)
             msg.union_body.extra.is_bg_dispatch = 0x01;
             msg.union_body.extra.arg1 = ID_POPUP_WINDOW_LOW_POWER;
             msg.union_body.extra.popup_exit_time = 8000;
+            msg.union_body.extra.forbid_short_press_exit_popup = true;
             window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
             if (wm) {
                 wm->dispatch_new_window_args(wm, &msg);

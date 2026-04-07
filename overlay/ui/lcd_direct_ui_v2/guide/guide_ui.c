@@ -30,7 +30,8 @@ typedef struct {
     res_img_info_t img_info;
     uint8_t force_update;
     uint8_t page_index;
-    uint8_t rsv[14];
+    uint8_t popup_ui_index;
+    uint8_t rsv[13];
 } guide_display_info_t;
 
 /*
@@ -111,7 +112,6 @@ static void guide_ui_page_img_update(ui_manager_context_t *thiz, uint8_t page_in
         guide_info->page_img = lv_image_create(guide_info->root);
         EXCEPTION_CHECK_VOID(guide_info->page_img);
     } 
-   
     common_ui_img_resource_init(thiz, guide_page_img_ids[page_index], &guide_info->img_info);
     EXCEPTION_CHECK_VOID(guide_info->img_info.data);
     lv_fs_path_ex_t page_img_path;
@@ -127,6 +127,7 @@ static void guide_ui_update(ui_manager_context_t *thiz, uint8_t page_index)
     guide_qrcode_update(thiz, page_index);
     guide_info->page_index = page_index;
 }
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -142,6 +143,7 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     ui_guide_root_init(); /// 初始化 root 容器
     guide_info->force_update = true;
+    guide_info->popup_ui_index = GUIDE_POPUP_UI_NONE;
 }
 
 void ui_display_guide_remove(ui_manager_context_t *thiz)
@@ -150,6 +152,7 @@ void ui_display_guide_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(guide_info);
     EXCEPTION_CHECK_VOID(guide_info->root);
     common_ui_img_resource_deinit(thiz, &guide_info->img_info);
+    guide_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(guide_info->root);
     u_free(guide_info);
     guide_info = NULL;
@@ -163,6 +166,7 @@ int ui_display_guide_process(ui_manager_context_t *thiz)
     ui_proc_guide_t *proc = (ui_proc_guide_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     guide_ui_update(thiz, proc->page_index);
+    guide_tip_popup_ui_update(thiz, proc, guide_info->root, &guide_info->popup_ui_index);
     guide_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
