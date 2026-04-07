@@ -20,12 +20,13 @@
 #define HOME_BATTERY_TEXT_ANGLE_DEG                (285)
 
 typedef struct {    
-    lv_obj_t * text;
-    lv_obj_t * icon_img;
+    lv_obj_t *text;
+    lv_obj_t *icon_img;
     res_img_info_t icon_info;
-    lv_obj_t * charge_icon;
+    lv_obj_t *charge_icon;
     res_img_info_t charge_icon_info;
     uint16_t text_angle_deg;
+    uint8_t rsv[14];
 } battery_display_info_t;
 
 /*

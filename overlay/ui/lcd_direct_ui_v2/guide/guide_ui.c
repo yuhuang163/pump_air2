@@ -30,22 +30,8 @@ typedef struct {
     res_img_info_t img_info;
     uint8_t force_update;
     uint8_t page_index;
+    uint8_t rsv[14];
 } guide_display_info_t;
-
-typedef struct {
-    const char *text;
-    const lv_font_t *font;
-    uint16_t text_x;
-    uint16_t text_y;
-    // lv_opa_t text_opa;
-    uint32_t text_color;
-} ui_guide_text_info_t;
-
-typedef struct {
-    uint16_t img_id;
-    uint16_t icon_x;
-    uint16_t icon_y;
-} ui_guide_img_info_t;
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -76,7 +62,7 @@ static void ui_guide_root_init(void)
         guide_info->root = lv_obj_create(lv_screen_active());
     }
     lv_obj_set_size(guide_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-    lv_obj_set_style_bg_color(guide_info->root, lv_color_white(), 0);     /// 设置背景颜色为黑色
+    lv_obj_set_style_bg_color(guide_info->root, lv_color_black(), 0);     /// 设置背景颜色为黑色
     lv_obj_set_style_bg_opa(guide_info->root, LV_OPA_COVER, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
     lv_obj_set_style_border_width(guide_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
     lv_obj_set_style_pad_all(guide_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）

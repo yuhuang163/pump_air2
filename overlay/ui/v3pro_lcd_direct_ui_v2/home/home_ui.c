@@ -350,6 +350,7 @@ static void home_clock_ui_update(ui_manager_context_t *thiz, int16_t y_offset, b
 
 static home_ui_display_type_e home_ui_display_type_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
 {
+#if 0
     static home_ui_display_type_e home_ui_type_test = HOME_UI_DISPLAY_RECORD; /// TODO: 测试用，后续删除
     static uint32_t count = 0; /// TODO: 测试用，后续删除
     count++;
@@ -362,6 +363,9 @@ static home_ui_display_type_e home_ui_display_type_update(ui_manager_context_t *
     }
     home_info->timestamp_offset = ((120 * 60 * 60 * 1000) + (9 * 60 * 1000)); /// TODO: 测试用，后续删除
     return home_ui_type_test;
+#else
+    return HOME_UI_DISPLAY_DEFAULT;
+#endif
 }
 
 static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)

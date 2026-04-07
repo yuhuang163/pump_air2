@@ -28,12 +28,12 @@
 typedef struct {
     lv_obj_t * root;
     lv_obj_t * text;
-    lv_obj_t * arc;            /// 圆弧进度条对象
-    lv_obj_t * mask_layer;               /// 遮罩层对象
-    uint8_t countdown_value;            /// 倒计时值
-    uint8_t display_number;               /// 显示倒计时数字
-    uint32_t start_time;                 /// 倒计时起始时间
+    lv_obj_t * arc;                    /// 圆弧进度条对象
+    lv_obj_t * mask_layer;             /// 遮罩层对象
+    uint32_t start_time;               /// 倒计时起始时间
+    uint16_t ring_progress;            /// 圆弧进度
     uint8_t force_update;
+    uint8_t rsv[13];
 } will_finish_tip_display_info_t;
 
 /*
@@ -70,13 +70,11 @@ static void will_finish_tip_root_init(lv_obj_t *parent)
 
 static void will_finish_tip_arc_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    if (tip_info->force_update == false &&
-        tip_info->display_number == tip_info->countdown_value) {
+    uint16_t ring_progress = get_timestamp_ms(tip_info->start_time) / WILL_FINISH_DISPLAY_STEP_TIME;
+    if (tip_info->force_update == false && tip_info->ring_progress == ring_progress) {
         return;
     }
-
-    tip_info->display_number = tip_info->countdown_value;
+    tip_info->ring_progress = ring_progress;
     if (tip_info->arc == NULL || !lv_obj_is_valid(tip_info->arc)) {
         tip_info->arc = lv_arc_create(tip_info->root);
         EXCEPTION_CHECK_VOID(tip_info->arc);
@@ -94,11 +92,11 @@ static void will_finish_tip_arc_update(ui_manager_context_t *thiz)
         lv_obj_remove_style(tip_info->arc, NULL, LV_PART_KNOB); /// 去掉旋钮
     }
 
-    if (tip_info->countdown_value > WILL_FINISH_DISPLAY_MAX_VALUE) {
-        tip_info->countdown_value = WILL_FINISH_DISPLAY_MAX_VALUE;
+    if (ring_progress > WILL_FINISH_DISPLAY_MAX_VALUE) {
+        ring_progress = WILL_FINISH_DISPLAY_MAX_VALUE;
     }
 
-    if (tip_info->countdown_value >= WILL_FINISH_DISPLAY_MAX_VALUE) {
+    if (ring_progress >= WILL_FINISH_DISPLAY_MAX_VALUE) {
         lv_obj_set_style_arc_opa(tip_info->arc, LV_OPA_COVER, LV_PART_MAIN);      /// 最后一帧直接显示完整闭环
         lv_obj_set_style_arc_opa(tip_info->arc, LV_OPA_TRANSP, LV_PART_INDICATOR);
         lv_arc_set_angles(tip_info->arc, 0, 0);
@@ -109,13 +107,13 @@ static void will_finish_tip_arc_update(ui_manager_context_t *thiz)
     lv_obj_set_style_arc_opa(tip_info->arc, LV_OPA_COVER, LV_PART_INDICATOR);
 
     int16_t end_angle = 0;
-    if (tip_info->countdown_value > 0) {
-        end_angle = (WILL_FINISH_ARC_FULL_SWEEP * tip_info->countdown_value) / WILL_FINISH_DISPLAY_MAX_VALUE;
+    if (ring_progress > 0) {
+        end_angle = (WILL_FINISH_ARC_FULL_SWEEP * ring_progress) / WILL_FINISH_DISPLAY_MAX_VALUE;
     }
     lv_arc_set_angles(tip_info->arc, 0, end_angle);
 }
 
-static void will_finish_tip_animation_update(ui_manager_context_t *thiz)
+static void will_finish_tip_text_update(ui_manager_context_t *thiz)
 {
     if (tip_info->text == NULL || !lv_obj_is_valid(tip_info->text)) {
         tip_info->text = lv_label_create(tip_info->root);
@@ -157,7 +155,7 @@ void ui_prompt_pump_will_finish_prepare(ui_manager_context_t *thiz, lv_obj_t *pa
     }
     tip_info->force_update = true;
     will_finish_tip_root_init(parent);
-    tip_info->countdown_value = 0;
+    tip_info->ring_progress = 0;
     tip_info->start_time = get_timestamp();
     LOG_UI("pump will finish prepare");
 }
@@ -180,7 +178,7 @@ void ui_prompt_pump_will_finish_process(ui_manager_context_t *thiz)
         return;
     }
     will_finish_tip_mask_layer_update(thiz);
-    will_finish_tip_animation_update(thiz);
+    will_finish_tip_text_update(thiz);
     will_finish_tip_arc_update(thiz);
     tip_info->force_update = false;
     if (get_timestamp_ms(tip_info->start_time) >= WILL_FINISH_DISPLAY_TIME) {
@@ -188,7 +186,5 @@ void ui_prompt_pump_will_finish_process(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(ani);
         LOG_UI("pump will finish process completed");
         ani->progress_cb(thiz, PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP, ANI_POPUP_DISPLAY_FINISH);
-    } else {
-        tip_info->countdown_value = get_timestamp_ms(tip_info->start_time) / WILL_FINISH_DISPLAY_STEP_TIME;
     }
 }

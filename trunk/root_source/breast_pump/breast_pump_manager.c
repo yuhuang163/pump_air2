@@ -5,6 +5,7 @@
 #include "persist_storage.h"
 #include "root_common_api.h"
 #include "breast_pump_manager.h" // IWYU pragma: keep
+#include "breast_pump_mode.h"
 
 /*
 * DEFINES
@@ -345,6 +346,7 @@ static void set_breast_pump_status(int status, int is_report)
                     motor_ctx->set_runtime_policy_index(MOTOR_TIME_POLICY, 0);
                     // LOG_PMP("brush finish, =>save brush result.");
                     notify_breast_pump_completed();
+                    WRITE_PUMP_IS_START_FROM_APP(breast_pump_obj, false);
                     break;
                 case BREAST_PUMP_FACTORY:
                     notify_breast_pump_completed();
@@ -583,6 +585,18 @@ static void set_pump_mode_activate_state(uint8_t mode, uint8_t status)
         st->put_store_ram_val(STORE_ID_PUMP_MODE_ACTIVATE_STATUS, mode, m_info->custom_activate, NULL);
     }
 }
+//标识由APP启动pump控制
+static void set_pump_status_start_from_app(uint8_t status)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    m_info->is_start_from_app = status > 0 ? true : false;
+}
+
+static uint8_t get_pump_status_start_from_app(void)
+{
+    breast_pump_info_t *m_info = &breast_pump_obj->priv.m_info;
+    return m_info->is_start_from_app;
+}
 
 static int get_pump_mode_steps_update_state(uint8_t mode)
 {
@@ -681,6 +695,12 @@ static void get_pump_composite_state(pump_state_type_e type, int arg1, int arg2,
             *result_info = get_breast_pump_result(arg1);
             break;
         }
+        case BREAST_PUMP_IS_START_FROM_APP: {
+            EXCEPTION_CHECK_VOID(out_data);
+            int *is_start_from_app = (int *)out_data;
+            *is_start_from_app = get_pump_status_start_from_app();
+            break;
+        }
         default:
             LOG_PMP("unknow type!!!!");
             break;
@@ -707,6 +727,9 @@ static void set_pump_composite_state(pump_state_type_e type, int arg1, int arg2,
             break;
         case BREAST_PUMP_WORK_MODE: 
             set_breast_pump_mode(arg1, arg2, arg3);
+            break;
+        case BREAST_PUMP_IS_START_FROM_APP:
+            set_pump_status_start_from_app(arg1);
             break;
         default:
             LOG_PMP("unknow type!!!!");

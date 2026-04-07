@@ -28,9 +28,10 @@ typedef struct {
     lv_obj_t * arc;
     lv_obj_t * mask_layer; /// 遮罩层
     uint8_t force_update;
-    uint8_t countdown_value; /// 倒计时值
     uint8_t display_number; /// 显示倒计时数字
+    uint16_t ring_progress; /// 圆弧进度
     uint32_t start_time; /// 开始显示时间
+    uint8_t rsv[8];
 } airplane_mode_exit_display_info_t;
 /*
 * TYPEDEFS
@@ -65,12 +66,11 @@ static void airplane_mode_exit_root_init(lv_obj_t *parent)
 
 static void airplane_mode_exit_progress_arc_update(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    if (display_info->force_update == false &&
-        display_info->display_number == display_info->countdown_value) {
+    uint16_t ring_progress = get_timestamp_ms(display_info->start_time) / AIRPLANE_MODE_EXIT_DISPLAY_STEP_TIME;
+    if (display_info->force_update == false && display_info->ring_progress == ring_progress) {
         return;
     }
-
+    display_info->ring_progress = ring_progress;
     if (display_info->arc == NULL || !lv_obj_is_valid(display_info->arc)) {
         display_info->arc = lv_arc_create(display_info->root);
         EXCEPTION_CHECK_VOID(display_info->arc);
@@ -88,11 +88,11 @@ static void airplane_mode_exit_progress_arc_update(ui_manager_context_t *thiz)
         lv_obj_remove_style(display_info->arc, NULL, LV_PART_KNOB); /// 去掉旋钮
     }
 
-    if (display_info->countdown_value > AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE) {
-        display_info->countdown_value = AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE;
+    if (ring_progress > AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE) {
+        ring_progress = AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE;
     }
 
-    if (display_info->countdown_value >= AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE) {
+    if (ring_progress >= AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE) {
         lv_obj_set_style_arc_opa(display_info->arc, LV_OPA_COVER, LV_PART_MAIN);      /// 最后一帧直接显示完整闭环
         lv_obj_set_style_arc_opa(display_info->arc, LV_OPA_TRANSP, LV_PART_INDICATOR);
         lv_arc_set_angles(display_info->arc, 0, 0);
@@ -103,8 +103,8 @@ static void airplane_mode_exit_progress_arc_update(ui_manager_context_t *thiz)
     lv_obj_set_style_arc_opa(display_info->arc, LV_OPA_COVER, LV_PART_INDICATOR);
 
     int16_t end_angle = 0;
-    if (display_info->countdown_value > 0) {
-        end_angle = (AIRPLANE_MODE_EXIT_ARC_FULL_SWEEP * display_info->countdown_value) / AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE;
+    if (ring_progress > 0) {
+        end_angle = (AIRPLANE_MODE_EXIT_ARC_FULL_SWEEP * ring_progress) / AIRPLANE_MODE_EXIT_DISPLAY_MAX_VALUE;
     }
     lv_arc_set_angles(display_info->arc, 0, end_angle);
 }
@@ -160,7 +160,7 @@ void ui_display_airplane_mode_exit_prepare(ui_manager_context_t *thiz, lv_obj_t 
         EXCEPTION_CHECK_VOID(display_info);
     }
     display_info->force_update = true;
-    display_info->countdown_value = AIRPLANE_MODE_EXIT_MAX_VALUE;
+    display_info->ring_progress = 0;
     display_info->display_number = 0;
     display_info->start_time = get_timestamp();
     airplane_mode_exit_root_init(parent);
@@ -188,13 +188,10 @@ void ui_display_airplane_mode_exit_process(ui_manager_context_t *thiz)
     airplane_mode_exit_progress_arc_update(thiz);
     airplane_mode_exit_countdown_num_update(thiz);
     display_info->force_update = false;
-    //过早退出不显示0
     if (get_timestamp_ms(display_info->start_time) > AIRPLANE_MODE_EXIT_DISPLAY_TIME + 200) {
         ui_animation_play_t *ani = &thiz->priv.play_info;
         EXCEPTION_CHECK_VOID(ani);
         LOG_UI("display completed");
         ani->progress_cb(thiz, AIRPLANE_MODE_POPUP_UI_EXIT, ANI_POPUP_DISPLAY_FINISH);
-    } else {
-        display_info->countdown_value = get_timestamp_ms(display_info->start_time) / AIRPLANE_MODE_EXIT_DISPLAY_STEP_TIME;
     }
 }

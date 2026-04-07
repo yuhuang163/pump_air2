@@ -15,9 +15,6 @@
 #define PUMP_WILL_FINISH_TIME_MS                           (3000)
 #define PUMP_TIME_TO_SECOND(time)                          (time / 1000)
 
-// 比较两数相等，允许一定范围的误差
-#define IS_UINT_EQUAL_IN_ERROR(num_scr, num_dest, diff)           (((num_dest) <= (num_scr)) && ((num_scr) < ((num_dest) + (diff))))
-
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -124,9 +121,7 @@ static int breast_pump_result_info_reset(breast_pump_manager_context_t *ctx, pum
 
 static int breast_pump_result_info_update(breast_pump_manager_context_t *ctx, pump_result_info_t *result_info)
 {
-
     result_info->target_total_time = result_info->setting_time;
-    result_info->timestamp = platform_get_utc_time();
     dump_timestamp(result_info->timestamp);
     LOG_PMP("target_total_time: %d", PUMP_TIME_TO_SECOND(result_info->target_total_time));
     return 0;
@@ -169,7 +164,6 @@ static int stop_breast_pump_work_route(breast_pump_manager_context_t *ctx, int s
     pump_result_info_t *result_info = &ctx->priv.result_info[BREAST_PUMP_RESULT_PUMPING];
     sys_persist_info_t *sys_info = ctx->priv.st->get_persist_sys_info();
     EXCEPTION_CHECK_INT(sys_info);
-    /// 矫正时间同步后的泵奶开始时间
     if (result_info->timestamp < PRODUCT_BUILD_TIMESTAMP) { 
         uint32_t timestamp = platform_get_utc_time();
         if (timestamp > PRODUCT_BUILD_TIMESTAMP) {
