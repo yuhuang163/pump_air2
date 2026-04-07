@@ -103,7 +103,14 @@ extern "C" {
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
 /// 支持堵转检测
 #define IS_SUPPORT_MOTOR_STALL_DETECT                    (1)
-
+/// 支持睡眠关机
+#define IS_SUPPORT_SLEEP_POWER_OFF                       (1)
+/// 支持关机提醒
+#if IS_SUPPORT_SLEEP_POWER_OFF
+#define IS_SUPPORT_POWER_OFF_REMINDER                    (1)
+#else
+#define IS_SUPPORT_POWER_OFF_REMINDER                    (0)
+#endif
 
 #if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 /// 支持漏气提醒
