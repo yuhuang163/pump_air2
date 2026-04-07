@@ -74,7 +74,7 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
         if (proc->led && proc->led->hook && proc->led->hook->set_key_backlight) {
-            proc->led->hook->set_key_backlight(proc->led, 0);
+            proc->led->hook->set_key_backlight(proc->led, LED_LEVEL_MAX);
         }
         start_guide_ui_animation(proc);
     }
@@ -131,6 +131,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     w_ctx->not_push_history = 1;
     w_ctx->is_popup_window = 0;
     wm->dispatch_new_window(w_ctx);
+    
     return ID_WINDOW_DISPLAY_OK;
 }
 
