@@ -13,7 +13,7 @@
 
 // hardware parameters
 #define SAMPLE_RATE			(50)
-#define WIN_SIZE			(50)  //(1 second)
+#define WIN_SIZE			(50*3)  //(1 second)
 #define CHANNEL_NUM			(2)		// 2 channels - left and right
 #define CHANNEL_0			(0)		// 0: left
 #define CHANNEL_1			(1)		// 1: right
@@ -47,6 +47,8 @@ static float EXPRESSION_THRESHOLD[] = { -6, -9.5, -12.5, -15, -17.5,
 static float STIMULATION_THRESHOLD[] = { -6, -7.4,	-8.8, -10.2, -11.5,
 											-12.8, -14.1, -15.3, -16.5, -17.7,
 											-18.8, -19.9, -21, -22, -23 };
+static float MIXED_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -20,
+									   -25, -30, -35, -35, -40, -40, -40 };
 
 static float EXPRESSION_WORK_TIME[] = { 370, 404, 425, 440, 468,
 										  475, 490, 540, 548, 560,
@@ -56,9 +58,13 @@ static float STIMULATION_WORK_TIME[] = { 270, 245, 270, 270, 260,
 										  303, 290, 302, 285, 305,
 										  285, 305, 313, 340, 322 };
 
-static float MIXED_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -20,
+// unloaded threshold for wear detection 
+static float UNLOADED_EXPRESSION_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -20,
 									   -25, -30, -35, -35, -40, -40, -40 };
-
+static float UNLOADED_STIMULATION_THRESHOLD[] = { -2, -3, -4, -5, -5.5, -5.5, -7, -8,
+									   -8, -9, -11, -12, -14, -15, -19 };
+static float UNLOADED_MIXED_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -20,
+									   -25, -30, -35, -35, -40, -40, -40 };
 
 static float expression_K_slope[] = { 0.9614, 0.3633, 0.5492, 0.6025, 0.0771,
 									0.0463, 0.1959, 0.2455, 0.0770, -0.0935,
@@ -154,8 +160,10 @@ typedef struct _FEATURE_INFO_
 	unsigned int	uDataIdx;		// data index
 	unsigned short	uUpdateFlag;
 	float			fThreshold;
+	float			fLoadedThreshold;
 	unsigned char	uWearStatus;	// result
 	unsigned char	uCompsStatus;
+	int 			iDelta_pwm;			// 返回delta_pwm	-10000~10000
 	unsigned char	uPrevWearStatus;
 	unsigned int	uNormalWaveform;
 }SFEATURE_INFO;

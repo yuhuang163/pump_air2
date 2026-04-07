@@ -16,12 +16,43 @@ extern "C" {
 #define ALGO_AIR_PRESSURE_NUM 2
 #endif
 
-#define IS_SUPPORT_ALGO_LIB_LOG_OUTPUT     0
+#define IS_SUPPORT_ALGO_LIB_LOG_OUTPUT     1
+
+/*
+typedef struct {
+    float fLeftAmp[100];
+    float fRightAmp[100];
+    float fValue[100];
+    unsigned int uPos[100];
+    unsigned int uType[100];   /// 0: valley, 1: peak
+    unsigned int uwidth[100];
+    float fLeftValue[100];
+    float fRightValue[100];
+    unsigned int uLeftWidth[100];
+    unsigned int uRightWidth[100];
+
+    unsigned int	uPVIndex;
+	unsigned int	uWaveSpikes;
+	float			fMinData;
+	float			fMinDataBuff[6];
+	float			fMinDataBuffMin;
+	unsigned int	uNoiseLevel;
+	unsigned int	uDataIdx;		// data index
+	unsigned short	uUpdateFlag;
+	float			fThreshold;
+	float			fLoadedThreshold;
+	unsigned char	uWearStatus;	// result
+	unsigned char	uCompsStatus;
+	int 			iDelta_pwm;			// 返回delta_pwm	-10000~10000
+	unsigned char	uPrevWearStatus;
+	unsigned int	uNormalWaveform;
+} SRESULT_INFO;*/
 
 typedef struct {
     uint8_t wear_status[2];   /// 0: 未佩戴 1: 正常佩戴
     uint8_t compensation_status[2];     // 0: 不补偿, 1: 减小气压; 2:加大气压
     int compensation_delta_pwm[2];               // 0: 不补偿, -10000~-1:PWM减小, 1~10000: PWM增加
+    /*SRESULT_INFO debug_info[2];                    /// 调试信息，包含特征值等*/
 } algo_fusion_result_t;
 
 typedef enum {

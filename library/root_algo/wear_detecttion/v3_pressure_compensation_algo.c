@@ -16,9 +16,9 @@
 #define DEBUG		0
 
 // global data
-SDEVICE_INFO		tDeviceInfo[2];
-SDATA_BUFF			tDataBuffer[2];
-SPUMPFEATURE_INFO	tFeatureInfo[2];
+SDEVICE_INFO		tPumpDeviceInfo[2];
+SDATA_BUFF			tPumpDataBuffer[2];
+SPUMPFEATURE_INFO	tPumpFeatureInfo[2];
 SGLOBAL_INFO		tGlobalInfo;
 /*************************************************************************************************************************************************
 * 函数名称：V3PressureCompensation Initialization
@@ -39,20 +39,21 @@ void V3ProAlgoInit(aglo_air_pressure_data_t sPressureData)
 
 	for (unsigned int j = 0; j < CHANNEL_NUM; j++)
 	{
-		tDeviceInfo[j].uMode = sPressureData.pump_state[j].mode;
-		tDeviceInfo[j].uLevel = sPressureData.pump_state[j].level - 1;
-		if (tDeviceInfo[j].uMode == MODE_EXPRESSION)
-			tDeviceInfo[j].run_time = EXPRESSION_WORK_TIME[tDeviceInfo[j].uLevel];
-		else if (tDeviceInfo[j].uMode == MODE_STIMULATION)
-			tDeviceInfo[j].run_time = STIMULATION_WORK_TIME[tDeviceInfo[j].uLevel];
-		tDeviceInfo[j].uTargetPressure = sPressureData.pump_state[j].target_pressure;
-		tFeatureInfo[j].remain_time = 0;
-		tFeatureInfo[j].uState = 0;
-		tFeatureInfo[j].uCompsStatus = 0;
-		if (tDeviceInfo[j].uMode == MODE_EXPRESSION)
+		tPumpDeviceInfo[j].uMode = sPressureData.pump_state[j].mode;
+		tPumpDeviceInfo[j].uLevel = sPressureData.pump_state[j].level - 1;
+		if (tPumpDeviceInfo[j].uMode == MODE_EXPRESSION)
+			tPumpDeviceInfo[j].run_time = EXPRESSION_WORK_TIME[tPumpDeviceInfo[j].uLevel];
+		else if (tPumpDeviceInfo[j].uMode == MODE_STIMULATION)
+			tPumpDeviceInfo[j].run_time = STIMULATION_WORK_TIME[tPumpDeviceInfo[j].uLevel];
+		tPumpDeviceInfo[j].uTargetPressure = sPressureData.pump_state[j].target_pressure;
+		tPumpFeatureInfo[j].remain_time = 0;
+		tPumpFeatureInfo[j].uState = 0;
+		tPumpFeatureInfo[j].uCompsStatus = 0;
+		tPumpFeatureInfo[j].iDelta_pwm = 0;
+		if (tPumpDeviceInfo[j].uMode == MODE_EXPRESSION)
 		{
-			tFeatureInfo[j].fSlope = expression_K_slope[tDeviceInfo[j].uLevel];
-			tFeatureInfo[j].fIntercept = expression_intercep[tDeviceInfo[j].uLevel];
+			tPumpFeatureInfo[j].fSlope = expression_K_slope[tPumpDeviceInfo[j].uLevel];
+			tPumpFeatureInfo[j].fIntercept = expression_intercep[tPumpDeviceInfo[j].uLevel];
 		}
 	}
 }
@@ -70,21 +71,21 @@ void V3ProAlgoInit(aglo_air_pressure_data_t sPressureData)
 void V3ProModeReset(algo_pump_state_t pump_state, unsigned char channel_idx)
 {
 	// 把sPressureData的数据拆解出来
-	tDeviceInfo[channel_idx].uMode = pump_state.mode;
-	tDeviceInfo[channel_idx].uLevel = pump_state.level - 1;
-	if (tDeviceInfo[channel_idx].uMode == MODE_EXPRESSION)
-		tDeviceInfo[channel_idx].run_time = EXPRESSION_WORK_TIME[tDeviceInfo[channel_idx].uLevel];
-	else if (tDeviceInfo[channel_idx].uMode == MODE_STIMULATION)
-		tDeviceInfo[channel_idx].run_time = STIMULATION_WORK_TIME[tDeviceInfo[channel_idx].uLevel];
-	tDeviceInfo[channel_idx].uTargetPressure = pump_state.target_pressure;
-	tFeatureInfo[channel_idx].pumping_time = 0;
-	tFeatureInfo[channel_idx].remain_time = 0;
-	tFeatureInfo[channel_idx].uState = 0;
-	tFeatureInfo[channel_idx].uCompsStatus = 0;
-	if (tDeviceInfo[channel_idx].uMode == MODE_EXPRESSION)
+	tPumpDeviceInfo[channel_idx].uMode = pump_state.mode;
+	tPumpDeviceInfo[channel_idx].uLevel = pump_state.level - 1;
+	if (tPumpDeviceInfo[channel_idx].uMode == MODE_EXPRESSION)
+		tPumpDeviceInfo[channel_idx].run_time = EXPRESSION_WORK_TIME[tPumpDeviceInfo[channel_idx].uLevel];
+	else if (tPumpDeviceInfo[channel_idx].uMode == MODE_STIMULATION)
+		tPumpDeviceInfo[channel_idx].run_time = STIMULATION_WORK_TIME[tPumpDeviceInfo[channel_idx].uLevel];
+	tPumpDeviceInfo[channel_idx].uTargetPressure = pump_state.target_pressure;
+	tPumpFeatureInfo[channel_idx].pumping_time = 0;
+	tPumpFeatureInfo[channel_idx].remain_time = 0;
+	tPumpFeatureInfo[channel_idx].uState = 0;
+	tPumpFeatureInfo[channel_idx].uCompsStatus = 0;
+	if (tPumpDeviceInfo[channel_idx].uMode == MODE_EXPRESSION)
 	{
-		tFeatureInfo[channel_idx].fSlope = expression_K_slope[tDeviceInfo[channel_idx].uLevel];
-		tFeatureInfo[channel_idx].fIntercept = expression_intercep[tDeviceInfo[channel_idx].uLevel];
+		tPumpFeatureInfo[channel_idx].fSlope = expression_K_slope[tPumpDeviceInfo[channel_idx].uLevel];
+		tPumpFeatureInfo[channel_idx].fIntercept = expression_intercep[tPumpDeviceInfo[channel_idx].uLevel];
 	}
 }
 
@@ -128,13 +129,13 @@ void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigne
 	tGlobalInfo.currtimestamp = sPressureData.timestamp;
 
 	// 如果发生模式/档位变更，重置
-	if (sPressureData.pump_state[uchannelIdx].level - 1 != tDeviceInfo[uchannelIdx].uLevel ||
-		sPressureData.pump_state[uchannelIdx].mode != tDeviceInfo[uchannelIdx].uMode)
+	if (sPressureData.pump_state[uchannelIdx].level - 1 != tPumpDeviceInfo[uchannelIdx].uLevel ||
+		sPressureData.pump_state[uchannelIdx].mode != tPumpDeviceInfo[uchannelIdx].uMode)
 	{
 		V3ProModeReset(sPressureData.pump_state[uchannelIdx], uchannelIdx);
 	}
-	tDataBuffer[uchannelIdx].fDataBuff[tDataBuffer[uchannelIdx].uCurrPos] = sPressureData.air_pressure[uchannelIdx];
-	//tFeatureInfo->remain_time[uchannelIdx] = sPressureData.timestamp;
+	tPumpDataBuffer[uchannelIdx].fDataBuff[tPumpDataBuffer[uchannelIdx].uCurrPos] = sPressureData.air_pressure[uchannelIdx];
+	//tPumpFeatureInfo->remain_time[uchannelIdx] = sPressureData.timestamp;
 }
 
 /*************************************************************************************************************************************************
@@ -147,42 +148,42 @@ void V3ProPressureDataPreprocess(aglo_air_pressure_data_t sPressureData, unsigne
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tFeatureInfoTemp, SDEVICE_INFO *tDeviceInfoTemp)
+void PressureCompensationAnalysis(float fDataBuff, SPUMPFEATURE_INFO*tPumpFeatureInfoTemp, SDEVICE_INFO *tPumpDeviceInfoTemp)
 {
-	ALGO_LOG_INFO("run_time: %d, prev: %d, curr: %d", tDeviceInfoTemp->run_time, tGlobalInfo.prevtimestamp, tGlobalInfo.currtimestamp);
-	if (tFeatureInfoTemp->uCompsStatus != 0)
+	ALGO_LOG_INFO("run_time: %d, prev: %d, curr: %d", tPumpDeviceInfoTemp->run_time, tGlobalInfo.prevtimestamp, tGlobalInfo.currtimestamp);
+	if (tPumpFeatureInfoTemp->uCompsStatus != 0)
 	{
-		tFeatureInfoTemp->uCompsStatus == 0;
-		tFeatureInfoTemp->iDelta_pwm = 0;
+		tPumpFeatureInfoTemp->uCompsStatus == 0;
+		tPumpFeatureInfoTemp->iDelta_pwm = 0;
 	}
 	// 判断当前是否接近结束泵工作ms级运算
-	else if (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp) <  100 && tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp > 0)	{
-		//float fPredPressure = tFeatureInfoTemp->fSlope * fDataBuff + tFeatureInfoTemp->fIntercept;
+	else if (tPumpDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp) <  100 && tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp > 0)	{
+		// float fPredPressure = tPumpFeatureInfoTemp->fSlope * fDataBuff + tPumpFeatureInfoTemp->fIntercept;
 		float fPredPressure = fDataBuff + 2;
 #if DEBUG == 1
-		//printf("%d, %f\n", tFeatureInfoTemp->pumping_time, fPredPressure);
+		//printf("%d, %f\n", tPumpFeatureInfoTemp->pumping_time, fPredPressure);
 #endif
 		// 预测值有问题时，不进行处理
-		//float fPredPressure = fDataBuff + 2;
+		// float fPredPressure = fDataBuff + 2;
 		// 当前已超过目标负压最大值，则直接反馈补偿
-		//if ((fPredPressure + tDeviceInfoTemp->uTargetPressure) < (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.05)
-		if (fDataBuff < -tDeviceInfoTemp->uTargetPressure)
+		// if ((fPredPressure + tPumpDeviceInfoTemp->uTargetPressure) < (tPumpDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.05)
+		if (fDataBuff < -tPumpDeviceInfoTemp->uTargetPressure)
 		{
-			tFeatureInfoTemp->uCompsStatus = 1;
+			tPumpFeatureInfoTemp->uCompsStatus = 1;
 			// 需要反馈iDelta_pwm (超出目标负压，反馈减小pwm）
-			tFeatureInfoTemp->iDelta_pwm = -100;		//  - (fPredPressure - tDeviceInfoTemp->uTargetPressure) * 10
+			tPumpFeatureInfoTemp->iDelta_pwm = -100;		//  - (fPredPressure - tPumpDeviceInfoTemp->uTargetPressure) * 10
 		}	
-		//else if ((tDeviceInfoTemp->uTargetPressure + fPredPressure) > (tDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.1)
-		else if (fDataBuff > -tDeviceInfoTemp->uTargetPressure)
+		//else if ((tPumpDeviceInfoTemp->uTargetPressure + fPredPressure) > (tPumpDeviceInfoTemp->run_time - (tGlobalInfo.currtimestamp - tGlobalInfo.prevtimestamp))*.1)
+		else if (fDataBuff > -tPumpDeviceInfoTemp->uTargetPressure)
 		{
-			tFeatureInfoTemp->uCompsStatus = 2;
+			tPumpFeatureInfoTemp->uCompsStatus = 2;
 			// 需要反馈iDelta_pwm (低于目标负压，反馈减小pwm）
-			tFeatureInfoTemp->iDelta_pwm = 100;			//  + (fPredPressure - tDeviceInfoTemp->uTargetPressure) * 10
+			tPumpFeatureInfoTemp->iDelta_pwm = 100;			//  + (fPredPressure - tPumpDeviceInfoTemp->uTargetPressure) * 10
 		}
 		else
 		{
-			tFeatureInfoTemp->uCompsStatus = 0;
-			tFeatureInfoTemp->iDelta_pwm = 0;
+			tPumpFeatureInfoTemp->uCompsStatus = 0;
+			tPumpFeatureInfoTemp->iDelta_pwm = 0;
 		}
 	}
 }
@@ -205,22 +206,22 @@ void V3ProAlgoMain(aglo_air_pressure_data_t sPressureData)
 	unsigned int i = 0;
 	if ((sPressureData.pump_state[i].state == SUCTION_STATUS_GENERATE) || (sPressureData.pump_state[i].state == SUCTION_STATUS_HOLD))	//  
 	{
-		tFeatureInfo[i].pumping_time += 1;
-		if (tFeatureInfo[i].pumping_time == 1)
+		tPumpFeatureInfo[i].pumping_time += 1;
+		if (tPumpFeatureInfo[i].pumping_time == 1)
 		{
 			tGlobalInfo.prevtimestamp = sPressureData.timestamp;
 		}
 		V3ProPressureDataPreprocess(sPressureData, i);
-		PressureCompensationAnalysis(tDataBuffer[i].fDataBuff[tDataBuffer[i].uCurrPos], &tFeatureInfo[i], &tDeviceInfo[i]);
+		PressureCompensationAnalysis(tPumpDataBuffer[i].fDataBuff[tPumpDataBuffer[i].uCurrPos], &tPumpFeatureInfo[i], &tPumpDeviceInfo[i]);
 		// update current index
-		tDataBuffer[i].uCurrPos = V3ProBufferCircleNextIndex(tDataBuffer[i].uCurrPos, 1, WIN_SIZE);
+		tPumpDataBuffer[i].uCurrPos = V3ProBufferCircleNextIndex(tPumpDataBuffer[i].uCurrPos, 1, WIN_SIZE);
 	}
 	else
 	{
 		// 如果不在泵奶期间，则不进行算法处理
-		tFeatureInfo[i].uCompsStatus = 0;
-		tFeatureInfo[i].iDelta_pwm = 0;
-		tFeatureInfo[i].pumping_time = 0;
+		tPumpFeatureInfo[i].uCompsStatus = 0;
+		tPumpFeatureInfo[i].iDelta_pwm = 0;
+		tPumpFeatureInfo[i].pumping_time = 0;
 	}
 
 #else
@@ -229,22 +230,22 @@ void V3ProAlgoMain(aglo_air_pressure_data_t sPressureData)
 	{
 		if (((sPressureData.pump_state[i].state == SUCTION_STATUS_GENERATE) || (sPressureData.pump_state[i].state == SUCTION_STATUS_HOLD)))
 		{
-			tFeatureInfo[i].pumping_time += 1;
-			if (tFeatureInfo[i].pumping_time == 1)
+			tPumpFeatureInfo[i].pumping_time += 1;
+			if (tPumpFeatureInfo[i].pumping_time == 1)
 			{
 				tGlobalInfo.prevtimestamp = sPressureData.timestamp;
 			}
 			V3ProPressureDataPreprocess(sPressureData, i);
-			PressureCompensationAnalysis(tDataBuffer[i].fDataBuff[tDataBuffer[i].uCurrPos], &tFeatureInfo[i], &tDeviceInfo[i]);
+			PressureCompensationAnalysis(tPumpDataBuffer[i].fDataBuff[tPumpDataBuffer[i].uCurrPos], &tPumpFeatureInfo[i], &tPumpDeviceInfo[i]);
 			// update current index
-			tDataBuffer[i].uCurrPos = V3ProBufferCircleNextIndex(tDataBuffer[i].uCurrPos, 1, WIN_SIZE);
+			tPumpDataBuffer[i].uCurrPos = V3ProBufferCircleNextIndex(tPumpDataBuffer[i].uCurrPos, 1, WIN_SIZE);
 		}
 		else
 		{
 			// 如果不在泵奶期间，则不进行算法处理
-			tFeatureInfo[i].uCompsStatus = 0;
-			tFeatureInfo[i].iDelta_pwm = 0;
-			tFeatureInfo[i].pumping_time = 0;
+			tPumpFeatureInfo[i].uCompsStatus = 0;
+			tPumpFeatureInfo[i].iDelta_pwm = 0;
+			tPumpFeatureInfo[i].pumping_time = 0;
 		}
 	}
 #endif /* DEBUG == 1 */
@@ -262,9 +263,9 @@ void V3ProAlgoMain(aglo_air_pressure_data_t sPressureData)
 */
 void GetCompensationResult(unsigned char* uCompsStatus, int* iDeltaPWM)
 {
-	uCompsStatus[0] = tFeatureInfo[0].uCompsStatus;
-	uCompsStatus[1] = tFeatureInfo[1].uCompsStatus;
-	iDeltaPWM[0] = tFeatureInfo[0].iDelta_pwm;
-	iDeltaPWM[1] = tFeatureInfo[1].iDelta_pwm;
+	uCompsStatus[0] = tPumpFeatureInfo[0].uCompsStatus;
+	uCompsStatus[1] = tPumpFeatureInfo[1].uCompsStatus;
+	iDeltaPWM[0] = tPumpFeatureInfo[0].iDelta_pwm;
+	iDeltaPWM[1] = tPumpFeatureInfo[1].iDelta_pwm;
 
 }
