@@ -119,7 +119,9 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    if (proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_SUCCESS || proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_FAILED) {
+    if (proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_SUCCESS ||
+        proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_FAILED ||
+        proc->popup_ui_type == PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE) {
         pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
     }
     if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
