@@ -387,7 +387,7 @@ int bsp_motor_pump_parameter_set(void *args)
                 LOGE("set pump off failed, ret=%d", ret);
             }
             pump_status[pump_id].valve_is_running = true;
-            pump_status[pump_id].valve_duty = pump_para->pulse_width;
+            pump_status[pump_id].valve_duty = pump_para->pulse_width / PUMP_DUTY_SCALE_FACTOR;
             ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, pump_status[pump_id].valve_duty);
             if (ret != BSP_OK) {
                 LOGE("set valve on failed, ret=%d", ret);
@@ -400,8 +400,8 @@ int bsp_motor_pump_parameter_set(void *args)
             break;
         case MOTOR_VALVE_ON:
             pump_status[pump_id].valve_is_running = true;
-            pump_status[pump_id].valve_duty = pump_para->pulse_width;
-            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, pump_status[pump_id].valve_duty );
+            pump_status[pump_id].valve_duty = pump_para->pulse_width  / PUMP_DUTY_SCALE_FACTOR;
+            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, pump_status[pump_id].valve_duty);
             if (ret != BSP_OK) {
                 LOGE("set valve duty failed, ret=%d", ret);
             } 
