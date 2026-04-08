@@ -262,7 +262,13 @@ POSSIBLY_UNUSED static void bsp_motor_pwm_irq_control(enum HAL_GPIO_PIN_T pin, b
 }
 
 static int bsp_motor_pwm_duty_set(enum HAL_PWM_ID_T pwm_id, uint8_t duty)
-{    
+{   
+    ///先disable在重新设置空闲占空比100
+    if ((pwm_id == MOTOR_PUMP1_PWM_ID || pwm_id == MOTOR_PUMP2_PWM_ID) \
+        && (duty == MOTOR_PUMP_IDLE_PWM_DUTY))
+    {
+        hal_pwm_disable(pwm_id);
+    }
     struct HAL_PWM_CFG_T pwm_cfg = {
         .freq = BREAST_PUMP_PUMP_FREQ,
         .ratio = duty,
@@ -381,8 +387,8 @@ int bsp_motor_pump_parameter_set(void *args)
                 LOGE("set pump off failed, ret=%d", ret);
             }
             pump_status[pump_id].valve_is_running = true;
-            pump_status[pump_id].valve_duty = MOTOR_VALVE_START_PWM_DUTY;
-            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, MOTOR_VALVE_START_PWM_DUTY);
+            pump_status[pump_id].valve_duty = pump_para->pulse_width;
+            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, pump_status[pump_id].valve_duty);
             if (ret != BSP_OK) {
                 LOGE("set valve on failed, ret=%d", ret);
             }
@@ -394,14 +400,11 @@ int bsp_motor_pump_parameter_set(void *args)
             break;
         case MOTOR_VALVE_ON:
             pump_status[pump_id].valve_is_running = true;
-            pump_status[pump_id].valve_duty = MOTOR_VALVE_START_PWM_DUTY;
-            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, MOTOR_VALVE_START_PWM_DUTY);
+            pump_status[pump_id].valve_duty = pump_para->pulse_width;
+            ret = bsp_motor_pwm_duty_set(motor_pump_cfg[pump_id].valve_pwm_id, pump_status[pump_id].valve_duty );
             if (ret != BSP_OK) {
                 LOGE("set valve duty failed, ret=%d", ret);
-            } else {
-                pump_status[pump_id].valve_is_running = true;
-                pump_status[pump_id].valve_duty   = MOTOR_VALVE_START_PWM_DUTY;
-            }
+            } 
             if (pump_para->duration_ms > 0) {
                 bsp_motor_pump_timer_start(pump_id, pump_para->duration_ms, MOTOR_VALVE_ON);
             } else {

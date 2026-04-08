@@ -72,7 +72,7 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
             break;
 
         case MOTOR_ACTION_PUMP_OFF_AND_VALVE_ON:
-            motor.un.pump.pulse_width = BREAST_PUMP_VALVE_DUTY * PUMP_DUTY_SCALE_FACTOR;
+            motor.un.pump.pulse_width = info->original.pump_level > 0 ? BREAST_PUMP_VALVE_DUTY * PUMP_DUTY_SCALE_FACTOR : 0;
             motor.un.pump.freq = BREAST_PUMP_VALVE_FREQ;
             motor.un.pump.pump_id = id;
             motor.un.pump.action = MOTOR_PUMP_OFF_AND_VALVE_ON;
@@ -81,7 +81,7 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
             break;
 
         case MOTOR_ACTION_VALVE_ON:
-            motor.un.pump.pulse_width = BREAST_PUMP_VALVE_DUTY * PUMP_DUTY_SCALE_FACTOR;
+            motor.un.pump.pulse_width =  info->original.pump_level > 0 ? BREAST_PUMP_VALVE_DUTY * PUMP_DUTY_SCALE_FACTOR : 0;
             motor.un.pump.freq = BREAST_PUMP_VALVE_FREQ;
             motor.un.pump.pump_id = id;
             motor.un.pump.action = MOTOR_VALVE_ON;
