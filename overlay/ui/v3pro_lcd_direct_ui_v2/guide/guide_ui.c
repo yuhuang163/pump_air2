@@ -30,22 +30,9 @@ typedef struct {
     res_img_info_t img_info;
     uint8_t force_update;
     uint8_t page_index;
+    uint8_t popup_ui_index;
+    uint8_t rsv[13];
 } guide_display_info_t;
-
-typedef struct {
-    const char *text;
-    const lv_font_t *font;
-    uint16_t text_x;
-    uint16_t text_y;
-    // lv_opa_t text_opa;
-    uint32_t text_color;
-} ui_guide_text_info_t;
-
-typedef struct {
-    uint16_t img_id;
-    uint16_t icon_x;
-    uint16_t icon_y;
-} ui_guide_img_info_t;
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -76,7 +63,7 @@ static void ui_guide_root_init(void)
         guide_info->root = lv_obj_create(lv_screen_active());
     }
     lv_obj_set_size(guide_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-    lv_obj_set_style_bg_color(guide_info->root, lv_color_white(), 0);     /// 设置背景颜色为黑色
+    lv_obj_set_style_bg_color(guide_info->root, lv_color_black(), 0);     /// 设置背景颜色为黑色
     lv_obj_set_style_bg_opa(guide_info->root, LV_OPA_COVER, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
     lv_obj_set_style_border_width(guide_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
     lv_obj_set_style_pad_all(guide_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
@@ -125,7 +112,6 @@ static void guide_ui_page_img_update(ui_manager_context_t *thiz, uint8_t page_in
         guide_info->page_img = lv_image_create(guide_info->root);
         EXCEPTION_CHECK_VOID(guide_info->page_img);
     } 
-   
     common_ui_img_resource_init(thiz, guide_page_img_ids[page_index], &guide_info->img_info);
     EXCEPTION_CHECK_VOID(guide_info->img_info.data);
     lv_fs_path_ex_t page_img_path;
@@ -141,6 +127,7 @@ static void guide_ui_update(ui_manager_context_t *thiz, uint8_t page_index)
     guide_qrcode_update(thiz, page_index);
     guide_info->page_index = page_index;
 }
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -156,6 +143,7 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     ui_guide_root_init(); /// 初始化 root 容器
     guide_info->force_update = true;
+    guide_info->popup_ui_index = GUIDE_POPUP_UI_NONE;
 }
 
 void ui_display_guide_remove(ui_manager_context_t *thiz)
@@ -164,6 +152,7 @@ void ui_display_guide_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(guide_info);
     EXCEPTION_CHECK_VOID(guide_info->root);
     common_ui_img_resource_deinit(thiz, &guide_info->img_info);
+    guide_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(guide_info->root);
     u_free(guide_info);
     guide_info = NULL;
@@ -177,6 +166,7 @@ int ui_display_guide_process(ui_manager_context_t *thiz)
     ui_proc_guide_t *proc = (ui_proc_guide_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     guide_ui_update(thiz, proc->page_index);
+    guide_tip_popup_ui_update(thiz, proc, guide_info->root, &guide_info->popup_ui_index);
     guide_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

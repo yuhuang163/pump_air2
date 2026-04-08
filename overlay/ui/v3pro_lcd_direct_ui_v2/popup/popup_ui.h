@@ -29,7 +29,7 @@ int ui_display_power_off_popup_process(ui_manager_context_t *thiz);
 /// 倒计时弹窗页面
 void ui_display_count_down_popup_prepare(ui_manager_context_t *thiz, uint16_t time);
 void ui_display_count_down_popup_remove(ui_manager_context_t *thiz);
-int ui_display_count_down_popup_process(ui_manager_context_t *thiz);    
+int ui_display_count_down_popup_process(ui_manager_context_t *thiz);
 
 /// 蓝牙状态弹窗页面
 void ui_display_ble_state_popup_prepare(ui_manager_context_t *thiz, uint8_t state);

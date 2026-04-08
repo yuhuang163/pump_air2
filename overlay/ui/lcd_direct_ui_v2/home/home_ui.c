@@ -279,6 +279,6 @@ int ui_display_home_process(ui_manager_context_t *thiz)
         LOG_UI("===> home fps: %d", thiz->priv.fps_count);
         thiz->priv.fps_count = 0;
     }
-    return 0;
 #endif
+    return 0;
 }
