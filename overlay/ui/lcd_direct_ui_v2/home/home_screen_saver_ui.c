@@ -132,6 +132,11 @@ static void home_screen_saver_root_icon_update(ui_manager_context_t *thiz)
         saver_img_infos[HOME_SCREEN_SAVER_ICON_INDEX].icon_x, saver_img_infos[HOME_SCREEN_SAVER_ICON_INDEX].icon_y); /// 设置icon位置
 }
 
+static void home_screen_saver_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
+{
+    home_screen_saver_root_icon_update(thiz);
+}
+
 /*  
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -176,8 +181,8 @@ int ui_display_home_screen_saver_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->ble);
     home_screen_saver_root_bg_update(thiz);
-    home_screen_saver_root_icon_update(thiz);
-    ble_ui_update(thiz, saver_info->root, proc->ble, 168, 22);
+    ble_ui_update(thiz, saver_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
+    home_screen_saver_ui_update(thiz, proc);
     home_tip_popup_ui_update(thiz, proc, saver_info->root, &saver_info->popup_ui_index);
     saver_info->force_update = false;
     thiz->priv.fps_count++;

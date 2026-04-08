@@ -2,15 +2,11 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "resource_id_define.h"
-#include "src/misc/lv_color.h"
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h" // IWYU pragma: keep
 #include "window_screen_home.h" // IWYU pragma: keep
 #include "ble_ui.h" // IWYU pragma: keep
-#include <stdint.h>
-
 /*
 * DEFINES
 *****************************************************************************************
@@ -64,9 +60,11 @@ typedef struct {
     home_ui_display_type_e home_ui_type;
     uint32_t timestamp_offset;
     uint16_t animation_index;
-    uint8_t force_update;
     uint32_t hour;
     uint8_t minute;
+    uint8_t force_update;
+    uint8_t popup_ui_index;
+    uint8_t rsv[11];
 } home_display_info_t;
 
 
@@ -77,10 +75,9 @@ typedef struct {
 static home_display_info_t *home_info;
 #if IS_SUPPORT_ROOT_HOME_COMP_BG
 static PSRAM_NC_DATA_LOC uint8_t home_bg_data[] = {
-    #include "comparison_png2txt/Custom5_360x360.txt"
+    #include "comparison_png2txt/home_idle_360x360.txt"
 };
 #endif
-
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -96,7 +93,7 @@ static void home_root_init(void)
         home_info->root = lv_obj_create(lv_screen_active());
     }
     lv_obj_set_size(home_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%（自动适配屏幕分辨率）
-    lv_obj_set_style_bg_color(home_info->root, lv_color_white(), 0);     /// 设置背景颜色为黑色
+    lv_obj_set_style_bg_color(home_info->root, lv_color_black(), 0);     /// 设置背景颜色为黑色
     lv_obj_set_style_bg_opa(home_info->root, LV_OPA_COVER, 0);           /// 设置背景不透明度为完全不透明（覆盖下层）
     lv_obj_set_style_border_width(home_info->root, 0, 0);                /// 设置边框宽度为0（无边框）
     lv_obj_set_style_pad_all(home_info->root, 0, 0);                     /// 设置所有内边距为0（子对象紧贴边缘）
@@ -471,9 +468,6 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
 */
 void ui_display_home_prepare(ui_manager_context_t *thiz)
 {
-#if 0
-    ui_display_home_screen_saver_prepare(thiz);
-#else
     EXCEPTION_CHECK_VOID(thiz);
     if (home_info == NULL) {
         home_info = (home_display_info_t *)u_malloz(sizeof(home_display_info_t));
@@ -487,14 +481,11 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     home_info->force_update = true;
     home_info->animation_index = 0;
-#endif
+    home_info->popup_ui_index = HOME_POPUP_UI_NONE;
 }
 
 void ui_display_home_remove(ui_manager_context_t *thiz)
 {
-#if 0
-    ui_display_home_screen_saver_remove(thiz);
-#else
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(home_info);
     common_ui_img_resource_deinit(thiz, &home_info->label_info);
@@ -504,27 +495,22 @@ void ui_display_home_remove(ui_manager_context_t *thiz)
     battery_ui_deinit(thiz);
     ble_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
+    home_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(home_info->root);
     u_free(home_info);
     home_info = NULL;
-#endif
 }
 
 int ui_display_home_process(ui_manager_context_t *thiz)
 {
-#if 0
-    ui_display_home_screen_saver_process(thiz);
-#else
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(home_info);
-    EXCEPTION_CHECK_INT(home_info->root);
+    EXCEPTION_CHECK_INT(thiz && home_info && home_info->root);
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->ble);
+    EXCEPTION_CHECK_INT(proc && proc->ble);
     home_root_bg_update(thiz);
     battery_ui_update(thiz, home_info->root, proc->battery, true);
     ble_ui_update(thiz, home_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
     home_ui_update(thiz, proc);
+    home_tip_popup_ui_update(thiz, proc, home_info->root, &home_info->popup_ui_index);
     home_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
@@ -532,6 +518,5 @@ int ui_display_home_process(ui_manager_context_t *thiz)
         LOG_UI("===> home fps: %d, home_ui_type: %d", thiz->priv.fps_count, home_info->home_ui_type);
         thiz->priv.fps_count = 0;
     }
-#endif
     return 0;
 }

@@ -30,6 +30,8 @@
 #define PUMP_RIGHT_ARC_END_ANGLE                   (404 - 8)
 #define PUMP_LEVEL_ARC_WIDTH                       (6)
 #define PUMP_LEVEL_CIRCLE_SIZE                     (9)
+#define PUMP_SPEED_ICON_X                          (206)
+#define PUMP_SPEED_ICON_Y                          (26)
 #define HOME_CUSTOM_MODE_TEXT_Y                    (91 + 9)
 #define HOME_CUSTOM_LEFT_TEXT_CENTER_X             (136 - 4)
 #define HOME_CUSTOM_RIGHT_TEXT_CENTER_X            (224 + 2)
@@ -67,6 +69,7 @@ typedef struct {
     uint16_t hold_time;
     uint16_t animation_index;
     uint8_t animation_play_complete; /// 动画播放完成标志
+    uint8_t rsv[5];
 } pump_display_info_t;
 
 /*
@@ -171,8 +174,8 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint16_t hold_time
         pump_info->time_minute = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->time_minute);
         lv_obj_set_width(pump_info->time_minute, 120);
-        lv_label_set_long_mode(pump_info->time_minute, LV_LABEL_LONG_CLIP);
-        lv_obj_set_style_text_align(pump_info->time_minute, LV_TEXT_ALIGN_RIGHT, 0);
+        lv_label_set_long_mode(pump_info->time_minute, LV_LABEL_LONG_CLIP); /// 截断过长文本
+        lv_obj_set_style_text_align(pump_info->time_minute, LV_TEXT_ALIGN_RIGHT, 0); /// 右对齐
         lv_obj_set_style_text_color(pump_info->time_minute, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(pump_info->time_minute, &lv_font_quicksand_96_bold, 0);
         lv_obj_align(pump_info->time_minute, LV_ALIGN_TOP_LEFT, 46, 108 + 15 + y_offset);
@@ -406,7 +409,7 @@ static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t spe
     lv_fs_make_path_from_buffer(&speed_icon_path, LV_FS_MEMFS_LETTER, 
         pump_info->speed_icon_info.data, pump_info->speed_icon_info.size, "baj");
     lv_image_set_src(pump_info->speed_icon, (const void *)&speed_icon_path);
-    lv_obj_align(pump_info->speed_icon, LV_ALIGN_TOP_LEFT, 206, 26);
+    lv_obj_align(pump_info->speed_icon, LV_ALIGN_TOP_LEFT, PUMP_SPEED_ICON_X, PUMP_SPEED_ICON_Y);
     pump_info->speed = speed; 
 }
 
@@ -486,9 +489,9 @@ static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t star
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
-    // if (pump_info->animation_play_complete) {
-    //     return;
-    // }
+    if (pump_info->animation_play_complete) {
+        return;
+    }
 
     if (pump_info->animation == NULL || !lv_obj_is_valid(pump_info->animation)) {
         pump_info->animation = lv_image_create(pump_info->root);
@@ -519,7 +522,7 @@ static void pump_home_popup_ui_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
-    ui_prompt_mode_switch_remove(thiz);
+    ui_common_operation_tip_remove(thiz);
     ui_prompt_pump_will_finish_remove(thiz);
     ui_prompt_pump_status_remove(thiz);
     pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
@@ -532,16 +535,22 @@ static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t
             pump_home_popup_ui_remove(thiz);
             pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
             break;
-        case PUMP_POPUP_UI_MODE_PROMPT:
-            if (PUMP_IS_COMMON_MODE(pump_info->mode) == 0) {
-                return; /// 普通模式下不显示模式切换提示
-            }
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_MODE_PROMPT) {
+            case PUMP_POPUP_UI_OPERATION_SUCCESS:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_OPERATION_SUCCESS) {
                 pump_home_popup_ui_remove(thiz);
-                ui_prompt_mode_switch_prepare(thiz, pump_info->root);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_MODE_PROMPT;
+                ui_common_operation_tip_prepare(thiz, pump_info->root);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_SUCCESS;
             } else {
-                ui_prompt_mode_switch_process(thiz, proc->ui_common_mode_index);
+                ui_common_operation_tip_process(thiz, COMMON_OPERATION_SUCCESS, proc->popup_ui_start_time);
+            }
+            break;
+        case PUMP_POPUP_UI_OPERATION_FAILED:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_OPERATION_FAILED) {
+                pump_home_popup_ui_remove(thiz);
+                ui_common_operation_tip_prepare(thiz, pump_info->root);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_FAILED;
+            } else {
+                ui_common_operation_tip_process(thiz, COMMON_OPERATION_FAILED, proc->popup_ui_start_time);
             }
             break;
         case PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP:
@@ -605,13 +614,9 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
 int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(pump_info);
-    EXCEPTION_CHECK_INT(pump_info->root);
+    EXCEPTION_CHECK_INT(pump_info && pump_info->root);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc);
-    EXCEPTION_CHECK_INT(proc->pump);
-    EXCEPTION_CHECK_INT(proc->motor);
-    EXCEPTION_CHECK_INT(proc->ble);
+    EXCEPTION_CHECK_INT(proc && proc->pump && proc->motor && proc->ble);
     const pump_result_info_t *result_info = NULL;
     READ_PUMP_RESULT_INFO(proc->pump, BREAST_PUMP_RESULT_PUMPING, &result_info);
     EXCEPTION_CHECK_INT(result_info);
@@ -624,7 +629,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     READ_PUMP_WORK_MODE(proc->pump, pump_mode);
     uint8_t is_regular_mode = PUMP_IS_COMMON_MODE(pump_mode);
     pump_home_bg_update(thiz, is_regular_mode);
-    ble_ui_update(thiz, pump_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
+    ble_ui_update(thiz, pump_info->root, proc->ble, PUMP_HOME_BLE_UI_X, PUMP_HOME_BLE_UI_Y);
     battery_ui_update(thiz, pump_info->root, proc->battery, false);
     pump_home_time_update(thiz, hold_time, is_regular_mode ? 0 : 19);
     if (is_regular_mode) {

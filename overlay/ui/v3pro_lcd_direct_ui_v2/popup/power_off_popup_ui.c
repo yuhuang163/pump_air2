@@ -30,10 +30,11 @@ typedef struct {
     lv_obj_t * arc;                   /// 圆弧进度条对象
     lv_obj_t * number_text;           /// 数字文本对象
     lv_obj_t * mask_layer;            /// 遮罩层对象
+    uint32_t start_time;              /// 倒计时起始时间
+    uint16_t ring_progress;           /// 圆弧进度
     uint8_t force_update;
     uint8_t display_number;           /// 显示倒计时数字
-    uint16_t ring_progress;           /// 圆弧进度
-    uint32_t start_time;              /// 倒计时起始时间
+    uint8_t rsv[12];
 } power_off_tip_display_info_t;
 
 /*
@@ -179,10 +180,7 @@ void ui_display_power_off_popup_prepare(ui_manager_context_t *thiz)
 
 void ui_display_power_off_popup_remove(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    if (power_off_info == NULL) {
-        return;
-    }
+    EXCEPTION_CHECK_VOID(thiz && power_off_info);
     LVGL_OBJ_DELETE(power_off_info->root);
     u_free(power_off_info);
     power_off_info = NULL;
@@ -191,9 +189,7 @@ void ui_display_power_off_popup_remove(ui_manager_context_t *thiz)
 int ui_display_power_off_popup_process(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_INT(thiz);
-    if (power_off_info == NULL || power_off_info->root == NULL) {
-        return 0;
-    }   
+    EXCEPTION_CHECK_INT(power_off_info && power_off_info->root);
     will_power_off_tip_mask_layer_update(thiz);
     will_power_off_tip_arc_update(thiz);
     will_power_off_tip_text_update(thiz);
