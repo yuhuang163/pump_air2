@@ -124,7 +124,7 @@ typedef struct {
     uint32_t timestamp;
     float air_pressure[ALGO_AIR_PRESSURE_NUM];
     algo_pump_state_t pump_state[ALGO_AIR_PRESSURE_NUM];
-} aglo_air_pressure_data_t;
+} algo_air_pressure_data_t;
 
 typedef struct {
     algo_fusion_sensor_attr_type_e data_type;        /// 数据类型

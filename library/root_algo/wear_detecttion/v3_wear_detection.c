@@ -666,7 +666,7 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 	}
 	tFeatureInfoTemp->uPrevWearStatus = tFeatureInfoTemp->uWearStatus;
 	/* compensation status */
-	if (tFeatureInfoTemp->uWearStatus == 1 && tFeatureInfoTemp->uWaveSpikes == 0 && tFeatureInfoTemp->uNormalWaveform >= 1)
+	if (tFeatureInfoTemp->uWearStatus == 1)
 	{
 		unsigned int uCount_Min = 0;
 		unsigned int uCount_Max = 0;
@@ -689,7 +689,7 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 			tFeatureInfoTemp->uCompsStatus = 1;
 			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData) > 10))
 				tFeatureInfoTemp->iDelta_pwm = 0;
-			tFeatureInfoTemp->iDelta_pwm = 100 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
+			tFeatureInfoTemp->iDelta_pwm = 200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
 		}
 
 		else if (uCount_Max >= 2)
@@ -697,7 +697,7 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 			tFeatureInfoTemp->uCompsStatus = 2;
 			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData) > 10))
 				tFeatureInfoTemp->iDelta_pwm = 0;
-			tFeatureInfoTemp->iDelta_pwm = -100 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
+			tFeatureInfoTemp->iDelta_pwm = -200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
 		}
 		else
 		{
