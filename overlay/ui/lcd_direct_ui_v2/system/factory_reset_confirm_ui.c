@@ -149,10 +149,6 @@ static void ui_factory_reset_confirm_arc_update(ui_manager_context_t *thiz, uint
     }
     ui_info->ring_progress = ring_progress;
 
-    if (ring_progress > FACTORY_RESET_CONFIRM_DISPLAY_MAX_VALUE) {
-        ring_progress = FACTORY_RESET_CONFIRM_DISPLAY_MAX_VALUE;
-    }
-
     if (ring_progress >= FACTORY_RESET_CONFIRM_DISPLAY_MAX_VALUE) {
         lv_obj_set_style_arc_opa(ui_info->arc, LV_OPA_COVER, LV_PART_MAIN);      /// 最后一帧直接显示完整闭环
         lv_obj_set_style_arc_opa(ui_info->arc, LV_OPA_TRANSP, LV_PART_INDICATOR);

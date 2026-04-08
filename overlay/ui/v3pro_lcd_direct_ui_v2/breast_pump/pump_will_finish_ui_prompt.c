@@ -28,11 +28,12 @@
 typedef struct {
     lv_obj_t * root;
     lv_obj_t * text;
-    lv_obj_t * arc;            /// 圆弧进度条对象
-    lv_obj_t * mask_layer;               /// 遮罩层对象
-    uint8_t force_update;
+    lv_obj_t * arc;                    /// 圆弧进度条对象
+    lv_obj_t * mask_layer;             /// 遮罩层对象
+    uint32_t start_time;               /// 倒计时起始时间
     uint16_t ring_progress;            /// 圆弧进度
-    uint32_t start_time;                 /// 倒计时起始时间
+    uint8_t force_update;
+    uint8_t rsv[13];
 } will_finish_tip_display_info_t;
 
 /*
@@ -89,10 +90,6 @@ static void will_finish_tip_arc_update(ui_manager_context_t *thiz)
         lv_obj_set_style_arc_width(tip_info->arc, WILL_FINISH_ARC_WIDTH, LV_PART_INDICATOR);
         lv_obj_set_style_arc_opa(tip_info->arc, LV_OPA_COVER, LV_PART_INDICATOR);  /// 前景弧不透明
         lv_obj_remove_style(tip_info->arc, NULL, LV_PART_KNOB); /// 去掉旋钮
-    }
-
-    if (ring_progress > WILL_FINISH_DISPLAY_MAX_VALUE) {
-        ring_progress = WILL_FINISH_DISPLAY_MAX_VALUE;
     }
 
     if (ring_progress >= WILL_FINISH_DISPLAY_MAX_VALUE) {

@@ -105,7 +105,8 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     proc->goto_pump_home_ui= false;
-    if (proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_FAILED) {
+    if (proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_FAILED ||
+        proc->popup_ui_type == PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE) {
         pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
     }
     
@@ -142,6 +143,9 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
         }
         int next_status = (pump_status == BREAST_PUMP_PAUSE) ? BREAST_PUMP_CONTINUE : BREAST_PUMP_START;    
         WRITE_PUMP_WORK_STATUS(proc->pump, next_status, 1);
+        if (next_status == BREAST_PUMP_START && proc->led)  {
+            proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX);
+        }
         pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
         show_pump_home_ui(proc);
         LOG_UI("pump start ui create: %d", pump_status);
