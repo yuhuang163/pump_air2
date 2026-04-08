@@ -173,7 +173,6 @@ static void home_qrcode_ui_update(ui_manager_context_t *thiz)
     home_qrcode_ui_bind_update(thiz);
 }
 
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************

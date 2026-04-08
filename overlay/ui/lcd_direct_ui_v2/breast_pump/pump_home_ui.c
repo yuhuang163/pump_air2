@@ -30,6 +30,8 @@
 #define PUMP_RIGHT_ARC_END_ANGLE                   (404 - 8)
 #define PUMP_LEVEL_ARC_WIDTH                       (6)
 #define PUMP_LEVEL_CIRCLE_SIZE                     (9)
+#define PUMP_SPEED_ICON_X                          (186)
+#define PUMP_SPEED_ICON_Y                          (24)
 #define HOME_CUSTOM_MODE_TEXT_Y                    (91 + 9)
 #define HOME_CUSTOM_LEFT_TEXT_CENTER_X             (136 - 4)
 #define HOME_CUSTOM_RIGHT_TEXT_CENTER_X            (224 + 2)
@@ -407,7 +409,7 @@ static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t spe
     lv_fs_make_path_from_buffer(&speed_icon_path, LV_FS_MEMFS_LETTER, 
         pump_info->speed_icon_info.data, pump_info->speed_icon_info.size, "baj");
     lv_image_set_src(pump_info->speed_icon, (const void *)&speed_icon_path);
-    lv_obj_align(pump_info->speed_icon, LV_ALIGN_TOP_LEFT, 186, 24);
+    lv_obj_align(pump_info->speed_icon, LV_ALIGN_TOP_LEFT, PUMP_SPEED_ICON_X, PUMP_SPEED_ICON_Y);
     pump_info->speed = speed; 
 }
 
@@ -625,7 +627,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     READ_PUMP_WORK_MODE(proc->pump, pump_mode);
     uint8_t is_regular_mode = PUMP_IS_COMMON_MODE(pump_mode);
     pump_home_bg_update(thiz, is_regular_mode);
-    ble_ui_update(thiz, pump_info->root, proc->ble, 150, 24);
+    ble_ui_update(thiz, pump_info->root, proc->ble, PUMP_HOME_BLE_UI_X, PUMP_HOME_BLE_UI_Y);
     pump_home_time_update(thiz, hold_time, is_regular_mode ? 0 : 19);
     if (is_regular_mode) {
         pump_home_animation_update(thiz, RESOURCE_ID_COMMON_MODE_ANIMATION_START, 
