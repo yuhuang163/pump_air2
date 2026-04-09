@@ -4,7 +4,6 @@
 */
 #include "root_common_api.h" // IWYU pragma: keep
 #include "adaptive_dimming.h" // IWYU pragma: keep
-#include "touch_ic_fw.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -246,9 +245,6 @@ static void adaptive_dimming_polling_thread(void *user_data)
     led_manager_context_t *led = (led_manager_context_t *)user_data;
     EXCEPTION_CHECK_VOID(led);
     EXCEPTION_CHECK_VOID(adaptive);
-    if (touch_ic_fw_i2c_exclusive_is_active()) {
-        return;
-    }
 #if IS_SUPPORT_ADAPTIVE_DIMMING
     /* 1) 旋钮屏蔽窗口内整段不调光；2) 无新批次时仍推进光感稳定 misc 节拍（见 lux_stable_misc_tick） */
     if (s_encoder_suppress_ticks > 0) {
