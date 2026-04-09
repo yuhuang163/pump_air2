@@ -110,8 +110,8 @@ static void update_para_to_motor_device(struct motor_manager_context *thiz, uint
 static void pump_duty_adjust_to_motor_device(struct motor_manager_context *thiz, uint8_t id, int16_t pulse_width)
 {
     if (abs(pulse_width) > 2000) {
-        LOGE("pulse_width is out of range: %d", pulse_width);
-        return;
+        //LOGE("pulse_width is out of range: %d", pulse_width);
+        //return;
     }
     motor_para_t motor = {0};
     motor.un.pump.pulse_width = pulse_width;

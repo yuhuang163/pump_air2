@@ -60,7 +60,7 @@ static float STIMULATION_WORK_TIME[] = { 270, 245, 270, 270, 260,
 										  303, 290, 302, 285, 305,
 										  285, 305, 313, 340, 322 };
 
-/* unloaded threshold for wear detection */
+// unloaded threshold for wear detection 
 static float UNLOADED_EXPRESSION_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -18,
 									   -18, -12, -35, -35, -40, -40, -40 };
 static float UNLOADED_STIMULATION_THRESHOLD[] = { -3, -3, -4, -5, -5.5, -5.5, -7, -8,
@@ -199,6 +199,8 @@ typedef struct _FEATURE_INFO_
 	unsigned short	uUpdateFlag;
 	float			fThreshold;
 	float			fLoadedThreshold;
+	unsigned char	uPumpFlag;
+	unsigned char	pumping_time;
 	unsigned char	uWearStatus;	// result
 	unsigned char	uCompsStatus;
 	int 			iDelta_pwm;			// 返回delta_pwm	-10000~10000

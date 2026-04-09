@@ -17,6 +17,7 @@
 #define DEBUG		0
 
 // global data
+//SGLOBAL_INFO		tGlobalInfo;
 SDATA_BUFFER		tDataBuffer[2];
 SPV_INFO			tPVInfo[2];
 SWAVE_INFO			tWaveInfo[2];
@@ -80,6 +81,7 @@ void V3WearDetectionInit(unsigned char uLevelLeft, unsigned char ulevelRight, un
 		tFeatureInfo[j].uNoiseLevel = 0;
 		tFeatureInfo[j].uWaveSpikes = 0;
 		tFeatureInfo[j].uPVIndex = 0;
+		tFeatureInfo[j].uPumpFlag = 0;
 		tFeatureInfo[j].uWearStatus = 0;
 		tFeatureInfo[j].uNormalWaveform = 0;
 		tFeatureInfo[j].fMinDataBuffMin = 0;
@@ -94,6 +96,7 @@ void V3WearDetectionInit(unsigned char uLevelLeft, unsigned char ulevelRight, un
 		switch (tDeviceInfo[j].uMode)
 		{
 		case MODE_EXPRESSION:
+			tDeviceInfo[j].run_time = EXPRESSION_WORK_TIME[tDeviceInfo[j].uLevel];
 			tFeatureInfo[j].fThreshold = UNLOADED_EXPRESSION_THRESHOLD[tDeviceInfo[j].uLevel];
 			tFeatureInfo[j].fLoadedThreshold = EXPRESSION_THRESHOLD[tDeviceInfo[j].uLevel];
 			break;
@@ -102,6 +105,7 @@ void V3WearDetectionInit(unsigned char uLevelLeft, unsigned char ulevelRight, un
 			tFeatureInfo[j].fLoadedThreshold = MIXED_THRESHOLD[tDeviceInfo[j].uLevel];
 			break;
 		case MODE_STIMULATION:
+			tDeviceInfo[j].run_time = STIMULATION_WORK_TIME[tDeviceInfo[j].uLevel];
 			tFeatureInfo[j].fThreshold = UNLOADED_STIMULATION_THRESHOLD[tDeviceInfo[j].uLevel];
 			tFeatureInfo[j].fLoadedThreshold = STIMULATION_THRESHOLD[tDeviceInfo[j].uLevel];
 			break;
@@ -622,7 +626,7 @@ void PressureDataFeature(SPV_INFO *tPVInfoTemp, SWAVE_INFO * tWaveInfoTemp, SDAT
 */
 void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* tDeviceInfoTemp)
 {
-	tFeatureInfoTemp->iDelta_pwm = 0;
+	//tFeatureInfoTemp->iDelta_pwm = 0;
 	if (tFeatureInfoTemp->uWearStatus == 0)
 	{
 		if ((tFeatureInfoTemp->uWaveSpikes <= 1 && tFeatureInfoTemp->uNoiseLevel == 0 && tFeatureInfoTemp->uNormalWaveform >= 1) &&
@@ -666,19 +670,24 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 	}
 	tFeatureInfoTemp->uPrevWearStatus = tFeatureInfoTemp->uWearStatus;
 	/* compensation status */
+<<<<<<< HEAD
+	if (tFeatureInfoTemp->uWearStatus == 1 && tFeatureInfoTemp->pumping_time == 1)
+=======
 	if (tFeatureInfoTemp->uWearStatus == 1)
+>>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
 	{
 		unsigned int uCount_Min = 0;
 		unsigned int uCount_Max = 0;
 
 		for (unsigned int i = 0; i < 6; i++)
 		{
-			if (tFeatureInfoTemp->fMinDataBuff[i] > tFeatureInfoTemp->fLoadedThreshold + 2 && tFeatureInfoTemp->fMinDataBuff[i] < -5)
+			// fMinDataBuff是滤波后的数据，会比实际负压偏小，所以这里用fMinDataBuff[i] - 2 来做比较（实际需要缓存原始负压数据）
+			if ((tFeatureInfoTemp->fMinDataBuff[i] - 2) > tFeatureInfoTemp->fLoadedThreshold + 2 && (tFeatureInfoTemp->fMinDataBuff[i]-2) < -5)
 			{
 				/* flag */
 				uCount_Min += 1;
 			}
-			else if (tFeatureInfoTemp->fMinDataBuff[i] < tFeatureInfoTemp->fLoadedThreshold - 2 && tFeatureInfoTemp->fMinDataBuff[i] < -5)
+			else if ((tFeatureInfoTemp->fMinDataBuff[i] - 2) < tFeatureInfoTemp->fLoadedThreshold - 2 && (tFeatureInfoTemp->fMinDataBuff[i]-2) < -5)
 			{
 				/* flag */
 				uCount_Max += 1;
@@ -687,17 +696,28 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 		if (uCount_Min >= 2)
 		{
 			tFeatureInfoTemp->uCompsStatus = 1;
-			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData) > 10))
+			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)) > 10))
 				tFeatureInfoTemp->iDelta_pwm = 0;
+<<<<<<< HEAD
+			else
+				/*2% delta_pwm 对应1kPa变化*/
+				tFeatureInfoTemp->iDelta_pwm = 200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)));
+=======
 			tFeatureInfoTemp->iDelta_pwm = 200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
+>>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
 		}
 
 		else if (uCount_Max >= 2)
 		{
 			tFeatureInfoTemp->uCompsStatus = 2;
-			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData) > 10))
+			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)) > 10))
 				tFeatureInfoTemp->iDelta_pwm = 0;
+<<<<<<< HEAD
+			else
+				tFeatureInfoTemp->iDelta_pwm = -200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)));
+=======
 			tFeatureInfoTemp->iDelta_pwm = -200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
+>>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
 		}
 		else
 		{
@@ -705,7 +725,6 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 			tFeatureInfoTemp->iDelta_pwm = 0;
 		}
 	}
-	
 }
 
 
@@ -719,7 +738,7 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void V3WearDetectionMain(float *fPressureData, unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight)
+void V3WearDetectionMain(float *fPressureData, aglo_air_pressure_data_t sPressureData, unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight)
 {
 	/* reset if mode or level changed */
 	if (uLevelLeft - 1 != tDeviceInfo[CHANNEL_0].uLevel || uModeLeft != tDeviceInfo[CHANNEL_0].uMode)
@@ -741,6 +760,17 @@ void V3WearDetectionMain(float *fPressureData, unsigned char uLevelLeft, unsigne
 
 	for (unsigned int i = 0; i < CHANNEL_NUM; i++)
 	{
+		if (((sPressureData.pump_state[i].state == SUCTION_STATUS_GENERATE) || (sPressureData.pump_state[i].state == SUCTION_STATUS_HOLD)))
+		{
+			tFeatureInfo[i].pumping_time += 1;
+		}
+		else /* if (sPressureData.pump_state[i].state != SUCTION_STATUS_IDLE)*/
+		{
+			// 如果不在泵奶期间，则不进行算法处理
+			tFeatureInfo[i].uCompsStatus = 0;
+			tFeatureInfo[i].iDelta_pwm = 0;
+			tFeatureInfo[i].pumping_time = 0;
+		}
 		/* processing left and right data */
 		PressureDataPreprocess(fPressureData[i], &tFilterInfo[i], &tDataBuffer[i], &tFeatureInfo[i]);
 		PressureDataFeature(&tPVInfo[i], &tWaveInfo[i], &tDataBuffer[i], &tFeatureInfo[i], &tDeviceInfo[i]);
