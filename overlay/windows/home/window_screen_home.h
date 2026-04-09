@@ -75,8 +75,8 @@ void stop_home_common_ui(ui_proc_home_t *proc);
 void home_start_key_event_handler(ui_proc_home_t *proc);
 
 /// 绑定二维码展示
-void start_home_qrcode_ui_animation(ui_proc_home_t *proc);
-void home_qrcode_ui_hdr_remove(void);
+void start_home_bind_ui_animation(ui_proc_home_t *proc);
+void home_bind_ui_hdr_remove(void);
 
 /// 弹窗类型更新
 void home_popup_ui_type_update(ui_proc_home_t *proc, home_popup_ui_type_e type);

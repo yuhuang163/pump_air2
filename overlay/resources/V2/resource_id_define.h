@@ -30,7 +30,8 @@ typedef enum {
     RESOURCE_ID_AIRPLANE_UNLOCK_BUTTON_ICON,   /// 飞行模式解锁按钮图标
     RESOURCE_ID_HOME_DUMMY_ICON,               /// dummy图标
     RESOURCE_ID_CHARGE_ADAPTER_IMG,            /// 首页充电适配器图标
-    RESOURCE_ID_HOME_IDLE_PAGE_IMG,            /// 首页屏幕保护图片
+    RESOURCE_ID_HOME_BLE_LABEL_ICON,           /// 首页蓝牙标签图标
+    RESOURCE_ID_HOME_BLE_IP_ICON,              /// 首页蓝牙IP图标
 
     /* 引导组 [150..200] */
     RESOURCE_ID_GUIDE_PAGE1_IMG = 150,        /// 引导-页1图片
