@@ -106,7 +106,7 @@ static void ui_factory_reset_confirm_update(ui_manager_context_t *thiz)
     if (ui_info->text[2] == NULL || !lv_obj_is_valid(ui_info->text[2])) {
         ui_info->text[2] = lv_label_create(ui_info->root);
         EXCEPTION_CHECK_VOID(ui_info->text[2]);
-        lv_label_set_text(ui_info->text[2], "Press any button to cancel");
+        lv_label_set_text(ui_info->text[2], "Press to exit");
         lv_obj_set_style_text_align(ui_info->text[2], LV_TEXT_ALIGN_CENTER, 0);  /// 居中对齐
         lv_obj_set_style_text_line_space(ui_info->text[2], 4, 0); /// 设置行间距（像素）
         lv_obj_set_style_text_color(ui_info->text[2], lv_color_hex(FACTORY_RESET_CONFIRM_TEXT_COLOR), 0);

@@ -120,17 +120,17 @@ void system_factory_reset_confirm_handle(ui_proc_system_t *proc)
 void system_factory_reset_confirm_keyevent_handler(ui_proc_system_t *proc, uint16_t keycode, uint16_t keytype)
 {
     EXCEPTION_CHECK_VOID(proc);
-    if (keytype == KEY_EVENT_LONG_2S && keycode == KEY_CODE_POWER) {
-        proc->display_fac_rst_confirm_progress = true;
+    if (keycode != KEY_CODE_POWER) {
         return;
     }
 
-    if (keytype == KEY_EVENT_CLICK) {
-        POST_TASK_HANDLER_NO_DELAY(factory_reset_confirm_keyevent_cb, proc, FACTORY_RESET_CONFIRM_TASK_NAME);
+    if (keytype == KEY_EVENT_LONG_2S) {
+        proc->display_fac_rst_confirm_progress = true;
+    } else if (keytype == KEY_EVENT_CLICK) {
+        POST_TASK_HANDLER_NO_DELAY(factory_reset_confirm_keyevent_cb, proc,
+            FACTORY_RESET_CONFIRM_TASK_NAME);
         proc->display_fac_rst_confirm_progress = false;
-    }
-
-    if (keytype == KEY_EVENT_UP) {
+    } else if (keytype == KEY_EVENT_UP) {
         proc->display_fac_rst_confirm_progress = false;
     }
 }

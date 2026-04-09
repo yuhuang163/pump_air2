@@ -60,11 +60,13 @@ typedef struct {
     home_ui_display_type_e home_ui_type;
     uint32_t timestamp_offset;
     uint16_t animation_index;
-    uint32_t hour;
-    uint8_t minute;
+    uint32_t record_hour;
+    uint8_t record_minute;
+    uint8_t clock_hour_value;
+    uint8_t clock_minute_value;
     uint8_t force_update;
     uint8_t popup_ui_index;
-    uint8_t rsv[11];
+    uint8_t rsv[9];
 } home_display_info_t;
 
 
@@ -203,11 +205,13 @@ static void home_record_time_ui_update(ui_manager_context_t *thiz, uint32_t time
         uint32_t total_minutes = timestamp_offset / 1000 / 60;
         uint32_t hour = total_minutes / 60;
         uint32_t minute = total_minutes % 60;
-        if (home_info->force_update == false && home_info->hour == hour && home_info->minute == minute) {
+        if (home_info->force_update == false &&
+            home_info->record_hour == hour &&
+            home_info->record_minute == minute) {
             return;
         }
         char time_text[32] = {0};
-        sprintf(time_text, "%d%s%d%s", hour, " hr ", minute, " min");
+        snprintf(time_text, sizeof(time_text), "%d%s%d%s", hour, " hr ", minute, " min");
         lv_obj_clear_flag(home_info->time_text, LV_OBJ_FLAG_HIDDEN);
         lv_label_set_text(home_info->time_text, time_text);  /// 设置 label 文字内容和样式
         lv_obj_set_style_text_color(home_info->time_text, lv_color_hex(IDLE_TEXT_COLOR), 0);
@@ -215,8 +219,8 @@ static void home_record_time_ui_update(ui_manager_context_t *thiz, uint32_t time
         lv_obj_update_layout(home_info->time_text);
         lv_coord_t text_width = lv_obj_get_width(home_info->time_text);
         lv_obj_align(home_info->time_text, LV_ALIGN_TOP_LEFT, x_offset - (text_width / 2), y_offset); /// 设置文字位置
-        home_info->hour = hour;
-        home_info->minute = minute;
+        home_info->record_hour = hour;
+        home_info->record_minute = minute;
     } else {
         lv_obj_add_flag(home_info->time_text, LV_OBJ_FLAG_HIDDEN);
     }
@@ -318,26 +322,27 @@ static void home_clock_ui_update(ui_manager_context_t *thiz, int16_t y_offset, b
         utc_time_t utc_time = {0};
         uint32_t timestamp = platform_get_utc_time();
         timestamp_to_utc_time(timestamp, &utc_time);
-        if (home_info->hour == utc_time.hour && home_info->minute == utc_time.minute
+        if (home_info->clock_hour_value == utc_time.hour &&
+            home_info->clock_minute_value == utc_time.minute
             && home_info->force_update == false) {
             return;
         }
         char time_text[16] = {0};
         lv_obj_clear_flag(home_info->clock_hour, LV_OBJ_FLAG_HIDDEN);
-        sprintf(time_text, "%02d", utc_time.hour);
+        snprintf(time_text, sizeof(time_text), "%02d", utc_time.hour);
         lv_label_set_text(home_info->clock_hour, time_text);
         lv_obj_align(home_info->clock_hour, LV_ALIGN_TOP_LEFT, 
             HOME_CLOCK_HOUR_X, HOME_CLOCK_TIME_Y + y_offset);
         lv_obj_clear_flag(home_info->clock_minute, LV_OBJ_FLAG_HIDDEN);
-        sprintf(time_text, "%02d", utc_time.minute);
+        snprintf(time_text, sizeof(time_text), "%02d", utc_time.minute);
         lv_label_set_text(home_info->clock_minute, time_text);
         lv_obj_align(home_info->clock_minute, LV_ALIGN_TOP_LEFT, 
             HOME_CLOCK_MINUTE_X, HOME_CLOCK_TIME_Y + y_offset);
         lv_obj_clear_flag(home_info->clock_colon, LV_OBJ_FLAG_HIDDEN);
         lv_obj_align(home_info->clock_colon, LV_ALIGN_TOP_LEFT, 
             HOME_CLOCK_COLON_X, HOME_CLOCK_COLON_Y + y_offset);
-        home_info->hour = utc_time.hour;
-        home_info->minute = utc_time.minute;
+        home_info->clock_hour_value = utc_time.hour;
+        home_info->clock_minute_value = utc_time.minute;
     } else {
         lv_obj_add_flag(home_info->clock_hour, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(home_info->clock_minute, LV_OBJ_FLAG_HIDDEN);
@@ -371,8 +376,10 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
     if (home_ui_type != home_info->home_ui_type) {
         home_info->home_ui_type = home_ui_type;
         home_info->force_update = true;
-        home_info->hour = 0;
-        home_info->minute = 0;
+        home_info->record_hour = 0;
+        home_info->record_minute = 0;
+        home_info->clock_hour_value = 0;
+        home_info->clock_minute_value = 0;
     }
     switch (home_ui_type) {
         default:

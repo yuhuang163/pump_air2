@@ -116,14 +116,16 @@ static void pump_status_icon_update(ui_manager_context_t *thiz, uint16_t img_id)
     if (pump_status_info->status_icon == NULL || !lv_obj_is_valid(pump_status_info->status_icon)) {
         pump_status_info->status_icon = lv_image_create(pump_status_info->root);
         EXCEPTION_CHECK_VOID(pump_status_info->status_icon);
-        common_ui_img_resource_init(thiz, RESOURCE_ID_PUMP_PAUSE_PROMPT_ICON, &pump_status_info->status_img_info);
-        EXCEPTION_CHECK_VOID(pump_status_info->status_img_info.data);
-        lv_fs_path_ex_t status_img_path;
-        lv_fs_make_path_from_buffer(&status_img_path, LV_FS_MEMFS_LETTER, 
-            pump_status_info->status_img_info.data, pump_status_info->status_img_info.size, "baj");
-        lv_image_set_src(pump_status_info->status_icon, (const void *)&status_img_path);
         lv_obj_align(pump_status_info->status_icon, LV_ALIGN_TOP_MID, 0, PUMP_PAUSE_ICON_Y);
     }
+
+    common_ui_img_resource_deinit(thiz, &pump_status_info->status_img_info);
+    common_ui_img_resource_init(thiz, img_id, &pump_status_info->status_img_info);
+    EXCEPTION_CHECK_VOID(pump_status_info->status_img_info.data);
+    lv_fs_path_ex_t status_img_path;
+    lv_fs_make_path_from_buffer(&status_img_path, LV_FS_MEMFS_LETTER, 
+        pump_status_info->status_img_info.data, pump_status_info->status_img_info.size, "baj");
+    lv_image_set_src(pump_status_info->status_icon, (const void *)&status_img_path);
 }
 
 static void pump_status_arc_update(ui_manager_context_t *thiz)

@@ -41,7 +41,7 @@
 
 typedef struct {    
     lv_obj_t * root;
-    lv_obj_t * backgroud;
+    lv_obj_t * background;
     lv_obj_t * mode_text[2];
     lv_obj_t * speed_icon;
     lv_obj_t * time_minute;
@@ -126,19 +126,19 @@ static void pump_home_bg_update(ui_manager_context_t *thiz, uint8_t is_regular_m
 {
     static uint32_t start_time = 0;
     static uint8_t status = 0;
-    if (pump_info->backgroud == NULL || !lv_obj_is_valid(pump_info->backgroud)) {
-        pump_info->backgroud = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->backgroud);
+    if (pump_info->background == NULL || !lv_obj_is_valid(pump_info->background)) {
+        pump_info->background = lv_image_create(pump_info->root);
+        EXCEPTION_CHECK_VOID(pump_info->background);
     }
     lv_fs_path_ex_t bg_img_path;
     if (status == 0) {
-        lv_obj_add_flag(pump_info->backgroud, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(pump_info->background, LV_OBJ_FLAG_HIDDEN);
     } else {
-        lv_obj_clear_flag(pump_info->backgroud, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(pump_info->background, LV_OBJ_FLAG_HIDDEN);
         lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, home_bg_data,
             sizeof(home_bg_data), "png");
-        lv_image_set_src(pump_info->backgroud, (const void *)&bg_img_path);
-        lv_obj_align(pump_info->backgroud, LV_ALIGN_CENTER, 0, 0);
+        lv_image_set_src(pump_info->background, (const void *)&bg_img_path);
+        lv_obj_align(pump_info->background, LV_ALIGN_CENTER, 0, 0);
     }
 
     if (get_timestamp() - start_time > 1000) {
@@ -149,16 +149,18 @@ static void pump_home_bg_update(ui_manager_context_t *thiz, uint8_t is_regular_m
 #else
 static void pump_home_bg_update(ui_manager_context_t *thiz, uint8_t is_regular_mode)
 {
-    if (pump_info->backgroud == NULL || !lv_obj_is_valid(pump_info->backgroud)) {
-        pump_info->backgroud = lv_image_create(pump_info->root);
-        EXCEPTION_CHECK_VOID(pump_info->backgroud);
+    if (pump_info->background == NULL || !lv_obj_is_valid(pump_info->background)) {
+        pump_info->background = lv_image_create(pump_info->root);
+        EXCEPTION_CHECK_VOID(pump_info->background);
 #if LV_USE_SNAPSHOT
         lv_draw_buf_t *background_snapshot = thiz->get_lvgl_snap_shot(is_regular_mode ? \
              UI_SNAP_SHOT_REGULAR_PUMPING_BG : UI_SNAP_SHOT_EXPERT_PUMPING_BG);
         EXCEPTION_CHECK_VOID(background_snapshot);
+        lv_image_set_src(pump_info->background, background_snapshot);
+#else
+        lv_obj_add_flag(pump_info->background, LV_OBJ_FLAG_HIDDEN); /// 隐藏
 #endif
-        lv_image_set_src(pump_info->backgroud, background_snapshot);
-        lv_obj_align(pump_info->backgroud, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_align(pump_info->background, LV_ALIGN_CENTER, 0, 0);
     }
 }
 #endif
@@ -181,7 +183,7 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint16_t hold_time
         lv_obj_align(pump_info->time_minute, LV_ALIGN_TOP_LEFT, 46, 108 + 15 + y_offset);
     }
     char minute_value[4] = {0};
-    sprintf(minute_value, "%02d", minutes >= 60 ? 59 : minutes);
+    snprintf(minute_value, sizeof(minute_value), "%02d", minutes >= 60 ? 59 : minutes);
     lv_label_set_text(pump_info->time_minute, minute_value);
 
     if (pump_info->time_second == NULL || !lv_obj_is_valid(pump_info->time_second)) {
@@ -195,7 +197,7 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint16_t hold_time
         lv_obj_align(pump_info->time_second, LV_ALIGN_TOP_LEFT, 194, 108 + 15 + y_offset);
     }
     char second_value[4] = {0};
-    sprintf(second_value, "%02d", seconds >= 60 ? 59 : seconds);
+    snprintf(second_value, sizeof(second_value), "%02d", seconds >= 60 ? 59 : seconds);
     lv_label_set_text(pump_info->time_second, second_value);
     pump_info->hold_time = hold_time;
 }
@@ -209,7 +211,7 @@ static int pump_home_left_level_text_update(ui_manager_context_t *thiz, uint8_t 
         lv_obj_set_style_text_color(pump_info->left_progress_text, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(pump_info->left_progress_text, &lv_font_oppo_sans_16_medium, 0);
     }
-    sprintf(level_text, "%d", level);
+    snprintf(level_text, sizeof(level_text), "%d", level);
     lv_label_set_text(pump_info->left_progress_text, level_text);
     common_ui_text_place_in_circle(pump_info->left_progress_text, 
         end_angle, PUMP_LEVEL_RING_R + 15, false); /// 设置文字位置
@@ -304,7 +306,7 @@ static int pump_home_right_level_text_update(ui_manager_context_t *thiz, uint8_t
         lv_obj_set_style_text_color(pump_info->right_progress_text, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(pump_info->right_progress_text, &lv_font_oppo_sans_16_medium, 0);
     } 
-    sprintf(level_text, "%d", level);
+    snprintf(level_text, sizeof(level_text), "%d", level);
     lv_label_set_text(pump_info->right_progress_text, level_text);
     common_ui_text_place_in_circle(pump_info->right_progress_text, 
         end_angle, PUMP_LEVEL_RING_R + 15, false);
