@@ -65,6 +65,7 @@ typedef struct {
     res_img_info_t last_usage_icon_info;
     res_img_info_t unconfirmed_icon_info;
     res_img_info_t mode_component_info[BF_CIRCLE_SLOT_COUNT];
+    uint32_t custom_mode_id; /// 个性化模式ID
     uint16_t slot_res_id[BF_CIRCLE_SLOT_COUNT];
     int16_t slot_mode_idx[BF_CIRCLE_SLOT_COUNT];
     uint8_t cur_mode;
@@ -246,7 +247,9 @@ static void update_slot_content(ui_manager_context_t *thiz, bf_circle_slot_e slo
         lv_obj_add_flag(bf_mode_info->last_usage_icon[slot], LV_OBJ_FLAG_HIDDEN);
     }
     if (mode_idx == BF_MODE_COUNT - 1) {
-        lv_label_set_text(title, bf_mode_name[mode_idx]);
+        char title_text[16] = {0};
+        snprintf(title_text, sizeof(title_text), "Customize %d", bf_mode_info->custom_mode_id);
+        lv_label_set_text(title, title_text);
     } else {
         lv_label_set_text(title, bf_mode_name[mode_idx]);
     }
@@ -594,6 +597,7 @@ void ui_display_breastfeeding_mode_prepare(ui_manager_context_t *thiz)
     bf_mode_info->mode_obj_init_done = false;
     bf_mode_info->mode_num = BF_MODE_COUNT - 1;
     bf_mode_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+    bf_mode_info->custom_mode_id = 0;
     ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
@@ -601,7 +605,13 @@ void ui_display_breastfeeding_mode_prepare(ui_manager_context_t *thiz)
     READ_PUMP_MODE_ACTIVATE(proc->pump, BREAST_PUMP_CUSTOM_MODE, activate_status);
     if (activate_status) {
         bf_mode_info->mode_num = BF_MODE_COUNT;
-        LOG_UI("customization activated");
+        storage_manager_context_t *st = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+        if (st) {
+            uint32_t custom_mode_id = 0;
+            st->get_store_ram_val(STORE_ID_PUMP_MODE_STEPS_INFO_ID, BREAST_PUMP_CUSTOM_MODE, 0, &custom_mode_id);
+            bf_mode_info->custom_mode_id = custom_mode_id;
+        }
+        LOG_UI("customization activated, custom_mode_id: %d", bf_mode_info->custom_mode_id);
     }
     LOG_UI("ui mode:%d", proc->ui_breastfeeding_mode_index);
 }
