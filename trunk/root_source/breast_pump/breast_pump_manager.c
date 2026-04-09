@@ -349,10 +349,12 @@ static void set_breast_pump_status(int status, int is_report)
                     WRITE_PUMP_IS_START_FROM_APP(breast_pump_obj, false);
                     break;
                 case BREAST_PUMP_FACTORY:
-                    notify_breast_pump_completed();
-                    if (m_info->do_work) {
-                        m_info->do_work = 0;
-                        stop_breast_pump_work(status);
+                    if (!m_info->do_work) {
+                        m_info->do_work = 1;
+                        CHECK_IF_VALID(pm_ctx, {
+                            pm_ctx->acquire_wakelock(PUMP_THD_WAKELOCK, -1);
+                        });
+                        start_breast_pump_work(false);
                     }
                     break;
                 case BREAST_PUMP_RESET: /// 用户app请求重置pump RESET后请将pump状态在设置为IDLE
