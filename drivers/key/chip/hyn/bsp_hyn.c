@@ -180,7 +180,7 @@
      return BSP_ERROR;
  }
  
- #if IS_SUPPORT_TOUCH_IC_OTA
+#if IS_SUPPORT_TOUCH_IC_OTA
 static uint8_t hyn_read_fw_version(void)
 {
     uint8_t read_buff[1] = {0};
@@ -487,7 +487,9 @@ uint8_t get_touch_ic_fw_target_version(void)
      /* 先复位芯片，再执行 CSK14T 初始化；不在未 init 前做 hyn_is_ready() 检测（芯片尚未响应会超时） */
      hyn_reset_ic();
      msleep(60);
+#if IS_SUPPORT_TOUCH_IC_OTA
      hyn_read_fw_version();
+#endif
 
     //  if (hyn_init_CSK14T() != BSP_OK) {
     //      LOGE("HYN touch key init failed");
