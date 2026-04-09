@@ -56,14 +56,11 @@ int ui_display_pump_speed_process(ui_manager_context_t *thiz);
 void pump_tip_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc, 
     lv_obj_t *parent, uint8_t *ui_index);
 void pump_tip_popup_ui_remove(ui_manager_context_t *thiz);
-/// 泵奶即将结束提示界面（带圆弧进度）
-void ui_prompt_pump_will_finish_prepare(ui_manager_context_t *thiz, lv_obj_t *parent);
-void ui_prompt_pump_will_finish_remove(ui_manager_context_t *thiz);
-void ui_prompt_pump_will_finish_process(ui_manager_context_t *thiz);
 /// 泵奶状态提示界面
-void ui_prompt_pump_status_prepare(ui_manager_context_t *thiz, lv_obj_t *parent);
-void ui_prompt_pump_status_process(ui_manager_context_t *thiz, uint8_t status);
-void ui_prompt_pump_status_remove(ui_manager_context_t *thiz);
+void ui_pump_status_popup_prepare(ui_manager_context_t *thiz, lv_obj_t *parent,
+    uint16_t popup_type);
+void ui_pump_status_popup_process(ui_manager_context_t *thiz);
+void ui_pump_status_popup_remove(ui_manager_context_t *thiz);
 
 #ifdef __cplusplus
 }

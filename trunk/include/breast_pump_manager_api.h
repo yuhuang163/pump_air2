@@ -26,11 +26,13 @@ typedef enum {
     BREAST_PUMP_BROADCAST_PUMP_WILL_FINISH,   /// 泵奶即将结束.
     BREAST_PUMP_BROADCAST_STATE_CHANGE,       /// 状态改变.
     BREAST_PUMP_BROADCAST_POLICY_CHANGE,      /// 策略改变.
-    BREAST_PUMP_BROADCAST_PUMP_ERROR,   /// 泵奶异常.
+    BREAST_PUMP_BROADCAST_PUMP_ERROR,         /// 泵奶异常.
+    BREAST_PUMP_BROADCAST_AUTO_PAUSE_REQUEST, /// 自动暂停请求.
     BREAST_PUMP_BROADCAST_ID_MAX, 
 } breast_pump_broadcast_id_e;
 
 typedef enum {
+    RESULT_PUMP_AUTO_PAUSE = -5,
     RESULT_PUMP_TIMEOUT = -4,
     RESULT_PUMP_FINISH = -3,
     RESULT_PUMP_WILL_FINISH = -2,
@@ -145,10 +147,12 @@ typedef struct breast_pump_info_t {
     uint8_t control_type;  /// 吸奶器控制类型
     uint8_t breastfeeding_mode;      /// 追奶模式
     uint8_t last_breastfeeding_mode;      /// 上次追奶模式
-    uint8_t common_mode;      /// 常规模式
+    uint8_t common_mode;           /// 常规模式
+    uint8_t auto_pause_onoff;      /// 自动暂停开关
+    uint32_t auto_pause_time;      /// 自动暂停时间(单位：秒)
     uint8_t last_common_mode;      /// 上次常规模式
-    uint8_t custom_activate;   /// 个性化韵律激活
-    uint8_t is_start_from_app;   /// 当前是否由APP启动pump控制
+    uint8_t custom_activate;       /// 个性化韵律激活
+    uint8_t is_start_from_app;     /// 当前是否由APP启动pump控制
 } breast_pump_info_t;
 
 /// 吸奶结果ID
