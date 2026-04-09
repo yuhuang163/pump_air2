@@ -756,6 +756,9 @@ static void make_progress(void)
                 notify_time = get_timestamp();
                 SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_PUMP_WILL_FINISH);
             }
+        } else if (notify_id == RESULT_PUMP_AUTO_PAUSE) {
+            WRITE_PUMP_WORK_STATUS(breast_pump_obj, BREAST_PUMP_PAUSE, 1);
+            SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_AUTO_PAUSE_REQUEST);
         }
     }
 }

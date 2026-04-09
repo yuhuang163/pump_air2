@@ -31,10 +31,12 @@ static void pumping_popup_ui_finish_policy(ui_manager_context_t *ui, uint8_t pop
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     switch (popup_ui_index) {
-        case PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP:
+        case PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT:
+        case PUMP_POPUP_UI_PUMP_FINISH_MANUAL:
             pump_complete_event_handler(proc);
             break;
-        case PUMP_POPUP_UI_PUMP_PAUSE_PROMPT:
+        case PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT:
+        case PUMP_POPUP_UI_PUMP_PAUSE_MANUAL:
             break;
         case PUMP_POPUP_UI_OPERATION_SUCCESS:
         case PUMP_POPUP_UI_OPERATION_FAILED: {
@@ -42,7 +44,7 @@ static void pumping_popup_ui_finish_policy(ui_manager_context_t *ui, uint8_t pop
             READ_PUMP_WORK_STATUS(proc->pump, pump_status);
             LOG_UI("pump status: %d", pump_status);
             if (pump_status == BREAST_PUMP_PAUSE) {
-                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_PAUSE_PROMPT);
+                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_PAUSE_MANUAL);
                 return;
             }
             break;
@@ -143,7 +145,7 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
         }
         int next_status = (pump_status == BREAST_PUMP_PAUSE) ? BREAST_PUMP_CONTINUE : BREAST_PUMP_START;    
         WRITE_PUMP_WORK_STATUS(proc->pump, next_status, 1);
-        if (next_status == BREAST_PUMP_START && proc->led)  {
+        if (proc->led)  {
             proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX);
         }
         pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
@@ -151,8 +153,11 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
         LOG_UI("pump start ui create: %d", pump_status);
     } else {
         WRITE_PUMP_WORK_STATUS(proc->pump, BREAST_PUMP_PAUSE, 1);
+        if (proc->led)  {
+            proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+        }
         show_pump_home_ui(proc);
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_PAUSE_PROMPT);
+        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_PAUSE_MANUAL);
         LOG_UI("pump stop ui create: %d", pump_status);
     }
 }

@@ -523,8 +523,7 @@ static void pump_home_popup_ui_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(pump_info);
     ui_common_operation_tip_remove(thiz);
-    ui_prompt_pump_will_finish_remove(thiz);
-    ui_prompt_pump_status_remove(thiz);
+    ui_pump_status_popup_remove(thiz);
     pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
 }
 
@@ -553,22 +552,40 @@ static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t
                 ui_common_operation_tip_process(thiz, COMMON_OPERATION_FAILED, proc->popup_ui_start_time);
             }
             break;
-        case PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP) {
+        case PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT) {
                 pump_home_popup_ui_remove(thiz);
-                ui_prompt_pump_will_finish_prepare(thiz, pump_info->root);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP;
+                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT;
             } else {
-                ui_prompt_pump_will_finish_process(thiz);
+                ui_pump_status_popup_process(thiz);
             }
             break;
-        case PUMP_POPUP_UI_PUMP_PAUSE_PROMPT:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_PAUSE_PROMPT) {
+        case PUMP_POPUP_UI_PUMP_FINISH_MANUAL:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_FINISH_MANUAL) {
                 pump_home_popup_ui_remove(thiz);
-                ui_prompt_pump_status_prepare(thiz, pump_info->root);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_PAUSE_PROMPT;
+                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_FINISH_MANUAL);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_FINISH_MANUAL;
             } else {
-                ui_prompt_pump_status_process(thiz, 0);
+                ui_pump_status_popup_process(thiz);
+            }
+            break;
+        case PUMP_POPUP_UI_PUMP_PAUSE_MANUAL:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_PAUSE_MANUAL) {
+                pump_home_popup_ui_remove(thiz);
+                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_PAUSE_MANUAL);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_PAUSE_MANUAL;
+            } else {
+                ui_pump_status_popup_process(thiz);
+            }
+            break;
+        case PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT:
+            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT) {
+                pump_home_popup_ui_remove(thiz);
+                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT);
+                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT;
+            } else {
+                ui_pump_status_popup_process(thiz);
             }
             break;
     }

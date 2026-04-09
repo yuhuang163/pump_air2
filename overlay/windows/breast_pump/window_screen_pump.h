@@ -105,10 +105,13 @@ typedef enum {
     PUMP_POPUP_UI_OPERATION_SUCCESS = 1, /// 操作成功提示
     PUMP_POPUP_UI_OPERATION_FAILED = 2, /// 操作失败提示
     PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE = 3, /// 档位范围调整过大提示
-    PUMP_POPUP_UI_PUMP_WILL_FINISH_TIP = 4, /// 泵奶结束提示
-    PUMP_POPUP_UI_PUMP_PAUSE_PROMPT = 5, /// 泵奶暂停提示
-    PUMP_POPUP_UI_PUMP_ERROR_TIP = 6, /// 泵奶异常提示
-    PUMP_POPUP_UI_LEVEL_ERROR_TIP = 7, /// 档位变化错误提示
+    PUMP_POPUP_UI_PUMP_PAUSE_MANUAL = 4, /// 手动暂停提示
+    PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT = 5, /// 泵奶暂停超时提示
+    PUMP_POPUP_UI_PUMP_FINISH_MANUAL = 6, /// 手动结束提示
+    PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT = 7, /// 泵奶结束超时提示
+    
+    PUMP_POPUP_UI_PUMP_ERROR_TIP = 20, /// 泵奶异常提示
+    PUMP_POPUP_UI_LEVEL_ERROR_TIP = 21, /// 档位变化错误提示
 } pump_popup_ui_action_e;
 
 /// 泵奶信息结构体

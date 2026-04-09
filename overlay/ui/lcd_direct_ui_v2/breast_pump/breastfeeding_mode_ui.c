@@ -114,7 +114,7 @@ static const char *bf_mode_name[BF_MODE_COUNT] = {
     "Power Pumping", /// PP追奶模式
     "Milk Start", /// 开奶模式
     "Deep Emptying", /// 追加排空模式
-    "Custom", /// 已使用过的个性化模式
+    "Customize", /// 已使用过的个性化模式
 };
 
 static const char *bf_mode_desc[BF_MODE_COUNT] = {
@@ -245,7 +245,11 @@ static void update_slot_content(ui_manager_context_t *thiz, bf_circle_slot_e slo
     } else {
         lv_obj_add_flag(bf_mode_info->last_usage_icon[slot], LV_OBJ_FLAG_HIDDEN);
     }
-    lv_label_set_text(title, bf_mode_name[mode_idx]);
+    if (mode_idx == BF_MODE_COUNT - 1) {
+        lv_label_set_text(title, bf_mode_name[mode_idx]);
+    } else {
+        lv_label_set_text(title, bf_mode_name[mode_idx]);
+    }
     lv_label_set_text(desc, bf_mode_desc[mode_idx]);
 
     lv_coord_t desc_y = BF_DESC_BASE_Y_OFFSET;
