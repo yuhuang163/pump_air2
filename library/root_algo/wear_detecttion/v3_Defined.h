@@ -59,12 +59,12 @@ static float STIMULATION_WORK_TIME[] = { 270, 245, 270, 270, 260,
 										  285, 305, 313, 340, 322 };
 
 // unloaded threshold for wear detection 
-static float UNLOADED_EXPRESSION_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -20,
-									   -25, -30, -35, -35, -40, -40, -40 };
-static float UNLOADED_STIMULATION_THRESHOLD[] = { -2, -3, -4, -5, -5.5, -5.5, -7, -8,
+static float UNLOADED_EXPRESSION_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -18,
+									   -18, -12, -35, -35, -40, -40, -40 };
+static float UNLOADED_STIMULATION_THRESHOLD[] = { -3, -3, -4, -5, -5.5, -5.5, -7, -8,
 									   -8, -9, -11, -12, -14, -15, -19 };
-static float UNLOADED_MIXED_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -20,
-									   -25, -30, -35, -35, -40, -40, -40 };
+static float UNLOADED_MIXED_THRESHOLD[] = { -4, -5, -6, -7.5, -11, -11, -16, -18,
+									   -18, -12, -35, -35, -40, -40, -40 };
 
 static float expression_K_slope[] = { 0.9614, 0.3633, 0.5492, 0.6025, 0.0771,
 									0.0463, 0.1959, 0.2455, 0.0770, -0.0935,
@@ -161,6 +161,8 @@ typedef struct _FEATURE_INFO_
 	unsigned short	uUpdateFlag;
 	float			fThreshold;
 	float			fLoadedThreshold;
+	unsigned char	uPumpFlag;
+	unsigned char	pumping_time;
 	unsigned char	uWearStatus;	// result
 	unsigned char	uCompsStatus;
 	int 			iDelta_pwm;			// 返回delta_pwm	-10000~10000

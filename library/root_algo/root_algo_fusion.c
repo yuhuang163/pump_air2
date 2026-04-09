@@ -43,19 +43,21 @@ static void wear_detection_process_data(void)
 {
     if (s_task_flag & (1 << WEAR_DETECTION_TASK)) {
         /// TODO: 实现佩戴检测算法
-        
-        V3WearDetectionMain(s_air_pressure_data.air_pressure, s_air_pressure_data.pump_state[0].level, 
+        /*
+        V3WearDetectionMain(s_air_pressure_data.air_pressure, s_air_pressure_data, s_air_pressure_data.pump_state[0].level, 
             s_air_pressure_data.pump_state[1].level,
             s_air_pressure_data.pump_state[0].mode, 
             s_air_pressure_data.pump_state[1].mode);
         /// TODO: 修改算法结果s_result
         GetWearDetectionResult(s_result.wear_status);
         GetCompensationStatus(s_result.compensation_status, s_result.compensation_delta_pwm);
-
+        */
         // TODO: 实现气压补偿算法
         // V3ProAlgoMain(s_air_pressure_data);          // 不做气压补偿，采集数据
         /*
         GetCompensationResult(s_result.compensation_status, s_result.compensation_delta_pwm);*/
+        s_result.compensation_delta_pwm[0] = 0;
+        s_result.compensation_delta_pwm[1] = 0;
         ALGO_LOG_INFO("time_stamp: %d, air pressure: p1: %f, p2: %f", s_air_pressure_data.timestamp, s_air_pressure_data.air_pressure[0], s_air_pressure_data.air_pressure[1]);
         ALGO_LOG_INFO("pump state: %d, %d", s_air_pressure_data.pump_state[0].state, s_air_pressure_data.pump_state[1].state);
         ALGO_LOG_INFO("status: %d/%d, delta_pwm: %d, %d", s_result.wear_status[0], s_result.wear_status[1], s_result.compensation_delta_pwm[0], s_result.compensation_delta_pwm[1]);

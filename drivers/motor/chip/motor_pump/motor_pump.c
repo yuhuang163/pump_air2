@@ -191,28 +191,45 @@ POSSIBLY_UNUSED static void bsp_motor_pump_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
     int ret = 0;
     if (pin == PWM_PUMP1_PIN) {
+        
         if (pump_status[MOTOR_PUMP_1].current_pulse_width == pump_status[MOTOR_PUMP_1].target_pulse_width) {
+            LOG_PBUS("after PUMP DUTY ADJUST: %d/%d", pump_status[MOTOR_PUMP_1].current_pulse_width, pump_status[MOTOR_PUMP_1].target_pulse_width);
             pump_status[MOTOR_PUMP_1].pump_irq_is_running = false;
             bsp_motor_pwm_irq_control(PWM_PUMP1_PIN, false);
         } else if (pump_status[MOTOR_PUMP_1].current_pulse_width > pump_status[MOTOR_PUMP_1].target_pulse_width) {
             pump_status[MOTOR_PUMP_1].current_pulse_width -= (1 * PUMP_DUTY_SCALE_FACTOR);
+            if (pump_status[MOTOR_PUMP_1].current_pulse_width < pump_status[MOTOR_PUMP_1].target_pulse_width) {
+                pump_status[MOTOR_PUMP_1].current_pulse_width = pump_status[MOTOR_PUMP_1].target_pulse_width;
+            }
+            LOG_PBUS("-before PUMP DUTY ADJUST: %d/%d", pump_status[MOTOR_PUMP_1].current_pulse_width, pump_status[MOTOR_PUMP_1].target_pulse_width);
             hal_pwm_update_pulse_width(MOTOR_PUMP1_PWM_ID, 
                 pump_status[MOTOR_PUMP_1].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         } else {
             pump_status[MOTOR_PUMP_1].current_pulse_width += (1 * PUMP_DUTY_SCALE_FACTOR);
+            if (pump_status[MOTOR_PUMP_1].current_pulse_width > pump_status[MOTOR_PUMP_1].target_pulse_width) {
+                pump_status[MOTOR_PUMP_1].current_pulse_width = pump_status[MOTOR_PUMP_1].target_pulse_width;
+            }
+             LOG_PBUS("+before PUMP DUTY ADJUST: %d/%d", pump_status[MOTOR_PUMP_1].current_pulse_width, pump_status[MOTOR_PUMP_1].target_pulse_width);
             hal_pwm_update_pulse_width(MOTOR_PUMP1_PWM_ID, 
                 pump_status[MOTOR_PUMP_1].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         }
+        
     } else if (pin == PWM_PUMP2_PIN) {
         if (pump_status[MOTOR_PUMP_2].current_pulse_width == pump_status[MOTOR_PUMP_2].target_pulse_width) {
             pump_status[MOTOR_PUMP_2].pump_irq_is_running = false;
             bsp_motor_pwm_irq_control(PWM_PUMP2_PIN, false);
         } else if (pump_status[MOTOR_PUMP_2].current_pulse_width > pump_status[MOTOR_PUMP_2].target_pulse_width) {
             pump_status[MOTOR_PUMP_2].current_pulse_width -= (1 * PUMP_DUTY_SCALE_FACTOR);
+            if (pump_status[MOTOR_PUMP_2].current_pulse_width < pump_status[MOTOR_PUMP_2].target_pulse_width) {
+                pump_status[MOTOR_PUMP_2].current_pulse_width = pump_status[MOTOR_PUMP_2].target_pulse_width;
+            }
             hal_pwm_update_pulse_width(MOTOR_PUMP2_PWM_ID, 
                 pump_status[MOTOR_PUMP_2].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         } else {
             pump_status[MOTOR_PUMP_2].current_pulse_width += (1 * PUMP_DUTY_SCALE_FACTOR);
+            if (pump_status[MOTOR_PUMP_2].current_pulse_width > pump_status[MOTOR_PUMP_2].target_pulse_width) {
+                pump_status[MOTOR_PUMP_2].current_pulse_width = pump_status[MOTOR_PUMP_2].target_pulse_width;
+            }
             hal_pwm_update_pulse_width(MOTOR_PUMP2_PWM_ID, 
                 pump_status[MOTOR_PUMP_2].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         }
