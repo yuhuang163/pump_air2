@@ -49,7 +49,7 @@ static void home_ui_switch_cb(hdr_post_args_t *args)
     } else if (args->arg1 == HOME_UI_TYPE_HOME) {
         start_home_ui_animation(proc);
     } else if (args->arg1 == HOME_UI_TYPE_BIND_QRCODE) {
-        start_home_qrcode_ui_animation(proc);
+        start_home_bind_ui_animation(proc);
     }
 }
 
