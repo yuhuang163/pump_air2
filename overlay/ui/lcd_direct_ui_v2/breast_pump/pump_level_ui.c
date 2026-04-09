@@ -196,7 +196,7 @@ static int pump_level_text_update(ui_manager_context_t *thiz, uint8_t level)
         lv_obj_align(level_info->level_text, LV_ALIGN_CENTER, 0, 0);
     }  
     char level_text[4] = {0};
-    sprintf(level_text, "%02d", level);
+    snprintf(level_text, sizeof(level_text), "%02d", level);
     lv_label_set_text(level_info->level_text, level_text);
     return 0;
 }

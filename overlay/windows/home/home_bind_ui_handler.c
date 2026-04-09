@@ -10,7 +10,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define HOME_QRCODE_DISPLAY_TASK_NAME              "home_qrcode_display_cmp"
+#define HOME_BIND_DISPLAY_TASK_NAME              "home_bind_display_cmp"
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -26,35 +26,35 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void home_qrcode_popup_ui_finish_policy(ui_manager_context_t *ui, int index)
+static void home_bind_popup_ui_finish_policy(ui_manager_context_t *ui, int index)
 {
     LOG_WM("===> popup %d ui display complete.", index);
     ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
     home_popup_ui_type_update(proc, HOME_POPUP_UI_NONE);
 }
 
-static void home_qrcode_display_completed_cb(hdr_post_args_t *args)
+static void home_bind_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_home_t *proc = (ui_proc_home_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_HOME);
-    LOG_WM("home qrcode finish...");
+    LOG_WM("home bind finish...");
     if (proc->current_ui_type == HOME_UI_TYPE_BIND_QRCODE) {
         start_home_ui_animation(proc);
     }
 }
 
-static void home_qrcode_ui_after_policy(ui_manager_context_t *ui, int index)
+static void home_bind_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
-    ui_display_home_qrcode_process(ui);
+    ui_display_home_bind_process(ui);
     uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
     if (time_diff >= HOME_BIND_QRCODE_DISPLAY_TIMEOUT) {
-        POST_TASK_HANDLER_NO_DELAY(home_qrcode_display_completed_cb, proc, HOME_QRCODE_DISPLAY_TASK_NAME);
+        POST_TASK_HANDLER_NO_DELAY(home_bind_display_completed_cb, proc, HOME_BIND_DISPLAY_TASK_NAME);
     }
 }
 
-static void home_qrcode_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
+static void home_bind_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
 {
     static int ani_interval = 0;
     ui_manager_context_t *ui = user_data;
@@ -64,35 +64,35 @@ static void home_qrcode_animation_progress_cb(void *user_data, int index, ui_ani
         case ANI_TIMER_DRAW_BEFORE:
             break;
         case ANI_TIMER_DRAW_AFTER:
-            home_qrcode_ui_after_policy(ui, index);
+            home_bind_ui_after_policy(ui, index);
             break;
         case ANI_POPUP_DISPLAY_FINISH:
-            home_qrcode_popup_ui_finish_policy(ui, index);
+            home_bind_popup_ui_finish_policy(ui, index);
             break;
         default:
             break;
     }
 }
 
-static void home_qrcode_ui_display_prepare(void *user_data)
+static void home_bind_ui_display_prepare(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    ui_display_home_qrcode_prepare(ui);
+    ui_display_home_bind_prepare(ui);
 }
 
-static void home_qrcode_ui_display_remove(void *user_data)
+static void home_bind_ui_display_remove(void *user_data)
 {
     ui_manager_context_t *ui = user_data;
     EXCEPTION_CHECK_VOID(ui);
-    ui_display_home_qrcode_remove(ui);
+    ui_display_home_bind_remove(ui);
 }
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void start_home_qrcode_ui_animation(ui_proc_home_t *proc)
+void start_home_bind_ui_animation(ui_proc_home_t *proc)
 {    
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
@@ -101,11 +101,11 @@ void start_home_qrcode_ui_animation(ui_proc_home_t *proc)
         return;
     }
     ui_play_info_t play_info = {
-        .tag = "home_qrcode_screen",
+        .tag = "home_bind_screen",
         .fps = HOME_ANIMATION_FREQ,
-        .progress_cb = home_qrcode_animation_progress_cb,
-        .display_prepare_cb = home_qrcode_ui_display_prepare,
-        .display_remove_cb = home_qrcode_ui_display_remove,
+        .progress_cb = home_bind_animation_progress_cb,
+        .display_prepare_cb = home_bind_ui_display_prepare,
+        .display_remove_cb = home_bind_ui_display_remove,
         .user_data = proc,
     };
     proc->last_progress_ani_time = get_timestamp();
@@ -113,7 +113,7 @@ void start_home_qrcode_ui_animation(ui_proc_home_t *proc)
     proc->current_ui_type = HOME_UI_TYPE_BIND_QRCODE;
 }
 
-void home_qrcode_ui_hdr_remove(void)
+void home_bind_ui_hdr_remove(void)
 {
-    REMOVE_TASK_HANDLER_DIRECTLY(HOME_QRCODE_DISPLAY_TASK_NAME);
+    REMOVE_TASK_HANDLER_DIRECTLY(HOME_BIND_DISPLAY_TASK_NAME);
 }

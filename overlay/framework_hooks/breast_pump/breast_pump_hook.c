@@ -75,6 +75,14 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     result_info->work_total_time += poll_time;
     result_info->current_mode_work_time += poll_time;       
 #endif
+    /// 判断是否需要自动暂停
+    if (ctx->priv.m_info.auto_pause_onoff) {
+        if (result_info->work_total_time >= ctx->priv.m_info.auto_pause_time) {
+            ctx->priv.m_info.auto_pause_onoff = false;
+            ctx->priv.m_info.auto_pause_time = 0;
+            ret = RESULT_PUMP_AUTO_PAUSE;
+        }
+    }
     /// 判断是否即将结束
     if ((result_info->work_total_time + PUMP_WILL_FINISH_TIME_MS) >= result_info->target_total_time) {
         ret = RESULT_PUMP_WILL_FINISH;
@@ -95,6 +103,7 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
             setting.level[0], setting.level[1], setting.speed);
         log_timer = 0;
     }
+
     return ret;
 }
 
@@ -142,11 +151,18 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
     }
     result_info->setting_time = work_time * 1000;
     if (status == BREAST_PUMP_START) {
-        breast_pump_result_info_reset(ctx, result_info);  
+        breast_pump_result_info_reset(ctx, result_info); 
+        if (PUMP_IS_COMMON_MODE(ctx->priv.m_info.mode)) {
+            ctx->priv.m_info.auto_pause_onoff = true;
+            ctx->priv.m_info.auto_pause_time = 30 * 60 * 1000; /// 30分钟
+        }
     } else {
         breast_pump_result_info_update(ctx, result_info);
         if (result_info->mode != ctx->priv.m_info.mode) {
             result_info->current_mode_work_time = 0;
+            if (PUMP_IS_COMMON_MODE(ctx->priv.m_info.mode) == 0) {
+                ctx->priv.m_info.auto_pause_onoff = false;
+            }
         }
     }
     result_info->start_time = get_timestamp();
@@ -156,6 +172,7 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
         result_info->mode, work_time, 
         PUMP_TIME_TO_SECOND(result_info->setting_time), 
         result_info->current_mode_work_time, status);
+        
     return 0;
 }
 

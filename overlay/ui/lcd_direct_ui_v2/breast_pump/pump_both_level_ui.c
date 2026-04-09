@@ -220,7 +220,7 @@ static int pump_left_level_text_update(ui_manager_context_t *thiz, uint8_t level
         lv_obj_set_style_text_color(level_info->level_text[0], lv_color_hex(PUMP_LEVEL_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(level_info->level_text[0], &lv_font_oppo_sans_16_medium, 0);
     }
-    sprintf(level_text, "%d", level);
+    snprintf(level_text, sizeof(level_text), "%d", level);
     lv_label_set_text(level_info->level_text[0], level_text);
     common_ui_text_place_in_circle(level_info->level_text[0], 
         end_angle, PUMP_LEVEL_RING_R + 15, false); /// 设置文字位置
@@ -316,7 +316,7 @@ static int pump_right_level_text_update(ui_manager_context_t *thiz, uint8_t leve
         lv_obj_set_style_text_color(level_info->level_text[1], lv_color_hex(PUMP_LEVEL_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(level_info->level_text[1], &lv_font_oppo_sans_16_medium, 0);
     }
-    sprintf(level_text, "%d", level);
+    snprintf(level_text, sizeof(level_text), "%d", level);
     lv_label_set_text(level_info->level_text[1], level_text);
     common_ui_text_place_in_circle(level_info->level_text[1], 
         end_angle, PUMP_LEVEL_RING_R + 15, false); /// 设置文字位置
@@ -423,7 +423,7 @@ static void pump_both_level_offset_text_update(ui_manager_context_t *thiz, int8_
         lv_obj_align(level_info->level_offset_text, LV_ALIGN_CENTER, 0, 0);
     }
     char level_change_text[4] = {0};
-    sprintf(level_change_text, "%02d", abs(level_change));
+    snprintf(level_change_text, sizeof(level_change_text), "%02d", abs(level_change));
     lv_label_set_text(level_info->level_offset_text, level_change_text);
     level_info->level_change = level_change;
 }

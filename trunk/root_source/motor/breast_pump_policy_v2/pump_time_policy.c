@@ -176,6 +176,9 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
                 }
             }
         }
+        else {
+            runtime->all_timed_policy_finish_flag = 1; /// 所有定时策略执行完毕
+        }
         if (runtime->timed_policy->policy.core.type == MOTOR_PARAM_TABLE) {
             suction_strategy_mapping_t *mapping = &runtime->timed_policy->policy.core.un.mapping;
             LOG_MOTOR("mode:%d, index:%d, type:%d/%d/%d, time:%d/%d, mapping:%d(%d/%d)", 

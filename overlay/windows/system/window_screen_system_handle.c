@@ -15,7 +15,7 @@
 */
 #define PAGE_STATIC_NAME                            system
 #define PAGE_NAME_STR                               "system"
-#define SYSTEM_UI_KEY_CODE                          (ALL_KEY_CODE_NO_COMBINE)
+#define SYSTEM_UI_KEY_CODE                          (KEY_CODE_POWER)
 #define SYSTEM_UI_KEY_TYPE                          (KEY_EVENT_CLICK | KEY_EVENT_LONG_2S | KEY_EVENT_UP)
 #define FACTORY_RESET_DELAY_TIME                    (1000 * 3)
 #define FACTORY_RESET_TASK_NAME                     "factory_reset_task"

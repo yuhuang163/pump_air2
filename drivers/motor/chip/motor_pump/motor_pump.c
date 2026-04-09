@@ -23,6 +23,7 @@
 #define MOTOR_PUMP_START_PWM_DUTY              (90)
 #define MOTOR_VALVE_START_PWM_DUTY             (100)
 #define MOTOR_VALVE_IDLE_PWM_DUTY              (0)
+#define PUMP_GPIO_IDLE_CTRL                    (0) /// 泵GPIO空闲状态控制，1：使能，0：禁用
 
 typedef struct {
     enum HAL_PWM_ID_T pump_pwm_id;
@@ -201,7 +202,10 @@ POSSIBLY_UNUSED static void bsp_motor_pump_irq_callback(enum HAL_GPIO_PIN_T pin)
             if (pump_status[MOTOR_PUMP_1].current_pulse_width < pump_status[MOTOR_PUMP_1].target_pulse_width) {
                 pump_status[MOTOR_PUMP_1].current_pulse_width = pump_status[MOTOR_PUMP_1].target_pulse_width;
             }
+<<<<<<< HEAD
             LOG_PBUS("-before PUMP DUTY ADJUST: %d/%d", pump_status[MOTOR_PUMP_1].current_pulse_width, pump_status[MOTOR_PUMP_1].target_pulse_width);
+=======
+>>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
             hal_pwm_update_pulse_width(MOTOR_PUMP1_PWM_ID, 
                 pump_status[MOTOR_PUMP_1].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         } else {
@@ -209,7 +213,10 @@ POSSIBLY_UNUSED static void bsp_motor_pump_irq_callback(enum HAL_GPIO_PIN_T pin)
             if (pump_status[MOTOR_PUMP_1].current_pulse_width > pump_status[MOTOR_PUMP_1].target_pulse_width) {
                 pump_status[MOTOR_PUMP_1].current_pulse_width = pump_status[MOTOR_PUMP_1].target_pulse_width;
             }
+<<<<<<< HEAD
              LOG_PBUS("+before PUMP DUTY ADJUST: %d/%d", pump_status[MOTOR_PUMP_1].current_pulse_width, pump_status[MOTOR_PUMP_1].target_pulse_width);
+=======
+>>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
             hal_pwm_update_pulse_width(MOTOR_PUMP1_PWM_ID, 
                 pump_status[MOTOR_PUMP_1].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         }
@@ -278,14 +285,47 @@ POSSIBLY_UNUSED static void bsp_motor_pwm_irq_control(enum HAL_GPIO_PIN_T pin, b
 #endif
 }
 
+#if PUMP_GPIO_IDLE_CTRL
+static int motor_pwm_gpio_control(enum HAL_PWM_ID_T pwm_id ,bool enable)
+{
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        (enum HAL_IOMUX_PIN_T)(pwm_id == MOTOR_PUMP1_PWM_ID ? PWM_PUMP1_PIN : PWM_PUMP2_PIN),  
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL,
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir(pwm_id == MOTOR_PUMP1_PWM_ID ? PWM_PUMP1_PIN : PWM_PUMP2_PIN, \
+                        HAL_GPIO_DIR_OUT, enable ? 1 : 0);
+
+    return BSP_OK;
+}
+#endif
+
 static int bsp_motor_pwm_duty_set(enum HAL_PWM_ID_T pwm_id, uint8_t duty)
 {   
-    ///先disable在重新设置空闲占空比100
     if ((pwm_id == MOTOR_PUMP1_PWM_ID || pwm_id == MOTOR_PUMP2_PWM_ID) \
         && (duty == MOTOR_PUMP_IDLE_PWM_DUTY))
     {
+#if PUMP_GPIO_IDLE_CTRL
+        motor_pwm_gpio_control(pwm_id, true); //使能GPIO 输出高
+#endif
         hal_pwm_disable(pwm_id);
+#if PUMP_GPIO_IDLE_CTRL
+        return BSP_OK;
+#endif
     }
+#if PUMP_GPIO_IDLE_CTRL
+    ///如果pwm_id是泵1或泵2，重新初始化为pwm输出
+    if ((pwm_id == MOTOR_PUMP1_PWM_ID || pwm_id == MOTOR_PUMP2_PWM_ID)) {
+        for (uint8_t i = 0; i < LENGTH_OF_ARRAY(motor_pump_cfg); i++) {
+            if(motor_pump_cfg[i].pump_pwm_id == pwm_id) {
+                motor_pump_cfg[i].pump_pwm_iomux_set();
+                break;
+            }
+        }
+    }
+#endif
     struct HAL_PWM_CFG_T pwm_cfg = {
         .freq = BREAST_PUMP_PUMP_FREQ,
         .ratio = duty,

@@ -40,6 +40,8 @@
 #define LEVEL_14			(14)
 #define LEVEL_15			(15)
 
+#define INVALID_TARGET_PRESSURE_REF    (-255.0f) /* 无效的目标压力参考值 */
+
 // target pressure for each level - v2.13
 static float EXPRESSION_THRESHOLD[] = { -6, -9.5, -12.5, -15, -17.5,
 											-19.5, -21.5, -23.5, -25.5, -27.5,
@@ -104,14 +106,50 @@ typedef struct _DEVICE_INFO
 	unsigned short	uLevel;
 	unsigned short	run_time;			// 运行时间，单位ms
 	unsigned char	uTargetPressure;	// 正值
+	unsigned short  uTargetPumpTime;	/* 吸力保持时间，单位ms */
 }SDEVICE_INFO;
 
+/* 目标压力曲线项 */
+typedef struct _TARGET_CURVE_ITEM
+{
+    unsigned char target_pressure;
+    unsigned short target_pump_time;
+    unsigned short curve_len;
+    const float *p1_curve;
+} STARGET_CURVE_ITEM;
 
 typedef struct _DATA_BUFF_
 {
 	float			fDataBuff[WIN_SIZE];
 	unsigned int	uCurrPos;		// current pos
 }SDATA_BUFF;
+
+/* pid control info */
+typedef struct _PID_CTRL_INFO
+{
+    unsigned char uPrevPumpState;   /* 上一次泵状态 */
+    unsigned char uCurveValid;      /* 当前是否找到目标曲线 */
+	unsigned char uCycleSynced;   /* 是否已经同步到完整周期边界 */
+
+    float fTargetPressureRef;       /* 当前时刻目标压力 */
+    float fCurrError;               /* 当前误差 */
+    float fPrevError;               /* 上一次误差 */
+    float fIntegral;                /* 积分项 */
+    float fPidOutput;               /* PID原始输出 */
+} SPID_CTRL_INFO;
+
+/* pid debug info */
+typedef struct _PID_DEBUG_INFO
+{
+    unsigned short pumping_time;
+    unsigned char curve_valid;
+    float target_ref;
+    float error;
+    float integral;
+    float pid_output;
+    int delta_pwm;
+    unsigned char comps_status;
+} SPID_DEBUG_INFO;
 
 typedef struct _PUMP_FEATURE_INFO
 {
@@ -122,8 +160,8 @@ typedef struct _PUMP_FEATURE_INFO
 	float			fSlope;
 	float			fIntercept;
 	int				iDelta_pwm;			// 返回delta_pwm	-10000~10000
+	SPID_CTRL_INFO tPidCtrl;			/* pid控制信息 */
 }SPUMPFEATURE_INFO;
-
 
 
 // tightness_detection
