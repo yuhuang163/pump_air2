@@ -182,12 +182,12 @@ static void home_screen_saver_clock_ui_update(ui_manager_context_t *thiz, bool i
         }
         char time_text[16] = {0};
         lv_obj_clear_flag(saver_info->clock_hour, LV_OBJ_FLAG_HIDDEN);
-        sprintf(time_text, "%02d", utc_time.hour);
+        snprintf(time_text, sizeof(time_text), "%02d", utc_time.hour);
         lv_label_set_text(saver_info->clock_hour, time_text);
         lv_obj_align(saver_info->clock_hour, LV_ALIGN_TOP_LEFT, 
             HOME_CLOCK_HOUR_X, HOME_CLOCK_TIME_Y);
         lv_obj_clear_flag(saver_info->clock_minute, LV_OBJ_FLAG_HIDDEN);
-        sprintf(time_text, "%02d", utc_time.minute);
+        snprintf(time_text, sizeof(time_text), "%02d", utc_time.minute);
         lv_label_set_text(saver_info->clock_minute, time_text);
         lv_obj_align(saver_info->clock_minute, LV_ALIGN_TOP_LEFT, 
             HOME_CLOCK_MINUTE_X, HOME_CLOCK_TIME_Y);

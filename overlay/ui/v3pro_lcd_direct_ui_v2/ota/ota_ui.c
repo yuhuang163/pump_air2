@@ -126,7 +126,7 @@ static void ui_ota_text_update(ui_manager_context_t *thiz, uint8_t ota_status, u
 
     if (ota_status == OTA_UI_STATUS_DOWNLOADING) {
         char text[32] = {0};
-        sprintf(text, "ota progress:%d%%", progress);
+        snprintf(text, sizeof(text), "ota progress:%d%%", progress);
         lv_label_set_text(ota_info->status_text, text);
     } else if (ota_status == OTA_UI_STATUS_ERROR) {
         lv_label_set_text(ota_info->status_text, "ota upgrade failed");
