@@ -256,6 +256,7 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
     if (action == MOTOR_USER_DEBUG_POLICY_START) {
         body->taste_run_flag = 1;
         policy_obj = thiz->priv.user_debug_policy;
+        body->all_timed_policy_finish_flag = 0; 
         LOG_MOTOR("user debug policy");
     } else if (action == MOTOR_POLICY_CONTINUE) {
         if (body->breast_pump_mode == pump_mode) {
@@ -266,11 +267,13 @@ void breast_pump_policy_prepare(struct motor_manager_context *thiz, uint8_t acti
             LOG_MOTOR("breast pump mode changed, need to restart policy");
             body->breast_pump_mode = pump_mode;
             policy_obj = breast_pump_mode_policy_get(thiz, body->breast_pump_mode);
+            body->all_timed_policy_finish_flag = 0;
             LOG_MOTOR("%s mode policy", mode_name);
         }
     } else {
         body->breast_pump_mode = pump_mode;
         policy_obj = breast_pump_mode_policy_get(thiz, body->breast_pump_mode);
+        body->all_timed_policy_finish_flag = 0;
         LOG_MOTOR("%s mode policy", mode_name);
     }
     breast_pump_start_prepare(thiz, policy_obj);
