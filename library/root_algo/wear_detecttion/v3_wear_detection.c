@@ -670,11 +670,7 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 	}
 	tFeatureInfoTemp->uPrevWearStatus = tFeatureInfoTemp->uWearStatus;
 	/* compensation status */
-<<<<<<< HEAD
 	if (tFeatureInfoTemp->uWearStatus == 1 && tFeatureInfoTemp->pumping_time == 1)
-=======
-	if (tFeatureInfoTemp->uWearStatus == 1)
->>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
 	{
 		unsigned int uCount_Min = 0;
 		unsigned int uCount_Max = 0;
@@ -698,13 +694,9 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 			tFeatureInfoTemp->uCompsStatus = 1;
 			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)) > 10))
 				tFeatureInfoTemp->iDelta_pwm = 0;
-<<<<<<< HEAD
 			else
 				/*2% delta_pwm 对应1kPa变化*/
 				tFeatureInfoTemp->iDelta_pwm = 200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)));
-=======
-			tFeatureInfoTemp->iDelta_pwm = 200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
->>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
 		}
 
 		else if (uCount_Max >= 2)
@@ -712,12 +704,8 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 			tFeatureInfoTemp->uCompsStatus = 2;
 			if (fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)) > 10))
 				tFeatureInfoTemp->iDelta_pwm = 0;
-<<<<<<< HEAD
 			else
 				tFeatureInfoTemp->iDelta_pwm = -200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - (tFeatureInfoTemp->fMinData-2)));
-=======
-			tFeatureInfoTemp->iDelta_pwm = -200 * fabs((float)(tFeatureInfoTemp->fLoadedThreshold - tFeatureInfoTemp->fMinData));
->>>>>>> 51463bfbbb6bbab520bcbad025b075c6c84c1747
 		}
 		else
 		{
@@ -738,7 +726,7 @@ void WearDetectionDetermination(SFEATURE_INFO* tFeatureInfoTemp, SDEVICE_INFO* t
 * 返 回 值：无
 *************************************************************************************************************************************************
 */
-void V3WearDetectionMain(float *fPressureData, aglo_air_pressure_data_t sPressureData, unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight)
+void V3WearDetectionMain(float *fPressureData, algo_air_pressure_data_t sPressureData, unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight)
 {
 	/* reset if mode or level changed */
 	if (uLevelLeft - 1 != tDeviceInfo[CHANNEL_0].uLevel || uModeLeft != tDeviceInfo[CHANNEL_0].uMode)
