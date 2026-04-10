@@ -50,6 +50,7 @@ static void pump_mode_display_completed_cb(hdr_post_args_t *args)
         } else {
             if (proc->mode_sync_flag) {
                 proc->mode_sync_flag = false;
+                WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_common_mode_index, true, 1);
                 proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;
             }
             show_pump_home_ui(proc);
