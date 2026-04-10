@@ -10,7 +10,8 @@ extern "C" {
  * 适配 BES 平台，实现 bsp_key_internal.h 接口
  ******************************************************************************/
 
-#include <stdint.h>
+#include <stdint.h> // IWYU pragma: keep
+#include "bsp_common.h" // IWYU pragma: keep
 
 #define HYN_TOUCH_I2C_ADDR              (0x15)  /// 7位I2C地址
 #define HYN_TOUCH_KEY_NUM               (6)     /// 与 SC09B 兼容，映射6个按键
@@ -37,19 +38,17 @@ extern "C" {
 
 #define REG_LEN_1B  1
 #define REG_LEN_2B  2
-
-uint8_t touch_fw_update(void);
-
-/// 显式执行触摸固件升级（封装 touch_fw_update，返回 0 成功，非 0 失败）；未开启 IS_SUPPORT_TOUCH_IC_OTA 时恒返回 -1
-int touch_ic_fw_update_execute(void);
-
-/// 读取触摸 IC 固件版本号（应用模式寄存器 0xFF），与已验证接口一致
-uint8_t get_touch_ic_fw_current_version(void);
-
-/// 嵌入固件（hyn_firmware.h / app_bin）对应的目标版本号；勿在其它 .c 中直接包含 hyn_firmware.h，避免 app_bin 重复定义
-uint8_t get_touch_ic_fw_target_version(void);
 #endif
 
+/*
+* GLOBAL FUNCTION DECLARATION
+*****************************************************************************************
+*/
+void bsp_touch_key_reset(void);
+uint8_t touch_fw_update_handler(void);
+bool touch_firmware_is_lower_than_image(int current_version);
+void bsp_touch_rst_pin_output_set(uint8_t high_level);
+void bsp_touch_key_ota_event_cb(key_ota_event_e event, uint8_t progress);
 #ifdef __cplusplus
 }
 #endif

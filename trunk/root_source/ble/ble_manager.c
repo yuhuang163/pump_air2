@@ -5,8 +5,7 @@
 #include "root_common_api.h"
 #include "ble_manager.h" // IWYU pragma: keep
 #include "ble_event_process.h" // IWYU pragma: keep
-#include "root_storage_base.h"
-#include "storage_manager_api.h"
+
 
 /*
 * DEFINES
@@ -249,7 +248,8 @@ static void on_connect_status_change(ble_manager_context_t *ctx, int new_status,
         return;
     }
     LOG_BLE("new ble_connect_state: %d, show popup window.", new_status);
-    SEND_BROADCAST_ARGS2(ID_BROADCAST_BLE_STATE_CHANGE, BLE_BROADCAST_CONNECT_STATE_CHANGE, new_status);
+    SEND_BROADCAST_ARGS1(ID_BROADCAST_BLE_STATE_CHANGE, 
+        new_status > 0 ? BLE_BROADCAST_CONNECTED : BLE_BROADCAST_DISCONNECT);
     if (ctx->hook && ctx->hook->on_connect_change_route) {
         ctx->hook->on_connect_change_route(ctx, new_status);
     }
