@@ -50,6 +50,7 @@ static void breastfeeding_mode_display_completed_cb(hdr_post_args_t *args)
         } else {
             if (proc->mode_sync_flag) {
                 proc->mode_sync_flag = false;
+                WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_breastfeeding_mode_index, true, 1);
                 proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;
             }
             show_pump_home_ui(proc);
@@ -206,5 +207,6 @@ void breastfeeding_mode_key_click_handler(ui_proc_pump_t *proc)
         LOG_WM("mode %d/%d/%d is working, ignore.", pump_mode, mode_index, pump_status);
         return;
     }
+    proc->mode_sync_flag = true;
     show_breastfeeding_mode_ui(proc);   
 }
