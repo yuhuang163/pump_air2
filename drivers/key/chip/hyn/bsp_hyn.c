@@ -8,7 +8,6 @@
 #include "bsp_i2c.h"
 #include "bsp_hyn.h"
 #include "bsp_key_internal.h"
-#include <stdint.h>
 
 /*
 * DEFINES

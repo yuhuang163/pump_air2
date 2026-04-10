@@ -130,6 +130,8 @@ static int key_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
         case OP_CODE_INPUT_GET_KEY_FW_VERSION:
             return bsp_get_touch_key_fw_version();
 #endif
+        case OP_CODE_INPUT_TOUCH_SIGNAL_READ:
+            return bsp_touch_signal_read(args);
         default:
             return -1;
     }
