@@ -10,6 +10,10 @@
  #include "bsp_hyn.h"
  #include "bsp_key_internal.h"
 
+ /*
+* DEFINES
+*****************************************************************************************
+*/
  #if IS_SUPPORT_TOUCH_IC_OTA
  #include "hyn_firmware.h"
  static uint8_t hyn_current_fw_version = 0;
@@ -23,6 +27,10 @@
  #endif
  #define HYN_TOUCH_KEY_DEBUG            (0) /// 触摸按键调试开关
 
+ /*
+ * LOCAL VARIABLES
+ *****************************************************************************************
+ */
  static uint16_t s_touch_abnormal_count = 0;
  #if HYN_TOUCH_USE_POLL
  static uint16_t s_last_poll_key_state = 0;
@@ -45,6 +53,10 @@
      0x04,  /// 右按键
  };
  
+ /*
+ * LOCAL FUNCTION DEFINITIONS
+ *****************************************************************************************
+ */
  static int hyn_i2c_write(uint8_t reg_addr, const uint8_t *buf, uint16_t len)
  {
      i2c_master_data_t data = {
@@ -462,7 +474,11 @@ uint8_t get_touch_ic_fw_target_version(void)
      hal_iomux_init(&gpio_map, 1);
      hal_gpio_pin_set_dir(POWER_KEY_PIN, HAL_GPIO_DIR_IN, 1);
  }
- 
+
+/*
+* GLOBAL FUNCTION DEFINITIONS
+*****************************************************************************************
+*/
  int bsp_key_init(void)
  {
      power_key_irq_init();
@@ -580,6 +596,21 @@ uint8_t get_touch_ic_fw_target_version(void)
  {
      uint8_t *touch_is_ready_status = (uint8_t *)args;
      *touch_is_ready_status = s_touch_is_ready;
+     return BSP_OK;
+ }
+
+ int bsp_touch_signal_read(void *args)
+ {
+    if (args == NULL) {
+        return BSP_ERROR;
+    }
+     uint8_t sig_buff[HYN_TOUCH_KEY_NUM * 2];
+ 
+     if (hyn_i2c_read(0xC8, sig_buff, (uint16_t)(HYN_TOUCH_KEY_NUM * 2)) != BSP_OK) {
+         return BSP_ERROR;
+     }
+     uint8_t *signal_data = (uint8_t *)args;
+     memcpy(signal_data, sig_buff, (uint16_t)(HYN_TOUCH_KEY_NUM * 2));
      return BSP_OK;
  }
 
