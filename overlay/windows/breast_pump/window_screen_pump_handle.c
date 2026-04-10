@@ -195,7 +195,13 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         pump_long_press_event_cb(proc, keycode);
     } else {
         if (proc->popup_ui_type == PUMP_POPUP_UI_PUMP_FINISH_MANUAL) {
-            pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+            int pump_status = 0;
+            READ_PUMP_WORK_STATUS(proc->pump, pump_status);
+            if (pump_status == BREAST_PUMP_PAUSE) {
+                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_PAUSE_MANUAL);
+            } else {
+                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+            }
         }
 
         if (keytype == KEY_EVENT_CLICK) {
