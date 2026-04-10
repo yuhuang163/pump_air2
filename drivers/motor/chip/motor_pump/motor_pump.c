@@ -23,7 +23,7 @@
 #define MOTOR_PUMP_START_PWM_DUTY              (90)
 #define MOTOR_VALVE_START_PWM_DUTY             (100)
 #define MOTOR_VALVE_IDLE_PWM_DUTY              (0)
-#define PUMP_GPIO_IDLE_CTRL                    (0) /// 泵GPIO空闲状态控制，1：使能，0：禁用
+#define PUMP_GPIO_IDLE_CTRL                    (1) /// 泵GPIO空闲状态控制，1：使能，0：禁用
 
 typedef struct {
     enum HAL_PWM_ID_T pump_pwm_id;
@@ -44,6 +44,7 @@ typedef struct {
 
 typedef struct {
     HWTIMER_ID time_id;               /// 定时器ID
+    HWTIMER_ID idle_power_time_id;    /// 电源空闲定时器ID  
     uint8_t pump_id;                  /// 泵ID
     uint8_t is_running;               /// 定时器运行状态，0：停止，1：运行
     motor_pump_status_e action;       /// 动作
@@ -280,7 +281,7 @@ POSSIBLY_UNUSED static void bsp_motor_pwm_irq_control(enum HAL_GPIO_PIN_T pin, b
 }
 
 #if PUMP_GPIO_IDLE_CTRL
-static int motor_pwm_gpio_control(enum HAL_PWM_ID_T pwm_id ,bool enable)
+static int motor_pwm_gpio_control(enum HAL_PWM_ID_T pwm_id ,bool enable, bool is_output)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
         (enum HAL_IOMUX_PIN_T)(pwm_id == MOTOR_PUMP1_PWM_ID ? PWM_PUMP1_PIN : PWM_PUMP2_PIN),  
@@ -290,7 +291,7 @@ static int motor_pwm_gpio_control(enum HAL_PWM_ID_T pwm_id ,bool enable)
     };
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir(pwm_id == MOTOR_PUMP1_PWM_ID ? PWM_PUMP1_PIN : PWM_PUMP2_PIN, \
-                        HAL_GPIO_DIR_OUT, enable ? 1 : 0);
+            is_output ? HAL_GPIO_DIR_OUT : HAL_GPIO_DIR_IN, enable ? 1 : 0);
 
     return BSP_OK;
 }
@@ -302,7 +303,7 @@ static int bsp_motor_pwm_duty_set(enum HAL_PWM_ID_T pwm_id, uint8_t duty)
         && (duty == MOTOR_PUMP_IDLE_PWM_DUTY))
     {
 #if PUMP_GPIO_IDLE_CTRL
-        motor_pwm_gpio_control(pwm_id, true); //使能GPIO 输出高
+        motor_pwm_gpio_control(pwm_id, true, true); //使能GPIO 输出高
 #endif
         hal_pwm_disable(pwm_id);
 #if PUMP_GPIO_IDLE_CTRL
@@ -312,6 +313,7 @@ static int bsp_motor_pwm_duty_set(enum HAL_PWM_ID_T pwm_id, uint8_t duty)
 #if PUMP_GPIO_IDLE_CTRL
     ///如果pwm_id是泵1或泵2，重新初始化为pwm输出
     if ((pwm_id == MOTOR_PUMP1_PWM_ID || pwm_id == MOTOR_PUMP2_PWM_ID)) {
+        motor_pwm_gpio_control(pwm_id, true, false); //使能GPIO 输入
         for (uint8_t i = 0; i < LENGTH_OF_ARRAY(motor_pump_cfg); i++) {
             if(motor_pump_cfg[i].pump_pwm_id == pwm_id) {
                 motor_pump_cfg[i].pump_pwm_iomux_set();
