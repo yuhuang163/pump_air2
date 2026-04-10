@@ -7,6 +7,8 @@
 #include "bsp_config.h"
 #include "bsp_i2c.h"
 #include "bsp_led_internal.h"
+#include "hal_led.h"
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -216,16 +218,15 @@ static void led_extension_level_set(uint8_t index, uint8_t level)
         LOGE("index is out of range: %d", index);
         return;
     }
-    uint8_t reg_addr = 0;
-    for (uint8_t i = 0; i < led_address_data[index].size; i++) {
-        reg_addr = led_address_data[index].data[i];
-        led_extension_write_nbyte(reg_addr, &level, 1);
+    
+    uint8_t new_level = (level * led_status[index].rate / 100);
+    if (new_level > LED_LEVEL_MAX) {
+        new_level = LED_LEVEL_MAX;
     }
-}
 
-static void led_extension_onoff_set(uint8_t index, uint8_t onoff)
-{
-    led_extension_level_set(index, onoff == LED_STATUS_ON ? LED_LUX_MAX : 0x00);
+    for (uint8_t i = 0; i < led_address_data[index].size; i++) {
+        led_extension_write_nbyte(led_address_data[index].data[i], &new_level, 1);
+    }
 }
 
 static void led_blink_handle(uint8_t index)
@@ -238,7 +239,8 @@ static void led_blink_handle(uint8_t index)
     if (led->times_count >= led->times && led->times != 0) {
         led_status[index].mode = LED_MODE_ONOFF;
         if (led->finish_status != led->status) {
-            led_extension_onoff_set(index, led->finish_status != LED_STATUS_ON ? 0 : 1);
+            led_extension_level_set(index, 
+                led->finish_status == LED_STATUS_ON ? LED_LUX_MAX : 0);
         }
         return;
     }
@@ -247,7 +249,8 @@ static void led_blink_handle(uint8_t index)
     if (led->period_count >= led->period) {
         led->status = led->status > 0 ? 0 : 1;
         led->period_count = 0;
-        led_extension_onoff_set(index, led->status);
+        led_extension_level_set(index, 
+            led->status == LED_STATUS_ON ? LED_LUX_MAX : 0);
         if (led->status == LED_STATUS_ON) {
             led->times_count++;
         }
@@ -281,13 +284,13 @@ static void led_onoff_set(uint8_t index, led_onoff_t onoff)
     if (index == PUMP_LED_ALL_ID) {
         for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
             led_status[i].mode = LED_MODE_ONOFF; 
-            led_extension_onoff_set(i, onoff.status);
+            led_extension_level_set(i, onoff.status == LED_STATUS_ON ? LED_LUX_MAX : 0);
         }
         return;
     }
     led_status[index].mode = LED_MODE_ONOFF; 
     led_status[index].un.onoff.status = onoff.status;
-    led_extension_onoff_set(index, onoff.status);
+    led_extension_level_set(index, onoff.status == LED_STATUS_ON ? LED_LUX_MAX : 0);
 }
 
 static void led_level_set(uint8_t index, led_luminous_t luminous)
@@ -312,7 +315,7 @@ static void led_blink_set(uint8_t index, led_blink_t blink)
     if (index == PUMP_LED_ALL_ID) {
         for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
             memcpy(&led_status[i].un.blink, &blink, sizeof(led_blink_t));
-            led_extension_onoff_set(i, LED_STATUS_OFF);
+            led_extension_level_set(i, 0);
             led_status[i].un.blink.period_count = 0;
             led_status[i].un.blink.status = LED_STATUS_OFF;
             led_status[i].un.blink.times_count = 0;
@@ -320,7 +323,7 @@ static void led_blink_set(uint8_t index, led_blink_t blink)
         }
     } else { 
         memcpy(&led_status[index].un.blink, &blink, sizeof(led_blink_t));
-        led_extension_onoff_set(index, LED_STATUS_OFF);
+        led_extension_level_set(index, 0);
         led_status[index].un.blink.period_count = 0;
         led_status[index].un.blink.status = LED_STATUS_OFF;
         led_status[index].un.blink.times_count = 0;
@@ -422,11 +425,19 @@ static int led_htr3316_p16_output_set(bool high_level)
     }
     return BSP_OK;
 }
-void bsp_touch_rst_pin_output_set(uint8_t high_level)
-{
-    led_htr3316_p16_output_set(high_level > 0 ? true : false);
-}
 #endif
+
+static void led_htr3316_level_rate_update(uint8_t index, uint8_t rate)
+{
+    if (led_status[index].mode == LED_MODE_BLINK || led_status[index].mode == LED_MODE_BLINK) {
+        return;
+    }
+    if (led_status[index].mode == LED_MODE_LEVEL) {
+        led_extension_level_set(index, led_status[index].un.luminous.level);
+    } else if (led_status[index].mode == LED_MODE_ONOFF) {
+        led_extension_level_set(index, led_status[index].un.onoff.status == LED_STATUS_ON ? LED_LUX_MAX : 0);
+    }
+}
 
 /*
 * GLOBAL FUNCTION DEFINITIONS
@@ -454,6 +465,9 @@ int bsp_led_init(void)
         msleep(10);
         led_htr3316_p16_output_set(true);
     #endif
+    for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
+        led_status[i].rate = 100;
+    }
     RUN_NEW_THREAD(&s_led_device_thd, "led", led_device_thread,
          RT_PRIO_LED_DEVICE_THREAD, (LED_DEVICE_THREAD_STACKSIZE));
     return BSP_OK;
@@ -516,9 +530,42 @@ int bsp_led_status_set(led_status_msg_t *msg)
     return BSP_OK;
 }
 
+int bsp_led_level_rate_update(led_level_rate_msg_t *msg)
+{
+    EXCEPTION_CHECK_INT(msg);
+    if (msg->led_index >= LED_TOTAL_SIZE && msg->led_index != PUMP_LED_ALL_ID) {
+        LOGE("index is out of range: %d", msg->led_index);
+        return BSP_ERROR;
+    }
+
+    if (msg->rate > LED_LEVEL_MAX || msg->rate < 10) {
+        LOGE("rate is out of range: %d", msg->rate);
+        return BSP_ERROR;
+    }
+
+    if (msg->led_index == PUMP_LED_ALL_ID) {
+        for (uint8_t i = 0; i < LED_TOTAL_SIZE; i++) {
+            led_status[i].rate = msg->rate;
+            led_htr3316_level_rate_update(i, msg->rate);
+        }
+    } else {
+        led_status[msg->led_index].rate = msg->rate;
+        led_htr3316_level_rate_update(msg->led_index, msg->rate);
+    }
+ 
+    return BSP_OK;
+}
+
 int bsp_led_is_ready(void *args)
 {
     uint8_t *led_is_ready_status = (uint8_t *)args;
     *led_is_ready_status = s_led_is_ready;
     return BSP_OK;
+}
+
+void bsp_touch_rst_pin_output_set(uint8_t high_level)
+{
+#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
+    led_htr3316_p16_output_set(high_level > 0 ? true : false);
+#endif
 }
