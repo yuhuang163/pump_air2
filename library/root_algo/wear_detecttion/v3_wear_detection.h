@@ -32,7 +32,7 @@ void V3WearDetectionModeReset(unsigned char uLevel, unsigned char uMode, unsigne
 
 /*interface*/
 void V3WearDetectionInit(unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight);
-void V3WearDetectionMain(float* fPressureData, aglo_air_pressure_data_t sPressureData, unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight);
+void V3WearDetectionMain(float* fPressureData, algo_air_pressure_data_t sPressureData, unsigned char uLevelLeft, unsigned char ulevelRight, unsigned char uModeLeft, unsigned char uModeRight);
 void GetWearDetectionResult(unsigned char* uWearStatus);
 void GetCompensationStatus(unsigned char* uCompsStatus, int* iDelta_pwm);
 
