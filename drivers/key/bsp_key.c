@@ -122,6 +122,14 @@ static int key_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
             return 0;
         case OP_CODE_INPUT_TOUCH_IS_READY:
             return bsp_touch_is_ready(args);
+#if IS_SUPPORT_TOUCH_IC_OTA
+        case OP_CODE_INPUT_ADD_KEY_OTA_EVENT_CB:
+            return bsp_add_touch_key_ota_event_cb(args);
+        case OP_CODE_INPUT_START_KEY_UPDATE_FW:
+            return bsp_start_touch_key_update_fw();
+        case OP_CODE_INPUT_GET_KEY_FW_VERSION:
+            return bsp_get_touch_key_fw_version();
+#endif
         default:
             return -1;
     }
@@ -144,6 +152,15 @@ int platform_all_key_value(void)
 void key_irq_event_callback(int index)
 {
     scan_key_timer_start(index);
+}
+
+bool touch_key_is_upgrading(void)
+{
+#if IS_SUPPORT_TOUCH_IC_OTA
+    return bsp_touch_key_is_upgrading();
+#else
+    return false;
+#endif
 }
 
 void knob_button_event_handler(int arg1, int arg2, void *param)

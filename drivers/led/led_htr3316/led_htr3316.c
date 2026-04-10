@@ -2,8 +2,8 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "hal_led.h"
 #include "bsp_common.h" 
+#include "bsp_internal.h"
 #include "bsp_config.h"
 #include "bsp_i2c.h"
 #include "bsp_led_internal.h"
@@ -97,7 +97,7 @@ static const led_address_data_t led_address_data[LED_TOTAL_SIZE] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static int led_extension_write_nbyte(i2c_master_data_t *data)
+static int led_extension_write_nbyte(uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
     int ret = 0;
 
@@ -106,8 +106,22 @@ static int led_extension_write_nbyte(i2c_master_data_t *data)
         return BSP_NOT_READY;
     }
 
+#if LED_I2C_ID == TOUCH_KEY_I2C_ID
+    if (touch_key_is_upgrading()) {
+        // return BSP_OK;
+    }
+#endif
+
+    i2c_master_data_t i2c_data = {
+        .dev_address = HTR3316_DEV_ADDR,
+        .reg_addr = &reg_addr,
+        .reg_addr_len = 1,
+        .data = data,
+        .len = len,
+    };
+
     for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
-        ret = bsp_i2c_write_byte(LED_I2C_ID, data);
+        ret = bsp_i2c_write_byte(LED_I2C_ID, &i2c_data);
         if (ret == BSP_OK) {
             s_led_abnormal_count = 0;
             return BSP_OK;
@@ -123,7 +137,7 @@ static int led_extension_write_nbyte(i2c_master_data_t *data)
     return BSP_ERROR;
 }
 
-static int led_extension_read_nbyte(i2c_master_data_t *data)
+static int led_extension_read_nbyte(uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
     int ret = 0;    
     
@@ -132,8 +146,22 @@ static int led_extension_read_nbyte(i2c_master_data_t *data)
         return BSP_NOT_READY;
     }
 
+#if LED_I2C_ID == TOUCH_KEY_I2C_ID
+    if (touch_key_is_upgrading()) {
+        // return BSP_OK;
+    }
+#endif
+
+    i2c_master_data_t i2c_data = {
+        .dev_address = HTR3316_DEV_ADDR,
+        .reg_addr = &reg_addr,
+        .reg_addr_len = 1,
+        .data = data,
+        .len = len,
+    };
+
     for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
-        ret = bsp_i2c_read_byte(LED_I2C_ID, data);
+        ret = bsp_i2c_read_byte(LED_I2C_ID, &i2c_data);
         if (ret == BSP_OK) {
             s_led_abnormal_count = 0;
             return BSP_OK;
@@ -149,25 +177,37 @@ static int led_extension_read_nbyte(i2c_master_data_t *data)
     return BSP_ERROR;
 }
 
-static void led_extension_onoff_set(uint8_t index, uint8_t onoff)
-{
-    if (index >= LED_TOTAL_SIZE) {
-        LOGE("index is out of range: %d", index);
-        return;
-    }
 
-    uint8_t level = onoff == LED_STATUS_ON ? LED_LUX_MAX : 0x00;
+static int led_extension_read_nbyte_no_retry(uint8_t reg_addr, uint8_t *data, uint16_t len)
+{
+    int ret = 0;    
+    
+#if LED_I2C_ID == TOUCH_KEY_I2C_ID
+    if (touch_key_is_upgrading()) {
+        // return BSP_OK;
+    }
+#endif
+
     i2c_master_data_t i2c_data = {
         .dev_address = HTR3316_DEV_ADDR,
-        .reg_addr = 0,
-        .data = &level,
-        .len = 1,
+        .reg_addr = &reg_addr,
+        .reg_addr_len = 1,
+        .data = data,
+        .len = len,
     };
 
-    for (uint8_t i = 0; i < led_address_data[index].size; i++) {
-        i2c_data.reg_addr = led_address_data[index].data[i];
-        led_extension_write_nbyte(&i2c_data);
+    ret = bsp_i2c_read_byte(LED_I2C_ID, &i2c_data);
+    if (ret == BSP_OK) {
+        s_led_abnormal_count = 0;
+        return BSP_OK;
     }
+
+    s_led_abnormal_count++;
+    if (s_led_abnormal_count > LED_ABNORMAL_MAX_COUNT) {
+        s_led_is_ready = 0;
+    }
+
+    return BSP_ERROR;
 }
 
 static void led_extension_level_set(uint8_t index, uint8_t level)
@@ -176,18 +216,16 @@ static void led_extension_level_set(uint8_t index, uint8_t level)
         LOGE("index is out of range: %d", index);
         return;
     }
-
-    i2c_master_data_t i2c_data = {
-        .dev_address = HTR3316_DEV_ADDR,
-        .reg_addr = 0,
-        .data = &level,
-        .len = 1,
-    };
- 
+    uint8_t reg_addr = 0;
     for (uint8_t i = 0; i < led_address_data[index].size; i++) {
-        i2c_data.reg_addr = led_address_data[index].data[i];
-        led_extension_write_nbyte(&i2c_data);
+        reg_addr = led_address_data[index].data[i];
+        led_extension_write_nbyte(reg_addr, &level, 1);
     }
+}
+
+static void led_extension_onoff_set(uint8_t index, uint8_t onoff)
+{
+    led_extension_level_set(index, onoff == LED_STATUS_ON ? LED_LUX_MAX : 0x00);
 }
 
 static void led_blink_handle(uint8_t index)
@@ -295,56 +333,34 @@ static void led_blink_set(uint8_t index, led_blink_t blink)
 static void led_htr3316_chip_id_get(uint8_t *chip_id)
 {
     int ret = 0;
-    i2c_master_data_t i2c_data = {
-        .dev_address = HTR3316_DEV_ADDR,
-        .reg_addr = 0x10,
-        .data = chip_id,
-        .len = 1,
-    };
-
     for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
-        ret = bsp_i2c_read_byte(LED_I2C_ID, &i2c_data);
+        ret = led_extension_read_nbyte_no_retry(0x10, chip_id, 1);
         if (ret == BSP_OK) {
             break;
         }
-        msleep(10);
     }
-    LOG_PBUS("led extension chip id: %d", i2c_data.data[0]);
+    LOG_PBUS("led extension chip id: %d", *chip_id);
 }
 
 static void led_htr3316_init(void)
 {
     int ret = 0;
     uint8_t wdata[2] = {0};
-    i2c_master_data_t i2c_data = {
-        .dev_address = HTR3316_DEV_ADDR,
-        .reg_addr = 0,
-        .data = wdata,
-        .len = 0,
-    };
-   
-    i2c_data.reg_addr = 0x12;
-    i2c_data.data[0] = 0;
-    i2c_data.len = 1;
-    ret = led_extension_write_nbyte(&i2c_data) ;
+    ret = led_extension_write_nbyte(0x12, wdata, 1);
     if (ret != BSP_OK) {
         LOGE("led P0 mode set failed");
         return;
     }
 
-    i2c_data.reg_addr = 0x13;
-    i2c_data.data[0] = 0;
-    i2c_data.len = 1;
-    ret = led_extension_write_nbyte(&i2c_data) ;
+    wdata[0] = 0;
+    ret = led_extension_write_nbyte(0x13, wdata, 1);
     if (ret != BSP_OK) {
         LOGE("led P1 mode set failed");
         return;
     }
 
-    i2c_data.reg_addr = 0x11;
-    i2c_data.data[0] = 2; /// 0:Imax, 1:Imax * 3/4, 2:Imax/2 , 3:Imax/4
-    i2c_data.len = 1;
-    ret = led_extension_write_nbyte(&i2c_data) ;
+    wdata[0] = 2; /// 0:Imax, 1:Imax * 3/4, 2:Imax/2 , 3:Imax/4
+    ret = led_extension_write_nbyte(0x11, wdata, 1);
     if (ret != BSP_OK) {
         LOGE("led global current set failed");
         return;
@@ -355,16 +371,9 @@ static void led_htr3316_init(void)
 static void led_htr3316_reset(void)
 {
     int ret = 0;
-    uint8_t reg_value = 0;
-    i2c_master_data_t i2c_data = {
-        .dev_address = HTR3316_DEV_ADDR,
-        .reg_addr = 0x7F,
-        .data = &reg_value,
-        .len = 1,
-    };
-   
+    uint8_t reg_value = 0;   
     for (uint8_t i = 0; i < HTR3316_RETRY_COUNT; i++) {
-        ret = bsp_i2c_read_byte(LED_I2C_ID, &i2c_data);
+        ret = led_extension_read_nbyte_no_retry(0x7F, &reg_value, 1);
         if (ret == BSP_OK) {
             break;
         }
@@ -374,60 +383,49 @@ static void led_htr3316_reset(void)
 }
 
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
-//此接口用于touch ic复位
 static int led_htr3316_p16_output_set(bool high_level)
 {
     uint8_t reg_val = 0;
-    i2c_master_data_t i2c_data = {
-        .dev_address = HTR3316_DEV_ADDR,
-        .reg_addr = HTR3316_REG_P1_MODE,
-        .data = &reg_val,
-        .len = 1,
-    };
-
     /* Step0: force P1.6 into GPIO mode via P1_Mode (bit6 = 1). */
-    if (led_extension_read_nbyte(&i2c_data) != BSP_OK) {
+    if (led_extension_read_nbyte(HTR3316_REG_P1_MODE, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
     reg_val |= HTR3316_P1_6_BIT;
     //LOG_PBUS("led_htr3316_p16_mode_set: %x", reg_val);
-    if (led_extension_write_nbyte(&i2c_data) != BSP_OK) {
+    if (led_extension_write_nbyte(HTR3316_REG_P1_MODE, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
 
     /* Step1: force P1.6 into output direction via In/Out_P1 (bit6 = 0). */
-    i2c_data.reg_addr = HTR3316_REG_INOUT_P1;
-    if (led_extension_read_nbyte(&i2c_data) != BSP_OK) {
+    if (led_extension_read_nbyte(HTR3316_REG_INOUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
+
     reg_val &= (uint8_t)(~HTR3316_P1_6_BIT);
-    //LOG_PBUS("led_htr3316_p16_inout_set: %x", reg_val);
-    if (led_extension_write_nbyte(&i2c_data) != BSP_OK) {
+    if (led_extension_write_nbyte(HTR3316_REG_INOUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
 
     /* Step2: set P1.6 output level via Output_P1 register (0x03). */
-    i2c_data.reg_addr = HTR3316_REG_OUTPUT_P1;
-    if (led_extension_read_nbyte(&i2c_data) != BSP_OK) {
+    if (led_extension_read_nbyte(HTR3316_REG_OUTPUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
+
     if (high_level) {
         reg_val |= HTR3316_P1_6_BIT;
     } else {
         reg_val &= (uint8_t)(~HTR3316_P1_6_BIT);
     }
-    //LOG_PBUS("led_htr3316_p16_output_set: %x", reg_val);
-    if (led_extension_write_nbyte(&i2c_data) != BSP_OK) {
+
+    if (led_extension_write_nbyte(HTR3316_REG_OUTPUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
-
     return BSP_OK;
 }
 void bsp_touch_rst_pin_output_set(uint8_t high_level)
 {
     led_htr3316_p16_output_set(high_level > 0 ? true : false);
 }
-
 #endif
 
 /*

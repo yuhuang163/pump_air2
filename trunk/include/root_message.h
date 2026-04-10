@@ -166,10 +166,9 @@ typedef struct {
 
 typedef struct {
     ota_event_type_e event;
-    bool result;         ///事件结果
-    int state;
-    uint32_t sub_code;
-} ota_event_type_t;
+    int args1;
+    int args2;
+} ota_event_info_t;
 
 /// 描述按键事件结构.
 typedef struct input_key_event_data {
@@ -192,7 +191,7 @@ typedef struct multi_func_msg_data {
         ble_event_type_t ble_evt_type;
         factory_test_entry_extra_t factory_extra;
         hdr_post_args_t hdr_post;
-        ota_event_type_t ota_evt_type;
+        ota_event_info_t ota_info;
         input_key_event_data_t key_event_data;
         bcr_pkg_struct_t bcr_pkg;
         product_test_entry_extra_t product_test_extra;

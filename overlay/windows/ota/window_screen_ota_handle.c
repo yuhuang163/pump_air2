@@ -154,6 +154,8 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     proc->ble = (ble_manager_context_t *)find_module(ID_MODULE_BLE);
     proc->ota = (ota_manager_context_t *)find_module(ID_MODULE_OTA);
     proc->key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    proc->battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+    proc->airplane = (airplane_mode_context_t *)find_module(ID_MODULE_AIRPLANE_MODE);
     /// 注册广播监听.
     proc->receiver.context = proc;
     proc->receiver.name = "ota_screen";
