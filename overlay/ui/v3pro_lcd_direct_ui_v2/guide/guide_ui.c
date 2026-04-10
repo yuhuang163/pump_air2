@@ -36,6 +36,7 @@ typedef struct {
     uint8_t page_index;
     uint8_t popup_ui_index;
     uint8_t rsv[13];
+    char qr_str[120];
 } guide_display_info_t;
 
 typedef struct {
@@ -53,7 +54,7 @@ typedef struct {
 static guide_display_info_t *guide_info;
 
 const static char *bind_qr_str[] = {
-    "https://lvgl.io",
+    "https://qr.momcozy.com/apps/?v=1&type=device&model=V3Pro&sn=",
 };
 
 const static uint16_t guide_page_img_ids[GUIDE_PAGE_IMG_NUM] = {
@@ -164,7 +165,7 @@ static void guide_qrcode_update(ui_manager_context_t *thiz, uint8_t page_index)
     lv_qrcode_set_size(guide_info->qrcode, 124);
     lv_qrcode_set_dark_color(guide_info->qrcode, lv_color_hex(GUIDE_QRCODE_FG_COLOR));
     lv_qrcode_set_light_color(guide_info->qrcode, lv_color_hex(GUIDE_QRCODE_BG_COLOR));
-    lv_qrcode_update(guide_info->qrcode, bind_qr_str[0], strlen(bind_qr_str[0]));
+    lv_qrcode_update(guide_info->qrcode, guide_info->qr_str, strlen(guide_info->qr_str));
     lv_obj_center(guide_info->qrcode);
     lv_obj_align(guide_info->qrcode, LV_ALIGN_TOP_LEFT, 111 + 7, 71 + 7);
 }
@@ -278,6 +279,21 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
     ui_guide_root_init(); /// 初始化 root 容器
     guide_info->force_update = true;
     guide_info->popup_ui_index = GUIDE_POPUP_UI_NONE;
+    storage_manager_context_t *storage = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    if (storage) {
+        factory_data_store_t *factory_data = storage->get_factory_data();
+        factory_dev_info_t *dev_info = &factory_data->dev_info;
+        unsigned int sn_n = dev_info->sn_len;
+        if (sn_n > DEVICE_UNIQUE_SN_LEN) {
+            sn_n = DEVICE_UNIQUE_SN_LEN;
+        }
+        snprintf(guide_info->qr_str, sizeof(guide_info->qr_str), "%s%.*s", bind_qr_str[0],
+                 (int)sn_n, (const char *)dev_info->sn);
+        LOG_UI("%s", guide_info->qr_str);
+    } else {
+        snprintf(guide_info->qr_str, sizeof(guide_info->qr_str), "%s", bind_qr_str[0]);
+        LOG_UI("%s", guide_info->qr_str);
+    }
 }
 
 void ui_display_guide_remove(ui_manager_context_t *thiz)

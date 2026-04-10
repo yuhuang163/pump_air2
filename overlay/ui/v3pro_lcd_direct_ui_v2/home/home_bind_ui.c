@@ -44,6 +44,7 @@ typedef struct {
     uint8_t popup_ui_index;
     uint8_t bind_state;
     uint8_t rsv[13];
+    char qr_str[120];
 } home_bind_display_info_t;
 
 typedef struct {
@@ -68,7 +69,7 @@ typedef enum {
 */
 static home_bind_display_info_t *home_bind_info;
 const static char *bind_qr_str[] = {
-    "https://lvgl.io",
+    "https://qr.momcozy.com/apps/?v=1&type=device&model=V3Pro&sn=",
 };
 
 #if IS_SUPPORT_HOME_BIND_COMP_BG
@@ -196,7 +197,7 @@ static void home_bind_qrcode_update(ui_manager_context_t *thiz, uint8_t is_show)
     lv_qrcode_set_size(home_bind_info->qrcode, 124);
     lv_qrcode_set_dark_color(home_bind_info->qrcode, lv_color_hex(HOME_BIND_FG_COLOR));
     lv_qrcode_set_light_color(home_bind_info->qrcode, lv_color_hex(HOME_BIND_BG_COLOR));
-    lv_qrcode_update(home_bind_info->qrcode, bind_qr_str[0], strlen(bind_qr_str[0]));
+    lv_qrcode_update(home_bind_info->qrcode, home_bind_info->qr_str, strlen(home_bind_info->qr_str));
     lv_obj_center(home_bind_info->qrcode);
     lv_obj_align(home_bind_info->qrcode_container, LV_ALIGN_TOP_LEFT, 
         HOME_BIND_X_OFFSET, HOME_BIND_Y_OFFSET);
@@ -309,6 +310,21 @@ void ui_display_home_bind_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     home_bind_info->force_update = true;
     home_bind_info->popup_ui_index = HOME_POPUP_UI_NONE;
+    storage_manager_context_t *storage = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
+    if (storage) {
+        factory_data_store_t *factory_data = storage->get_factory_data();
+        factory_dev_info_t *dev_info = &factory_data->dev_info;
+        unsigned int sn_n = dev_info->sn_len;
+        if (sn_n > DEVICE_UNIQUE_SN_LEN) {
+            sn_n = DEVICE_UNIQUE_SN_LEN;
+        }
+        snprintf(home_bind_info->qr_str, sizeof(home_bind_info->qr_str), "%s%.*s", bind_qr_str[0],
+                 (int)sn_n, (const char *)dev_info->sn);
+        LOG_UI("%s", home_bind_info->qr_str);
+    } else {
+        snprintf(home_bind_info->qr_str, sizeof(home_bind_info->qr_str), "%s", bind_qr_str[0]);
+        LOG_UI("%s", home_bind_info->qr_str);
+    }
 }
 
 void ui_display_home_bind_remove(ui_manager_context_t *thiz)
