@@ -384,3 +384,8 @@ int bsp_touch_is_ready(void *args)
     *touch_is_ready_status = s_touch_is_ready;
     return BSP_OK;
 }
+
+int bsp_touch_signal_read(void *args)
+{
+    return BSP_OK;
+}

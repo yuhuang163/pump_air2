@@ -643,3 +643,18 @@ bool bsp_touch_key_is_upgrading(void)
 {
     return s_is_upgrading;
 }
+
+int bsp_touch_signal_read(void *args)
+{
+   if (args == NULL) {
+       return BSP_ERROR;
+   }
+    uint8_t sig_buff[HYN_TOUCH_KEY_NUM * 2];
+
+    if (hyn_i2c_read(0xC8, sig_buff, (uint16_t)(HYN_TOUCH_KEY_NUM * 2)) != BSP_OK) {
+        return BSP_ERROR;
+    }
+    uint8_t *signal_data = (uint8_t *)args;
+    memcpy(signal_data, sig_buff, (uint16_t)(HYN_TOUCH_KEY_NUM * 2));
+    return BSP_OK;
+}
