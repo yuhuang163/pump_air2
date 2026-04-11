@@ -48,8 +48,9 @@ static int led_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
             if (NIGHT_LIGHT_LED == msg->led_index) {
 #if IS_SUPPORT_NIGHT_LIGHT
                 return bsp_night_light_status_set(args);
-#endif
+#else
                 return 0;
+#endif
             } else {
                 return bsp_led_status_set(msg);
             }
@@ -59,8 +60,9 @@ static int led_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
             if (NIGHT_LIGHT_LED == msg->led_index) {
 #if IS_SUPPORT_NIGHT_LIGHT
                 return bsp_night_light_rate_update(args);
-#endif
+#else
                 return 0;
+#endif
             } else {
                 return bsp_led_level_rate_update(msg);
             }
