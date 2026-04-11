@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "common_ui.h"
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
@@ -510,7 +511,7 @@ static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t star
         common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
         memset(&pump_info->animation_info, 0, sizeof(pump_info->animation_info));
     }
-    common_ui_img_resource_init(thiz, 
+    common_ui_img_resource_init_with_theme(thiz, 
         start_resource_id + pump_info->animation_index, &pump_info->animation_info);
     EXCEPTION_CHECK_VOID(pump_info->animation_info.data);
     lv_fs_path_ex_t animation_img_path;
@@ -652,8 +653,8 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     battery_ui_update(thiz, pump_info->root, proc->battery, false);
     pump_home_time_update(thiz, hold_time, is_regular_mode ? 0 : 19);
     if (is_regular_mode) {
-        pump_home_animation_update(thiz, RESOURCE_ID_COMMON_MODE_ANIMATION_START, 
-            RESOURCE_ID_COMMON_MODE_ANIMATION_END - RESOURCE_ID_COMMON_MODE_ANIMATION_START + 1,
+        pump_home_animation_update(thiz, RESOURCE_ID_NM_ANIM_IP_START, 
+            RESOURCE_ID_NM_ANIM_IP_END - RESOURCE_ID_NM_ANIM_IP_START + 1,
             85, 168);
         pump_home_common_mode_update(thiz, pump_mode);  
     } else {
@@ -663,8 +664,8 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
             sub_mode = proc->motor->get_runtime_mode_type(false);
             next_sub_mode = proc->motor->get_runtime_mode_type(true);
         }
-        pump_home_animation_update(thiz, RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START, 
-            RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_END - RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START + 1,
+        pump_home_animation_update(thiz, RESOURCE_ID_PM_ANIM_IP_START, 
+            RESOURCE_ID_PM_ANIM_IP_END - RESOURCE_ID_PM_ANIM_IP_START + 1,
             0, 108);
         pump_home_custom_mode_update(thiz, pump_mode, sub_mode, next_sub_mode);
     }

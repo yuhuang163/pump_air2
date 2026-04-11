@@ -39,9 +39,25 @@ void common_ui_img_resource_init(ui_manager_context_t *thiz, uint16_t id, res_im
         common_ui_img_resource_deinit(thiz, info);
     }
 
-    int ret = thiz->priv.res->res_ui_img_data_load(id, info);
+    int ret = thiz->priv.res->base_res_data_load(id, info);
     if (ret != 0) {
-        LOGE("===> load img data failed, id=%u ret=%d", (unsigned)id, ret);
+        LOGE("===> load base img data failed, id=%u ret=%d", (unsigned)id, ret);
+    }
+}
+
+void common_ui_img_resource_init_with_theme(ui_manager_context_t *thiz, uint16_t id, res_img_info_t *info)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    EXCEPTION_CHECK_VOID(thiz->priv.res);
+    EXCEPTION_CHECK_VOID(info);
+    if (info->data != NULL && info->id != id) {
+        lv_draw_wait_for_finish();
+        common_ui_img_resource_deinit(thiz, info);
+    }
+
+    int ret = thiz->priv.res->theme_res_data_load(id, info);
+    if (ret != 0) {
+        LOGE("===> load theme img data failed, id=%u ret=%d", (unsigned)id, ret);
     }
 }
 
@@ -53,7 +69,7 @@ void common_ui_img_resource_deinit(ui_manager_context_t *thiz, res_img_info_t *i
     if (info->data != NULL) {
         lv_draw_wait_for_finish();
     }
-    thiz->priv.res->res_ui_img_data_unload(info);
+    thiz->priv.res->res_data_unload(info);
 }
 
 void common_ui_text_place_in_circle(lv_obj_t * lab, uint16_t angle, uint16_t ring_r, uint8_t is_reverse)

@@ -196,7 +196,7 @@ static void home_root_animation_update(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(home_info->animation);
     }  
     
-    uint16_t animation_size = RESOURCE_ID_HOME_DEFAULT_ANIMATION_END - RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + 1;
+    uint16_t animation_size = RESOURCE_ID_HD_ANIM_IP_END - RESOURCE_ID_HD_ANIM_IP_START + 1;
     if (home_info->animation_index >= animation_size) {
         home_info->animation_index = 0;
     }
@@ -206,8 +206,8 @@ static void home_root_animation_update(ui_manager_context_t *thiz)
         common_ui_img_resource_deinit(thiz, &home_info->animation_info);
         memset(&home_info->animation_info, 0, sizeof(home_info->animation_info));
     }
-    common_ui_img_resource_init(thiz, 
-        RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + home_info->animation_index, &home_info->animation_info);
+    common_ui_img_resource_init_with_theme(thiz, 
+        RESOURCE_ID_HD_ANIM_IP_START + home_info->animation_index, &home_info->animation_info);
     EXCEPTION_CHECK_VOID(home_info->animation_info.data);
     lv_fs_path_ex_t animation_img_path;
     lv_fs_make_path_from_buffer(&animation_img_path, LV_FS_MEMFS_LETTER, 

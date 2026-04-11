@@ -248,7 +248,7 @@ static void home_bind_img_update(ui_manager_context_t *thiz, uint8_t is_show)
         return;
     }
 
-    common_ui_img_resource_init(thiz, RESOURCE_ID_HOME_BLE_IP_ICON, &home_bind_info->ip_info);
+    common_ui_img_resource_init_with_theme(thiz, RESOURCE_ID_HOME_BLE_IP_ICON, &home_bind_info->ip_info);
     EXCEPTION_CHECK_VOID(home_bind_info->ip_info.data);
     lv_fs_path_ex_t ip_img_path;
     lv_fs_make_path_from_buffer(&ip_img_path, LV_FS_MEMFS_LETTER, home_bind_info->ip_info.data,

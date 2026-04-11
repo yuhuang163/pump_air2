@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "common_ui.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
@@ -122,7 +123,7 @@ static void home_screen_saver_dummy_icon_update(ui_manager_context_t *thiz, int1
         EXCEPTION_CHECK_VOID(saver_info->saver_icon);
     }
     
-    common_ui_img_resource_init(thiz, RESOURCE_ID_HOME_DUMMY_ICON, &saver_info->saver_img_info);
+    common_ui_img_resource_init_with_theme(thiz, RESOURCE_ID_HOME_IDLE_IP_ICON, &saver_info->saver_img_info);
     EXCEPTION_CHECK_VOID(saver_info->saver_img_info.data);
     lv_fs_path_ex_t saver_icon_img_path;
     lv_fs_make_path_from_buffer(&saver_icon_img_path, LV_FS_MEMFS_LETTER, 
