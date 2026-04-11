@@ -109,7 +109,7 @@ static void home_screen_saver_root_icon_update(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(saver_info->saver_icon);
     }
     
-    common_ui_img_resource_init_with_theme(thiz, RESOURCE_ID_HOME_IDLE_IP_ICON, &saver_info->saver_img_info);
+    common_ui_img_resource_init_with_theme(thiz, RESOURCE_ID_HOME_IDLE_IP, &saver_info->saver_img_info);
     EXCEPTION_CHECK_VOID(saver_info->saver_img_info.data);
     lv_fs_path_ex_t saver_icon_img_path;
     lv_fs_make_path_from_buffer(&saver_icon_img_path, LV_FS_MEMFS_LETTER, 
