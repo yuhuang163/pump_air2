@@ -9,8 +9,8 @@
   },
   "resource_ranges": [
     {
-      "start_resource_id": "RESOURCE_ID_COMMON_MODE_ANIMATION_START",
-      "end_resource_id": "RESOURCE_ID_COMMON_MODE_ANIMATION_END",
+      "start_resource_id": "RESOURCE_ID_NM_ANIM_IP_START",
+      "end_resource_id": "RESOURCE_ID_NM_ANIM_IP_END",
       "description": "通用模式动画帧",
       "file_template": "animation/common_mode/baj/M_{file_index:05d}_194x194_a4_q99_422.baj",
       "start_file_index": 0,
@@ -20,8 +20,8 @@
       "note": "动画资源ID范围: 300-414，共115帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 300)。资源ID 300→M_00000, 301→M_00001...414→M_00114"
     },
     {
-      "start_resource_id": "RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_START",
-      "end_resource_id": "RESOURCE_ID_PERSONALIZED_MODE_ANIMATION_END",
+      "start_resource_id": "RESOURCE_ID_PM_ANIM_IP_START",
+      "end_resource_id": "RESOURCE_ID_PM_ANIM_IP_END",
       "description": "个性化模式动画帧",
       "file_template": "animation/personalized_mode/baj/zj_{file_index:05d}_360x252_a4_q99_422.baj",
       "start_file_index": 0,
@@ -31,8 +31,8 @@
       "note": "动画资源ID范围: 500-619，共120帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 500)。资源ID 500→ZH_00000, 501→ZH_00001...619→ZH_00119"
     },
     {
-      "start_resource_id": "RESOURCE_ID_HOME_DEFAULT_ANIMATION_START",
-      "end_resource_id": "RESOURCE_ID_HOME_DEFAULT_ANIMATION_END",
+      "start_resource_id": "RESOURCE_ID_HD_ANIM_IP_START",
+      "end_resource_id": "RESOURCE_ID_HD_ANIM_IP_END",
       "description": "首页默认动画帧",
       "file_template": "animation/home_default/baj/s_{file_index:05d}_188x198_a4_q99_422.baj",
       "start_file_index": 0,
@@ -165,14 +165,14 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_HOME_DUMMY_ICON",
+      "resource_id": "RESOURCE_ID_HOME_IDLE_IP_ICON",
       "description": "dummy图标",
       "file": "baj/icon_home_dummy_226x134_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_IMG",
+      "resource_id": "RESOURCE_ID_CHARGE_ADAPTER_IP_IMG",
       "description": "充电适配器错误背景",
       "file": "png/img_charge_adapter_error.png",
       "x_offset": 0,
@@ -340,7 +340,7 @@
       "y_offset": 0
     },
     {
-      "resource_id": "RESOURCE_ID_PUMP_FINISH_ICON",
+      "resource_id": "RESOURCE_ID_PUMP_FINISH_IP_ICON",
       "description": "泵奶完成图标",
       "file": "baj/icon_pump_finish_160x160_a8_q99_444.baj",
       "x_offset": 0,

@@ -32,32 +32,19 @@ typedef struct {
     uint8_t rsv[14];
 } home_screen_saver_display_info_t;
 
-typedef struct {
-    const char *name;
-    uint16_t img_id;
-    uint16_t icon_x;
-    uint16_t icon_y;
-} saver_img_info_t;
-
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
 static home_screen_saver_display_info_t *saver_info;
-const static saver_img_info_t saver_img_infos[HOME_SCREEN_SAVER_ICON_MAX_COUNT] = {
-    { "saver_icon", RESOURCE_ID_HOME_DUMMY_ICON, HOME_SCREEN_SAVER_ICON_X, HOME_SCREEN_SAVER_ICON_Y },
-};  
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
 #if IS_SUPPORT_ROOT_DUMMY_COMP_BG
 static PSRAM_DATA_LOC uint8_t home_screen_saver_bg_data[] = {
-    // #include "comparison_png2txt/bg_360x360.txt"
     #include "png2txt/dummy_com_bg_360x360.txt"
-    // #include "comparison_png2txt/home_comp_1_v2_360x360.txt"
-    // #include "comparison_png2txt/home_comp_80_v2_360x360.txt"
-    // #include "comparison_png2txt/home_comp_100_v2_360x360.txt"
 };
 #endif
 /*
@@ -122,14 +109,14 @@ static void home_screen_saver_root_icon_update(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(saver_info->saver_icon);
     }
     
-    common_ui_img_resource_init(thiz, saver_img_infos[HOME_SCREEN_SAVER_ICON_INDEX].img_id, &saver_info->saver_img_info);
+    common_ui_img_resource_init_with_theme(thiz, RESOURCE_ID_HOME_IDLE_IP_ICON, &saver_info->saver_img_info);
     EXCEPTION_CHECK_VOID(saver_info->saver_img_info.data);
     lv_fs_path_ex_t saver_icon_img_path;
     lv_fs_make_path_from_buffer(&saver_icon_img_path, LV_FS_MEMFS_LETTER, 
         saver_info->saver_img_info.data, saver_info->saver_img_info.size, "baj");
     lv_image_set_src(saver_info->saver_icon, (const void *)&saver_icon_img_path);
     lv_obj_align(saver_info->saver_icon, LV_ALIGN_TOP_LEFT, 
-        saver_img_infos[HOME_SCREEN_SAVER_ICON_INDEX].icon_x, saver_img_infos[HOME_SCREEN_SAVER_ICON_INDEX].icon_y); /// 设置icon位置
+        HOME_SCREEN_SAVER_ICON_X, HOME_SCREEN_SAVER_ICON_Y); /// 设置icon位置
 }
 
 static void home_screen_saver_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)

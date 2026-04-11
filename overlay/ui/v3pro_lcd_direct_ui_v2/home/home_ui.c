@@ -268,7 +268,7 @@ static void home_root_animation_update(ui_manager_context_t *thiz,
         common_ui_img_resource_deinit(thiz, &home_info->animation_info);
         memset(&home_info->animation_info, 0, sizeof(home_info->animation_info));
     }
-    common_ui_img_resource_init(thiz, 
+    common_ui_img_resource_init_with_theme(thiz, 
         start_resource_id + home_info->animation_index, &home_info->animation_info);
     EXCEPTION_CHECK_VOID(home_info->animation_info.data);
     lv_fs_path_ex_t animation_img_path;
@@ -392,8 +392,8 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_record_time_ui_update(thiz, 
                 home_info->timestamp_offset, IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y, false);
             home_clock_ui_update(thiz, 0, false);
-            home_root_animation_update(thiz, RESOURCE_ID_HOME_DEFAULT_ANIMATION_START,
-                 RESOURCE_ID_HOME_DEFAULT_ANIMATION_END - RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + 1,
+            home_root_animation_update(thiz, RESOURCE_ID_HD_ANIM_IP_START,
+                 RESOURCE_ID_HD_ANIM_IP_END - RESOURCE_ID_HD_ANIM_IP_START + 1,
                 HOME_IDLE_ANIMATION_X, HOME_IDLE_ANIMATION_Y);
             break;
         case HOME_UI_DISPLAY_CLOCK_AND_RECORD:
@@ -407,8 +407,8 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_record_time_ui_update(thiz, home_info->timestamp_offset, 
                     180, IDLE_LABEL_TEXT_Y - HOME_WITH_CLOCK_LABLE_Y_OFFSET, true);
             home_clock_ui_update(thiz, 0, true);
-            home_root_animation_update(thiz, RESOURCE_ID_HOME_DEFAULT_ANIMATION_START,
-                RESOURCE_ID_HOME_DEFAULT_ANIMATION_END - RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + 1,
+            home_root_animation_update(thiz, RESOURCE_ID_HD_ANIM_IP_START,
+                RESOURCE_ID_HD_ANIM_IP_END - RESOURCE_ID_HD_ANIM_IP_START + 1,
                 HOME_IDLE_ANIMATION_X, HOME_IDLE_ANIMATION_Y);
             break;
         case HOME_UI_DISPLAY_CLOCK:
@@ -420,8 +420,8 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_record_time_ui_update(thiz, home_info->timestamp_offset, 
                 IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y - HOME_WITH_CLOCK_LABLE_Y_OFFSET, false);
             home_clock_ui_update(thiz, 0, true);
-            home_root_animation_update(thiz, RESOURCE_ID_HOME_DEFAULT_ANIMATION_START,
-                 RESOURCE_ID_HOME_DEFAULT_ANIMATION_END - RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + 1,
+            home_root_animation_update(thiz, RESOURCE_ID_HD_ANIM_IP_START,
+                 RESOURCE_ID_HD_ANIM_IP_END - RESOURCE_ID_HD_ANIM_IP_START + 1,
                 HOME_IDLE_ANIMATION_X, HOME_IDLE_ANIMATION_Y);
             break;
         case HOME_UI_DISPLAY_RECORD:
@@ -434,8 +434,8 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_record_time_ui_update(thiz, home_info->timestamp_offset,
                 180, IDLE_LABEL_TEXT_Y, true);
             home_clock_ui_update(thiz, 0, false);
-            home_root_animation_update(thiz, RESOURCE_ID_HOME_DEFAULT_ANIMATION_START,
-                RESOURCE_ID_HOME_DEFAULT_ANIMATION_END - RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + 1,
+            home_root_animation_update(thiz, RESOURCE_ID_HD_ANIM_IP_START,
+                RESOURCE_ID_HD_ANIM_IP_END - RESOURCE_ID_HD_ANIM_IP_START + 1,
                 HOME_IDLE_ANIMATION_X, HOME_IDLE_ANIMATION_Y);
             break;
         case HOME_UI_DISPLAY_CLOCK_ADJUST_TIP:
@@ -447,8 +447,8 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_record_time_ui_update(thiz, home_info->timestamp_offset,
                  IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y - HOME_CLOCK_TIP_LABLE_Y_OFFSET, false);
             home_clock_ui_update(thiz, 0, false);
-            home_root_animation_update(thiz, RESOURCE_ID_HOME_DEFAULT_ANIMATION_START,
-                RESOURCE_ID_HOME_DEFAULT_ANIMATION_END - RESOURCE_ID_HOME_DEFAULT_ANIMATION_START + 1,
+            home_root_animation_update(thiz, RESOURCE_ID_HD_ANIM_IP_START,
+                RESOURCE_ID_HD_ANIM_IP_END - RESOURCE_ID_HD_ANIM_IP_START + 1,
                 HOME_IDLE_ANIMATION_X, HOME_IDLE_ANIMATION_Y);
             break;
         case HOME_UI_DISPLAY_CLOCK_LIGHT_TIP:
@@ -462,8 +462,8 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_record_time_ui_update(thiz, home_info->timestamp_offset,
                  IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y - HOME_LIGHT_TIP_LABLE_Y_OFFSET, false);
             home_clock_ui_update(thiz, -18, true);
-            // home_root_animation_update(thiz, RESOURCE_ID_HOME_LIGHT_ANIMATION_START,
-            //     RESOURCE_ID_HOME_LIGHT_ANIMATION_END - RESOURCE_ID_HOME_LIGHT_ANIMATION_START + 1,
+            // home_root_animation_update(thiz, RESOURCE_ID_HL_ANIM_IP_START,
+            //     RESOURCE_ID_HL_ANIM_IP_END - RESOURCE_ID_HL_ANIM_IP_START + 1,
             //     HOME_IDLE_ANIMATION_X, HOME_IDLE_ANIMATION_Y);
             break;
     }
