@@ -8,6 +8,7 @@
 #include "ui_manager.h"   // IWYU pragma: keep
 #include "window_screen_pump.h" // IWYU pragma: keep
 #include "breast_pump_ui.h" // IWYU pragma: keep
+#include <stdint.h>
 
 /*
 * DEFINES
@@ -543,7 +544,7 @@ static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t
                 ui_common_operation_tip_prepare(thiz, pump_info->root);
                 pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_SUCCESS;
             } else {
-                ui_common_operation_tip_process(thiz, COMMON_OPERATION_SUCCESS, proc->popup_ui_start_time);
+                ui_common_operation_tip_process(thiz, COMMON_OP_TIP_SUCCESS);
             }
             break;
         case PUMP_POPUP_UI_OPERATION_FAILED:
@@ -552,7 +553,7 @@ static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t
                 ui_common_operation_tip_prepare(thiz, pump_info->root);
                 pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_FAILED;
             } else {
-                ui_common_operation_tip_process(thiz, COMMON_OPERATION_FAILED, proc->popup_ui_start_time);
+                ui_common_operation_tip_process(thiz, COMMON_OP_TIP_FAILED);
             }
             break;
         case PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT:

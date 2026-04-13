@@ -40,21 +40,15 @@ static void pump_mode_display_completed_cb(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(proc->wm);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
     if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
-        int is_pump_working = 0; 
-        READ_PUMP_IS_WORKING(proc->pump, is_pump_working);
-        if (is_pump_working == 0) {
-            multi_func_msg_data_t msg = {0};
-            LOG_WM("goto home window.");
-            msg.union_body.extra.window_id = ID_WINDOW_HOME;
-            proc->wm->dispatch_new_window_args(proc->wm, &msg);
-        } else {
-            if (proc->mode_sync_flag) {
-                proc->mode_sync_flag = false;
-                WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_common_mode_index, true, 1);
-                proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;
+        if (proc->mode_sync_flag) {
+            proc->mode_sync_flag = false;
+            WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_normal_mode_index, true, 1);
+            proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;
+            if (proc->led) {
+                proc->led->set_led_level(PUMP_FREQ_SET_BL, LED_LEVEL_MAX);
             }
-            show_pump_home_ui(proc);
         }
+        show_pump_home_ui(proc);
     }
 }
 
@@ -145,7 +139,7 @@ void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase)
 {
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
-    uint8_t mode = proc->ui_common_mode_index;
+    uint8_t mode = proc->ui_normal_mode_index;
     if (is_increase) {
         if (mode < BREAST_PUMP_MIX_MODE) {
             mode++;
@@ -160,7 +154,7 @@ void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase)
         }
     }
     proc->mode_sync_flag = true;
-    proc->ui_common_mode_index = mode;
+    proc->ui_normal_mode_index = mode;
     char *mode_name = "unknow";
     READ_PUMP_MODE_NAME(proc->pump, mode, &mode_name);
     LOG_UI("switch %s mode: %d", mode_name, mode);
@@ -176,6 +170,7 @@ void pump_mode_key_click_handler(ui_proc_pump_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
+#if 0
     EXCEPTION_CHECK_VOID(proc->led);
 
     int pump_status = 0;
@@ -193,9 +188,11 @@ void pump_mode_key_click_handler(ui_proc_pump_t *proc)
         pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
         return;
     }
-
+#endif
     int mode_index = 0;
     READ_PUMP_COMMON_MODE(proc->pump, false, mode_index);
-    proc->ui_common_mode_index = mode_index;
+    proc->ui_normal_mode_index = mode_index;
+    proc->mode_sync_flag = true;
+    proc->forbid_start_pump = false;
     show_pump_mode_ui(proc);
 }

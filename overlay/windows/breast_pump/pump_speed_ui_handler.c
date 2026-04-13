@@ -40,22 +40,13 @@ static void pump_speed_display_completed_cb(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(proc);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
     if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
-        show_pump_home_ui(proc);
-    }
-}
-
-static void pump_ui_speed_status_syn(hdr_post_args_t *args)
-{
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)args->user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);
-    WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
-    if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
-        int time_index = 0;
-        READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
-        WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
-        proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;
-        LOG_UI("speed change: %d, show home ui.", proc->setting.speed);
+        if (proc->speed_sync_flag) {
+            proc->speed_sync_flag = false;
+            int time_index = 0;
+            READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
+            WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
+            proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;
+        }
         show_pump_home_ui(proc);
     }
 }
@@ -66,15 +57,12 @@ static void pump_speed_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
-    if (proc->speed_sync_flag) {
-        if (time_diff >= PUMP_SPEED_SYNC_TIMEOUT) {
-            proc->speed_sync_flag = false;
-            proc->last_progress_ani_time = get_timestamp();
-        POST_TASK_HANDLER_NO_DELAY(pump_ui_speed_status_syn, proc, PUMP_SPEED_SYNC_TASK_NAME);
-        }
+    if (time_diff >= PUMP_SPEED_DISPLAY_TIMEOUT) {
+        proc->last_progress_ani_time = get_timestamp();
+        POST_TASK_HANDLER_NO_DELAY(pump_speed_display_completed_cb, proc, PUMP_SPEED_DISPLAY_TASK_NAME);
     } else {
-        if (time_diff >= PUMP_SPEED_DISPLAY_TIMEOUT) {
-            proc->last_progress_ani_time = get_timestamp();
+        if (proc->goto_pump_home_ui) {
+            proc->goto_pump_home_ui = false;
             POST_TASK_HANDLER_NO_DELAY(pump_speed_display_completed_cb, proc, PUMP_SPEED_DISPLAY_TASK_NAME);
         }
     }
@@ -124,8 +112,8 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
         proc->popup_ui_type == PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE) {
         pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
     }
+    proc->last_progress_ani_time = get_timestamp();
     if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
-        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         pump_ui_change_hdr_remove(proc);
@@ -150,8 +138,7 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
 */
 void switch_pump_speed_ui(ui_proc_pump_t *proc, bool is_increase)
 {
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);  
+    EXCEPTION_CHECK_VOID(proc && proc->pump);
     if (is_increase == false) {
         if (proc->setting.speed < BREAST_PUMP_SPEED_HIGH) {
             proc->setting.speed++;
@@ -180,9 +167,8 @@ void pump_speed_ui_hdr_remove(void)
 
 void pump_speed_key_click_handler(ui_proc_pump_t *proc)
 {
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);
-    EXCEPTION_CHECK_VOID(proc->led);
+    EXCEPTION_CHECK_VOID(proc && proc->pump);
+#if 0
     int is_pump_working = 0; 
     READ_PUMP_IS_WORKING(proc->pump, is_pump_working);
     if (is_pump_working == 0) {
@@ -190,16 +176,17 @@ void pump_speed_key_click_handler(ui_proc_pump_t *proc)
         pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
         return;
     }
+#endif
     int pump_mode = 0;
     READ_PUMP_WORK_MODE(proc->pump, pump_mode);
     if (PUMP_IS_BREASTFEEDING_MODE(pump_mode)) {
         LOG_UI("pump is breastfeeding mode, ignore.");
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
+        // pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
         return;
     }
-    show_pump_speed_ui(proc);
-    EXCEPTION_CHECK_VOID(proc->motor);
     int time_index = 0;
     READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
     READ_PUMP_SETTING_INFO(proc->pump, time_index, proc->setting); 
+    proc->forbid_start_pump = false;
+    show_pump_speed_ui(proc);
 }

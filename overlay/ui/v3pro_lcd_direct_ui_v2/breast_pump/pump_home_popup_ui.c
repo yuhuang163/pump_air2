@@ -305,6 +305,9 @@ void ui_pump_status_popup_prepare(ui_manager_context_t *thiz, lv_obj_t *parent, 
     pump_status_root_init(parent);
     pump_status_info->ring_progress = 0;
     uint16_t time = 3000;
+    if (popup_type == PUMP_POPUP_UI_PUMP_FINISH_MANUAL) {
+        time = 1000;
+    }
     pump_status_info->target_time = time;
     pump_status_info->ring_progress_max = (time / PUMP_STATUS_DISPLAY_STEP_TIME) - 2;
     pump_status_info->force_update = true;

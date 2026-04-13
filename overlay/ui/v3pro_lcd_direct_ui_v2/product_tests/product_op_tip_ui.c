@@ -46,7 +46,7 @@ void product_tip_popup_ui_update(ui_manager_context_t *thiz, ui_proc_product_tes
                 ui_common_operation_tip_prepare(thiz, parent);
                 *ui_index = HOME_POPUP_UI_OPERATION_SUCCESS;
             } else {
-                ui_common_operation_tip_process(thiz, COMMON_OPERATION_SUCCESS, proc->popup_ui_start_time);
+                ui_common_operation_tip_process(thiz, COMMON_OP_TIP_SUCCESS);
             }
             break;
         case HOME_POPUP_UI_OPERATION_FAILED:
@@ -55,7 +55,7 @@ void product_tip_popup_ui_update(ui_manager_context_t *thiz, ui_proc_product_tes
                 ui_common_operation_tip_prepare(thiz, parent);
                 *ui_index = HOME_POPUP_UI_OPERATION_FAILED;
             } else {
-                ui_common_operation_tip_process(thiz, COMMON_OPERATION_FAILED, proc->popup_ui_start_time);
+                ui_common_operation_tip_process(thiz, COMMON_OP_TIP_FAILED);
             }
             break;
     }

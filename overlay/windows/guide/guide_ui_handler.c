@@ -29,7 +29,6 @@
 static void guide_popup_ui_type_update(ui_proc_guide_t *proc, guide_popup_ui_type_e type)
 {
     EXCEPTION_CHECK_VOID(proc);
-    proc->popup_ui_start_time = get_timestamp();
     proc->popup_ui_type = type;
 }
 
