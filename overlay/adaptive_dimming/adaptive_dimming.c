@@ -82,20 +82,19 @@ static int adaptive_dimming_duty_calculate(uint16_t lux_avg, uint8_t *out_duty)
                                          ADAP_DIM_HYST_THR_MIN;
     
     /// 根据 lux 值分段计算 duty（环境越亮，LED 越暗）
-    // if (lux_avg < ADAP_DIM_LUX_THR_VDARK) {
-    //     new_duty = ADAP_DIM_LED_LVL_VDARK;
-    // } else if (lux_avg < ADAP_DIM_LUX_THR_DARK) {
-    //     /// 线性映射: lux 10->100, lux 50->80
-    //     new_duty = ADAP_DIM_LED_LVL_VDARK + 
-    //                (lux_avg - ADAP_DIM_LUX_THR_VDARK) * 
-    //                (ADAP_DIM_LED_LVL_DARK_MIN - ADAP_DIM_LED_LVL_VDARK) / 
-    //                (ADAP_DIM_LUX_THR_DARK - ADAP_DIM_LUX_THR_VDARK);
-    //     if (new_duty > ADAP_DIM_LED_LVL_DARK_MIN) {
-    //         new_duty = ADAP_DIM_LED_LVL_DARK_MIN;
-    //     }
-
-    if (lux_avg < ADAP_DIM_LUX_THR_DARK) {
-        new_duty = ADAP_DIM_LED_LVL_DARK_MIN;    
+    if (lux_avg < ADAP_DIM_LUX_THR_VDARK) {
+        new_duty = ADAP_DIM_LED_LVL_VDARK;
+    } else if (lux_avg < ADAP_DIM_LUX_THR_DARK) {
+        /// 线性映射: lux 10->100, lux 50->80
+        new_duty = ADAP_DIM_LED_LVL_VDARK + 
+                   (lux_avg - ADAP_DIM_LUX_THR_VDARK) * 
+                   (ADAP_DIM_LED_LVL_DARK_MIN - ADAP_DIM_LED_LVL_VDARK) / 
+                   (ADAP_DIM_LUX_THR_DARK - ADAP_DIM_LUX_THR_VDARK);
+        if (new_duty > ADAP_DIM_LED_LVL_DARK_MIN) {
+            new_duty = ADAP_DIM_LED_LVL_DARK_MIN;
+        }
+    // if (lux_avg < ADAP_DIM_LUX_THR_DARK) {
+    //     new_duty = ADAP_DIM_LED_LVL_DARK_MIN;
     } else if (lux_avg < ADAP_DIM_LUX_THR_MEDIUM) {
         /// 线性映射: lux 50->80, lux 200->50
         new_duty = ADAP_DIM_LED_LVL_DARK_MIN + 

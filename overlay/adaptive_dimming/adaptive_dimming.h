@@ -37,13 +37,11 @@ extern "C" {
 #endif
 
 /// 自适应亮度等级定义
-#define ADAP_DIM_LED_LVL_VDARK            2     /// 非常暗环境时的LED亮度 (最高)
-#define ADAP_DIM_LED_LVL_DARK_MIN         6      /// 较暗环境时的最小LED亮度
-#define ADAP_DIM_LED_LVL_MEDIUM_MIN       21      /// 中等亮度环境时的最小LED亮度
-#define ADAP_DIM_LED_LVL_BRIGHT_MIN       60      /// 较亮环境时的最小LED亮度
-#define ADAP_DIM_LED_LVL_ON               100       /// 极亮环境时关闭LED (lux >= 1000)
-// #define ADAP_DIM_LED_LVL_VBRIGHT          2      /// 很亮环境时的LED亮度 (最低)
-#define ADAP_DIM_LED_LVL_OFF              100       /// 极亮环境时关闭LED (lux >= 1000)
+#define ADAP_DIM_LED_LVL_VDARK            9     /// 非常暗环境时的LED亮度
+#define ADAP_DIM_LED_LVL_DARK_MIN         12    /// 较暗环境时的最小LED亮度
+#define ADAP_DIM_LED_LVL_MEDIUM_MIN       21    /// 中等亮度环境时的最小LED亮度
+#define ADAP_DIM_LED_LVL_BRIGHT_MIN       60    /// 较亮环境时的最小LED亮度
+#define ADAP_DIM_LED_LVL_ON               100   /// 极亮环境时LED亮度
 
 /// 滞后阈值定义
 #define ADAP_DIM_HYST_THR_MIN             10       /// 滞后阈值最小值 (lux)

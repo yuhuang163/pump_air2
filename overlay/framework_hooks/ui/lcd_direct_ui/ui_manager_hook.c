@@ -120,7 +120,8 @@ static void set_backlight_adaptive_level(ui_manager_context_t *thiz, uint16_t le
         if (level > LCD_BACKLIGHT_LEVEL_MAX) {
             level = LCD_BACKLIGHT_LEVEL_MAX;
         }
-        thiz->priv.ui_backlight_adaptive_val = ((level * UI_BL_ON_LEVEL_RANGE) / LCD_BACKLIGHT_LEVEL_MAX) + UI_BL_ON_LEVEL_MIN;
+        // thiz->priv.ui_backlight_adaptive_val = ((level * UI_BL_ON_LEVEL_RANGE) / LCD_BACKLIGHT_LEVEL_MAX) + UI_BL_ON_LEVEL_MIN;
+        thiz->priv.ui_backlight_adaptive_val = level;
     }
 }
 
