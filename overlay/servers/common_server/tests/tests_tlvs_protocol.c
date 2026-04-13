@@ -20,6 +20,7 @@
 #define TESTS_SECRET_KEY_LENGTH 16  /// 密钥长度
 #define TESTS_TRIPLE_DATA_LENGTH 38 /// 三元组数据长度 (6+16+16)
 #define TESTS_TRIM_VALUE_LENGTH 4   /// Trim值长度 (4字节)
+#define TESTS_KEY_CAP_SIG_BUF_BYTES 32 /// 触摸通道原始数据缓冲(每通道2字节)，大于单芯片最大通道数即可
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -1145,6 +1146,61 @@ int tests_tlvs_read_battery_level(comm_protocol_builder_t *builder, comm_protoco
         .type = TESTS_TLV_READ_BATTERY_LEVEL,
         .length = 1,
         .value = &battery_level,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_read_key_cap_signal(comm_protocol_builder_t *builder, comm_protocol_service_t *service, uint8_t *data,
+                                   uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    if (data_len != 1 || data == NULL) {
+        LOGE("tests_tlvs_read_key_cap_signal: invalid request len=%u (need 1)", (unsigned)data_len);
+        return -1;
+    }
+
+    uint8_t key_id = data[0];
+    uint32_t signal_u32 = 0;
+
+#if IS_SUPPORT_DEVICE_TOUCH_KEY
+    /* 与 bsp_read_key_value 一致：0 为电源键(无触摸IC通道)，1..N 为电容键 */
+    if (key_id >= 1) {
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        rt_device_node_t *input_key_dev = pbus ? pbus->find_device(ID_DEVICE_INPUT_KEY) : NULL;
+        if (input_key_dev && input_key_dev->ioctl) {
+            uint8_t sig_buff[TESTS_KEY_CAP_SIG_BUF_BYTES] = {0};
+            int ioctl_ret = input_key_dev->ioctl(input_key_dev, OP_CODE_INPUT_TOUCH_SIGNAL_READ, sig_buff);
+            if (ioctl_ret == 0) {
+                unsigned ch = (unsigned)(key_id - 1U);
+                if ((ch + 1U) * 2U <= sizeof(sig_buff)) {
+                    signal_u32 = (uint32_t)sig_buff[ch * 2U] | ((uint32_t)sig_buff[ch * 2U + 1U] << 8);
+                }
+            } else {
+                LOGW("tests_tlvs_read_key_cap_signal: touch signal read failed, key_id=%u ret=%d", key_id, ioctl_ret);
+            }
+        } else {
+            LOGW("tests_tlvs_read_key_cap_signal: input key device missing");
+        }
+    }
+#else
+    (void)key_id;
+#endif
+
+    uint8_t response[4] = {
+        (uint8_t)(signal_u32 & 0xFFU),
+        (uint8_t)((signal_u32 >> 8) & 0xFFU),
+        (uint8_t)((signal_u32 >> 16) & 0xFFU),
+        (uint8_t)((signal_u32 >> 24) & 0xFFU),
+    };
+    LOG_SRV("tests_tlvs_read_key_cap_signal: key_id=%u signal=%lu", key_id, (unsigned long)signal_u32);
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_READ_KEY_CAP_SIGNAL,
+        .length = sizeof(response),
+        .value = response,
     };
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
 }

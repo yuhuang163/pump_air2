@@ -50,6 +50,8 @@ const static protocol_service_tlvs_handle_t protocol_service_tlvs_list[] = {
     {TESTS_TLV_GET_RSSI, tests_tlvs_get_rssi},
     /// 电池电量读取
     {TESTS_TLV_READ_BATTERY_LEVEL, tests_tlvs_read_battery_level},
+    /// 电容按键信号读取
+    {TESTS_TLV_READ_KEY_CAP_SIGNAL, tests_tlvs_read_key_cap_signal},
     /// LCD颜色测试模式
     {TESTS_TLV_LCD_COLOR_TEST_MODE, tests_tlvs_lcd_color_test_mode},
 };

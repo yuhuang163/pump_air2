@@ -465,6 +465,21 @@ static void power_key_irq_init(void)
     hal_gpio_pin_set_dir(POWER_KEY_PIN, HAL_GPIO_DIR_IN, 1);
 }
 
+ /** s_key_mask[i] 为单 bit 掩码：返回该 bit 在 0..15 中的位置号（与 0x22 状态位、0xC8 通道序号一致） */
+ static uint8_t hyn_key_mask_bit_pos(uint16_t mask)
+ {
+     if (mask == 0) {
+         return 0;
+     }
+     uint8_t n = 0;
+     uint16_t m = mask;
+     while ((m & 1U) == 0U) {
+         m >>= 1;
+         n++;
+     }
+     return n;
+ }
+
 int bsp_key_init(void)
 {
     power_key_irq_init();
@@ -654,7 +669,12 @@ int bsp_touch_signal_read(void *args)
     if (hyn_i2c_read(0xC8, sig_buff, (uint16_t)(HYN_TOUCH_KEY_NUM * 2)) != BSP_OK) {
         return BSP_ERROR;
     }
-    uint8_t *signal_data = (uint8_t *)args;
-    memcpy(signal_data, sig_buff, (uint16_t)(HYN_TOUCH_KEY_NUM * 2));
+     /// 按 s_key_mask 表顺序（与 s_touch_key 下标一致），从 0xC8 缓冲中取对应「置 1 位号」通道的 2 字节数据写入 args
+    uint8_t *out = (uint8_t *)args;
+    for (uint8_t i = 0; i < HYN_TOUCH_KEY_NUM; i++) {
+        unsigned ch = (unsigned)hyn_key_mask_bit_pos(s_key_mask[i]);
+        out[i * 2] = sig_buff[ch * 2];
+        out[i * 2 + 1] = sig_buff[ch * 2 + 1];
+    }
     return BSP_OK;
 }
