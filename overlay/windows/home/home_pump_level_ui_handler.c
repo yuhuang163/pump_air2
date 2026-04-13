@@ -133,6 +133,12 @@ void switch_home_pump_level_control_type(ui_proc_home_t *proc, uint8_t control_t
 {
     EXCEPTION_CHECK_VOID(proc );
     proc->level_change = 0;
+    if (proc->pump_priming == 0) {
+        proc->pump_priming = true;
+        if (proc->led)  {
+            proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+        }
+    }
     if (proc->current_ui_type != HOME_UI_TYPE_LEVEL_ADJUST) {
         int time_index = 0;
         READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);

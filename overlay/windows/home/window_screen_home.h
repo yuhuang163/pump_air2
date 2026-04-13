@@ -82,6 +82,7 @@ typedef struct {
     int8_t level_change; /// 当前档位变化值.
     uint8_t level_sync_flag; /// 档位同步标志.
     uint8_t speed_sync_flag; /// 速度同步标志.
+    uint8_t pump_priming;
 } ui_proc_home_t;
 
 /*

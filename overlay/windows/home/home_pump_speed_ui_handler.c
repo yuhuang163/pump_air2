@@ -148,5 +148,11 @@ void home_pump_speed_key_click_handler(ui_proc_home_t *proc)
     int time_index = 0;
     READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
     READ_PUMP_SETTING_INFO(proc->pump, time_index, proc->setting); 
+    if (proc->pump_priming == 0) {
+        proc->pump_priming = true;
+        if (proc->led)  {
+            proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+        }
+    }
     show_home_pump_speed_ui(proc);
 }
