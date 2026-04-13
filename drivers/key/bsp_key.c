@@ -30,7 +30,12 @@ static const uint32_t key_code_value[SCAN_KEY_CODE_MAX] = {
     SCAN_KEY_CODE_6_VALUE,
     SCAN_KEY_CODE_7_VALUE,
     SCAN_KEY_CODE_67_VALUE,
+#if V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4
+    // SCAN_KEY_CODE_36_VALUE,
     SCAN_KEY_CODE_23_VALUE,
+#else
+    SCAN_KEY_CODE_23_VALUE,
+#endif
 };
 
 /*
@@ -125,7 +130,7 @@ static int key_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
 #if IS_SUPPORT_TOUCH_IC_OTA
         case OP_CODE_INPUT_ADD_KEY_OTA_EVENT_CB:
             return bsp_add_touch_key_ota_event_cb(args);
-        case OP_CODE_INPUT_START_KEY_UPDATE_FW:
+        case OP_CODE_INPUT_KEY_FW_VERSION_CHECK:
             return bsp_start_touch_key_update_fw();
         case OP_CODE_INPUT_GET_KEY_FW_VERSION:
             return bsp_get_touch_key_fw_version();

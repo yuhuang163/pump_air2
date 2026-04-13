@@ -110,7 +110,8 @@ static int led_extension_write_nbyte(uint8_t reg_addr, uint8_t *data, uint16_t l
 
 #if LED_I2C_ID == TOUCH_KEY_I2C_ID
     if (touch_key_is_upgrading()) {
-        // return BSP_OK;
+        BSP_LOG("write", "touch key is upgrading");
+        return BSP_OK;
     }
 #endif
 
@@ -150,7 +151,8 @@ static int led_extension_read_nbyte(uint8_t reg_addr, uint8_t *data, uint16_t le
 
 #if LED_I2C_ID == TOUCH_KEY_I2C_ID
     if (touch_key_is_upgrading()) {
-        // return BSP_OK;
+        BSP_LOG("read", "touch key is upgrading");
+        return BSP_OK;
     }
 #endif
 
@@ -179,16 +181,9 @@ static int led_extension_read_nbyte(uint8_t reg_addr, uint8_t *data, uint16_t le
     return BSP_ERROR;
 }
 
-
-static int led_extension_read_nbyte_no_retry(uint8_t reg_addr, uint8_t *data, uint16_t len)
+static int led_extension_write_nbyte_no_retry(uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
-    int ret = 0;    
-    
-#if LED_I2C_ID == TOUCH_KEY_I2C_ID
-    if (touch_key_is_upgrading()) {
-        // return BSP_OK;
-    }
-#endif
+    int ret = 0;
 
     i2c_master_data_t i2c_data = {
         .dev_address = HTR3316_DEV_ADDR,
@@ -198,18 +193,25 @@ static int led_extension_read_nbyte_no_retry(uint8_t reg_addr, uint8_t *data, ui
         .len = len,
     };
 
+    ret = bsp_i2c_write_byte(LED_I2C_ID, &i2c_data);
+    return ret;
+}
+
+
+static int led_extension_read_nbyte_no_retry(uint8_t reg_addr, uint8_t *data, uint16_t len)
+{
+    int ret = 0;    
+    
+    i2c_master_data_t i2c_data = {
+        .dev_address = HTR3316_DEV_ADDR,
+        .reg_addr = &reg_addr,
+        .reg_addr_len = 1,
+        .data = data,
+        .len = len,
+    };
+
     ret = bsp_i2c_read_byte(LED_I2C_ID, &i2c_data);
-    if (ret == BSP_OK) {
-        s_led_abnormal_count = 0;
-        return BSP_OK;
-    }
-
-    s_led_abnormal_count++;
-    if (s_led_abnormal_count > LED_ABNORMAL_MAX_COUNT) {
-        s_led_is_ready = 0;
-    }
-
-    return BSP_ERROR;
+    return ret;
 }
 
 static void led_extension_level_set(uint8_t index, uint8_t level)
@@ -390,27 +392,27 @@ static int led_htr3316_p16_output_set(bool high_level)
 {
     uint8_t reg_val = 0;
     /* Step0: force P1.6 into GPIO mode via P1_Mode (bit6 = 1). */
-    if (led_extension_read_nbyte(HTR3316_REG_P1_MODE, &reg_val, 1) != BSP_OK) {
+    if (led_extension_read_nbyte_no_retry(HTR3316_REG_P1_MODE, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
     reg_val |= HTR3316_P1_6_BIT;
     //LOG_PBUS("led_htr3316_p16_mode_set: %x", reg_val);
-    if (led_extension_write_nbyte(HTR3316_REG_P1_MODE, &reg_val, 1) != BSP_OK) {
+    if (led_extension_write_nbyte_no_retry(HTR3316_REG_P1_MODE, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
 
     /* Step1: force P1.6 into output direction via In/Out_P1 (bit6 = 0). */
-    if (led_extension_read_nbyte(HTR3316_REG_INOUT_P1, &reg_val, 1) != BSP_OK) {
+    if (led_extension_read_nbyte_no_retry(HTR3316_REG_INOUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
 
     reg_val &= (uint8_t)(~HTR3316_P1_6_BIT);
-    if (led_extension_write_nbyte(HTR3316_REG_INOUT_P1, &reg_val, 1) != BSP_OK) {
+    if (led_extension_write_nbyte_no_retry(HTR3316_REG_INOUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
 
     /* Step2: set P1.6 output level via Output_P1 register (0x03). */
-    if (led_extension_read_nbyte(HTR3316_REG_OUTPUT_P1, &reg_val, 1) != BSP_OK) {
+    if (led_extension_read_nbyte_no_retry(HTR3316_REG_OUTPUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
 
@@ -420,7 +422,7 @@ static int led_htr3316_p16_output_set(bool high_level)
         reg_val &= (uint8_t)(~HTR3316_P1_6_BIT);
     }
 
-    if (led_extension_write_nbyte(HTR3316_REG_OUTPUT_P1, &reg_val, 1) != BSP_OK) {
+    if (led_extension_write_nbyte_no_retry(HTR3316_REG_OUTPUT_P1, &reg_val, 1) != BSP_OK) {
         return BSP_ERROR;
     }
     return BSP_OK;
@@ -533,6 +535,7 @@ int bsp_led_status_set(led_status_msg_t *msg)
 int bsp_led_level_rate_update(led_level_rate_msg_t *msg)
 {
     EXCEPTION_CHECK_INT(msg);
+
     if (msg->led_index >= LED_TOTAL_SIZE && msg->led_index != PUMP_LED_ALL_ID) {
         LOGE("index is out of range: %d", msg->led_index);
         return BSP_ERROR;
