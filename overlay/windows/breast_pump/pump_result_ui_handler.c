@@ -43,9 +43,12 @@ static void pump_result_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_display_pump_complete_tip_process(ui);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
-    if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_RESULT_DISPLAY_TIMEOUT) {
+    uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
+    if (time_diff >= PUMP_RESULT_DISPLAY_TIMEOUT) {
         proc->last_progress_ani_time = get_timestamp();
         POST_TASK_HANDLER_NO_DELAY(pump_result_display_completed_cb, proc, PUMP_COMPLETE_DISPLAY_TASK_NAME);
+    } else if (time_diff >= 1000) {
+        proc->forbid_start_pump = false;
     }
 }
 

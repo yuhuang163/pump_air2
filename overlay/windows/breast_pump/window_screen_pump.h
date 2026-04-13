@@ -144,8 +144,8 @@ typedef struct {
     uint8_t goto_charge_ui_flag; /// 是否需要跳转到充电界面.
     uint8_t is_mode_changed_by_app; /// 是否是从app中切换模式.
     uint8_t is_mode_changed_by_device; /// 是否是从设备中切换模式.
-    uint8_t ui_common_mode_index; /// UI普通模式索引.
-    uint8_t ui_breastfeeding_mode_index; /// UI追奶模式索引.
+    uint8_t ui_normal_mode_index; /// UI普通模式索引.
+    uint8_t ui_bf_mode_index; /// UI追奶模式索引.
     uint16_t current_ui_type; /// 当前UI类型
     uint16_t start_ui_type;   
     uint32_t last_progress_ani_time; /// 上次进度动画时间.
@@ -160,10 +160,10 @@ typedef struct {
     uint8_t is_air_leakage_popup_show; /// 是否显示空气泄漏弹窗提示.
     uint8_t hide_air_leakage_popup_wm; /// 是否隐藏空气泄漏弹窗提示.
 #endif
+    uint8_t forbid_start_pump; /// 是否禁止开始泵奶.
     uint8_t goto_pump_home_ui; /// 跳转到泵奶主界面标志.
     uint16_t home_popup_ui_type; /// 主界面弹窗类型.
     uint16_t popup_ui_type; /// 当前弹窗类型. pump_popup_ui_action_e
-    uint32_t popup_ui_start_time; /// 当前弹窗开始时间.
 } ui_proc_pump_t;
 
 /*

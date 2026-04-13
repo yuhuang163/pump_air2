@@ -33,44 +33,17 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void pump_tip_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc, lv_obj_t *parent, uint8_t *ui_index)
+uint16_t pump_tip_popup_type_convert(uint16_t popup_ui_type)
 {
-    switch (proc->popup_ui_type) {
+    switch (popup_ui_type) {
+        default:
         case PUMP_POPUP_UI_NONE:
-            ui_common_operation_tip_remove(thiz);
-            *ui_index = PUMP_POPUP_UI_NONE;
-            break;
+            return COMMON_OP_TIP_NONE;
         case PUMP_POPUP_UI_OPERATION_SUCCESS:
-            if (*ui_index != PUMP_POPUP_UI_OPERATION_SUCCESS) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent);
-                *ui_index = PUMP_POPUP_UI_OPERATION_SUCCESS;
-            } else {
-                ui_common_operation_tip_process(thiz, COMMON_OPERATION_SUCCESS, proc->popup_ui_start_time);
-            }
-            break;
+            return COMMON_OP_TIP_SUCCESS;
         case PUMP_POPUP_UI_OPERATION_FAILED:
-            if (*ui_index != PUMP_POPUP_UI_OPERATION_FAILED) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent);
-                *ui_index = PUMP_POPUP_UI_OPERATION_FAILED;
-            } else {
-                ui_common_operation_tip_process(thiz, COMMON_OPERATION_FAILED, proc->popup_ui_start_time);
-            }
-            break;
+            return COMMON_OP_TIP_FAILED;
         case PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE:
-            if (*ui_index != PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent);
-                *ui_index = PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE;
-            } else {
-                ui_common_operation_tip_process(thiz, COMMON_OPERATION_LEVEL_ADJUST_TOO_LARGE, proc->popup_ui_start_time);
-            }
-            break;
+            return COMMON_OP_TIP_LEVEL_ADJUST_WARNING;
     }
-}
-
-void pump_tip_popup_ui_remove(ui_manager_context_t *thiz)
-{
-    ui_common_operation_tip_remove(thiz);
 }

@@ -73,7 +73,6 @@ typedef struct {
     uint32_t lcd_color; /// 当前LCD颜色.
     product_test_mode_e tests_mode; /// 产品测试模式.
     uint16_t popup_ui_type; /// 当前弹窗类型. product_test_popup_ui_type_e
-    uint32_t popup_ui_start_time; /// 当前弹窗开始时间.
 } ui_proc_product_test_t;
 
 /*

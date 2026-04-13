@@ -73,7 +73,6 @@ typedef struct {
     uint16_t current_ui_type; /// 当前UI类型. guide_ui_type_e
     uint16_t page_index; /// 当前页面索引.
     uint16_t popup_ui_type; /// 当前弹窗类型. guide_operation_type_e
-    uint32_t popup_ui_start_time; /// 当前弹窗开始时间.
 } ui_proc_guide_t;
 
 /*

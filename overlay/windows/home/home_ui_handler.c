@@ -84,7 +84,7 @@ void start_home_ui_animation(ui_proc_home_t *proc)
         return;
     }
     ui_play_info_t play_info = {
-        .tag = "home_screen",
+        .tag = "home_default_screen",
         .fps = HOME_ANIMATION_FREQ,
         .progress_cb = home_animation_progress_cb,
         .display_prepare_cb = home_ui_display_prepare,
