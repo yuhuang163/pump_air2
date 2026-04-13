@@ -46,7 +46,7 @@ static void touch_key_fw_version_check_cb(hdr_post_args_t *args)
     WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_LOGO);
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     rt_device_node_t *key_dev = pbus->find_device(ID_DEVICE_INPUT_KEY);
-    DEVICE_IOCTL_ARGS(key_dev , OP_CODE_INPUT_START_KEY_UPDATE_FW, NULL);
+    DEVICE_IOCTL_ARGS(key_dev , OP_CODE_INPUT_KEY_FW_VERSION_CHECK, NULL);
     LOG_WM("touch key fw version check");
 }
 
