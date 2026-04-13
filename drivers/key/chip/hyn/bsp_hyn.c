@@ -416,8 +416,22 @@ static void key_device_thread(void *arg)
                 bsp_touch_key_ota_event_cb(KEY_OTA_EVENT_UPDATE_SUCCESS, 100);
             }
             s_is_upgrading = false;
+#if (BSP_TOUCH_IC_FW_OTA_AUTO == 1)
+            /* 一轮 OTA 结束后再次投递唤醒消息，实现循环升级，无需等待下一次触摸 IRQ */
+            {
+                uint8_t msg = TOUCH_KEY_THREAD_MSG_INTERRUPT;
+                MSG_QUEUE_SEND(s_key_device_thd.msg_id, &msg, 0);
+            }
             continue;
         }
+
+        if (s_is_upgrading == false) {
+            bsp_start_touch_key_update_fw();
+        }
+#else
+            continue;
+        }
+#endif
         hyn_touch_key_read_once();
         hyn_touch_key_scan();
     }
@@ -522,6 +536,13 @@ if (hyn_read_fw_version() != TOUCH_IC_FW_VERSION)
     CREATE_MSG_TYPE_QUEUE(&s_key_device_thd.msg_id, 1, 1);
     RUN_NEW_THREAD(&s_key_device_thd, "key", key_device_thread,
                 RT_PRIO_KEY_DEVICE_THREAD, (KEY_DEVICE_THREAD_STACKSIZE));
+#if (BSP_TOUCH_IC_FW_OTA_AUTO == 1)
+    /* key_device_thread 仅在收到队列消息时运行；无触摸 IRQ 时永远阻塞，上电投递一次以触发首轮回升级流程 */
+    {
+        uint8_t msg = TOUCH_KEY_THREAD_MSG_INTERRUPT;
+        MSG_QUEUE_SEND(s_key_device_thd.msg_id, &msg, 0);
+    }
+#endif
     hyn_irq_control(true);
 #if HYN_TOUCH_USE_POLL
     /* 启动轮询定时器：INT 脚未触发时仍能通过轮询 0x22 得到按键 */
@@ -639,9 +660,11 @@ void bsp_touch_key_ota_event_cb(key_ota_event_e event, uint8_t progress)
 int bsp_start_touch_key_update_fw(void)
 {
 #if IS_SUPPORT_TOUCH_IC_OTA
+#if (BSP_TOUCH_IC_FW_OTA_AUTO == 0)
     if (touch_firmware_is_lower_than_image(s_touch_fw_version) == 0) {
         return 0;
     }
+#endif
     uint8_t msg = TOUCH_KEY_THREAD_MSG_UPDATE_START;
     s_is_upgrading = true;
     MSG_QUEUE_SEND(s_key_device_thd.msg_id, &msg, 0);
