@@ -134,8 +134,12 @@ void airplane_mode_led_policy(ui_proc_airplane_mode_t *proc, uint8_t status)
         if (proc->led->hook && proc->led->hook->set_key_backlight ) {
             proc->led->hook->set_key_backlight(proc->led, 0);
         }
-        proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX);
         proc->led->set_led_level(PUMP_MODE_BL, LED_LEVEL_MAX);
+#if V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4
+        proc->led->set_led_level(PUMP_LEFT_CONTROL_BL, LED_LEVEL_MAX);
+#else
+        proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX);
+#endif
     } else {
         if (proc->led->hook && proc->led->hook->set_key_backlight) {
             proc->led->hook->set_key_backlight(proc->led, 100);
