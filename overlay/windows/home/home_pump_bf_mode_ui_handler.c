@@ -148,5 +148,11 @@ void home_pump_bf_mode_key_click_handler(ui_proc_home_t *proc)
     int mode_index = 0;
     READ_PUMP_EXPERT_MODE(proc->pump, false, mode_index);
     proc->ui_bf_mode_index = mode_index;
+    if (proc->pump_priming == 0) {
+        proc->pump_priming = true;
+        if (proc->led)  {
+            proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+        }
+    }
     show_home_pump_bf_mode_ui(proc);   
 }
