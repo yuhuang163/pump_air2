@@ -35,7 +35,7 @@ typedef enum {
     OP_CODE_INPUT_IS_READY = 5,
     OP_CODE_INPUT_TOUCH_IS_READY = 6,
     OP_CODE_INPUT_ADD_KEY_OTA_EVENT_CB = 7,
-    OP_CODE_INPUT_START_KEY_UPDATE_FW = 8, /// 开始按键固件升级
+    OP_CODE_INPUT_KEY_FW_VERSION_CHECK = 8, /// 检查按键固件版本
     OP_CODE_INPUT_GET_KEY_FW_VERSION = 9, /// 获取按键固件版本
     OP_CODE_INPUT_TOUCH_SIGNAL_READ = 10, /// 读取触摸信号
 } input_dev_op_code_e;
