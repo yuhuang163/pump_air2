@@ -74,6 +74,8 @@ typedef enum {
     RESOURCE_ID_PUMP_LEVEL_BOTH_SIDES_BG,      /// 泵奶档位双侧模式背景
     RESOURCE_ID_PUMP_LEVEL_ADD_LABEL_ICON,     /// 泵奶档位文本加号图标
     RESOURCE_ID_PUMP_LEVEL_SUB_LABEL_ICON,     /// 泵奶档位文本减号图标
+    RESOURCE_ID_PUMP_LEFT_LEVEL_ICON,          /// 泵奶左档位图标
+    RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON,         /// 泵奶右档位图标
 
     /* 动画组 [300...] */
     RESOURCE_ID_PUMP_LEVEL_START = 300,   /// 泵奶档位图片-开始
