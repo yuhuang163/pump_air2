@@ -108,6 +108,19 @@ static void power_off_cb(hdr_post_args_t *args)
     LOGW("==========POWER_OFF==========");
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_VOID(pbus);
+    rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_POWER);
+    if (led_dev) {
+        led_status_msg_t msg = {
+            .led_index = PUMP_LED_ALL_ID,
+            .led_status = {
+                .mode = LED_MODE_LEVEL,
+                .un.luminous.level = 0,
+            },
+        };
+        led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
+        msleep(10);
+    }
+
     rt_device_node_t *power_dev = pbus->find_device(ID_DEVICE_POWER);
     EXCEPTION_CHECK_VOID(power_dev);
     int arg1[] = {0};
