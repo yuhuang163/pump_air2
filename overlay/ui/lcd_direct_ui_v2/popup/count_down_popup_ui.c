@@ -69,7 +69,7 @@ static void count_down_tip_root_init(void)
 static void count_down_tip_text_update(ui_manager_context_t *thiz)
 {
     uint8_t num = get_timestamp_ms(count_down_info->start_time) / 1000;
-    uint8_t show_num = (num > 3 ? 0 : 3 - num);
+    uint8_t show_num = (num > 5 ? 0 : 5 - num);
     if (count_down_info->force_update == false && count_down_info->display_number == show_num) {
         return;
     }
@@ -82,7 +82,7 @@ static void count_down_tip_text_update(ui_manager_context_t *thiz)
         lv_obj_align(count_down_info->number_text, LV_ALIGN_CENTER, 0, 0);
     }
     char number_str[2] = {0};
-    snprintf(number_str, sizeof(number_str), "%d", show_num);
+    snprintf(number_str, sizeof(number_str), "%d", show_num == 0 ? 1 : show_num);
     lv_label_set_text(count_down_info->number_text, number_str);
 }
 
@@ -187,6 +187,7 @@ int ui_display_count_down_popup_process(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_INT(ani);
         ani->progress_cb(thiz, 0, ANI_POPUP_DISPLAY_FINISH);
     }
-    LOG_UI("ui_display_count_down_popup_process: time=%d", count_down_info->display_number);
+    // LOG_UI("ui_display_count_down_popup_process: time=%d", count_down_info->display_number);
+    
     return 0;
 }
