@@ -426,6 +426,7 @@ static void key_device_thread(void *arg)
         }
 
         if (s_is_upgrading == false) {
+            msleep(4000);
             bsp_start_touch_key_update_fw();
         }
 #else
@@ -507,10 +508,10 @@ int bsp_key_init(void)
     bsp_i2c_init(TOUCH_KEY_I2C_ID);
 
 #if IS_SUPPORT_TOUCH_IC_OTA && BSP_TOUCH_IC_FW_OTA_AT_BOOT
-if (hyn_read_fw_version() != TOUCH_IC_FW_VERSION)
+// if (hyn_read_fw_version() != TOUCH_IC_FW_VERSION)
 {
     LOG_PBUS("touch IC FW OTA at boot (BSP_TOUCH_IC_FW_OTA_AT_BOOT)");
-    touch_fw_update();
+    touch_fw_update_handler();
     msleep(60);
     hyn_read_fw_version();
 }

@@ -195,7 +195,7 @@ static uint8_t hyn_ic_update(uint16_t start_addr, uint16_t len, uint8_t *src_dat
 		cmd[0] = 0xEE;
 		if (tp_hrs_write_bytes(0xA004, &cmd[0], 1) == HYN_FAULT) return HYN_FAULT;////在执行这个命令之前，必须写够512个字节！！！
 
-		msleep(100*retry); //这个时间不能省  unit=1ms    >=100
+		msleep(200*retry); //这个时间不能省  unit=1ms    >=100
 		
 		retry_cnt = 50;
 		while(retry_cnt--) {
