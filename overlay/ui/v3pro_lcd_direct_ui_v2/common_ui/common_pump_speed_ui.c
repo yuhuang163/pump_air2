@@ -87,15 +87,15 @@ static const uint16_t dots_img_ids[SPEED_COUNT] = {
 };
 
 static const char *speed_name[SPEED_COUNT] = {
-    "Fast", /// 快速
     "Slow", /// 慢速
     "Regular", /// 常规
+    "Fast", /// 快速
 };
 
 static const char *speed_desc[SPEED_COUNT] = {
-    "Stronger yet safe for faster\npumping.",
     "Efficient yet gentle.",
     "Suitable for most moms.",
+    "Stronger yet safe for faster\npumping.",
 };
 
 #if IS_SUPPORT_SPEED_COMP_BG
@@ -488,17 +488,6 @@ static void speed_text_update(ui_manager_context_t *thiz)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-uint8_t pump_speed_convert_to_ui_speed_idx(uint8_t speed)
-{
-    if (speed == BREAST_PUMP_SPEED_HIGH) {
-        return 0;
-    } else if (speed == BREAST_PUMP_SPEED_MID) {
-        return 1;
-    } else {
-        return 2;
-    }
-}
-
 void common_pump_speed_ui_prepare(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz);
@@ -530,7 +519,7 @@ int common_pump_speed_ui_process(ui_manager_context_t *thiz, uint8_t speed)
 {
     EXCEPTION_CHECK_UINT(thiz && speed_info && speed_info->root);
     speed_bg_update(thiz);
-    speed_ui_update(thiz, pump_speed_convert_to_ui_speed_idx(speed));
+    speed_ui_update(thiz, speed);
     speed_text_update(thiz);
     speed_info->force_update = false;
     thiz->priv.fps_count++;

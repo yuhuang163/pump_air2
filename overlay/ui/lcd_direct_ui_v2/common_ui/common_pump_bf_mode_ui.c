@@ -111,7 +111,7 @@ static const uint16_t dots_6_img_ids[BF_MODE_COUNT] = {
 };
 
 static const char *bf_mode_name[BF_MODE_COUNT] = {
-    "Natural Pumping", /// 自然韵律模式
+    "Cozy Flow", /// 自然韵律模式
     "Milk Boost", /// 2+8奶量提升模式
     "Power Pumping", /// PP追奶模式
     "Milk Start", /// 开奶模式
@@ -122,7 +122,7 @@ static const char *bf_mode_name[BF_MODE_COUNT] = {
 static const char *bf_mode_desc[BF_MODE_COUNT] = {
     "Moves from quick, gentle\nsuction to slower, deeper\nsuction to follow a baby's\nnatural nursing rhythm.",
     "Smooth, gradual suction to\nsupport milk production\nduring low-supply\nmoments.",
-    "Frequent, gentle\nstimulation to encourage\nmultiple let-downsand\nsupport milk supply.",
+    "Frequent, gentle\nstimulation to encourage\nmultiple let-downs and\nsupport milk supply.",
     "Initiate, build, and maintain\na consistent milk supply.",
     "Helps encourage more\ncomplete milk removal at\nthe end of a session.",
     "For mothers who have a\nhigh demand for milk\nproduction.",

@@ -58,13 +58,14 @@ static PSRAM_DATA_LOC uint8_t complete_tip_bg_data[] = {
 static airplane_mode_display_info_t *airplane_mode_info;
 
 const static airplane_mode_text_info_t airplane_mode_text_infos[AIRPLANE_MODE_TEXT_COUNT] = {
-    { "Device  locked", (116), (118 - 2), &lv_font_oppo_sans_20_medium},
-    { "Press and hold Start/Pause  +  Mode\nfor 5 seconds to unlock.", (48), (146 + 4), &lv_font_oppo_sans_16_medium},
+    { "Device  locked", 0, (118 - 2), &lv_font_oppo_sans_20_medium},
+    { "Press and hold for 5 seconds to\nunlock.", 0, (146 + 4), &lv_font_oppo_sans_16_medium},
 };
 
 const static airplane_mode_icon_info_t airplane_mode_icon_infos[AIRPLANE_MODE_ICON_COUNT] = {
     { "unlock_button_icon", RESOURCE_ID_AIRPLANE_UNLOCK_BUTTON_ICON, (106), (188 + 16)},
 };
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -158,8 +159,8 @@ static void airplane_mode_texts_update(ui_manager_context_t *thiz, uint8_t index
         lv_obj_set_style_text_line_space(airplane_mode_info->texts[index], 4, 0);  /// 设置行间距（像素）
     }
     lv_obj_set_style_text_align(airplane_mode_info->texts[index], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
-    lv_obj_align(airplane_mode_info->texts[index], LV_ALIGN_TOP_LEFT,
-        airplane_mode_text_infos[index].text_x, airplane_mode_text_infos[index].text_y);
+    lv_obj_align(airplane_mode_info->texts[index], LV_ALIGN_TOP_MID, 0, airplane_mode_text_infos[index].text_y);
+
 }
 
 static void airplane_mode_popup_ui_remove(ui_manager_context_t *thiz)

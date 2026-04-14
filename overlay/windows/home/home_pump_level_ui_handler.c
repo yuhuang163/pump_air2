@@ -155,14 +155,19 @@ void switch_home_pump_level_control_type(ui_proc_home_t *proc, uint8_t control_t
 void switch_home_pump_level(ui_proc_home_t *proc, bool is_increase)
 {
     EXCEPTION_CHECK_VOID(proc && proc->pump);
-    uint8_t level = proc->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? \
-    proc->setting.level[0] : proc->setting.level[1];
+    int16_t level = 0;
+    if (proc->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
+        level = proc->setting.level[0] + proc->level_change;
+    } else {
+        level = proc->setting.level[1] + proc->level_change;
+    }
+
     if (is_increase) {
-        if ((proc->level_change + level) < BREAST_PUMP_LEVEL_15) {
+        if (level < BREAST_PUMP_LEVEL_15) {
             proc->level_change++;
         } 
     } else {
-        if ((proc->level_change + level) > BREAST_PUMP_LEVEL_0) {
+        if (level > BREAST_PUMP_LEVEL_0) {
             proc->level_change--;
         } 
     }

@@ -387,7 +387,7 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_label_ui_update(thiz, RESOURCE_ID_HOME_IDLE_LABLE_ICON,
                 IDLE_LABEL_AREA_ICON_X, IDLE_LABEL_AREA_ICON_Y, true);
             home_button_ui_update(thiz, IDLE_BUTTON_ICON_X, IDLE_BUTTON_ICON_Y, true);
-            home_label_text_ui_update(thiz, "Select a mode to start\npumping.",
+            home_label_text_ui_update(thiz, "Select a program or mode to\nstart pumping",
                 IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y, true, false, &lv_font_oppo_sans_14_medium);
             home_record_time_ui_update(thiz, 
                 home_info->timestamp_offset, IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y, false);
@@ -415,7 +415,7 @@ static void home_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
             home_label_ui_update(thiz, RESOURCE_ID_HOME_IDLE_LABLE_ICON,
                 IDLE_LABEL_AREA_ICON_X, IDLE_LABEL_AREA_ICON_Y - HOME_WITH_CLOCK_LABLE_Y_OFFSET, true);
             home_button_ui_update(thiz, IDLE_BUTTON_ICON_X, IDLE_BUTTON_ICON_Y - HOME_WITH_CLOCK_LABLE_Y_OFFSET, true);
-            home_label_text_ui_update(thiz, "Select a mode to start\npumping.",
+            home_label_text_ui_update(thiz, "Select a program or mode to\nstart pumping",
                 IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y - HOME_WITH_CLOCK_LABLE_Y_OFFSET, true, false, &lv_font_oppo_sans_14_medium);
             home_record_time_ui_update(thiz, home_info->timestamp_offset, 
                 IDLE_LABEL_TEXT_X, IDLE_LABEL_TEXT_Y - HOME_WITH_CLOCK_LABLE_Y_OFFSET, false);
