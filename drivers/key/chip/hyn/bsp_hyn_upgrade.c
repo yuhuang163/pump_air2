@@ -252,8 +252,12 @@ static uint8_t touch_fw_update_with_bin(const uint8_t *bin, uint32_t bin_size)
         LOG_PBUS("hex_file_checksum: 0x%02x \r\n", checksum);
         ic_checksum = hyn_read_checksum();
         LOG_PBUS("IC_checksum: 0x%02x \r\n", ic_checksum);
-
-        if ((ic_checksum != checksum) && ((start_addr | length) == 0x3C00)) {
+		
+#if (BSP_TOUCH_IC_FW_OTA_AUTO > 0)
+		if ((start_addr | length) == 0x3C00) {	
+#else
+		if ((ic_checksum != checksum) && ((start_addr | length) == 0x3C00)) {	
+#endif
             for (retry = 1; retry < 4; retry++) {
                 if (hyn_ic_update(start_addr, length, (uint8_t *)(uintptr_t)(bin + 6), retry) == HYN_FAULT) {
                     continue;

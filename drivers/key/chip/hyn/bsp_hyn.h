@@ -25,9 +25,16 @@ extern "C" {
 #endif
 
 #if IS_SUPPORT_TOUCH_IC_OTA
+/// 按键开机后触摸芯片固件自动化升级开关
+#ifndef BSP_TOUCH_IC_FW_OTA_AUTO
+#define BSP_TOUCH_IC_FW_OTA_AUTO        (0)    /// 0: 默认关闭，1: 自动化升级模式，开机后循环进行固件升级 2: 手动升级模式，每次开机后只进行一次固件升级
+#endif
+
+#if (BSP_TOUCH_IC_FW_OTA_AUTO == 0)
 /// 为 1 时在 bsp_key_init() 内开机即尝试触摸 OTA（默认关，仅在调试阶段打开）
 #ifndef BSP_TOUCH_IC_FW_OTA_AT_BOOT
 #define BSP_TOUCH_IC_FW_OTA_AT_BOOT     (0)
+#endif
 #endif
 
 #define HYN_TOUCH_BOOT_I2C_ADDR         (0x6A)  /// 7位I2C地址
