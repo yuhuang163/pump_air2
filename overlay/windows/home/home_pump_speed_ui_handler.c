@@ -116,7 +116,7 @@ static void show_home_pump_speed_ui(ui_proc_home_t *proc)
 void switch_home_pump_speed(ui_proc_home_t *proc, bool is_increase)
 {
     EXCEPTION_CHECK_VOID(proc && proc->pump);
-    if (is_increase == false) {
+    if (is_increase) {
         if (proc->setting.speed < BREAST_PUMP_SPEED_HIGH) {
             proc->setting.speed++;
         } else {

@@ -103,7 +103,7 @@ static int charge_adapter_object_update(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_INT(adapter_info->text);
     }
     lv_label_set_text(adapter_info->text, 
-        "The adapter is incompatible.\nPlease confirm the adapter.");
+        "Incompatible adapter. Unable to\ncharge.");
     lv_obj_set_style_text_color(adapter_info->text, lv_color_hex(CHARGE_ADAPTER_TEXT_COLOR), 0);
     // lv_obj_set_style_text_opa(adapter_info->text, LV_OPA_70, 0);  /// 设置文本不透明度为60%
     lv_obj_set_style_text_font(adapter_info->text, &lv_font_oppo_sans_16_medium, 0);  /// 设置字体

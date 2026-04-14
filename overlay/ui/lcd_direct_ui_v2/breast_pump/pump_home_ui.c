@@ -90,9 +90,9 @@ const static char *home_mode_names[HOME_MODE_MAX_COUNT] = {
 };
 
 const static uint16_t home_speed_icon_ids[HOME_SPEED_MAX_COUNT] = {
-    RESOURCE_ID_PUMP_SPEED_BOOST_ICON,
     RESOURCE_ID_PUMP_SPEED_SLOW_ICON,
     RESOURCE_ID_PUMP_SPEED_REGULAR_ICON,
+    RESOURCE_ID_PUMP_SPEED_BOOST_ICON,
 };
 
 static pump_display_info_t *pump_info;
@@ -405,8 +405,7 @@ static void pump_home_speed_label_update(ui_manager_context_t *thiz, uint8_t spe
         pump_info->speed_icon = lv_image_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->speed_icon);
     } 
-    uint8_t ui_speed_idx = pump_speed_convert_to_ui_speed_idx(speed);
-    common_ui_img_resource_init(thiz, home_speed_icon_ids[ui_speed_idx], &pump_info->speed_icon_info);
+    common_ui_img_resource_init(thiz, home_speed_icon_ids[speed], &pump_info->speed_icon_info);
     EXCEPTION_CHECK_VOID(pump_info->speed_icon_info.data);
     lv_fs_make_path_from_buffer(&speed_icon_path, LV_FS_MEMFS_LETTER, 
         pump_info->speed_icon_info.data, pump_info->speed_icon_info.size, "baj");

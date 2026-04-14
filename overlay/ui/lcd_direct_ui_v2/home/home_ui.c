@@ -27,7 +27,7 @@
 #define MOM_PICTURE_ICON_Y                          (160)
 
 #define IDLE_TEXT_LABEL_TEXT_X                      (108 + 4)
-#define IDLE_TEXT_LABEL_TEXT_Y                      (118 - 6)
+#define IDLE_TEXT_LABEL_TEXT_Y                      (118 - 3)
 #define IDLE_TEXT_COLOR                             (0xB25962)
 
 #define HOME_IDLE_ANIMATION_X                       (86 + 8)
@@ -52,29 +52,11 @@ typedef struct {
     uint8_t rsv[12];
 } home_display_info_t;
 
-typedef struct {
-    const char *name;
-    uint16_t img_id;
-    uint16_t icon_x;
-    uint16_t icon_y;
-} home_icon_info_t;
-
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
 */
 static home_display_info_t *home_info;
-const static home_icon_info_t home_icon_infos[HOME_ICON_MAX_COUNT] = {
-    { "idle_text_label", 0, 
-        IDLE_TEXT_LABEL_TEXT_X,       IDLE_TEXT_LABEL_TEXT_Y, 
-      },
-    { "idle_text_area_icon", RESOURCE_ID_HOME_IDLE_LABLE_ICON, 
-      IDLE_TEXT_AREA_ICON_X,       IDLE_TEXT_AREA_ICON_Y, 
-    },
-    { "idle_button_icon", RESOURCE_ID_HOME_IDLE_BUTTOM_ICON,     
-      IDLE_BUTTON_ICON_X,              IDLE_BUTTON_ICON_Y, 
-    },
-};
 
 #if IS_SUPPORT_ROOT_HOME_COMP_BG
 static PSRAM_NC_DATA_LOC uint8_t home_bg_data[] = {
@@ -148,14 +130,14 @@ static void home_root_text_update(ui_manager_context_t *thiz)
         // lv_obj_add_flag(home_info->idle_text_area_icon, LV_OBJ_FLAG_HIDDEN);
     }
     
-    common_ui_img_resource_init(thiz, home_icon_infos[HOME_TEXT_AREA_ICON_INDEX].img_id, &home_info->idle_text_area_info);
+    common_ui_img_resource_init(thiz, RESOURCE_ID_HOME_IDLE_LABLE_ICON, &home_info->idle_text_area_info);
     EXCEPTION_CHECK_VOID(home_info->idle_text_area_info.data);
     lv_fs_path_ex_t idle_text_area_img_path;
     lv_fs_make_path_from_buffer(&idle_text_area_img_path, LV_FS_MEMFS_LETTER, 
         home_info->idle_text_area_info.data, home_info->idle_text_area_info.size, "baj");
     lv_image_set_src(home_info->idle_text_area_icon, (const void *)&idle_text_area_img_path);
     lv_obj_align(home_info->idle_text_area_icon, LV_ALIGN_TOP_LEFT, 
-        home_icon_infos[HOME_TEXT_AREA_ICON_INDEX].icon_x, home_icon_infos[HOME_TEXT_AREA_ICON_INDEX].icon_y); /// 设置icon位置
+        IDLE_TEXT_AREA_ICON_X, IDLE_TEXT_AREA_ICON_Y); /// 设置icon位置
     /// 设置按钮icon
     if (home_info->idle_button_icon == NULL ||
         !lv_obj_is_valid(home_info->idle_button_icon)) {
@@ -163,7 +145,7 @@ static void home_root_text_update(ui_manager_context_t *thiz)
       EXCEPTION_CHECK_VOID(home_info->idle_button_icon);
     }
 
-    common_ui_img_resource_init(thiz, home_icon_infos[HOME_BUTTON_ICON_INDEX].img_id,
+    common_ui_img_resource_init(thiz, RESOURCE_ID_HOME_IDLE_BUTTOM_ICON,
         &home_info->idle_button_info);
     EXCEPTION_CHECK_VOID(home_info->idle_button_info.data);
     lv_fs_path_ex_t idle_button_img_path;
@@ -172,17 +154,17 @@ static void home_root_text_update(ui_manager_context_t *thiz)
                                 home_info->idle_button_info.size, "baj");
     lv_image_set_src(home_info->idle_button_icon, (const void *)&idle_button_img_path);
     lv_obj_align(home_info->idle_button_icon, LV_ALIGN_TOP_LEFT, 
-        home_icon_infos[HOME_BUTTON_ICON_INDEX].icon_x, home_icon_infos[HOME_BUTTON_ICON_INDEX].icon_y); /// 设置icon位置
+        IDLE_TEXT_AREA_ICON_X, IDLE_TEXT_AREA_ICON_Y); /// 设置icon位置
 
     /// 设置文本label
     if (home_info->text == NULL || !lv_obj_is_valid(home_info->text)) {
         home_info->text = lv_label_create(home_info->root);
         EXCEPTION_CHECK_VOID(home_info->text);
     }
-    lv_label_set_text(home_info->text, "Select a mode to start\npumping.");  /// 设置 label 文字内容和样式
+    lv_label_set_text(home_info->text, "Select a program or mode\nto start pumping");  /// 设置 label 文字内容和样式
     lv_obj_set_style_text_color(home_info->text, lv_color_hex(IDLE_TEXT_COLOR), 0);
-    lv_obj_set_style_text_font(home_info->text, &lv_font_oppo_sans_16_medium, 0);  /// 设置字体
-    lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_x, home_icon_infos[HOME_TEXT_LABEL_INDEX].icon_y); /// 设置文字位置
+    lv_obj_set_style_text_font(home_info->text, &lv_font_oppo_sans_14_medium, 0);  /// 设置字体
+    lv_obj_align(home_info->text, LV_ALIGN_TOP_LEFT, IDLE_TEXT_LABEL_TEXT_X, IDLE_TEXT_LABEL_TEXT_Y); /// 设置文字位置
     lv_obj_set_style_text_line_space(home_info->text, 3, 0); /// 设置行间距
     // lv_obj_set_style_text_letter_space(home_info->text, 1, 0); /// 设置字间距
 }
