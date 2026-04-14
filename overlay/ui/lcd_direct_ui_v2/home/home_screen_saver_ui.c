@@ -2,12 +2,12 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h" // IWYU pragma: keep
 #include "window_screen_home.h" // IWYU pragma: keep
 #include "ble_ui.h" // IWYU pragma: keep
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -28,8 +28,7 @@ typedef struct {
     lv_obj_t * saver_icon;
     res_img_info_t saver_img_info;
     uint8_t force_update;
-    uint8_t popup_ui_index;
-    uint8_t rsv[14];
+    uint8_t rsv[15];
 } home_screen_saver_display_info_t;
 
 /*
@@ -141,19 +140,14 @@ void ui_display_home_screen_saver_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     ble_ui_init(thiz);
     saver_info->force_update = true;
-    saver_info->popup_ui_index = HOME_POPUP_UI_NONE;
 }
 
 void ui_display_home_screen_saver_remove(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    if (saver_info == NULL) {
-        return;
-    }
+    EXCEPTION_CHECK_VOID(thiz && saver_info);
     common_ui_img_resource_deinit(thiz, &saver_info->saver_img_info);
     ble_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
-    home_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(saver_info->root);
     u_free(saver_info);
     saver_info = NULL;
@@ -161,16 +155,13 @@ void ui_display_home_screen_saver_remove(ui_manager_context_t *thiz)
 
 int ui_display_home_screen_saver_process(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(saver_info);
-    EXCEPTION_CHECK_INT(saver_info->root);
+    EXCEPTION_CHECK_INT(thiz && saver_info && saver_info->root);
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     EXCEPTION_CHECK_INT(proc->ble);
     home_screen_saver_root_bg_update(thiz);
     ble_ui_update(thiz, saver_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
     home_screen_saver_ui_update(thiz, proc);
-    home_tip_popup_ui_update(thiz, proc, saver_info->root, &saver_info->popup_ui_index);
     saver_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

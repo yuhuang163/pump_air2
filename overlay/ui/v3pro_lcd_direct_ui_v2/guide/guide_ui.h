@@ -25,9 +25,6 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz);
 void ui_display_guide_remove(ui_manager_context_t *thiz);
 int ui_display_guide_process(ui_manager_context_t *thiz);
 
-void guide_tip_popup_ui_update(ui_manager_context_t *thiz, ui_proc_guide_t *proc, lv_obj_t *parent, uint8_t *ui_index);
-void guide_tip_popup_ui_remove(ui_manager_context_t *thiz);
-
 #ifdef __cplusplus
 }
 #endif

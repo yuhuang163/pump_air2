@@ -29,27 +29,39 @@ static void breastfeeding_mode_popup_ui_finish_policy(ui_manager_context_t *ui, 
 {
     LOG_WM("===> popup %d ui display complete.", popup_ui_index);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
-    pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+    pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
 }
 
 static void breastfeeding_mode_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = (ui_proc_pump_t *)args->user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);
-    EXCEPTION_CHECK_VOID(proc->wm);
+    EXCEPTION_CHECK_VOID(proc && proc->wm && proc->pump);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
-    if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
-        if (proc->mode_sync_flag) {
-            proc->mode_sync_flag = false;
-            WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_bf_mode_index, true, 1);
-            proc->home_popup_ui_type = PUMP_POPUP_UI_OPERATION_SUCCESS;
-            if (proc->led) {
-                proc->led->set_led_level(PUMP_FREQ_SET_BL, 0);
-            }
+    if (proc->current_ui_type != PUMP_UI_TYPE_BREASTFEEDING_MODE) {
+        LOG_UI("ui type error, ignore.");
+        return;
+    }
+
+    if (proc->mode_sync_flag) {
+        proc->mode_sync_flag = false;
+        WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_bf_mode_index, true, 1);
+        proc->home_popup_ui_type = ID_POPUP_UI_OP_SUCCESS;
+        if (proc->led) {
+            proc->led->set_led_level(PUMP_FREQ_SET_BL, 0);
         }
+    }
+    
+    int pump_status = 0;
+    READ_PUMP_WORK_STATUS(proc->pump, pump_status);
+    if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE) {
+        LOG_WM("goto home window.");
+        multi_func_msg_data_t msg = {0};
+        msg.union_body.extra.window_id = ID_WINDOW_HOME;
+        proc->wm->dispatch_new_window_args(proc->wm, &msg);
+    } else {
         show_pump_home_ui(proc);
     }
+    
 }
 
 static void breastfeeding_mode_ui_after_policy(ui_manager_context_t *ui, int index)
@@ -108,16 +120,19 @@ static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     proc->last_progress_ani_time = get_timestamp();
-    if (proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_SUCCESS ||
-        proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_FAILED ||
-        proc->popup_ui_type == PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE) {
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+    if (proc->popup_ui_type == ID_POPUP_UI_OP_SUCCESS ||
+        proc->popup_ui_type == ID_POPUP_UI_OP_FAILED ||
+        proc->popup_ui_type == ID_POPUP_UI_LEVEL_ADJUST_WARNING) {
+        pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
     }
+
     if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
+        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         pump_ui_change_hdr_remove(proc);
     }
+    
     ui_play_info_t play_info = {
         .tag = "bf_mode_screen",
         .fps = PUMP_MODE_ANIMATION_FREQ,
@@ -187,13 +202,13 @@ void breastfeeding_mode_key_click_handler(ui_proc_pump_t *proc)
     int pump_status = 0;
     READ_PUMP_WORK_STATUS(proc->pump, pump_status);
     if (pump_status == BREAST_PUMP_PAUSE) {
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
+        pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
         LOG_WM("pump is pause, ignore.");
         return;
     }
 
     if (PUMP_IS_BREASTFEEDING_MODE(pump_mode) && (pump_status == BREAST_PUMP_START || pump_status == BREAST_PUMP_CONTINUE)) {
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
+        pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
         LOG_WM("mode %d/%d/%d is working, ignore.", pump_mode, mode_index, pump_status);
         return;
     }

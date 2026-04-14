@@ -488,7 +488,7 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     home_info->force_update = true;
     home_info->animation_index = 0;
-    home_info->popup_ui_index = HOME_POPUP_UI_NONE;
+    home_info->popup_ui_index = ID_POPUP_UI_NONE;
 }
 
 void ui_display_home_remove(ui_manager_context_t *thiz)
@@ -502,7 +502,7 @@ void ui_display_home_remove(ui_manager_context_t *thiz)
     battery_ui_deinit(thiz);
     ble_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
-    home_tip_popup_ui_remove(thiz);
+    ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(home_info->root);
     u_free(home_info);
     home_info = NULL;
@@ -517,7 +517,8 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     battery_ui_update(thiz, home_info->root, proc->battery, true);
     ble_ui_update(thiz, home_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
     home_ui_update(thiz, proc);
-    home_tip_popup_ui_update(thiz, proc, home_info->root, &home_info->popup_ui_index);
+    ui_common_operation_tip_update(thiz, proc->popup_ui_type, home_info->root,
+        &home_info->popup_ui_index);
     home_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

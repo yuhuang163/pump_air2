@@ -260,7 +260,7 @@ void common_pump_level_ui_prepare(ui_manager_context_t *thiz)
     }
     pump_level_root_init();
     level_info->force_update = true;
-    level_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+    level_info->popup_ui_index = ID_POPUP_UI_NONE;
 }
 
 void common_pump_level_ui_remove(ui_manager_context_t *thiz)
@@ -283,7 +283,7 @@ int common_pump_level_ui_process(ui_manager_context_t *thiz, uint8_t level,
     pump_level_direction_update(thiz, is_left);
     pump_level_update(thiz, level, level_change);
     pump_level_range_text_update(thiz);
-    common_operation_tip_ui_update(thiz, popup_ui_type, level_info->root, &level_info->popup_ui_index);
+    ui_common_operation_tip_update(thiz, popup_ui_type, level_info->root, &level_info->popup_ui_index);
     level_info->force_update = false;
         
     return 0;

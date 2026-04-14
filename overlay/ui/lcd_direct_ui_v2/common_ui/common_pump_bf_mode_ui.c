@@ -600,7 +600,7 @@ void common_pump_bf_mode_ui_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     bf_mode_info->force_update = true;
     bf_mode_info->mode_num = BF_MODE_COUNT - 1;
-    bf_mode_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+    bf_mode_info->popup_ui_index = ID_POPUP_UI_NONE;
     bf_mode_info->custom_mode_id = 0;
     int activate_status = 0;
     READ_PUMP_MODE_ACTIVATE(bf_mode_info->pump_ctx, BREAST_PUMP_CUSTOM_MODE, activate_status);

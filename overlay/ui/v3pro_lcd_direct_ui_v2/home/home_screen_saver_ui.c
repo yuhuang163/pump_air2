@@ -40,10 +40,9 @@ typedef struct {
     res_img_info_t clock_colon_info;
     home_screen_saver_display_type_e home_screen_saver_display_type;
     uint8_t force_update;
-    uint8_t popup_ui_index;
     uint8_t hour;
     uint8_t minute;
-    uint8_t rsv[12];
+    uint8_t rsv[13];
 } home_screen_saver_display_info_t;
 
 /*
@@ -260,7 +259,6 @@ void ui_display_home_screen_saver_prepare(ui_manager_context_t *thiz)
     ble_ui_init(thiz);
     battery_ui_init(thiz);
     saver_info->force_update = true;
-    saver_info->popup_ui_index = HOME_POPUP_UI_NONE;
 }
 
 void ui_display_home_screen_saver_remove(ui_manager_context_t *thiz)
@@ -273,7 +271,6 @@ void ui_display_home_screen_saver_remove(ui_manager_context_t *thiz)
     ble_ui_deinit(thiz);
     battery_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
-    home_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(saver_info->root);
     u_free(saver_info);
     saver_info = NULL;
@@ -291,7 +288,6 @@ int ui_display_home_screen_saver_process(ui_manager_context_t *thiz)
     battery_ui_update(thiz, saver_info->root, proc->battery, true);
     ble_ui_update(thiz, saver_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
     home_screen_saver_ui_update(thiz, proc);
-    home_tip_popup_ui_update(thiz, proc, saver_info->root, &saver_info->popup_ui_index);
     saver_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

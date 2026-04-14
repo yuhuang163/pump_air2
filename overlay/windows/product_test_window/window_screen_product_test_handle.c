@@ -99,7 +99,6 @@ static int product_test_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint1
             lcd_color_test_keyevent_cb(proc, keycode, keytype);
             break;
         default:
-            product_common_popup_ui_type_update(proc, PRODUCT_TEST_POPUP_UI_OPERATION_FAILED);
             break;
     }
     LOG_WM("current_ui_type: %d, tests_mode: %d", proc->current_ui_type, proc->tests_mode);

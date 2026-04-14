@@ -67,11 +67,11 @@ void pump_power_key_handler(ui_proc_pump_t *proc)
         proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
         proc->goto_pump_home_ui = true;
     } else {
-        // pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
+        // pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
     }
 }
 
-void pump_popup_ui_type_update(ui_proc_pump_t *proc, pump_popup_ui_action_e type)
+void pump_popup_ui_type_update(ui_proc_pump_t *proc, popup_ui_id_e type)
 {
     EXCEPTION_CHECK_VOID(proc);
     proc->popup_ui_type = type;

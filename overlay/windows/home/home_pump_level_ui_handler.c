@@ -165,11 +165,11 @@ void switch_home_pump_level(ui_proc_home_t *proc, bool is_increase)
     if (is_increase) {
         if (level < BREAST_PUMP_LEVEL_15) {
             proc->level_change++;
-        } 
+        }
     } else {
         if (level > BREAST_PUMP_LEVEL_0) {
             proc->level_change--;
-        } 
+        }
     }
     LOG_WM("switch home pump level: %d, level_change: %d", is_increase, proc->level_change);
     show_home_pump_level_ui(proc);

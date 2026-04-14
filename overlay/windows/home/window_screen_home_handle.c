@@ -2,7 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "handler_post.h"
 #include "input_key_code.h" // IWYU pragma: keep
 #include "root_common_api.h" // IWYU pragma: keep
 #include "windows_manager.h" 
@@ -64,32 +63,7 @@ static void home_start_key_event_ui_cb(hdr_post_args_t *args)
         WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_normal_mode_index, true, 1);
     } else if (proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
         WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_bf_mode_index, true, 1);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST) {
-        int time_index = 0;
-        READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
-        uint8_t level_idx = proc->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? 0 : 1;
-        if (proc->level_change > 0) {
-                proc->setting.level[level_idx] = proc->setting.level[level_idx] + proc->level_change;
-                if (proc->setting.level[level_idx] >= BREAST_PUMP_LEVEL_MAX) {
-                    proc->setting.level[level_idx] = BREAST_PUMP_LEVEL_MAX - 1;
-                }
-            WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
-        } else if (proc->level_change < 0) {
-            uint8_t abs_level_change = abs(proc->level_change);
-            proc->setting.level[level_idx] = proc->setting.level[level_idx] < abs_level_change ?
-                0 : (proc->setting.level[level_idx] - abs_level_change);
-            WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
-        }
-        proc->level_change = 0;
-    } else if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
-        if (proc->speed_sync_flag) {
-            proc->speed_sync_flag = false;
-            int time_index = 0;
-            READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
-            WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
-        }
-    }
-
+    } 
     if (proc->wm) {
         multi_func_msg_data_t msg = {0};
         LOG_WM("goto pump window.");
@@ -131,6 +105,16 @@ static void home_knob_right_event_cb(ui_proc_home_t *proc)
     }
 }
 
+static void home_power_key_event_cb(ui_proc_home_t *proc)
+{
+    if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT || 
+        proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
+        POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
+    } else {
+        return;
+    }
+}
+
 static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
     ui_proc_home_t *proc = user_data;
@@ -148,6 +132,10 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
                 proc->led->hook->toggle_night_light(proc->led);
             }
             break;
+#else
+        case KEY_CODE_POWER:
+            home_power_key_event_cb(proc);
+        break;
 #endif
         case KEY_CODE_KNOB_LEFT:
             home_knob_left_event_cb(proc);
@@ -162,19 +150,14 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             home_pump_bf_mode_key_click_handler(proc);
             break;
         case KEY_CODE_RIGHT_CONTROL:
-            switch_home_pump_level_control_type(proc, BREAST_PUMP_CONTROL_TYPE_RIGHT);
-            break;
         case KEY_CODE_LEFT_CONTROL:
-            switch_home_pump_level_control_type(proc, BREAST_PUMP_CONTROL_TYPE_LEFT);
-            break;
         case KEY_CODE_FREQUENCY:
-            home_pump_speed_key_click_handler(proc);
+            home_popup_ui_type_update(proc, ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING);
             break;
         case KEY_CODE_START:
             POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
             break;
         default:
-            // home_popup_ui_type_update(proc, HOME_POPUP_UI_OPERATION_FAILED);
             break;
     }
     return 0;

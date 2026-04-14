@@ -439,7 +439,7 @@ void common_pump_both_level_ui_prepare(ui_manager_context_t *thiz)
     }
     pump_both_level_root_init();
     level_info->force_update = true;
-    level_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+    level_info->popup_ui_index = ID_POPUP_UI_NONE;
 }
 
 void common_pump_both_level_ui_remove(ui_manager_context_t *thiz)
@@ -463,7 +463,7 @@ int common_pump_both_level_ui_process(ui_manager_context_t *thiz, uint8_t *level
     pump_both_level_offset_text_update(thiz, level_change);
     pump_left_level_update(thiz, level[0], level_change);
     pump_right_level_update(thiz, level[1], level_change);
-    common_operation_tip_ui_update(thiz, popup_ui_type, level_info->root, &level_info->popup_ui_index);
+    ui_common_operation_tip_update(thiz, popup_ui_type, level_info->root, &level_info->popup_ui_index);
     level_info->force_update = false;
 
     return 0;

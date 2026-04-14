@@ -38,6 +38,20 @@ typedef enum {
     ID_POPUP_WINDOW_MAX,
 } popup_window_id_e;
 
+/// 弹出框ID枚举.
+typedef enum {
+    ID_POPUP_UI_NONE = 0,
+    ID_POPUP_UI_OP_SUCCESS = 100,
+    ID_POPUP_UI_OP_FAILED ,
+    ID_POPUP_UI_LEVEL_ADJUST_WARNING , /// 档位范围调整警告
+    ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING,  /// 仅在泵奶中可以用
+    ID_POPUP_UI_AIRPLANE_MODE_EXIT,  /// 飞行模式退出
+    ID_POPUP_UI_PUMP_FINISH_TIMEOUT, ///
+    ID_POPUP_UI_PUMP_FINISH_MANUAL,
+    ID_POPUP_UI_PUMP_PAUSE_MANUAL,
+    ID_POPUP_UI_PUMP_PAUSE_TIMEOUT
+} popup_ui_id_e;
+
 /// 系统窗口ID枚举.
 typedef enum {
     ID_SYSTEM_WINDOW_POWER_OFF,
