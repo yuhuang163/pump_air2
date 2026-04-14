@@ -60,15 +60,13 @@ void pump_ui_change_hdr_remove(ui_proc_pump_t *proc)
     } 
 }
 
-/// 其他状态下，编码器的作用是回到 home 页和返回
 void pump_power_key_handler(ui_proc_pump_t *proc)
 {
     if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE ||
-        proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
+        proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE ||
+        proc->current_ui_type == PUMP_UI_TYPE_SPEED ) {
         proc->goto_pump_home_ui = true;
-    } else {
-        // pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
-    }
+    } 
 }
 
 void pump_popup_ui_type_update(ui_proc_pump_t *proc, popup_ui_id_e type)

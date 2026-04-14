@@ -25,13 +25,6 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void pump_mode_popup_ui_finish_policy(ui_manager_context_t *ui, uint8_t popup_ui_index)
-{
-    LOG_WM("===> popup %d ui display complete.", popup_ui_index);
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
-    pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
-}
-
 static void pump_mode_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = (ui_proc_pump_t *)args->user_data;
@@ -45,7 +38,6 @@ static void pump_mode_display_completed_cb(hdr_post_args_t *args)
     if (proc->mode_sync_flag) {
         proc->mode_sync_flag = false;
         WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_normal_mode_index, true, 1);
-        proc->home_popup_ui_type = ID_POPUP_UI_OP_SUCCESS;
         if (proc->led) {
             proc->led->set_led_level(PUMP_FREQ_SET_BL, LED_LEVEL_MAX);
         }
@@ -63,19 +55,31 @@ static void pump_mode_display_completed_cb(hdr_post_args_t *args)
     }
 }
 
+static void pump_mode_popup_ui_finish_policy(ui_manager_context_t *ui, uint8_t popup_ui_index)
+{
+    LOG_WM("===> popup %d ui display complete.", popup_ui_index);
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
+    pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
+    if (popup_ui_index == ID_POPUP_UI_OP_SUCCESS) {
+        POST_TASK_HANDLER_NO_DELAY(pump_mode_display_completed_cb, proc, PUMP_MODE_DISPLAY_TASK_NAME);
+    }
+}
+
 static void pump_mode_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_pump_mode_process(ui);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_MODE_DISPLAY_TIMEOUT) {
+        proc->mode_sync_flag = false;
         proc->last_progress_ani_time = get_timestamp();
         LOG_UI("pump mode ui timeout: %d", proc->last_progress_ani_time);
         POST_TASK_HANDLER_NO_DELAY(pump_mode_display_completed_cb, proc, PUMP_MODE_DISPLAY_TASK_NAME);
     } else {
         if (proc->goto_pump_home_ui) {
             proc->goto_pump_home_ui = false;
-            POST_TASK_HANDLER_NO_DELAY(pump_mode_display_completed_cb, proc, PUMP_MODE_DISPLAY_TASK_NAME);
+            proc->popup_ui_type = ID_POPUP_UI_OP_SUCCESS;
+            LOG_WM("ID_POPUP_UI_OP_SUCCESS");
         }
     }
 }
@@ -119,16 +123,12 @@ static void show_pump_mode_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    if (proc->popup_ui_type == ID_POPUP_UI_OP_FAILED ||
-        proc->popup_ui_type == ID_POPUP_UI_OP_SUCCESS ||
-        proc->popup_ui_type == ID_POPUP_UI_LEVEL_ADJUST_WARNING) {
-        pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
-    }
 
     if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
         proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
+        pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
         pump_ui_change_hdr_remove(proc);
     }
     
@@ -181,30 +181,17 @@ void pump_mode_ui_hdr_remove(void)
 
 void pump_mode_key_click_handler(ui_proc_pump_t *proc)
 {
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);
-#if 0
-    EXCEPTION_CHECK_VOID(proc->led);
-
-    int pump_status = 0;
-    READ_PUMP_WORK_STATUS(proc->pump, pump_status);
-    int pump_mode = 0;
-    READ_PUMP_WORK_MODE(proc->pump, pump_mode);
-    if (PUMP_NO_FINISH(pump_status) && PUMP_IS_BREASTFEEDING_MODE(pump_mode)) {
-        LOG_UI("pump is breastfeeding mode, ignore.");
-        pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
+    EXCEPTION_CHECK_VOID(proc && proc->pump);
+    if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE) {
+        show_pump_home_ui(proc);
         return;
     }
-    
-    if (PUMP_IS_COMMON_MODE(pump_mode) && pump_status == BREAST_PUMP_PAUSE) {
-        LOG_UI("pump is common mode and pause, ignore.");
-        pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
-        return;
-    }
-#endif
     int mode_index = 0;
     READ_PUMP_COMMON_MODE(proc->pump, false, mode_index);
     proc->ui_normal_mode_index = mode_index;
+    if (PUMP_IS_COMMON_MODE(mode_index) == 0) {
+        proc->ui_normal_mode_index = BREAST_PUMP_STIMULATION_MODE;
+    } 
     proc->mode_sync_flag = true;
     proc->forbid_start_pump = false;
     show_pump_mode_ui(proc);

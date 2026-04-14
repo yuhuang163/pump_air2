@@ -38,20 +38,8 @@ static void pumping_popup_ui_finish_policy(ui_manager_context_t *ui, uint8_t pop
             proc->forbid_start_pump = true;
             pump_complete_event_handler(proc);
             break;
-        case ID_POPUP_UI_PUMP_PAUSE_TIMEOUT:
-        case ID_POPUP_UI_PUMP_PAUSE_MANUAL:
+        default:
             break;
-        case ID_POPUP_UI_OP_SUCCESS:
-        case ID_POPUP_UI_OP_FAILED: {
-            int pump_status = 0;
-            READ_PUMP_WORK_STATUS(proc->pump, pump_status);
-            LOG_UI("pump status: %d", pump_status);
-            if (pump_status == BREAST_PUMP_PAUSE) {
-                pump_popup_ui_type_update(proc, ID_POPUP_UI_PUMP_PAUSE_MANUAL);
-                return;
-            }
-            break;
-        }
     }
     pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
 }
@@ -88,10 +76,6 @@ static void pumping_ui_display_prepare(void *user_data)
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(ui);
     ui_display_pump_home_screen_prepare(ui);
-    if (proc->home_popup_ui_type == ID_POPUP_UI_OP_SUCCESS) {
-        pump_popup_ui_type_update(proc, proc->home_popup_ui_type);
-        proc->home_popup_ui_type = ID_POPUP_UI_NONE;
-    }
 }
 
 static void pumping_ui_display_remove(void *user_data)
@@ -109,16 +93,19 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    proc->goto_pump_home_ui= false;
-    if (proc->popup_ui_type == ID_POPUP_UI_OP_FAILED ||
-        proc->popup_ui_type == ID_POPUP_UI_LEVEL_ADJUST_WARNING) {
-        pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
-    }
-    
+
     if (proc->current_ui_type == PUMP_UI_TYPE_HOME) {
         proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
+        proc->goto_pump_home_ui= false;    
+        int pump_status = 0;
+        READ_PUMP_WORK_STATUS(proc->pump, pump_status);
+        if (pump_status == BREAST_PUMP_PAUSE) {
+            pump_popup_ui_type_update(proc, ID_POPUP_UI_PUMP_PAUSE_MANUAL);
+        } else {
+            pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
+        }
         pump_ui_change_hdr_remove(proc);
     }
     ui_play_info_t play_info = {

@@ -45,10 +45,10 @@ int ui_display_home_pump_level_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc);
     if (proc->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT) {
         common_pump_level_ui_process(thiz, proc->setting.level[0], 
-            proc->level_change, true, ID_POPUP_UI_NONE);
+            proc->level_change, true, proc->popup_ui_type);
     } else {
         common_pump_level_ui_process(thiz, proc->setting.level[1], 
-            proc->level_change, false, ID_POPUP_UI_NONE);
+            proc->level_change, false, proc->popup_ui_type);
     }
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

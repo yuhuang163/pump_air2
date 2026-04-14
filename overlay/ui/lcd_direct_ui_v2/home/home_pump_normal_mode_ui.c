@@ -48,7 +48,7 @@ int ui_display_home_pump_normal_mode_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
-    common_pump_normal_mode_ui_process(thiz, proc->ui_normal_mode_index);
+    common_pump_normal_mode_ui_process(thiz, proc->ui_normal_mode_index, proc->popup_ui_type);
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();

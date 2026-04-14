@@ -34,11 +34,6 @@ static void home_pump_level_ui_display_completed_cb(hdr_post_args_t *args)
         return;
     }
 
-    if (proc->control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
-        LOGE("control type is bilateral, ignore.");
-        return;
-    }
-
     int time_index = 0;
     READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
     uint8_t level_idx = proc->control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? 0 : 1;
@@ -58,6 +53,16 @@ static void home_pump_level_ui_display_completed_cb(hdr_post_args_t *args)
     start_home_ui_animation(proc);
 }
 
+static void home_pump_level_popup_ui_finish_policy(ui_manager_context_t *ui, uint8_t popup_ui_index)
+{
+    LOG_WM("===> popup %d ui display complete.", popup_ui_index);
+    ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
+    home_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
+    if (popup_ui_index == ID_POPUP_UI_OP_SUCCESS_PRESET) {
+        POST_TASK_HANDLER_NO_DELAY(home_pump_level_ui_display_completed_cb, proc, HOME_PUMP_LEVEL_ADJUST_DISPLAY_TASK_NAME);
+    }
+}
+
 static void home_pump_level_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     ui_display_home_pump_level_process(ui);
@@ -65,8 +70,9 @@ static void home_pump_level_ui_after_policy(ui_manager_context_t *ui, int index)
     EXCEPTION_CHECK_VOID(proc);
     uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
     if (time_diff >= HOME_PUMP_LEVEL_DISPLAY_TIMEOUT) {
+        proc->popup_ui_type = ID_POPUP_UI_OP_SUCCESS_PRESET;
         proc->last_progress_ani_time = get_timestamp();
-        POST_TASK_HANDLER_NO_DELAY(home_pump_level_ui_display_completed_cb, proc, HOME_PUMP_LEVEL_ADJUST_DISPLAY_TASK_NAME);
+        LOG_WM("goto ID_POPUP_UI_OP_SUCCESS_PRESET");
     }
 }
 
@@ -82,6 +88,9 @@ static void home_pump_level_animation_progress_cb(void *user_data, int index, ui
             break;
         case ANI_TIMER_DRAW_AFTER:
             home_pump_level_ui_after_policy(ui, index);
+            break;
+        case ANI_POPUP_DISPLAY_FINISH:
+            home_pump_level_popup_ui_finish_policy(ui, index);
             break;
         default:
             break;
@@ -106,8 +115,9 @@ static void show_home_pump_level_ui(ui_proc_home_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    proc->last_progress_ani_time = get_timestamp();
+    home_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
     if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST) {
+        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         home_ui_change_hdr_remove(proc);
@@ -131,7 +141,12 @@ static void show_home_pump_level_ui(ui_proc_home_t *proc)
 */
 void switch_home_pump_level_control_type(ui_proc_home_t *proc, uint8_t control_type)
 {
-    EXCEPTION_CHECK_VOID(proc );
+    EXCEPTION_CHECK_VOID(proc && proc->pump);
+    if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST && proc->control_type == control_type) {
+        start_home_ui_animation(proc);
+        return;
+    }
+    
     proc->level_change = 0;
     if (proc->pump_priming == 0) {
         proc->pump_priming = true;
@@ -139,14 +154,15 @@ void switch_home_pump_level_control_type(ui_proc_home_t *proc, uint8_t control_t
             proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
         }
     }
+    
     if (proc->current_ui_type != HOME_UI_TYPE_LEVEL_ADJUST) {
         int time_index = 0;
         READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
         READ_PUMP_SETTING_INFO(proc->pump, time_index, proc->setting);
     } 
+
     if (proc->control_type != control_type) {
         proc->control_type = control_type;
-        // WRITE_PUMP_LEVEL_CONTROL_TYPE(proc->pump, control_type, 1);
     }
     show_home_pump_level_ui(proc);
     LOG_WM("switch home pump level adjust type: %d", control_type);

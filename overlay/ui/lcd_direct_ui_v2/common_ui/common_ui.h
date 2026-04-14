@@ -42,17 +42,17 @@ void ui_common_operation_tip_update(ui_manager_context_t *thiz,
 /// 追奶模式界面
 void common_pump_bf_mode_ui_prepare(ui_manager_context_t *thiz);
 void common_pump_bf_mode_ui_remove(ui_manager_context_t *thiz);
-int common_pump_bf_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx);
+int common_pump_bf_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx, uint16_t popup_ui_type);
 
 /// 泵奶模式界面
 void common_pump_normal_mode_ui_prepare(ui_manager_context_t *thiz);
 void common_pump_normal_mode_ui_remove(ui_manager_context_t *thiz);
-int common_pump_normal_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx);
+int common_pump_normal_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx, uint16_t popup_ui_type);
 
 /// 泵奶速度界面
 void common_pump_speed_ui_prepare(ui_manager_context_t *thiz);
 void common_pump_speed_ui_remove(ui_manager_context_t *thiz);
-int common_pump_speed_ui_process(ui_manager_context_t *thiz, uint8_t speed);
+int common_pump_speed_ui_process(ui_manager_context_t *thiz, uint8_t speed, uint16_t popup_ui_type);
 
 /// 泵奶档位调节界面
 void common_pump_both_level_ui_prepare(ui_manager_context_t *thiz);

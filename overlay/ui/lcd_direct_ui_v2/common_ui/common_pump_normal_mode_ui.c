@@ -511,17 +511,20 @@ void common_pump_normal_mode_ui_remove(ui_manager_context_t *thiz)
         common_ui_img_resource_deinit(thiz, &mode_info->mode_component_info[i]);
     }
     common_ui_bg_deinit(thiz);
+    ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(mode_info->root);
     u_free(mode_info);
     mode_info = NULL;
 }
 
-int common_pump_normal_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx)
+int common_pump_normal_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx, uint16_t popup_ui_type)
 {
     EXCEPTION_CHECK_INT(thiz && mode_info && mode_info->root);
     mode_bg_update(thiz);
     mode_ui_update(thiz, mode_idx);
     mode_text_update(thiz);
+    ui_common_operation_tip_update(thiz, popup_ui_type, mode_info->root, &mode_info->popup_ui_index);
     mode_info->force_update = false;
+    
     return 0;
 }

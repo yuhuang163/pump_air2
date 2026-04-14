@@ -150,9 +150,13 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             home_pump_bf_mode_key_click_handler(proc);
             break;
         case KEY_CODE_RIGHT_CONTROL:
+            switch_home_pump_level_control_type(proc, BREAST_PUMP_CONTROL_TYPE_RIGHT);
+            break;
         case KEY_CODE_LEFT_CONTROL:
+            switch_home_pump_level_control_type(proc, BREAST_PUMP_CONTROL_TYPE_LEFT);
+            break;
         case KEY_CODE_FREQUENCY:
-            home_popup_ui_type_update(proc, ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING);
+            home_pump_speed_key_click_handler(proc);
             break;
         case KEY_CODE_START:
             POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);

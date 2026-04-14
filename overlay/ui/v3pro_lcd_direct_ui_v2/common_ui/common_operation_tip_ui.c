@@ -82,6 +82,11 @@ const static operation_text_info_t operation_success_infos[OPERATION_TIP_TEXT_CO
     { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, OPERATION_TIP_TEXT_COLOR},
 };
 
+const static operation_text_info_t operation_success_preset_infos[OPERATION_TIP_TEXT_COUNT] = {
+    { "Success", 212, &lv_font_oppo_sans_16_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
+    { "Take effect durning pumping", 232, &lv_font_oppo_sans_16_medium, LV_OPA_70, OPERATION_STATUS_TEXT_COLOR},
+};
+
 const static operation_text_info_t operation_failed_infos[OPERATION_TIP_TEXT_COUNT] = {
     { "Invalid operation", 212, &lv_font_oppo_sans_16_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
     { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, OPERATION_TIP_TEXT_COLOR},
@@ -259,6 +264,8 @@ static const char *common_operation_tip_name_get(ui_manager_context_t *thiz, uin
             return "pump Manual Pausing";
         case ID_POPUP_UI_OP_SUCCESS:
             return "operation success";
+        case ID_POPUP_UI_OP_SUCCESS_PRESET:
+            return "operation success preset";
         case ID_POPUP_UI_OP_FAILED:
             return "operation failed";
         case ID_POPUP_UI_LEVEL_ADJUST_WARNING:
@@ -312,6 +319,12 @@ static void common_operation_ui_update(ui_manager_context_t *thiz, popup_ui_id_e
             common_operation_tip_icon_update(thiz, RESOURCE_ID_ALLOW_ICON, 130);
             common_operation_tip_display_complete(thiz, popup_type);
             break;
+        case ID_POPUP_UI_OP_SUCCESS_PRESET:
+            common_operation_tip_mask_layer_update(thiz);
+            common_operation_tip_text_update(thiz, operation_success_preset_infos);
+            common_operation_tip_icon_update(thiz, RESOURCE_ID_ALLOW_ICON, 130);
+            common_operation_tip_display_complete(thiz, popup_type);
+            break;
         case ID_POPUP_UI_OP_FAILED:
             common_operation_tip_mask_layer_update(thiz);
             common_operation_tip_text_update(thiz, operation_failed_infos);
@@ -356,7 +369,8 @@ void ui_common_operation_tip_prepare(ui_manager_context_t *thiz, lv_obj_t *paren
     operation_info->ring_progress = 0;
     uint16_t time = 3000;
     if (type == ID_POPUP_UI_PUMP_FINISH_MANUAL || type == ID_POPUP_UI_OP_SUCCESS || 
-        type == ID_POPUP_UI_OP_FAILED || type == ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING) {
+        type == ID_POPUP_UI_OP_FAILED || type == ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING ||
+        type == ID_POPUP_UI_OP_SUCCESS_PRESET) {
         time = 1000;
     } else if (type == ID_POPUP_UI_AIRPLANE_MODE_EXIT) {
         time = 5000;
@@ -401,79 +415,14 @@ void ui_common_operation_tip_update(ui_manager_context_t *thiz,
             *ui_index = ID_POPUP_UI_NONE;
             break;
         case ID_POPUP_UI_OP_SUCCESS:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
+        case ID_POPUP_UI_OP_SUCCESS_PRESET:
         case ID_POPUP_UI_OP_FAILED:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
         case ID_POPUP_UI_LEVEL_ADJUST_WARNING:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
         case ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
-
-            case ID_POPUP_UI_PUMP_FINISH_TIMEOUT:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
+        case ID_POPUP_UI_PUMP_FINISH_TIMEOUT:
         case ID_POPUP_UI_PUMP_FINISH_MANUAL:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
         case ID_POPUP_UI_PUMP_PAUSE_MANUAL:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
         case ID_POPUP_UI_PUMP_PAUSE_TIMEOUT:
-            if (*ui_index != type) {
-                ui_common_operation_tip_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, parent, type);
-                *ui_index = type;
-            } else {
-                ui_common_operation_tip_process(thiz, type);
-            }
-            break;
-
         case ID_POPUP_UI_AIRPLANE_MODE_EXIT:
             if (*ui_index != type) {
                 ui_common_operation_tip_remove(thiz);
