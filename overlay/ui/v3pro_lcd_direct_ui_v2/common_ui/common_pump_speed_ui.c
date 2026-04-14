@@ -510,23 +510,20 @@ void common_pump_speed_ui_remove(ui_manager_context_t *thiz)
     }
     common_ui_img_resource_deinit(thiz, &speed_info->dots_img_info);
     common_ui_bg_deinit(thiz);
+    ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(speed_info->root);
     u_free(speed_info);
     speed_info = NULL;
 }
 
-int common_pump_speed_ui_process(ui_manager_context_t *thiz, uint8_t speed)
+int common_pump_speed_ui_process(ui_manager_context_t *thiz, uint8_t speed, uint16_t popup_ui_type)
 {
     EXCEPTION_CHECK_UINT(thiz && speed_info && speed_info->root);
     speed_bg_update(thiz);
     speed_ui_update(thiz, speed);
     speed_text_update(thiz);
+    ui_common_operation_tip_update(thiz, popup_ui_type, speed_info->root, &speed_info->popup_ui_index);
     speed_info->force_update = false;
-    thiz->priv.fps_count++;
-    if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
-        thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> pump speed fps: %d", thiz->priv.fps_count);
-        thiz->priv.fps_count = 0;
-    }
+
     return 0;
 }

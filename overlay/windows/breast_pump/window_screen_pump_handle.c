@@ -119,7 +119,6 @@ static void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
             switch_pump_both_control_type_ui(proc);
             break;
         default:
-            // pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
             LOG_WM("unknow ui type: %d, ignore.", proc->current_ui_type);
             break;
     }

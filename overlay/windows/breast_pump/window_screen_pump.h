@@ -148,7 +148,6 @@ typedef struct {
 #endif
     uint8_t forbid_start_pump; /// 是否禁止开始泵奶.
     uint8_t goto_pump_home_ui; /// 跳转到泵奶主界面标志.
-    uint16_t home_popup_ui_type; /// 主界面弹窗类型.
     uint16_t popup_ui_type; /// 当前弹窗类型. popup_ui_id_e
 } ui_proc_pump_t;
 

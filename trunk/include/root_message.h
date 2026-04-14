@@ -42,6 +42,7 @@ typedef enum {
 typedef enum {
     ID_POPUP_UI_NONE = 0,
     ID_POPUP_UI_OP_SUCCESS = 100,
+    ID_POPUP_UI_OP_SUCCESS_PRESET,
     ID_POPUP_UI_OP_FAILED ,
     ID_POPUP_UI_LEVEL_ADJUST_WARNING , /// 档位范围调整警告
     ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING,  /// 仅在泵奶中可以用

@@ -29,8 +29,6 @@ static void home_pump_bf_mode_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_home_t *proc = (ui_proc_home_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);
-    EXCEPTION_CHECK_VOID(proc->wm);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_HOME);
     if (proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
         start_home_ui_animation(proc);
@@ -142,12 +140,18 @@ void home_pump_bf_mode_ui_hdr_remove(void)
 
 void home_pump_bf_mode_key_click_handler(ui_proc_home_t *proc)
 {
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->pump);
-    EXCEPTION_CHECK_VOID(proc->led);
+    EXCEPTION_CHECK_VOID(proc && proc->pump);
+    if (proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
+        start_home_ui_animation(proc);
+        return;
+    } 
     int mode_index = 0;
     READ_PUMP_EXPERT_MODE(proc->pump, false, mode_index);
     proc->ui_bf_mode_index = mode_index;
+    if (PUMP_IS_BREASTFEEDING_MODE(mode_index) == 0) {
+        proc->ui_bf_mode_index = BREAST_PUMP_REGULAR_PUMPING_MODE;
+    } 
+    
     if (proc->pump_priming == 0) {
         proc->pump_priming = true;
         if (proc->led)  {

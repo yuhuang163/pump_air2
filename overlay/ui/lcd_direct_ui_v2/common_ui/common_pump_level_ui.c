@@ -5,8 +5,8 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"
-#include "window_screen_pump.h"
-#include "breast_pump_ui.h"
+#include "window_screen_pump.h" // IWYU pragma: keep
+#include "breast_pump_ui.h"  // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -19,6 +19,7 @@
 #define PUMP_LEVEL_DIR_TEXT_COLOR                             (0xB35C65)
 #define PUMP_LEVEL_MAX                                        (15)
 #define PUMP_LEVEL_TITLE_TEXT_Y                               (92)
+#define PUMP_LEVEL_ANIMATION_TIME                             (100)
 
 typedef struct {
     lv_obj_t * root;
@@ -29,12 +30,23 @@ typedef struct {
     lv_obj_t * level_range_text; /// 等级范围文字
     lv_obj_t * level_progress; /// 等级进度
     res_img_info_t level_progress_info; /// 等级进度资源信息
+    res_img_info_t direction_info; /// 等级进度资源信息
     uint8_t force_update;
     uint8_t popup_ui_index;
+    uint8_t direction;
+    uint8_t animation_status;
+    uint32_t animation_start_time;
     uint8_t display_direction;
     int8_t level_change;
     uint8_t rsv[12];
 } level_display_info_t;
+
+typedef enum {
+    LEVEL_ANIMATION_TYPE_NONE = 0,
+    LEVEL_ANIMATION_TYPE_ZOOM_OUT,
+    LEVEL_ANIMATION_TYPE_ZOOM_IN,
+} level_animation_type_e;
+
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -144,21 +156,87 @@ static void pump_level_title_text_update(ui_manager_context_t *thiz)
     }   
 }
 
-static void pump_level_direction_update(ui_manager_context_t *thiz, bool is_left)
-{    
-    if (level_info->force_update == false && level_info->display_direction == is_left) {
+static void pump_level_scale_anim_cb(void *obj, int32_t v)
+{
+    if (obj == NULL || !lv_obj_is_valid((lv_obj_t *)obj)) {
         return;
     }
 
-    if (level_info->level_direction == NULL || !lv_obj_is_valid(level_info->level_direction)) {
-        level_info->level_direction = lv_label_create(level_info->root);
-        EXCEPTION_CHECK_VOID(level_info->level_direction);
-        lv_obj_set_style_text_color(level_info->level_direction, lv_color_hex(PUMP_LEVEL_DIR_TEXT_COLOR), 0);
-        lv_obj_set_style_text_font(level_info->level_direction, &lv_font_oppo_sans_24_medium, 0);
-        lv_obj_align(level_info->level_direction, LV_ALIGN_TOP_MID, 0, 292 + 6);
+    lv_image_set_scale((lv_obj_t *)obj, (uint32_t)v);
+}
+
+static void pump_level_scale_to(lv_obj_t *img, uint32_t start, uint32_t end, uint32_t time_ms)
+{
+    if (img == NULL || !lv_obj_is_valid(img)) {
+        return;
     }
-    lv_label_set_text(level_info->level_direction, is_left ? "L" : "R");
-    level_info->display_direction = is_left;
+
+    lv_anim_del(img, pump_level_scale_anim_cb);
+
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, img);
+    lv_anim_set_exec_cb(&a, pump_level_scale_anim_cb);
+    lv_anim_set_values(&a, start, end);
+    lv_anim_set_time(&a, time_ms);
+    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+    lv_anim_start(&a);
+}
+
+static void pump_level_direction_update(ui_manager_context_t *thiz, bool is_left)
+{    
+    if (level_info->force_update == false && level_info->display_direction == is_left) {
+        level_info->animation_status = LEVEL_ANIMATION_TYPE_NONE;
+        level_info->animation_start_time = 0;
+        return;
+    } 
+
+    if (level_info->level_direction == NULL || !lv_obj_is_valid(level_info->level_direction)) {
+        level_info->level_direction = lv_image_create(level_info->root);
+        EXCEPTION_CHECK_VOID(level_info->level_direction);
+        lv_obj_align(level_info->level_direction, LV_ALIGN_TOP_MID, 0, 284);
+    }
+
+    if (level_info->force_update == false) {
+        if (get_timestamp_ms(level_info->animation_start_time) > (PUMP_LEVEL_ANIMATION_TIME + 50)) {
+            if (level_info->animation_status == LEVEL_ANIMATION_TYPE_NONE) {
+                level_info->animation_status = LEVEL_ANIMATION_TYPE_ZOOM_OUT;
+                common_ui_img_resource_init(thiz, level_info->display_direction > 0 ? \
+                    RESOURCE_ID_PUMP_LEFT_LEVEL_ICON : RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON, &level_info->direction_info);
+                EXCEPTION_CHECK_VOID(level_info->direction_info.data);
+                lv_fs_path_ex_t direction_path;
+                lv_fs_make_path_from_buffer(&direction_path, LV_FS_MEMFS_LETTER, level_info->direction_info.data,
+                    level_info->direction_info.size, "png");
+                lv_image_set_src(level_info->level_direction, (const void *)&direction_path);
+                level_info->animation_start_time = get_timestamp();
+                pump_level_scale_to(level_info->level_direction, 256, 0, PUMP_LEVEL_ANIMATION_TIME);  // 缩小
+            } else if(level_info->animation_status == LEVEL_ANIMATION_TYPE_ZOOM_OUT) {
+                common_ui_img_resource_init(thiz, is_left > 0 ? \
+                    RESOURCE_ID_PUMP_LEFT_LEVEL_ICON : RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON, &level_info->direction_info);
+                EXCEPTION_CHECK_VOID(level_info->direction_info.data);
+                lv_fs_path_ex_t direction_path;
+                lv_fs_make_path_from_buffer(&direction_path, LV_FS_MEMFS_LETTER, level_info->direction_info.data,
+                    level_info->direction_info.size, "png");
+                lv_image_set_src(level_info->level_direction, (const void *)&direction_path);
+                level_info->animation_status = LEVEL_ANIMATION_TYPE_ZOOM_IN;
+                level_info->animation_start_time = get_timestamp();
+                pump_level_scale_to(level_info->level_direction, 0, 256, PUMP_LEVEL_ANIMATION_TIME);  // 放大
+            } else {
+                level_info->animation_status = LEVEL_ANIMATION_TYPE_NONE;
+                level_info->display_direction = is_left;
+            }
+        }
+    } else {
+        common_ui_img_resource_init(thiz, is_left > 0 ? \
+            RESOURCE_ID_PUMP_LEFT_LEVEL_ICON : RESOURCE_ID_PUMP_RIGHT_LEVEL_ICON, &level_info->direction_info);
+        EXCEPTION_CHECK_VOID(level_info->direction_info.data);
+        lv_fs_path_ex_t direction_path;
+        lv_fs_make_path_from_buffer(&direction_path, LV_FS_MEMFS_LETTER, level_info->direction_info.data,
+            level_info->direction_info.size, "png");
+        lv_image_set_src(level_info->level_direction, (const void *)&direction_path);
+        level_info->animation_status = LEVEL_ANIMATION_TYPE_NONE;
+        level_info->display_direction = is_left;
+    }
 }
 
 static int pump_level_progress_update(ui_manager_context_t *thiz, uint8_t level)
@@ -180,6 +258,7 @@ static int pump_level_progress_update(ui_manager_context_t *thiz, uint8_t level)
     lv_fs_make_path_from_buffer(&level_progress_path, LV_FS_MEMFS_LETTER, 
         level_info->level_progress_info.data, level_info->level_progress_info.size, "baj");
     lv_image_set_src(level_info->level_progress, (const void *)&level_progress_path);
+    
     return 0;
 }
 
@@ -261,6 +340,8 @@ void common_pump_level_ui_prepare(ui_manager_context_t *thiz)
     pump_level_root_init();
     level_info->force_update = true;
     level_info->popup_ui_index = ID_POPUP_UI_NONE;
+    level_info->animation_status = LEVEL_ANIMATION_TYPE_NONE;
+    level_info->animation_start_time = 0;
 }
 
 void common_pump_level_ui_remove(ui_manager_context_t *thiz)
@@ -268,6 +349,7 @@ void common_pump_level_ui_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(level_info);
     common_ui_img_resource_deinit(thiz, &level_info->level_progress_info);
+    common_ui_img_resource_deinit(thiz, &level_info->direction_info);
     ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(level_info->root);
     u_free(level_info);

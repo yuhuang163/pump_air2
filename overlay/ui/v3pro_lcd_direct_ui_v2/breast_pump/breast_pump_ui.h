@@ -1,7 +1,6 @@
 #ifndef __BREAST_PUMP_UI_H__
 #define __BREAST_PUMP_UI_H__
 
-#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -2,6 +2,8 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "cmsis_os_api.h"
+#include "root_message.h"
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_home.h"
 
@@ -30,14 +32,26 @@ static void home_pump_speed_ui_display_completed_cb(hdr_post_args_t *args)
     ui_proc_home_t *proc = (ui_proc_home_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_HOME);
-    if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
-        if (proc->speed_sync_flag) {
-            proc->speed_sync_flag = false;
-            int time_index = 0;
-            READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
-            WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
-        }
-        start_home_ui_animation(proc);
+    if (proc->current_ui_type != HOME_UI_TYPE_SPEED_ADJUST) {
+        LOG_UI("ui type error, ignore.");
+    }
+
+    if (proc->speed_sync_flag) {
+        proc->speed_sync_flag = false;
+        int time_index = 0;
+        READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
+        WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
+    }
+    start_home_ui_animation(proc);
+}
+
+static void home_pump_speed_popup_ui_finish_policy(ui_manager_context_t *ui, uint8_t popup_ui_index)
+{
+    LOG_WM("===> popup %d ui display complete.", popup_ui_index);
+    ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
+    home_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
+    if (popup_ui_index == ID_POPUP_UI_OP_SUCCESS_PRESET) {
+        POST_TASK_HANDLER_NO_DELAY(home_pump_speed_ui_display_completed_cb, proc, HOME_PUMP_SPEED_DISPLAY_TASK_NAME);
     }
 }
 
@@ -48,8 +62,9 @@ static void home_pump_speed_ui_after_policy(ui_manager_context_t *ui, int index)
     EXCEPTION_CHECK_VOID(proc);
     uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
     if (time_diff >= HOME_PUMP_SPEED_DISPLAY_TIMEOUT) {
+        proc->popup_ui_type = ID_POPUP_UI_OP_SUCCESS_PRESET;
         proc->last_progress_ani_time = get_timestamp();
-        POST_TASK_HANDLER_NO_DELAY(home_pump_speed_ui_display_completed_cb, proc, HOME_PUMP_SPEED_DISPLAY_TASK_NAME);
+        LOG_WM("goto ID_POPUP_UI_OP_SUCCESS_PRESET");
     }
 }
 
@@ -65,6 +80,9 @@ static void home_pump_speed_animation_progress_cb(void *user_data, int index, ui
             break;
         case ANI_TIMER_DRAW_AFTER:
             home_pump_speed_ui_after_policy(ui, index);
+            break;
+        case ANI_POPUP_DISPLAY_FINISH:
+            home_pump_speed_popup_ui_finish_policy(ui, index);
             break;
         default:
             break;
@@ -89,12 +107,14 @@ static void show_home_pump_speed_ui(ui_proc_home_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    proc->last_progress_ani_time = get_timestamp();
+    home_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
     if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
+        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         home_ui_change_hdr_remove(proc);
     }
+
     ui_play_info_t play_info = {
         .tag = "home_pump_speed_screen",
         .fps = HOME_ANIMATION_FREQ,
@@ -143,6 +163,10 @@ void home_pump_speed_ui_hdr_remove(void)
 
 void home_pump_speed_key_click_handler(ui_proc_home_t *proc)
 {
+    if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
+        start_home_ui_animation(proc);
+        return;
+    } 
     int pump_mode = 0;
     READ_PUMP_WORK_MODE(proc->pump, pump_mode);
     int time_index = 0;
