@@ -29,24 +29,20 @@ static void pump_both_level_popup_ui_finish_policy(ui_manager_context_t *ui, uin
 {
     LOG_WM("===> popup %d ui display complete.", popup_ui_index);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
-    pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+    pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
 }
 
 static void pump_both_level_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = (ui_proc_pump_t *)args->user_data;
-    EXCEPTION_CHECK_VOID(proc && proc->pump);
+    EXCEPTION_CHECK_VOID(proc && proc->wm && proc->pump);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
-    if (proc->popup_ui_type == PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE) {
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+    if (proc->popup_ui_type == ID_POPUP_UI_LEVEL_ADJUST_WARNING) {
+        pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
     }
 
     if (proc->current_ui_type != PUMP_UI_TYPE_BOTH_LEVEL) {
-        return;
-    }
-
-    if (proc->info.control_type != BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
-        LOGE("control type is not bilateral, ignore.");
+        LOG_UI("ui type error, ignore.");
         return;
     }
 
@@ -68,9 +64,20 @@ static void pump_both_level_display_completed_cb(hdr_post_args_t *args)
         }
         WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
     }
-    proc->level_adjust_too_large = 0;
+     
+    // proc->level_adjust_too_large = 0;
     proc->level_change = 0;
-    show_pump_home_ui(proc);
+
+    int pump_status = 0;
+    READ_PUMP_WORK_STATUS(proc->pump, pump_status);
+    if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE) {
+        LOG_WM("goto home window.");
+        multi_func_msg_data_t msg = {0};
+        msg.union_body.extra.window_id = ID_WINDOW_HOME;
+        proc->wm->dispatch_new_window_args(proc->wm, &msg);
+    } else {
+        show_pump_home_ui(proc);
+    }
 }
 
 static void pump_both_level_ui_after_policy(ui_manager_context_t *ui, int index)
@@ -80,11 +87,13 @@ static void pump_both_level_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_display_pump_both_level_process(ui);
     uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
     if (time_diff >= PUMP_LEVEL_DISPLAY_TIMEOUT) {
+            LOG_UI("pump both level ui after policy: %d", time_diff);
         proc->last_progress_ani_time = get_timestamp();
         POST_TASK_HANDLER_NO_DELAY(pump_both_level_display_completed_cb, proc,
             PUMP_BOTH_LEVEL_DISPLAY_TASK_NAME);
     }
-    // LOG_UI("pump both level ui after policy: %d", time_diff);
+
+
 }
 
 static void pump_both_level_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -124,16 +133,18 @@ static void show_pump_both_level_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    if (proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_SUCCESS ||
-        proc->popup_ui_type == PUMP_POPUP_UI_OPERATION_FAILED) {
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+    if (proc->popup_ui_type == ID_POPUP_UI_OP_SUCCESS ||
+        proc->popup_ui_type == ID_POPUP_UI_OP_FAILED) {
+        pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
     }
-    proc->last_progress_ani_time = get_timestamp();
+
     if (proc->current_ui_type == PUMP_UI_TYPE_BOTH_LEVEL) {
+        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         pump_ui_change_hdr_remove(proc);
     }
+    
     ui_play_info_t play_info = {
         .tag = "pump_both_level_screen",
         .fps = PUMP_LEVEL_ANIMATION_FREQ,
@@ -159,7 +170,7 @@ void switch_pump_both_control_type_ui(ui_proc_pump_t *proc)
     READ_PUMP_IS_WORKING(proc->pump, is_pump_working);
     if (is_pump_working == 0) {
         LOG_UI("pump is not working, ignore.");
-        pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
+        pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
         return;
     }
 #endif
@@ -183,14 +194,15 @@ void switch_pump_both_level_ui(ui_proc_pump_t *proc, bool is_increase)
     READ_PUMP_IS_WORKING(proc->pump, is_pump_working);
     if (is_pump_working == 0) {
         LOG_UI("pump is not working, ignore.");
-        // pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
+        // pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
         return;
     }    
 #endif
+#if 0
     if (is_increase) {
         if (proc->level_adjust_too_large == -4) {
             proc->level_adjust_too_large = 0;
-            pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+            pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
             goto EXIT_BOTH_LEVEL_ADJUST;
         }
 
@@ -199,12 +211,12 @@ void switch_pump_both_level_ui(ui_proc_pump_t *proc, bool is_increase)
             proc->level_adjust_too_large = 0;
         } else {
             proc->level_adjust_too_large = 4;
-            pump_popup_ui_type_update(proc, PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE);
+            pump_popup_ui_type_update(proc, ID_POPUP_UI_LEVEL_ADJUST_WARNING);
         }
     } else {
         if (proc->level_adjust_too_large == 4) {
             proc->level_adjust_too_large = 0;
-            pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+            pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
             goto EXIT_BOTH_LEVEL_ADJUST;
         }
 
@@ -213,7 +225,7 @@ void switch_pump_both_level_ui(ui_proc_pump_t *proc, bool is_increase)
             proc->level_adjust_too_large = 0;
         } else {
             proc->level_adjust_too_large = -4;
-            pump_popup_ui_type_update(proc, PUMP_POPUP_UI_LEVEL_ADJUST_TOO_LARGE);
+            pump_popup_ui_type_update(proc, ID_POPUP_UI_LEVEL_ADJUST_WARNING);
         }
     }
 
@@ -224,6 +236,19 @@ EXIT_BOTH_LEVEL_ADJUST:
         // proc->level_sync_flag = false;
         proc->level_sync_flag = true;
     }
+#else
+    int16_t left_level = proc->setting.level[0] + proc->level_change;
+    int16_t right_level = proc->setting.level[1] + proc->level_change;
+    if (is_increase) {
+        if (left_level < BREAST_PUMP_LEVEL_15 || right_level < BREAST_PUMP_LEVEL_15) {
+            proc->level_change++;
+        }
+    } else {
+        if (left_level > BREAST_PUMP_LEVEL_0 || right_level > BREAST_PUMP_LEVEL_0) {
+            proc->level_change--;
+        }
+    }
+#endif
     show_pump_both_level_ui(proc);
 }   
 

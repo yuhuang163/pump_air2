@@ -38,7 +38,7 @@ void stop_home_common_ui(ui_proc_home_t *proc)
     proc->last_progress_ani_time = get_timestamp();
 }
 
-void home_popup_ui_type_update(ui_proc_home_t *proc, home_popup_ui_type_e type)
+void home_popup_ui_type_update(ui_proc_home_t *proc, popup_ui_id_e type)
 {
     EXCEPTION_CHECK_VOID(proc);
     proc->popup_ui_type = type;

@@ -40,11 +40,6 @@ void ui_display_home_bind_prepare(ui_manager_context_t *thiz);
 void ui_display_home_bind_remove(ui_manager_context_t *thiz);
 int ui_display_home_bind_process(ui_manager_context_t *thiz);
 
-/// 通用操作提示界面
-void home_tip_popup_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc,
-    lv_obj_t *parent, uint8_t *ui_index);
-void home_tip_popup_ui_remove(ui_manager_context_t *thiz);
-
 /// 追奶模式界面
 void ui_display_home_pump_bf_mode_prepare(ui_manager_context_t *thiz);
 void ui_display_home_pump_bf_mode_remove(ui_manager_context_t *thiz);

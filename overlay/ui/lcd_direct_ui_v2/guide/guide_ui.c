@@ -34,8 +34,6 @@ typedef struct {
     res_img_info_t img_info;
     uint8_t force_update;
     uint8_t page_index;
-    uint8_t popup_ui_index;
-    uint8_t rsv[13];
     char qr_str[120];
 } guide_display_info_t;
 
@@ -277,7 +275,6 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     ui_guide_root_init(); /// 初始化 root 容器
     guide_info->force_update = true;
-    guide_info->popup_ui_index = GUIDE_POPUP_UI_NONE;
     storage_manager_context_t *storage = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     if (storage) {
         factory_data_store_t *factory_data = storage->get_factory_data();
@@ -301,7 +298,6 @@ void ui_display_guide_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(guide_info);
     EXCEPTION_CHECK_VOID(guide_info->root);
     common_ui_img_resource_deinit(thiz, &guide_info->img_info);
-    guide_tip_popup_ui_remove(thiz);
     LVGL_OBJ_DELETE(guide_info->root);
     u_free(guide_info);
     guide_info = NULL;
@@ -315,7 +311,6 @@ int ui_display_guide_process(ui_manager_context_t *thiz)
     ui_proc_guide_t *proc = (ui_proc_guide_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     guide_ui_update(thiz, proc->page_index);
-    guide_tip_popup_ui_update(thiz, proc, guide_info->root, &guide_info->popup_ui_index);
     guide_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

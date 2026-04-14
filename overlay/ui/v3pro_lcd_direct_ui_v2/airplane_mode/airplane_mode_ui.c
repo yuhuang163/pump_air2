@@ -163,32 +163,6 @@ static void airplane_mode_texts_update(ui_manager_context_t *thiz, uint8_t index
 
 }
 
-static void airplane_mode_popup_ui_remove(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(airplane_mode_info);
-    ui_display_airplane_mode_exit_remove(thiz);
-}
-
-static void airplane_mode_popup_ui_update(ui_manager_context_t *thiz, ui_proc_airplane_mode_t *proc)
-{
-    switch (proc->popup_ui_type) {
-        case AIRPLANE_MODE_POPUP_UI_NONE:
-            airplane_mode_popup_ui_remove(thiz);
-            airplane_mode_info->popup_ui_index = AIRPLANE_MODE_POPUP_UI_NONE;
-            break;
-        case AIRPLANE_MODE_POPUP_UI_EXIT:
-            if (airplane_mode_info->popup_ui_index != AIRPLANE_MODE_POPUP_UI_EXIT) {
-                airplane_mode_popup_ui_remove(thiz);
-                ui_display_airplane_mode_exit_prepare(thiz, airplane_mode_info->root);
-                airplane_mode_info->popup_ui_index = AIRPLANE_MODE_POPUP_UI_EXIT;
-            } else {
-                ui_display_airplane_mode_exit_process(thiz);
-            }
-            break;
-    }
-}
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -218,7 +192,7 @@ void ui_display_airplane_mode_remove(ui_manager_context_t *thiz)
     battery_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
     common_ui_img_resource_deinit(thiz, &airplane_mode_info->unlock_button_icon_info);
-    ui_display_airplane_mode_exit_remove(thiz);
+    ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(airplane_mode_info->root); 
     u_free(airplane_mode_info);
     airplane_mode_info = NULL;
@@ -239,7 +213,8 @@ int ui_display_airplane_mode_process(ui_manager_context_t *thiz)
     for (uint8_t i = 0; i < AIRPLANE_MODE_TEXT_COUNT; i++) {
         airplane_mode_texts_update(thiz, i);
     }
-    airplane_mode_popup_ui_update(thiz, proc);
+    ui_common_operation_tip_update(thiz, proc->popup_ui_type, airplane_mode_info->root,
+        &airplane_mode_info->popup_ui_index);
     airplane_mode_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

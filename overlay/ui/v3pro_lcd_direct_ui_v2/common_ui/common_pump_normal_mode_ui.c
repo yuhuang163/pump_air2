@@ -500,7 +500,7 @@ void common_pump_normal_mode_ui_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     mode_info->force_update = true;
     mode_info->mode_obj_init_done = false;
-    mode_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+    mode_info->popup_ui_index = ID_POPUP_UI_NONE;
 }
 
 void common_pump_normal_mode_ui_remove(ui_manager_context_t *thiz)

@@ -36,12 +36,6 @@ typedef enum {
 } guide_ui_type_e;
 
 typedef enum {
-    GUIDE_POPUP_UI_NONE = 0,
-    GUIDE_POPUP_UI_OPERATION_SUCCESS = 1, /// 操作成功提示
-    GUIDE_POPUP_UI_OPERATION_FAILED = 2, /// 操作失败提示
-} guide_popup_ui_type_e;
-
-typedef enum {
     /// 引导页面V1
     GUIDE_PAGE_GUIDE_QRCODE = 0, /// 引导二维码
     GUIDE_PAGE_GUIDE_PHONE = 1, /// 引导手机

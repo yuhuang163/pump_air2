@@ -518,80 +518,6 @@ static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t star
     lv_image_set_src(pump_info->animation, (const void *)&animation_img_path);
     pump_info->animation_index++;
 }
-
-static void pump_home_popup_ui_remove(ui_manager_context_t *thiz)
-{
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(pump_info);
-    ui_common_operation_tip_remove(thiz);
-    ui_pump_status_popup_remove(thiz);
-    pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
-}
-
-static void pump_home_popup_ui_update(ui_manager_context_t *thiz, ui_proc_pump_t *proc)
-{
-    switch (proc->popup_ui_type) {
-        case PUMP_POPUP_UI_NONE:
-            pump_home_popup_ui_remove(thiz);
-            pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
-            break;
-            case PUMP_POPUP_UI_OPERATION_SUCCESS:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_OPERATION_SUCCESS) {
-                pump_home_popup_ui_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, pump_info->root);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_SUCCESS;
-            } else {
-                ui_common_operation_tip_process(thiz, COMMON_OP_TIP_SUCCESS);
-            }
-            break;
-        case PUMP_POPUP_UI_OPERATION_FAILED:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_OPERATION_FAILED) {
-                pump_home_popup_ui_remove(thiz);
-                ui_common_operation_tip_prepare(thiz, pump_info->root);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_OPERATION_FAILED;
-            } else {
-                ui_common_operation_tip_process(thiz, COMMON_OP_TIP_FAILED);
-            }
-            break;
-        case PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT) {
-                pump_home_popup_ui_remove(thiz);
-                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT;
-            } else {
-                ui_pump_status_popup_process(thiz);
-            }
-            break;
-        case PUMP_POPUP_UI_PUMP_FINISH_MANUAL:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_FINISH_MANUAL) {
-                pump_home_popup_ui_remove(thiz);
-                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_FINISH_MANUAL);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_FINISH_MANUAL;
-            } else {
-                ui_pump_status_popup_process(thiz);
-            }
-            break;
-        case PUMP_POPUP_UI_PUMP_PAUSE_MANUAL:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_PAUSE_MANUAL) {
-                pump_home_popup_ui_remove(thiz);
-                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_PAUSE_MANUAL);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_PAUSE_MANUAL;
-            } else {
-                ui_pump_status_popup_process(thiz);
-            }
-            break;
-        case PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT:
-            if (pump_info->popup_ui_index != PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT) {
-                pump_home_popup_ui_remove(thiz);
-                ui_pump_status_popup_prepare(thiz, pump_info->root, PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT);
-                pump_info->popup_ui_index = PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT;
-            } else {
-                ui_pump_status_popup_process(thiz);
-            }
-            break;
-    }
-}
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -610,7 +536,7 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     pump_info->animation_index = 0;
     pump_info->animation_play_complete = false;
     pump_info->force_update = true;
-    pump_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+    pump_info->popup_ui_index = ID_POPUP_UI_NONE;
 }
 
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
@@ -621,7 +547,7 @@ void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
     common_ui_img_resource_deinit(thiz, &pump_info->background_info);
     ble_ui_deinit(thiz);
-    pump_home_popup_ui_remove(thiz);
+    ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(pump_info->root);
     u_free(pump_info);
     pump_info = NULL;
@@ -667,12 +593,13 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     pump_home_left_level_update(thiz, setting.level[0]);
     pump_home_right_level_update(thiz, setting.level[1]);
     pump_home_speed_label_update(thiz, setting.speed);
-    pump_home_popup_ui_update(thiz, proc);
+    ui_common_operation_tip_update(thiz, proc->popup_ui_type, pump_info->root,
+        &pump_info->popup_ui_index);
     pump_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> pump home fps: %d, mode:%d", thiz->priv.fps_count, pump_mode);
+        LOG_UI("===> pump home fps: %d, mode:%d/%d", thiz->priv.fps_count, pump_mode, proc->popup_ui_type);
         thiz->priv.fps_count = 0;
     }
     return 0;

@@ -499,7 +499,7 @@ void common_pump_speed_ui_prepare(ui_manager_context_t *thiz)
     common_ui_bg_init(thiz);
     speed_info->force_update = true;
     speed_info->speed_obj_init_done = false;
-    speed_info->popup_ui_index = PUMP_POPUP_UI_NONE;
+    speed_info->popup_ui_index = ID_POPUP_UI_NONE;
 }
 
 void common_pump_speed_ui_remove(ui_manager_context_t *thiz)

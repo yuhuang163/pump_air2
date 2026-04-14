@@ -119,7 +119,7 @@ static void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
             switch_pump_both_control_type_ui(proc);
             break;
         default:
-            // pump_popup_ui_type_update(proc, PUMP_POPUP_UI_OPERATION_FAILED);
+            // pump_popup_ui_type_update(proc, ID_POPUP_UI_OP_FAILED);
             LOG_WM("unknow ui type: %d, ignore.", proc->current_ui_type);
             break;
     }
@@ -130,7 +130,7 @@ static void pump_long_press_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
     switch (keycode) {
         case KEY_CODE_START:
             if (proc->current_ui_type == PUMP_UI_TYPE_HOME) {
-                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_FINISH_MANUAL);
+                pump_popup_ui_type_update(proc, ID_POPUP_UI_PUMP_FINISH_MANUAL);
             }
             break;
         default:
@@ -194,13 +194,13 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
     if (keytype == KEY_EVENT_LONG_2S) {
         pump_long_press_event_cb(proc, keycode);
     } else {
-        if (proc->popup_ui_type == PUMP_POPUP_UI_PUMP_FINISH_MANUAL) {
+        if (proc->popup_ui_type == ID_POPUP_UI_PUMP_FINISH_MANUAL) {
             int pump_status = 0;
             READ_PUMP_WORK_STATUS(proc->pump, pump_status);
             if (pump_status == BREAST_PUMP_PAUSE) {
-                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_PAUSE_MANUAL);
+                pump_popup_ui_type_update(proc, ID_POPUP_UI_PUMP_PAUSE_MANUAL);
             } else {
-                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_NONE);
+                pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
             }
         }
 
@@ -254,17 +254,17 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
             } else if (arg1 == BREAST_PUMP_BROADCAST_COMPLETED) {
                 LOG_WM("pump finish, post pump complete task.");
             } else if (arg1 == BREAST_PUMP_BROADCAST_PUMP_WILL_FINISH) {
-                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_FINISH_TIMEOUT);
+                pump_popup_ui_type_update(proc, ID_POPUP_UI_PUMP_FINISH_TIMEOUT);
                 LOG_WM("pump will finish, post pump will finish task.");
             } else if (arg1 == BREAST_PUMP_BROADCAST_APP_COMPLETED) {
                 POST_TASK_HANDLER_NO_DELAY_ARG1(pump_ui_common_cb, proc, PUMP_HDR_ACTION_PUMP_COMPLETE, 
                     PUMP_COMPLETE_TASK_NAME);
                 LOG_WM("pump app complete, post pump app complete task.");
             } else if (arg1 == BREAST_PUMP_BROADCAST_PUMP_ERROR) {
-                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_ERROR_TIP);
+                // pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_ERROR_TIP);
                 LOG_WM("pump error, post pump error task.");
             } else if (arg1 == BREAST_PUMP_BROADCAST_AUTO_PAUSE_REQUEST) {
-                pump_popup_ui_type_update(proc, PUMP_POPUP_UI_PUMP_PAUSE_TIMEOUT);
+                pump_popup_ui_type_update(proc, ID_POPUP_UI_PUMP_PAUSE_TIMEOUT);
                 LOG_WM("pump auto pause, post pump auto pause task.");
             }
             break;

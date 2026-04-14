@@ -29,7 +29,7 @@ static void home_popup_ui_finish_policy(ui_manager_context_t *ui, int index)
 {
     LOG_WM("===> popup %d ui display complete.", index);
     ui_proc_home_t *proc = (ui_proc_home_t *)ui->priv.play_info.user_data;
-    home_popup_ui_type_update(proc, HOME_POPUP_UI_NONE);
+    home_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
 }
 
 static void home_ui_after_policy(ui_manager_context_t *ui, int index)

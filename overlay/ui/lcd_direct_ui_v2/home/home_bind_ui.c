@@ -309,7 +309,7 @@ void ui_display_home_bind_prepare(ui_manager_context_t *thiz)
     ui_home_bind_root_init(); /// 初始化 root 容器
     common_ui_bg_init(thiz);
     home_bind_info->force_update = true;
-    home_bind_info->popup_ui_index = HOME_POPUP_UI_NONE;
+    home_bind_info->popup_ui_index = ID_POPUP_UI_NONE;
     storage_manager_context_t *storage = (storage_manager_context_t *)find_module(ID_MODULE_STORAGE);
     if (storage) {
         factory_data_store_t *factory_data = storage->get_factory_data();
@@ -329,13 +329,11 @@ void ui_display_home_bind_prepare(ui_manager_context_t *thiz)
 
 void ui_display_home_bind_remove(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(home_bind_info);
-    EXCEPTION_CHECK_VOID(home_bind_info->root);
+    EXCEPTION_CHECK_VOID(thiz && home_bind_info && home_bind_info->root);
     common_ui_bg_deinit(thiz);
-    home_tip_popup_ui_remove(thiz);
     common_ui_img_resource_deinit(thiz, &home_bind_info->label_info);
     common_ui_img_resource_deinit(thiz, &home_bind_info->ip_info);
+    ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(home_bind_info->root);
     u_free(home_bind_info);
     home_bind_info = NULL;
@@ -343,14 +341,13 @@ void ui_display_home_bind_remove(ui_manager_context_t *thiz)
 
 int ui_display_home_bind_process(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(home_bind_info);
-    EXCEPTION_CHECK_INT(home_bind_info->root);
+    EXCEPTION_CHECK_INT(thiz && home_bind_info && home_bind_info->root);
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     ui_home_bind_bg_update(thiz);
     home_bind_status_ui_update(thiz, proc);
-    home_tip_popup_ui_update(thiz, proc, home_bind_info->root, &home_bind_info->popup_ui_index);
+    ui_common_operation_tip_update(thiz, proc->popup_ui_type, home_bind_info->root,
+        &home_bind_info->popup_ui_index);
     home_bind_info->force_update = false;
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {

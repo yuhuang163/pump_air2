@@ -12,13 +12,6 @@ extern "C" {
 #include "ui_manager_api.h" // IWYU pragma: keep
 #include "resource_manager_api.h" // IWYU pragma: keep
 
-typedef enum {
-    COMMON_OP_TIP_NONE = 0,
-    COMMON_OP_TIP_SUCCESS = 1,
-    COMMON_OP_TIP_FAILED = 2,
-    COMMON_OP_TIP_LEVEL_ADJUST_WARNING = 3, /// 档位范围调整警告
-} common_operation_type_e;
-
 /*
 * GLOBAL FUNCTION DECLARATION
 *********************************************************************************
@@ -39,11 +32,11 @@ void common_ui_bg_update(ui_manager_context_t *thiz, lv_obj_t *parent);
 void common_ui_bg_deinit(ui_manager_context_t *thiz);
 
 /// 通用操作提示界面
-void ui_common_operation_tip_prepare(ui_manager_context_t *thiz, lv_obj_t *parent);
+void ui_common_operation_tip_prepare(ui_manager_context_t *thiz, lv_obj_t *parent, popup_ui_id_e type);
 void ui_common_operation_tip_remove(ui_manager_context_t *thiz);
-void ui_common_operation_tip_process(ui_manager_context_t *thiz, common_operation_type_e type);
-void common_operation_tip_ui_update(ui_manager_context_t *thiz, 
-    common_operation_type_e type, lv_obj_t *parent, uint8_t *ui_index);
+void ui_common_operation_tip_process(ui_manager_context_t *thiz, popup_ui_id_e type);
+void ui_common_operation_tip_update(ui_manager_context_t *thiz, 
+    popup_ui_id_e type, lv_obj_t *parent, uint8_t *ui_index);
 
 /// 追奶模式界面
 void common_pump_bf_mode_ui_prepare(ui_manager_context_t *thiz);
@@ -56,7 +49,6 @@ void common_pump_normal_mode_ui_remove(ui_manager_context_t *thiz);
 int common_pump_normal_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx);
 
 /// 泵奶速度界面
-uint8_t pump_speed_convert_to_ui_speed_idx(uint8_t speed);
 void common_pump_speed_ui_prepare(ui_manager_context_t *thiz);
 void common_pump_speed_ui_remove(ui_manager_context_t *thiz);
 int common_pump_speed_ui_process(ui_manager_context_t *thiz, uint8_t speed);

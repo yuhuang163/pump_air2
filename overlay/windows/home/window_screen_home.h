@@ -54,12 +54,6 @@ typedef enum {
     HOME_UI_TYPE_MAX
 } home_ui_type_e;
 
-typedef enum {
-    HOME_POPUP_UI_NONE = 0,
-    HOME_POPUP_UI_OPERATION_SUCCESS = 1, /// 操作成功提示
-    HOME_POPUP_UI_OPERATION_FAILED = 2, /// 操作失败提示
-} home_popup_ui_type_e;
-
 /// 主界面UI结构体
 typedef struct {
     window_context_t w_ctx;
@@ -114,7 +108,7 @@ void home_pump_speed_key_click_handler(ui_proc_home_t *proc);
 void start_home_bind_ui_animation(ui_proc_home_t *proc);
 void home_bind_ui_hdr_remove(void);
 /// 弹窗类型更新
-void home_popup_ui_type_update(ui_proc_home_t *proc, home_popup_ui_type_e type);
+void home_popup_ui_type_update(ui_proc_home_t *proc, popup_ui_id_e type);
 /// 主界面UI切换
 void home_ui_change_hdr_remove(ui_proc_home_t *proc);
 
