@@ -12,7 +12,7 @@
 *****************************************************************************************
 */
 #define UI_ANIMATION_STOP_TIMEOUT               (1000)
-#define IS_PRINT_LVGL_MEM_MONITOR               0
+#define IS_PRINT_LVGL_MEM_MONITOR               1
 #define UI_LVGL_MSG_QUEUE_NUM                   4
 #define UI_BL_ON_LEVEL_MIN                      (20 * 100) /// 开灯最低亮度
 #define UI_BL_ON_LEVEL_RANGE                    (50 * 100) /// 开灯调节范围大小 20 - 50
@@ -70,7 +70,6 @@ const static ui_snap_shot_info_t snap_shot_infos[UI_SNAP_SHOT_ID_MAX] = {
 */
 static void change_images_cb(lv_timer_t *t);
 static void reset_play_count_cb(ui_animation_play_t *play);
-// static void ui_pm_suspend_on_ui_thread(struct ui_manager_context *thiz);
 
 static void set_backlight_level_internal(ui_manager_context_t *thiz, uint16_t level)
 {
@@ -337,7 +336,6 @@ static void lvgl_display_handler(struct ui_manager_context *thiz)
                 ui_animation_overlay_deinit_on_ui_thread(thiz);
                 break;
             case UI_LVGL_MSG_CMD_PM_SUSPEND:
-                // ui_pm_suspend_on_ui_thread(thiz);
                 break;
             default:
                 break;
