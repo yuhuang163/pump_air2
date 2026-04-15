@@ -37,6 +37,7 @@ typedef struct {
     uint8_t animation_status;
     uint32_t animation_start_time;
     uint8_t display_direction;
+    uint8_t level_base;
     int8_t level_change;
     uint8_t rsv[12];
 } level_display_info_t;
@@ -282,7 +283,8 @@ static int pump_level_text_update(ui_manager_context_t *thiz, uint8_t level)
 
 static void pump_level_update(ui_manager_context_t *thiz, uint8_t level, int8_t level_change)
 {
-    if (level_info->force_update == false && level_info->level_change == level_change) {
+    if (level_info->force_update == false && level_info->level_change == level_change &&
+        level_info->level_base == level) {
         return;
     }
      
@@ -304,6 +306,7 @@ static void pump_level_update(ui_manager_context_t *thiz, uint8_t level, int8_t 
         return;
     }
     level_info->level_change = level_change;
+    level_info->level_base = level;
 }
 
 static void pump_level_range_text_update(ui_manager_context_t *thiz)
