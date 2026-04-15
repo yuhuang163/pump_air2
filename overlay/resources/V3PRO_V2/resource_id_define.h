@@ -16,7 +16,10 @@ typedef enum {
     /* 通用组 [1..100] */
     RESOURCE_ID_BLE_CONNECT_ICON = 1,           /// 蓝牙连接图标
     RESOURCE_ID_BLE_DISCONNECT_ICON,            /// 蓝牙断开图标
+    RESOURCE_ID_BLE_CONNECT_POPUP_ICON,         /// 蓝牙连接弹窗图标
     RESOURCE_ID_BLE_DISCONNECT_POPUP_ICON,      /// 蓝牙断开弹窗图标
+    RESOURCE_ID_BIND_ICON,                      /// 绑定图标
+    RESOURCE_ID_UNBIND_ICON,                    /// 解绑图标
     RESOURCE_ID_ALLOW_ICON,                     /// 允许图标
     RESOURCE_ID_BAN_ICON,                       /// 禁止图标
     RESOURCE_ID_WARNING_ICON,                   /// 警告图标
