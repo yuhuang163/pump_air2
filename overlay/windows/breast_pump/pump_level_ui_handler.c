@@ -4,7 +4,6 @@
 */
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_pump.h"
-#include <stdint.h>
 
 /*
 * DEFINES
@@ -156,9 +155,9 @@ void switch_pump_control_type_ui(ui_proc_pump_t *proc, uint8_t control_type)
     }
     proc->level_change = 0;
     if (proc->current_ui_type != PUMP_UI_TYPE_LEVEL) {
-        int time_index = 0;
-        READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
-        READ_PUMP_SETTING_INFO(proc->pump, time_index, proc->setting);
+    int time_index = 0;
+    READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
+    READ_PUMP_SETTING_INFO(proc->pump, time_index, proc->setting);
     } 
     
     if (proc->info.control_type != control_type) {

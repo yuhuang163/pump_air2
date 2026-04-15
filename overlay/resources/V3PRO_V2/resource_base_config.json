@@ -102,9 +102,30 @@
       "y_offset": 0
     },
     {
+      "resource_id": "RESOURCE_ID_BLE_CONNECT_POPUP_ICON",
+      "description": "蓝牙连接弹窗图标",
+      "file": "base/baj/icon_ble_connect_popup_64x64_a8_q99_444.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
       "resource_id": "RESOURCE_ID_BLE_DISCONNECT_POPUP_ICON",
       "description": "蓝牙断开弹窗图标",
       "file": "base/baj/icon_ble_disconnect_popup_64x64_a8_q99_444.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_BIND_ICON",
+      "description": "绑定图标",
+      "file": "base/baj/icon_bind_64x64_a8_q99_444.baj",
+      "x_offset": 0,
+      "y_offset": 0
+    },
+    {
+      "resource_id": "RESOURCE_ID_UNBIND_ICON",
+      "description": "解绑图标",
+      "file": "base/baj/icon_unbind_64x64_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
