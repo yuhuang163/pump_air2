@@ -70,7 +70,7 @@ int ble_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, ble_manager_contex
             return 0;
         }
 
-        if ((time_ms - ble_info->fps_start_time) < 100) {
+        if ((time_ms - ble_info->fps_start_time) < 500) {
             return 0;
         }
         ble_info->fps_start_time = get_timestamp(); /// 更新开始时间
