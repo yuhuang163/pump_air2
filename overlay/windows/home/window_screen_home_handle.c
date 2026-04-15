@@ -110,8 +110,14 @@ static void home_power_key_event_cb(ui_proc_home_t *proc)
     if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT || 
         proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
         POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
+    } else if (proc->current_ui_type == HOME_UI_TYPE_HOME) {
+#if IS_SUPPORT_NIGHT_LIGHT
+        if (proc->led && proc->led->hook && proc->led->hook->toggle_night_light) {
+            proc->led->hook->toggle_night_light(proc->led);
+        }
+#endif
     } else {
-        return;
+        LOG_WM("ignore key event.");
     }
 }
 
@@ -126,17 +132,9 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
     }
 
     switch (keycode) {
-#if IS_SUPPORT_NIGHT_LIGHT
-        case KEY_CODE_POWER:
-            if (proc->led && proc->led->hook && proc->led->hook->toggle_night_light) {
-                proc->led->hook->toggle_night_light(proc->led);
-            }
-            break;
-#else
         case KEY_CODE_POWER:
             home_power_key_event_cb(proc);
         break;
-#endif
         case KEY_CODE_KNOB_LEFT:
             home_knob_left_event_cb(proc);
             break;

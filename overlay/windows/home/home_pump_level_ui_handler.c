@@ -115,6 +115,7 @@ static void show_home_pump_level_ui(ui_proc_home_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    
     home_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
     if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST) {
         proc->last_progress_ani_time = get_timestamp();
