@@ -332,7 +332,7 @@ static void hyn_touch_key_read_once(void)
     (void)hyn_i2c_write(0x1F, &clear_irq, 1);
 
     s_key_state = (uint16_t)(read_buff[1] << 8) | read_buff[0];
-    LOGE("HYN reg 0x22(read_once): 0x%04x", (unsigned)s_key_state);
+    // LOGE("HYN reg 0x22(read_once): 0x%04x", (unsigned)s_key_state);
     for (uint8_t i = 0; i < HYN_TOUCH_KEY_NUM; i++) {
         s_touch_key[i] = (s_key_state & s_key_mask[i]) ? 1 : 0;
     }

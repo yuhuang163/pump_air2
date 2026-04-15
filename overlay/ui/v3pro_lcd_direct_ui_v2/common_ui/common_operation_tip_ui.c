@@ -35,7 +35,8 @@ typedef struct {
     uint16_t target_time;             /// 倒计时目标时间 单位：秒
     uint8_t display_number;           /// 显示倒计时数字
     uint8_t force_update;
-    uint8_t rsv[14];
+    uint8_t number_max;
+    uint8_t rsv[13];
 } common_op_tip_disp_info_t;
 
 typedef struct {
@@ -78,17 +79,17 @@ const static operation_text_info_t pump_finish_timeout_infos[OPERATION_TIP_TEXT_
 };
 
 const static operation_text_info_t operation_success_infos[OPERATION_TIP_TEXT_COUNT] = {
-    { "Success", 212, &lv_font_oppo_sans_16_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
+    { "Success", 212, &lv_font_oppo_sans_20_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
     { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, OPERATION_TIP_TEXT_COLOR},
 };
 
 const static operation_text_info_t operation_success_preset_infos[OPERATION_TIP_TEXT_COUNT] = {
-    { "Success", 212, &lv_font_oppo_sans_16_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
+    { "Success", 212, &lv_font_oppo_sans_20_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
     { "Take effect durning pumping", 232, &lv_font_oppo_sans_16_medium, LV_OPA_70, OPERATION_STATUS_TEXT_COLOR},
 };
 
 const static operation_text_info_t operation_failed_infos[OPERATION_TIP_TEXT_COUNT] = {
-    { "Invalid operation", 212, &lv_font_oppo_sans_16_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
+    { "Invalid operation", 212, &lv_font_oppo_sans_20_medium, LV_OPA_100, OPERATION_TIP_TEXT_COLOR},
     { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, OPERATION_TIP_TEXT_COLOR},
 };
 
@@ -219,7 +220,7 @@ static void common_operation_num_update(ui_manager_context_t *thiz)
     }
     char num_buf[8] = {0};
     uint8_t num = get_timestamp_ms(operation_info->start_time) / 1000;
-    uint8_t show_num = (num > 5 ? 0 : 5 - num);
+    uint8_t show_num = (num > operation_info->number_max ? 0 : operation_info->number_max - num);
     if (operation_info->force_update == false &&
         operation_info->display_number == show_num) {
         return;
@@ -376,6 +377,7 @@ void ui_common_operation_tip_prepare(ui_manager_context_t *thiz, lv_obj_t *paren
         time = 5000;
     }
     operation_info->target_time = time;
+    operation_info->number_max = time / 1000;
     operation_info->ring_progress_max = (time / OPERATION_STATUS_DISPLAY_STEP_TIME) - 2;
     operation_info->force_update = true;
     operation_info->start_time = get_timestamp();
