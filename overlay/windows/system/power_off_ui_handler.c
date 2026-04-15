@@ -108,7 +108,7 @@ static void power_off_cb(hdr_post_args_t *args)
     LOGW("==========POWER_OFF==========");
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_VOID(pbus);
-    rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_POWER);
+    rt_device_node_t *led_dev = pbus->find_device(ID_DEVICE_LED);
     if (led_dev) {
         led_status_msg_t msg = {
             .led_index = PUMP_LED_ALL_ID,
