@@ -13,14 +13,12 @@
 * DEFINES
 *****************************************************************************************
 */
-
+#define HYN_TOUCH_KEY_DEBUG            (0) /// 触摸按键调试开关
 #define HYN_KEY_IDLE_COUNT             (3)
 
 #if HYN_TOUCH_USE_POLL
 #define HYN_POLL_PERIOD_MS             (20)  /// 轮询周期，IRQ 不触发时靠轮询保证触摸有响应
 #endif
-
-#define HYN_TOUCH_KEY_DEBUG            (0) /// 触摸按键调试开关
 
 #ifndef HYN_IRQ_USE_RISING_EDGE
 #define HYN_IRQ_USE_RISING_EDGE        (0) /// 是否使用上升沿触发
@@ -49,6 +47,7 @@ static uint8_t s_touch_fw_version = 0;
 static thread_context_t s_key_device_thd = {0};
 static uint8_t s_touch_key[HYN_TOUCH_KEY_NUM] = {0};
 static uint16_t s_key_state = 0;
+static uint16_t s_key_last_state = 0;
 static bool s_is_upgrading = false;
 static key_ota_event_cb_func s_key_ota_event_cb = NULL;
 /// 0x22 寄存器位定义: 与硬件/丝印一致
@@ -82,6 +81,17 @@ static int hyn_i2c_write(uint8_t reg_addr, const uint8_t *buf, uint16_t len)
     return bsp_i2c_write_byte(TOUCH_KEY_I2C_ID, &data);
 }
 
+static int hyn_i2c_write_with_retry(uint8_t reg_addr, const uint8_t *buf, uint16_t len, uint8_t retry_count)
+{
+    for (uint8_t i = 0; i < retry_count; i++) {
+        if (hyn_i2c_write(reg_addr, buf, len) == BSP_OK) {
+            return BSP_OK;
+        }
+        msleep(10);
+    }
+    return BSP_ERROR;
+}
+
 static int hyn_i2c_read(uint8_t reg_addr, uint8_t *buf, uint16_t len)
 {
     i2c_master_data_t data = {
@@ -92,6 +102,17 @@ static int hyn_i2c_read(uint8_t reg_addr, uint8_t *buf, uint16_t len)
         .len = len,
     };
     return bsp_i2c_read_byte(TOUCH_KEY_I2C_ID, &data);
+}
+
+static int hyn_i2c_read_with_retry(uint8_t reg_addr, uint8_t *buf, uint16_t len, uint8_t retry_count)
+{
+    for (uint8_t i = 0; i < retry_count; i++) {
+        if (hyn_i2c_read(reg_addr, buf, len) == BSP_OK) {
+            return BSP_OK;
+        }
+        msleep(10);
+    }
+    return BSP_ERROR;
 }
 
 static int hyn_i2c_write_and_check(uint8_t reg_addr, const uint8_t *buf, uint16_t len)
@@ -210,7 +231,7 @@ static uint8_t hyn_read_fw_version(void)
 static void hyn_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
 #if HYN_TOUCH_KEY_DEBUG
-    LOGE("HYN irq pin=%d", (int)pin);
+    BSP_LOG_PASS("HYN irq pin=%d\n", (int)pin);
 #endif
     if (pin == TOUCH_INT_PIN && s_key_device_thd.msg_id) {
         uint8_t msg = TOUCH_KEY_THREAD_MSG_INTERRUPT;
@@ -312,79 +333,33 @@ static void hyn_rst_pin_init(void)
     hal_gpio_pin_set(HYN_TOUCH_RST_PIN);
 #endif
 }
- 
-/** 一次快速读键值并更新 s_touch_key[]，供 scan_key 定时器首次回调时能读到有效状态，避免因 key_idle_count 提前停掉定时器 */
-static void hyn_touch_key_read_once(void)
-{
-    uint8_t read_buff[2] = {0};
-    uint8_t clear_irq;
-
-    if (hyn_i2c_read(0x1F, read_buff, 1) != BSP_OK) {
-        return;
-    }
-    if ((read_buff[0] & 0x01) != 0x01) {
-        return;
-    }
-    clear_irq = read_buff[0] & (~0x02);
-    if (hyn_i2c_read(0x22, read_buff, 2) != BSP_OK) {
-        return;
-    }
-    (void)hyn_i2c_write(0x1F, &clear_irq, 1);
-
-    s_key_state = (uint16_t)(read_buff[1] << 8) | read_buff[0];
-    // LOGE("HYN reg 0x22(read_once): 0x%04x", (unsigned)s_key_state);
-    for (uint8_t i = 0; i < HYN_TOUCH_KEY_NUM; i++) {
-        s_touch_key[i] = (s_key_state & s_key_mask[i]) ? 1 : 0;
-    }
-}
 
 static void hyn_touch_key_scan(void)
 {
-    uint8_t read_buff[2] = {0};
+    uint8_t read_buff[5] = {0};
     uint8_t clear_irq;
     uint16_t key_idle_count = 0;
-    int error_count = 0;
-
     while (1) {
-        if (hyn_i2c_read(0x1F, read_buff, 1) != BSP_OK) {
-            error_count++;
-            if (error_count > 5) {
-                break;
-            }
-            msleep(10);
-            continue;
-        }
-
+        memset(read_buff, 0, sizeof(read_buff));
+        hyn_i2c_read_with_retry(0x1F, read_buff, sizeof(read_buff), 3);
         if ((read_buff[0] & 0x01) != 0x01) {
-            error_count++;
-            if (error_count > 5) {
-                break;
-            }
             msleep(10);
+            BSP_LOG_PASS("no key irq\n");
             continue;
         }
-
         clear_irq = read_buff[0] & (~0x02);
-        if (hyn_i2c_read(0x22, read_buff, 2) != BSP_OK) {
-            error_count++;
-            if (error_count > 5) {
-                break;
-            }
-            msleep(10);
-            continue;
-        }
-
-        if (hyn_i2c_write(0x1F, &clear_irq, 1) != BSP_OK) {
-            msleep(10);
-            continue;
-        }
-
-        s_key_state = (uint16_t)(read_buff[1] << 8) | read_buff[0];
-        #if HYN_TOUCH_KEY_DEBUG
-        LOGE("HYN reg 0x22(scan): 0x%04x", (unsigned)s_key_state);
-        #endif
+        s_key_state = (uint16_t)(read_buff[4] << 8) | read_buff[3];
+        hyn_i2c_write_with_retry(0x1F, &clear_irq, 1, 3);
         for (uint8_t i = 0; i < HYN_TOUCH_KEY_NUM; i++) {
             s_touch_key[i] = (s_key_state & s_key_mask[i]) ? 1 : 0;
+        }
+
+        if (s_key_state != s_key_last_state) {
+            s_key_last_state = s_key_state;
+#if HYN_TOUCH_KEY_DEBUG
+            BSP_LOG_PASS("%lu:%04x->%04x\n", get_timestamp(), 
+                (unsigned)s_key_last_state, (unsigned)s_key_state);
+#endif
         }
 
         if (s_key_state == 0) {
@@ -395,7 +370,6 @@ static void hyn_touch_key_scan(void)
         } else {
             key_idle_count = 0;
         }
-        error_count = 0;
         msleep(10);
     }
 }
@@ -433,7 +407,6 @@ static void key_device_thread(void *arg)
             continue;
         }
 #endif
-        hyn_touch_key_read_once();
         hyn_touch_key_scan();
     }
 }
