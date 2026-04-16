@@ -148,7 +148,7 @@ void home_pump_normal_mode_key_click_handler(ui_proc_home_t *proc)
     READ_PUMP_COMMON_MODE(proc->pump, false, mode_index);
     proc->ui_normal_mode_index = mode_index;
     if (PUMP_IS_COMMON_MODE(mode_index) == 0) {
-        proc->ui_normal_mode_index = BREAST_PUMP_STIMULATION_MODE;
+        proc->ui_normal_mode_index = BREAST_PUMP_NORMAL_MODE_DEFAULT;
     } 
     if (proc->pump_priming == 0) {
         proc->pump_priming = true;
