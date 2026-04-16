@@ -195,7 +195,7 @@ void app_old_comm_report_discon_status(void)
 {
     LOG_SRV(" Parsing disconnection notification");
     // TODO: Handle BLE disconnection logic
-    app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_DISCON, 0, NULL);
+    //app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NOTIFY, APP_OLD_COMM_CID_NOTIFY_DISCON, 0, NULL);
 }
 
 void app_old_comm_report_bind_status(uint8_t bind_status, uint8_t left_right)
