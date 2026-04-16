@@ -11,10 +11,10 @@ extern "C" {
 ******************************************************************************/
 
 typedef enum {
-    RESOURCE_ID_NONE = 0x00, /// 无资源
+    RESOURCE_ID_NONE = 0, /// 无资源
 
     /* 通用组 [1..100] */
-    RESOURCE_ID_BLE_CONNECT_ICON = 0x01,        /// 蓝牙连接图标
+    RESOURCE_ID_BLE_CONNECT_ICON = 1,           /// 蓝牙连接图标
     RESOURCE_ID_BLE_DISCONNECT_ICON,            /// 蓝牙断开图标
     RESOURCE_ID_BLE_CONNECT_POPUP_ICON,         /// 蓝牙连接弹窗图标
     RESOURCE_ID_BLE_DISCONNECT_POPUP_ICON,      /// 蓝牙断开弹窗图标

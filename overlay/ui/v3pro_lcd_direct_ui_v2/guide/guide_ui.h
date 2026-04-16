@@ -12,11 +12,6 @@ extern "C" {
 #include "ui_manager_api.h" // IWYU pragma: keep
 #include "window_screen_guide.h" // IWYU pragma: keep
 
-typedef enum {
-    GUIDE_OPERATION_SUCCESS = 0,
-    GUIDE_OPERATION_FAILED = 1,
-} guide_operation_type_e;
-
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

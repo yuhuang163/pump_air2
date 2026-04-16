@@ -10,6 +10,7 @@ extern "C" {
 ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 #include "ui_manager_api.h" // IWYU pragma: keep
+#include "ui_page_define.h" // IWYU pragma: keep
 #include "resource_manager_api.h" // IWYU pragma: keep
 
 /*

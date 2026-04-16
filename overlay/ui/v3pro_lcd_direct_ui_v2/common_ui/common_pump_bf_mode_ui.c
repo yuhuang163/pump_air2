@@ -2,12 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common_api.h" // IWYU pragma: keep
-#include "ui_img_define.h" // IWYU pragma: keep
+#include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
-#include "ui_manager.h" // IWYU pragma: keep
-#include "window_screen_pump.h" // IWYU pragma: keep
-#include "breast_pump_ui.h" // IWYU pragma: keep
+#include "ui_manager.h"   // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -650,6 +647,6 @@ int common_pump_bf_mode_ui_process(ui_manager_context_t *thiz, uint8_t mode_idx,
     bf_mode_text_update(thiz);
     ui_common_operation_tip_update(thiz, popup_ui_type, bf_mode_info->root, &bf_mode_info->popup_ui_index);
     bf_mode_info->force_update = false;
-
+    
     return 0;
 }

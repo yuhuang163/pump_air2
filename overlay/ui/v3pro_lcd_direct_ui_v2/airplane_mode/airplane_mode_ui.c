@@ -2,12 +2,11 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
-#include "airplane_mode_ui.h" // IWYU pragma: keep
 #include "window_screen_airplane_mode.h" // IWYU pragma: keep
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -160,9 +159,7 @@ static void airplane_mode_texts_update(ui_manager_context_t *thiz, uint8_t index
     }
     lv_obj_set_style_text_align(airplane_mode_info->texts[index], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
     lv_obj_align(airplane_mode_info->texts[index], LV_ALIGN_TOP_MID, 0, airplane_mode_text_infos[index].text_y);
-
 }
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
