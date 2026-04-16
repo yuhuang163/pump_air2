@@ -42,6 +42,7 @@ static void home_pump_bf_mode_ui_after_policy(ui_manager_context_t *ui, int inde
     EXCEPTION_CHECK_VOID(proc);
     if (get_timestamp_ms(proc->last_progress_ani_time) >= HOME_MODE_SELECT_DISPLAY_TIME) {
         proc->last_progress_ani_time = get_timestamp();
+        LOG_UI("progress mode ui timeout: %d", proc->last_progress_ani_time);
         POST_TASK_HANDLER_NO_DELAY(home_pump_bf_mode_display_completed_cb, proc, HOME_BF_MODE_DISPLAY_TASK_NAME);
     }
 }
