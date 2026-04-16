@@ -71,22 +71,22 @@ const static popup_text_info_t ble_connect_infos[POPUP_TIP_TEXT_COUNT] = {
 
 const static popup_text_info_t ble_disconnect_infos[POPUP_TIP_TEXT_COUNT] = {
     { "Device disconnected", 210, &lv_font_oppo_sans_16_medium, LV_OPA_100, POPUP_STATUS_TEXT_COLOR},
-    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_TIP_TEXT_COLOR},
+    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_STATUS_TEXT_COLOR},
 };
 
 const static popup_text_info_t ble_connecting_infos[POPUP_TIP_TEXT_COUNT] = {
     { "Connecting", 210, &lv_font_oppo_sans_16_medium, LV_OPA_100, POPUP_STATUS_TEXT_COLOR},
-    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_TIP_TEXT_COLOR},
+    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_STATUS_TEXT_COLOR},
 };
 
 const static popup_text_info_t device_bind_infos[POPUP_TIP_TEXT_COUNT] = {
-    { "Paired successfully", 210, &lv_font_oppo_sans_16_medium, LV_OPA_100, POPUP_TIP_TEXT_COLOR},
-    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_TIP_TEXT_COLOR},
+    { "Paired successfully", 210, &lv_font_oppo_sans_16_medium, LV_OPA_100, POPUP_STATUS_TEXT_COLOR},
+    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_STATUS_TEXT_COLOR},
 };
 
 const static popup_text_info_t device_unbind_infos[POPUP_TIP_TEXT_COUNT] = {
-    { "", 0, &lv_font_oppo_sans_20_medium, LV_OPA_100, POPUP_TIP_TEXT_COLOR},
-    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_TIP_TEXT_COLOR},
+    { "", 0, &lv_font_oppo_sans_20_medium, LV_OPA_100, POPUP_STATUS_TEXT_COLOR},
+    { "", 0, &lv_font_oppo_sans_16_medium, LV_OPA_70, POPUP_STATUS_TEXT_COLOR},
 };
 
 /*
@@ -297,13 +297,13 @@ static void popup_window_ui_update(ui_manager_context_t *thiz, popup_ui_id_e pop
         case ID_POPUP_UI_DEVICE_BIND:
             popup_window_ui_mask_layer_update(thiz);
             popup_window_ui_text_update(thiz, device_bind_infos);
-            popup_window_ui_icon_update(thiz, RESOURCE_ID_BLE_DISCONNECT_POPUP_ICON, 130);
+            popup_window_ui_icon_update(thiz, RESOURCE_ID_BIND_ICON, 130);
             popup_window_ui_display_complete(thiz, popup_type);
             break;
         case ID_POPUP_UI_DEVICE_UNBIND:
             popup_window_ui_mask_layer_update(thiz);
             popup_window_ui_text_update(thiz, device_unbind_infos);
-            popup_window_ui_icon_update(thiz, RESOURCE_ID_BLE_DISCONNECT_POPUP_ICON, 130);
+            popup_window_ui_icon_update(thiz, RESOURCE_ID_UNBIND_ICON, 130);
             popup_window_ui_display_complete(thiz, popup_type);
             break;
         case ID_POPUP_UI_COUNT_DOWN:
@@ -367,7 +367,7 @@ void popup_window_ui_remove(ui_manager_context_t *thiz)
 int popup_window_ui_process(ui_manager_context_t *thiz, popup_ui_id_e type)
 {
     EXCEPTION_CHECK_INT(thiz && popup_info && popup_info->root);
-    ui_proc_popup_t *proc = (ui_proc_popup_t *) thiz->priv.overlay_play_info.user_data;
+    // ui_proc_popup_t *proc = (ui_proc_popup_t *) thiz->priv.overlay_play_info.user_data;
     popup_window_ui_update(thiz, type);
     popup_info->force_update = false;
     return 0;

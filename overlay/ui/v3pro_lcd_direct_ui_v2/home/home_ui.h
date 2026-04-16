@@ -32,11 +32,6 @@ typedef enum {
     HOME_SCREEN_SAVER_DISPLAY_MAX
 } home_screen_saver_display_type_e;
 
-typedef enum {
-    HOME_OPERATION_SUCCESS = 0,
-    HOME_OPERATION_FAILED = 1,
-} home_operation_type_e;
-
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************

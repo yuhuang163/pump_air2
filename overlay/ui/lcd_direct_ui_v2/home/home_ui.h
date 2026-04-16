@@ -17,9 +17,20 @@ extern "C" {
 *****************************************************************************************
 */
 typedef enum {
-    HOME_OPERATION_SUCCESS = 0,
-    HOME_OPERATION_FAILED = 1,
-} home_operation_type_e;
+    HOME_UI_DISPLAY_DEFAULT = 0,       /// 默认 UI
+    HOME_UI_DISPLAY_CLOCK_AND_RECORD,  /// 显示时钟和记录 UI
+    HOME_UI_DISPLAY_CLOCK,             /// 显示时钟 UI
+    HOME_UI_DISPLAY_RECORD,            /// 显示记录 UI
+    HOME_UI_DISPLAY_CLOCK_ADJUST_TIP,  /// 显示时钟校准提示
+    HOME_UI_DISPLAY_CLOCK_LIGHT_TIP,   /// 显示时钟夜灯提示
+    HOME_UI_DISPLAY_MAX
+} home_ui_display_type_e;
+
+typedef enum {
+    HOME_SCREEN_SAVER_DISPLAY_DEFAULT = 0,       /// 默认 UI
+    HOME_SCREEN_SAVER_DISPLAY_CLOCK,             /// 显示时钟 UI
+    HOME_SCREEN_SAVER_DISPLAY_MAX
+} home_screen_saver_display_type_e;
 
 /*
 * GLOBAL FUNCTION DECLARATION

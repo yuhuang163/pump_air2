@@ -2,11 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "root_common_api.h" // IWYU pragma: keep
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
-#include "airplane_mode_ui.h" // IWYU pragma: keep
 #include "window_screen_airplane_mode.h" // IWYU pragma: keep
 /*
 * DEFINES

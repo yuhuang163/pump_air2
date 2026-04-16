@@ -5,8 +5,6 @@
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
-#include "window_screen_pump.h" // IWYU pragma: keep
-#include "breast_pump_ui.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -522,6 +520,6 @@ int common_pump_speed_ui_process(ui_manager_context_t *thiz, uint8_t speed, uint
     speed_text_update(thiz);
     ui_common_operation_tip_update(thiz, popup_ui_type, speed_info->root, &speed_info->popup_ui_index);
     speed_info->force_update = false;
-
+    
     return 0;
 }

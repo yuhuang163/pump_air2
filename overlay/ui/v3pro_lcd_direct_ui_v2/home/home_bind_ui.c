@@ -2,9 +2,6 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "common_ui.h"
-#include "root_common.h"
-#include "root_log_define.h"
 #include "ui_img_define.h"   // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "ui_manager.h"   // IWYU pragma: keep
@@ -330,9 +327,7 @@ void ui_display_home_bind_prepare(ui_manager_context_t *thiz)
 
 void ui_display_home_bind_remove(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(home_bind_info);
-    EXCEPTION_CHECK_VOID(home_bind_info->root);
+    EXCEPTION_CHECK_VOID(thiz && home_bind_info && home_bind_info->root);
     common_ui_bg_deinit(thiz);
     common_ui_img_resource_deinit(thiz, &home_bind_info->label_info);
     common_ui_img_resource_deinit(thiz, &home_bind_info->ip_info);
@@ -344,9 +339,7 @@ void ui_display_home_bind_remove(ui_manager_context_t *thiz)
 
 int ui_display_home_bind_process(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(home_bind_info);
-    EXCEPTION_CHECK_INT(home_bind_info->root);
+    EXCEPTION_CHECK_INT(thiz && home_bind_info && home_bind_info->root);
     ui_proc_home_t *proc = (ui_proc_home_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     ui_home_bind_bg_update(thiz);
