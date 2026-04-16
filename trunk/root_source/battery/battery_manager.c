@@ -218,23 +218,24 @@ static void charge_event_callback(charge_event_e event)
     servers_ctx->hook->app_old_protocol_server_data_publish(APP_OLD_COMM_CID_NOTIFY_V3_DEV_ABNORMAL, &args_temp);
     
     if (event == CHARGE_EVENT_ADAPTER_MISMATCH) {
-        LOG_MISC("charge event: adapter mismatch");
 #if IS_SUPPORT_PD_CHARGE_ADAPTER_MISMATCH
         thiz->priv.is_adapter_mismatch = 1;
-#else
-        thiz->priv.is_adapter_mismatch = 0;
-#endif
         multi_func_msg_data_t __msg = {0};
         __msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
-        LOG_WM("goto charge screen");
+        LOG_WM("charge adapter mismatch goto charge screen");
         wm->dispatch_new_window_args(wm, &__msg);
+#else
+        LOG_MISC("charge adapter mismatch ignore");
+        thiz->priv.is_adapter_mismatch = 0;
+#endif
         return;
     }
     
     if (thiz->priv.is_adapter_mismatch) {
         thiz->priv.is_adapter_mismatch = 0;
         LOG_MISC("charge event: adapter mismatch recover");
-        SEND_BROADCAST_ARGS1(ID_BROADCAST_BATTERY_STATE_CHANGE, BATTERY_BROADCAST_CHARGE_ADAPTER_MISMATCH_RECOVER);
+        SEND_BROADCAST_ARGS1(ID_BROADCAST_BATTERY_STATE_CHANGE, 
+            BATTERY_BROADCAST_CHARGE_ADAPTER_MISMATCH_RECOVER);
     }
 
     int misc_msg = 0;

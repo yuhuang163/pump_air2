@@ -176,11 +176,13 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
                 proc->led->hook->set_night_light_level(proc->led, 0);
             }
         }
+
         if (proc->battery->is_adapter_mismatch()) {
             show_charge_adapter_ui(proc);
         } else {
             show_charging_ui(proc);
         }
+        
         proc->charge_screen_on_time = get_timestamp();
         if (proc->pm) {
             proc->pm->acquire_wakelock("charge_screen", -1); /// 永久持有锁.
