@@ -79,7 +79,7 @@ static void pump_mode_ui_after_policy(ui_manager_context_t *ui, int index)
         if (proc->goto_pump_home_ui) {
             proc->goto_pump_home_ui = false;
             proc->popup_ui_type = ID_POPUP_UI_OP_SUCCESS;
-            LOG_WM("ID_POPUP_UI_OP_SUCCESS");
+            LOG_UI("goto normal mode upate: %d", get_timestamp());
         }
     }
 }

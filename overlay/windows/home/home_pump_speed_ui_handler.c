@@ -64,7 +64,7 @@ static void home_pump_speed_ui_after_policy(ui_manager_context_t *ui, int index)
     if (time_diff >= HOME_PUMP_SPEED_DISPLAY_TIMEOUT) {
         proc->popup_ui_type = ID_POPUP_UI_OP_SUCCESS_PRESET;
         proc->last_progress_ani_time = get_timestamp();
-        LOG_WM("goto ID_POPUP_UI_OP_SUCCESS_PRESET");
+        LOG_UI("speed ui timeout: %d", proc->last_progress_ani_time);
     }
 }
 

@@ -74,12 +74,13 @@ static void breastfeeding_mode_ui_after_policy(ui_manager_context_t *ui, int ind
     if (get_timestamp_ms(proc->last_progress_ani_time) >= PUMP_MODE_DISPLAY_TIMEOUT) {
         proc->mode_sync_flag = false;
         proc->last_progress_ani_time = get_timestamp();
+        LOG_UI("progress mode ui timeout: %d", proc->last_progress_ani_time);
         POST_TASK_HANDLER_NO_DELAY(breastfeeding_mode_display_completed_cb, proc, BREASTFEEDING_MODE_DISPLAY_TASK_NAME);
     } else {
         if (proc->goto_pump_home_ui) {
             proc->goto_pump_home_ui = false;
             proc->popup_ui_type = ID_POPUP_UI_OP_SUCCESS;
-            LOG_WM("ID_POPUP_UI_OP_SUCCESS");
+            LOG_UI("goto progress mode upate: %d", get_timestamp());
         }
     }
 }
