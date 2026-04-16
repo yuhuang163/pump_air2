@@ -328,14 +328,18 @@ static int exit_event_cb(window_lift_cycle_e new_state,
             proc->user_pause = 1;
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             stop_pump_ui_animation(proc); 
-            unregister_broadcast_receiver(&proc->receiver);  // 注销广播接收器，防止use-after-free
-            REMOVE_ALL_HANDER_TASK();
-            remove_breast_pump_result_cb(proc->pump);
-            EXCEPTION_CHECK_INT(proc->key);
-            proc->key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
             break;
+            
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);
+            REMOVE_ALL_HANDER_TASK();
+            unregister_broadcast_receiver(&proc->receiver);  // 注销广播接收器，防止use-after-free
+            remove_breast_pump_result_cb(proc->pump);
+            if (proc->key) {
+                proc->key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
+            } else {
+                LOG_WM("key not present, ignore.");
+            }
             SET_WINDOW_CONTEXT(NULL);
             proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);

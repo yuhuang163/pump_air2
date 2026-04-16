@@ -76,6 +76,8 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         if (proc->key) {
             proc->key->add_keyevent_handler("home_wm", proc, LOGO_UI_KEY_CODE, LOGO_UI_KEY_TYPE,
                 on_logo_ui_keyevent_hdr, KEY_HANDLER_SHIELD_LEVEL_1);
+        } else {
+            LOG_WM("key not present, ignore.");
         }
 #endif
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
@@ -95,18 +97,21 @@ static int exit_event_cb(window_lift_cycle_e new_state,
         case ID_SCR_STATE_ON_PAUSE:
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             stop_logo_ui_animation(proc);
-#if IS_SUPPORT_LOGO_BG_COLOR_TEST
-            if (proc->key) {
-                proc->key->remove_keyevent_handler(on_logo_ui_keyevent_hdr);
-            }
-#endif
             break;
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("%s window exit: u_free: %p", PAGE_NAME_STR, proc);
             REMOVE_ALL_HANDER_TASK();
+#if IS_SUPPORT_LOGO_BG_COLOR_TEST
+            if (proc->key) {
+                proc->key->remove_keyevent_handler(on_logo_ui_keyevent_hdr);
+            } else {
+                LOG_WM("key not present, ignore.");
+            }
+#endif
+            SET_WINDOW_CONTEXT(NULL);
+            proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);
             proc = NULL;
-            SET_WINDOW_CONTEXT(NULL);
             LOG_WM("%s window exit--end", PAGE_NAME_STR);
             break;
         default:
