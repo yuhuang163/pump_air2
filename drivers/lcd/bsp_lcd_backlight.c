@@ -239,39 +239,40 @@ static void lcd_backlight_level_set(uint16_t level)
         LOG_PBUS("lcd backlight on");
     } 
     
-    uint8_t target_duty = 0;
+    uint8_t duty = 0;
     if (level > LCD_BACKLIGHT_LEVEL_MAX) {
-        target_duty = 100;
+        duty = 100;
     } else {
-        target_duty = ((level * 100) / LCD_BACKLIGHT_LEVEL_MAX);
+        duty = ((level * 100) / LCD_BACKLIGHT_LEVEL_MAX);
     }
 
-    if (target_duty > 98)   // 防止target_duty超过98，因无法触发中断而无法更新PWM占空比
+    if (duty > 98)   // 防止target_duty超过98，因无法触发中断而无法更新PWM占空比
     {
-        target_duty = 98;
+        duty = 98;
     }
-    if (target_duty < 2)   // 防止target_duty小于2，因无法触发中断而无法更新PWM占空比
+    if (duty < 2)   // 防止target_duty小于2，因无法触发中断而无法更新PWM占空比
     {
-        target_duty = 2;
+        duty = 2;
     }
-    
-    if (backlight_info.target_duty != target_duty) {
+    // if ((backlight_info.target_duty > (target_duty + 2)) || (backlight_info.target_duty < (target_duty - 2))) {
+    if (backlight_info.current_duty != duty) {
 #if IS_SUPPORT_LCD_BACKLIGHT_CLIMB_VARIABLE_PERIOD
         {
             uint8_t cur = backlight_info.current_duty;
-            uint8_t n = (cur > target_duty) ? (uint8_t)(cur - target_duty) : (uint8_t)(target_duty - cur);
+            uint8_t n = (cur > duty) ? (uint8_t)(cur - duty) : (uint8_t)(duty - cur);
             backlight_info.climb_total_steps = n;
             backlight_info.climb_moves_done = 0;
         }
 #endif
-        backlight_info.target_duty = target_duty;
-        if (backlight_info.current_duty == backlight_info.target_duty) {
-            LOG_PBUS("duty: %d, level: %d", backlight_info.target_duty, backlight_info.current_duty);
-            return;
-        }
+        backlight_info.target_duty = duty;
+        backlight_info.duty_update_flag = 1;
         bsp_lcd_backlight_climb_start();
-        LOG_PBUS("duty: %d, level: %d", backlight_info.target_duty, backlight_info.current_duty);
     }
+    else {
+        backlight_info.duty_update_flag = 0;
+        backlight_info.target_duty = backlight_info.current_duty;
+    }
+    LOG_PBUS("backlight target_duty: %d, current_duty: %d", backlight_info.target_duty, backlight_info.current_duty);
 }
 #else
 static void lcd_backlight_level_set(uint16_t level)

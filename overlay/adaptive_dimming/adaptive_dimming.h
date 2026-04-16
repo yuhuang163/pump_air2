@@ -37,10 +37,10 @@ extern "C" {
 #endif
 
 /// 自适应亮度等级定义
-#define ADAP_DIM_LED_LVL_VDARK            16    /// 非常暗环境时的LED亮度
-#define ADAP_DIM_LED_LVL_DARK_MIN         22    /// 较暗环境时的最小LED亮度
-#define ADAP_DIM_LED_LVL_MEDIUM_MIN       30    /// 中等亮度环境时的最小LED亮度
-#define ADAP_DIM_LED_LVL_BRIGHT_MIN       60    /// 较亮环境时的最小LED亮度
+#define ADAP_DIM_LED_LVL_VDARK            17    /// 非常暗环境时的LED亮度
+#define ADAP_DIM_LED_LVL_DARK_MIN         29    /// 较暗环境时的最小LED亮度
+#define ADAP_DIM_LED_LVL_MEDIUM_MIN       49    /// 中等亮度环境时的最小LED亮度
+#define ADAP_DIM_LED_LVL_BRIGHT_MIN       79    /// 较亮环境时的最小LED亮度
 #define ADAP_DIM_LED_LVL_ON               100   /// 极亮环境时LED亮度
 
 /// 滞后阈值定义
@@ -78,9 +78,9 @@ extern "C" {
 #define ADAP_DIM_LUX_STABLE_MISC_TICKS \
     ((1000u + ADAP_DIM_MISC_POLL_MS - 1u) / ADAP_DIM_MISC_POLL_MS)
 /// 与 s_last_applied_lux 相差超过该值视为「明显变化」，进入 settling；否则直接放行
-#define ADAP_DIM_LUX_SIGNIFICANT_DELTA        30u
+#define ADAP_DIM_LUX_SIGNIFICANT_DELTA        150u
 /// settling 内当前 lux 与候选相差不超过该值时认为同一段，用于 misc 节拍累加
-#define ADAP_DIM_LUX_SETTLE_MATCH_EPS         30u
+#define ADAP_DIM_LUX_SETTLE_MATCH_EPS         40u
 #endif
 #endif
 
