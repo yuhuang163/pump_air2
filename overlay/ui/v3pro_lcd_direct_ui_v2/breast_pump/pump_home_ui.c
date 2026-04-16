@@ -44,7 +44,7 @@
 typedef struct {    
     lv_obj_t * root;
     lv_obj_t * background;
-    lv_obj_t * mode_text[2];
+    lv_obj_t * mode_text[HOME_TEXT_COUNT];
     lv_obj_t * speed_icon;
     lv_obj_t * time_minute;
     lv_obj_t * time_second;
@@ -537,7 +537,6 @@ static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t star
     lv_image_set_src(pump_info->animation, (const void *)&animation_img_path);
     pump_info->animation_index++;
 }
-
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -622,7 +621,7 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     thiz->priv.fps_count++;
     if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
         thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> pump home fps: %d, mode:%d", thiz->priv.fps_count, pump_mode);
+        LOG_UI("===> pump home fps: %d, mode:%d/%d", thiz->priv.fps_count, pump_mode, proc->popup_ui_type);
         thiz->priv.fps_count = 0;
     }
     return 0;

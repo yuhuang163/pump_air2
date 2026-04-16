@@ -14,11 +14,6 @@ extern "C" {
 #include "battery_ui.h" // IWYU pragma: keep
 #include "window_screen_pump.h" // IWYU pragma: keep
 
-typedef enum {
-    PUMP_OPERATION_SUCCESS = 0,
-    PUMP_OPERATION_FAILED = 1,
-} pump_operation_type_e;
-
 /*
 * GLOBAL FUNCTION DECLARATION
 *****************************************************************************************
