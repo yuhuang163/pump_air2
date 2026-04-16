@@ -8,6 +8,8 @@
 #include "protocol_manager_api.h" // IWYU pragma: keep
 #include "ble_manager_api.h"      // IWYU pragma: keep
 #include "persist_storage.h"      // IWYU pragma: keep
+#include "adaptive_dimming.h"     // IWYU pragma: keep
+#include "ui_manager_api.h"       // IWYU pragma: keep
 #include "cmsis_os_api.h"         // IWYU pragma: keep
 #include "root_log_define.h"      // IWYU pragma: keep
 /*
@@ -1201,6 +1203,90 @@ int tests_tlvs_read_key_cap_signal(comm_protocol_builder_t *builder, comm_protoc
         .type = TESTS_TLV_READ_KEY_CAP_SIGNAL,
         .length = sizeof(response),
         .value = response,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_lcd_backlight_control(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                                     uint8_t *data, uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    uint8_t result = 0x00;
+    if (data_len == 1 && data != NULL) {
+        ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+        if (ui && ui->hook && ui->hook->set_ui_backlight_onoff) {
+            ui->hook->set_ui_backlight_onoff(ui, data[0] ? true : false);
+            result = 0x01;
+            LOG_SRV("tests_tlvs_lcd_backlight_control: %s", data[0] ? "ON" : "OFF");
+        } else {
+            LOGW("tests_tlvs_lcd_backlight_control: ui manager or hook unavailable");
+        }
+    } else {
+        LOGE("tests_tlvs_lcd_backlight_control: invalid data_len=%u, expected 1", (unsigned)data_len);
+    }
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_LCD_BACKLIGHT_CONTROL,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_light_sensor_report_ctrl(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                                        uint8_t *data, uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    uint8_t result = 0x00;
+    if (data_len == 1 && data != NULL) {
+        if (data[0]) {
+            light_sensor_sampling_start();
+            LOG_SRV("tests_tlvs_light_sensor_report_ctrl: START");
+        } else {
+            light_sensor_sampling_stop();
+            LOG_SRV("tests_tlvs_light_sensor_report_ctrl: STOP");
+        }
+        result = 0x01;
+    } else {
+        LOGE("tests_tlvs_light_sensor_report_ctrl: invalid data_len=%u, expected 1", (unsigned)data_len);
+    }
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_LIGHT_SENSOR_REPORT_CTRL,
+        .length = 1,
+        .value = &result,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
+int tests_tlvs_light_sensor_calib_data_set(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                                          uint8_t *data, uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    uint8_t result = 0x00;
+    if (data_len == 4 && data != NULL) {
+        uint16_t calib_lo = (uint16_t)data[0] | ((uint16_t)data[1] << 8);
+        uint16_t calib_hi = (uint16_t)data[2] | ((uint16_t)data[3] << 8);
+        LOG_SRV("tests_tlvs_light_sensor_calib_data_set: calib_lo=%u calib_hi=%u", calib_lo, calib_hi);
+        /* TODO: 这里打桩实际光感校准写入逻辑 */
+        result = 0x01;
+    } else {
+        LOGE("tests_tlvs_light_sensor_calib_data_set: invalid data_len=%u, expected 4", (unsigned)data_len);
+    }
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_LIGHT_SENSOR_CALIB_DATA_SET,
+        .length = 1,
+        .value = &result,
     };
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
 }
