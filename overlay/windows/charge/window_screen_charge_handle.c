@@ -162,6 +162,8 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
         if (proc->key) {
             proc->key->add_keyevent_handler("charge_wm", proc, CHARGE_UI_KEY_CODE, CHARGE_UI_KEY_TYPE,
                 on_charge_keyevent_hdr, KEY_HANDLER_SHIELD_LEVEL_1);
+        } else {
+            LOG_WM("key not present, ignore.");
         }
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
@@ -197,17 +199,21 @@ static int exit_event_cb(window_lift_cycle_e new_state, const struct window_cont
         case ID_SCR_STATE_ON_PAUSE: 
             LOG_WM("==>%s window on pause", PAGE_NAME_STR);
             stop_charge_common_ui(proc);
-            unregister_broadcast_receiver(&proc->receiver);
-            REMOVE_ALL_HANDER_TASK();
-            if (proc->key) {
-                proc->key->remove_keyevent_handler(on_charge_keyevent_hdr);
-            }
-            if (proc->pm) {
-                proc->pm->release_wakelock("charge_screen");
-            }
             break;
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);
+            REMOVE_ALL_HANDER_TASK();
+            unregister_broadcast_receiver(&proc->receiver);
+            if (proc->key) {
+                proc->key->remove_keyevent_handler(on_charge_keyevent_hdr);
+            } else {
+                LOG_WM("key not present, ignore.");
+            }
+            if (proc->pm) {
+                proc->pm->release_wakelock("charge_screen");
+            } else {
+                LOG_WM("pm not present, ignore.");
+            }
             SET_WINDOW_CONTEXT(NULL);
             proc->margic = UI_WINDOW_MARGIC_CODE_INVALID;
             u_free(proc);
