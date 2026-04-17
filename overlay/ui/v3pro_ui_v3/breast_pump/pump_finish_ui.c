@@ -11,16 +11,24 @@
 * DEFINES
 *****************************************************************************************
 */
-#define IS_SUPPORT_PUMP_FINISH_COMP_BG                        (0)
+#define IS_SUPPORT_PUMP_FINISH_COMP_BG                         (0)
 #define COMPLETE_TIP_TEXT_COUNT                                (2)
 
-#define FINISH_TIP_TITLE_COLOR                                 0x533129
-#define FINISH_TIP_CONTENT_COLOR                               0x6A5A5B
+#define PUMP_FINISH_IP_X                                       (0)
+#define PUMP_FINISH_IP_Y                                       (32)
+#define PUMP_FINISH_TITLE_X                                    (0)
+#define PUMP_FINISH_TITLE_Y                                    (232 + 4)
+#define PUMP_FINISH_CONTENT_X                                  (0)
+#define PUMP_FINISH_CONTENT_Y                                  (264 + 4)
+#define FINISH_TIP_TITLE_COLOR                                 0xB25962
+#define FINISH_TIP_CONTENT_COLOR                               0xC57D80
 
 typedef struct {
     const char *name;
     uint16_t text_x;
     uint16_t text_y;
+    const lv_font_t *font;
+    uint32_t color;
 } complete_tip_text_info_t;
 
 typedef struct {
@@ -43,8 +51,9 @@ typedef struct {
 static complete_tip_display_info_t *finish_info;
 
 const static complete_tip_text_info_t complete_tip_text_infos[COMPLETE_TIP_TEXT_COUNT] = {
-    { "Finish", (138 + 9), (216) },
-    { "Open the Momcozy app to track your\nmilk output", (48), (252)},
+    { "Finish", PUMP_FINISH_TITLE_X, PUMP_FINISH_TITLE_Y, &lv_font_oppo_sans_20_medium, FINISH_TIP_TITLE_COLOR},
+    { "Open the Momcozy app to track your\nmilk output", PUMP_FINISH_CONTENT_X, PUMP_FINISH_CONTENT_Y, \
+        &lv_font_oppo_sans_16_medium, FINISH_TIP_CONTENT_COLOR},
 };
 
 /*
@@ -54,7 +63,7 @@ const static complete_tip_text_info_t complete_tip_text_infos[COMPLETE_TIP_TEXT_
 #if IS_SUPPORT_PUMP_FINISH_COMP_BG
 static PSRAM_DATA_LOC uint8_t pump_finish_bg_data[] = {
     // #include "comparison_png2txt/bg_360x360.txt"
-    #include "png2txt/pump_finish_comp_360x360.txt"
+    #include "comparison_png2txt/pump_finish_360x360.txt"
 };
 #endif
 /*
@@ -87,7 +96,7 @@ static void pump_complete_tip_label_update(ui_manager_context_t *thiz)
     lv_fs_make_path_from_buffer(&complete_tip_img_path, LV_FS_MEMFS_LETTER,
         finish_info->icon_info.data, finish_info->icon_info.size, "baj");
     lv_image_set_src(finish_info->icon, complete_tip_img_path.path);
-    lv_obj_align(finish_info->icon, LV_ALIGN_TOP_LEFT, 100, 44);
+    lv_obj_align(finish_info->icon, LV_ALIGN_TOP_MID, PUMP_FINISH_IP_X, PUMP_FINISH_IP_Y);
 }
 
 static void pump_complete_tip_texts_update(ui_manager_context_t *thiz, uint8_t index)
@@ -96,13 +105,11 @@ static void pump_complete_tip_texts_update(ui_manager_context_t *thiz, uint8_t i
         finish_info->texts[index] = lv_label_create(finish_info->root);
     }
     lv_label_set_text(finish_info->texts[index], complete_tip_text_infos[index].name);
-    lv_obj_set_style_text_color(finish_info->texts[index], 
-        lv_color_hex(index == 0 ? FINISH_TIP_TITLE_COLOR : FINISH_TIP_CONTENT_COLOR), 0);
-    lv_obj_set_style_text_font(finish_info->texts[index], 
-        index == 0 ? &lv_font_oppo_sans_24_medium : &lv_font_oppo_sans_16_medium, 0);  /// 设置字体
+    lv_obj_set_style_text_color(finish_info->texts[index], lv_color_hex(complete_tip_text_infos[index].color), 0);
+    lv_obj_set_style_text_font(finish_info->texts[index], complete_tip_text_infos[index].font, 0);  /// 设置字体
     lv_obj_set_style_text_line_space(finish_info->texts[index], 2, 0);  /// 设置行间距（像素）
     lv_obj_set_style_text_align(finish_info->texts[index], LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
-    lv_obj_align(finish_info->texts[index], LV_ALIGN_TOP_LEFT,
+    lv_obj_align(finish_info->texts[index], LV_ALIGN_TOP_MID,
         complete_tip_text_infos[index].text_x, complete_tip_text_infos[index].text_y);
 }
 
@@ -176,8 +183,8 @@ int ui_display_pump_complete_tip_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(thiz);
     EXCEPTION_CHECK_INT(finish_info);
     EXCEPTION_CHECK_INT(finish_info->root);
+    pump_finish_root_bg_update(thiz);
     if (finish_info->force_update == true) {
-        pump_finish_root_bg_update(thiz);
         pump_complete_tip_label_update(thiz);
         for (uint8_t i = 0; i < COMPLETE_TIP_TEXT_COUNT; i++) {
             pump_complete_tip_texts_update(thiz, i);

@@ -13,20 +13,21 @@
 */
 #define IS_SUPPORT_ROOT_HOME_COMP_BG                (0)
 
+#define IDLE_LABEL_Y_OFFSET                         (18)
 #define IDLE_LABEL_AREA_ICON_X                      (44)
-#define IDLE_LABEL_AREA_ICON_Y                      (82 + 2)
+#define IDLE_LABEL_AREA_ICON_Y                      (84 + IDLE_LABEL_Y_OFFSET)
 #define IDLE_BUTTON_ICON_X                          (80)
-#define IDLE_BUTTON_ICON_Y                          (112 + 7)
+#define IDLE_BUTTON_ICON_Y                          (119 + IDLE_LABEL_Y_OFFSET)
 
 #define IDLE_LABEL_TEXT_X                           (108 + 2)
-#define IDLE_LABEL_TEXT_Y                           (118 - 4)
+#define IDLE_LABEL_TEXT_Y                           (114 + IDLE_LABEL_Y_OFFSET)
 #define IDLE_TEXT_COLOR                             (0xB25962)
 
-#define HOME_IDLE_ANIMATION_X                       (86 + 8)
-#define HOME_IDLE_ANIMATION_Y                       (162)
+#define HOME_IDLE_ANIMATION_X                       (0)
+#define HOME_IDLE_ANIMATION_Y                       (162 + 4)
 
-#define HOME_LIGHT_ANIMATION_X                      (86 + 8)
-#define HOME_LIGHT_ANIMATION_Y                      (162)
+#define HOME_LIGHT_ANIMATION_X                      (0)
+#define HOME_LIGHT_ANIMATION_Y                      (162 + 4)
 
 #define HOME_CLOCK_HOUR_X                           (44 - 1)
 #define HOME_CLOCK_MINUTE_X                         (192 - 1)
@@ -84,9 +85,10 @@ typedef struct {
 static home_display_info_t *home_info;
 #if IS_SUPPORT_ROOT_HOME_COMP_BG
 static PSRAM_NC_DATA_LOC uint8_t home_bg_data[] = {
-    #include "comparison_png2txt/home_idle_360x360.txt"
+    #include "comparison_png2txt/home_ip1_360x360.txt"
 };
 #endif
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -237,7 +239,7 @@ static void home_root_animation_update(ui_manager_context_t *thiz,
         home_info->animation_index = 0;
     }
 
-    lv_obj_align(home_info->animation, LV_ALIGN_TOP_LEFT, x_offset, y_offset); 
+    lv_obj_align(home_info->animation, LV_ALIGN_TOP_MID, x_offset, y_offset); 
     if (home_info->animation_info.data != NULL) {
         common_ui_img_resource_deinit(thiz, &home_info->animation_info);
         memset(&home_info->animation_info, 0, sizeof(home_info->animation_info));

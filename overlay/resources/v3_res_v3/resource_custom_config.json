@@ -34,7 +34,7 @@
       "start_resource_id": "RESOURCE_ID_HD_ANIM_IP_START",
       "end_resource_id": "RESOURCE_ID_HD_ANIM_IP_END",
       "description": "首页默认动画帧",
-      "file_template": "custom/animation/home_default/baj/s_{file_index:05d}_188x198_a4_q99_422.baj",
+      "file_template": "custom/animation/home_default/baj/s_{file_index:05d}_240x194_a4_q99_422.baj",
       "start_file_index": 0,
       "id_to_file_offset": -1500,
       "x_offset": 0,
@@ -46,21 +46,21 @@
     {
       "resource_id": "RESOURCE_ID_HOME_IDLE_IP",
       "description": "首页空闲IP图标",
-      "file": "custom/baj/ip_home_idle_226x134_a8_q99_444.baj",
+      "file": "custom/baj/ip_home_idle_220x176_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_HOME_BLE_IP",
       "description": "首页蓝牙IP图标",
-      "file": "custom/baj/ip_home_ble_276x265_a8_q99_444.baj",
+      "file": "custom/baj/ip_home_ble_188x188_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
     {
       "resource_id": "RESOURCE_ID_PUMP_FINISH_IP",
       "description": "泵奶完成IP图标",
-      "file": "custom/baj/ip_pump_finish_160x160_a8_q99_444.baj",
+      "file": "custom/baj/ip_pump_finish_188x188_a8_q99_444.baj",
       "x_offset": 0,
       "y_offset": 0
     },
