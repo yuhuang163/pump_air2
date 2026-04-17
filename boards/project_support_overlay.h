@@ -111,6 +111,8 @@ extern "C" {
 #else
 #define IS_SUPPORT_POWER_OFF_REMINDER                    (0)
 #endif
+/// 支持UI主题资源
+#define IS_SUPPORT_UI_THEME_RES                          (0)
 
 #if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 /// 支持漏气提醒
