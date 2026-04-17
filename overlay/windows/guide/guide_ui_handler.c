@@ -115,21 +115,6 @@ void stop_guide_ui_animation(ui_proc_guide_t *proc)
     proc->last_progress_ani_time = get_timestamp();
 }
 
-void guide_key_event_handler_v1(ui_proc_guide_t *proc, uint16_t keycode)
-{
-    if (keycode != KEY_CODE_START) {
-        return;
-    }
-
-    EXCEPTION_CHECK_VOID(proc);
-    if (proc->page_index >= GUIDE_PAGE_MAX - 1) {
-        POST_TASK_HANDLER_NO_DELAY(guide_display_completed_cb, proc, GUIDE_DISPLAY_TASK_NAME);
-        return;
-    }
-    LOG_WM("guide page index: %d", proc->page_index);
-    proc->page_index++;
-}
-
 void guide_key_event_handler_v2(ui_proc_guide_t *proc, uint16_t keycode)
 {
     uint8_t page_index = proc->page_index;
