@@ -32,6 +32,7 @@ typedef struct {
     lv_obj_t * text[GUIDE_TEXT_NUM];
     lv_obj_t * page_img;
     res_img_info_t img_info;
+    lv_draw_buf_t *page_decoded_buf;
     uint8_t force_update;
     uint8_t page_index;
     char qr_str[120];
@@ -132,6 +133,31 @@ static PSRAM_DATA_LOC uint8_t guide_bg_data[] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void guide_ui_page_img_set_from_sw_decode(lv_obj_t *obj, lv_draw_buf_t **page_decoded_buf,
+                                                 const uint8_t *png_data, size_t png_size)
+{
+    common_ui_png_decode_result_t dec;
+    int err = common_ui_png_decode(png_data, png_size, COMMON_UI_PNG_DECODE_RGBA8888, &dec);
+    if (err != 0) {
+        LOG_UI("guide png sw decode failed: %d", err);
+        if (*page_decoded_buf != NULL) {
+            lv_image_set_src(obj, NULL);
+            common_ui_png_decode_release(*page_decoded_buf);
+            *page_decoded_buf = NULL;
+        }
+        lv_fs_path_ex_t page_img_path;
+        lv_fs_make_path_from_buffer(&page_img_path, LV_FS_MEMFS_LETTER, png_data, png_size, "png");
+        lv_image_set_src(obj, (const void *)&page_img_path);
+        return;
+    }
+    lv_draw_buf_t *old_buf = *page_decoded_buf;
+    *page_decoded_buf = dec.draw_buf;
+    lv_image_set_src(obj, dec.draw_buf);
+    if (old_buf != NULL) {
+        common_ui_png_decode_release(old_buf);
+    }
+}
+
 static void ui_guide_root_init(void)
 {
     if (guide_info->root == NULL || !lv_obj_is_valid(guide_info->root)) {
@@ -169,9 +195,15 @@ static void guide_qrcode_update(ui_manager_context_t *thiz, uint8_t page_index)
 
 static void guide_ui_page_img_update(ui_manager_context_t *thiz, uint8_t page_index)
 {
+    if (page_index >= GUIDE_PAGE_IMG_NUM) {
+        LOG_UI("===> guide page index out of range: %d", page_index);
+        return;
+    }
+
     if (guide_info->page_img == NULL || !lv_obj_is_valid(guide_info->page_img)) {
         guide_info->page_img = lv_image_create(guide_info->root);
         EXCEPTION_CHECK_VOID(guide_info->page_img);
+        lv_obj_align(guide_info->page_img, LV_ALIGN_CENTER, 0, 0);
     } 
 #if IS_SUPPORT_GUIDE_COMP_BG
     static uint32_t start_time = 0;
@@ -184,7 +216,6 @@ static void guide_ui_page_img_update(ui_manager_context_t *thiz, uint8_t page_in
         lv_fs_make_path_from_buffer(&bg_img_path, LV_FS_MEMFS_LETTER, guide_bg_data,
             sizeof(guide_bg_data), "png");
         lv_image_set_src(guide_info->page_img, (const void *)&bg_img_path);
-        lv_obj_align(guide_info->page_img, LV_ALIGN_CENTER, 0, 0);
     }
 
     if (get_timestamp() - start_time > 1000) {
@@ -194,11 +225,8 @@ static void guide_ui_page_img_update(ui_manager_context_t *thiz, uint8_t page_in
 #else
     common_ui_img_resource_init(thiz, guide_page_img_ids[page_index], &guide_info->img_info);
     EXCEPTION_CHECK_VOID(guide_info->img_info.data);
-    lv_fs_path_ex_t page_img_path;
-    lv_fs_make_path_from_buffer(&page_img_path, LV_FS_MEMFS_LETTER, guide_info->img_info.data,
-        guide_info->img_info.size, "png");
-    lv_image_set_src(guide_info->page_img, (const void *)&page_img_path);
-    lv_obj_align(guide_info->page_img, LV_ALIGN_CENTER, 0, 0);
+    guide_ui_page_img_set_from_sw_decode(guide_info->page_img, &guide_info->page_decoded_buf,
+                                         guide_info->img_info.data, guide_info->img_info.size);
 #endif
 }
 
@@ -294,9 +322,16 @@ void ui_display_guide_prepare(ui_manager_context_t *thiz)
 
 void ui_display_guide_remove(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_VOID(thiz);
-    EXCEPTION_CHECK_VOID(guide_info);
-    EXCEPTION_CHECK_VOID(guide_info->root);
+    EXCEPTION_CHECK_VOID(thiz && guide_info && guide_info->root);
+#if !IS_SUPPORT_GUIDE_COMP_BG
+    if (guide_info->page_decoded_buf != NULL) {
+        if (guide_info->page_img != NULL && lv_obj_is_valid(guide_info->page_img)) {
+            lv_image_set_src(guide_info->page_img, NULL);
+        }
+        common_ui_png_decode_release(guide_info->page_decoded_buf);
+        guide_info->page_decoded_buf = NULL;
+    }
+#endif
     common_ui_img_resource_deinit(thiz, &guide_info->img_info);
     LVGL_OBJ_DELETE(guide_info->root);
     u_free(guide_info);
@@ -305,9 +340,7 @@ void ui_display_guide_remove(ui_manager_context_t *thiz)
 
 int ui_display_guide_process(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_INT(thiz);
-    EXCEPTION_CHECK_INT(guide_info);
-    EXCEPTION_CHECK_INT(guide_info->root);
+    EXCEPTION_CHECK_INT(thiz && guide_info && guide_info->root);
     ui_proc_guide_t *proc = (ui_proc_guide_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
     guide_ui_update(thiz, proc->page_index);
