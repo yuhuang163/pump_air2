@@ -95,15 +95,19 @@ resolve_root_res_path() {
 	local makefile="$PROJECT_DIR/GNUmakefile"
 	if [[ -f "$makefile" ]]; then
 		local product_family ui_v1_token ui_v2_token ui_v3pro_v2_token ui_version_token
-		local ui_v1_value ui_v2_value ui_v3pro_v2_value
+		local ui_v1_value ui_v2_value ui_v3pro_v2_value ui_v3_value ui_v3pro_v3_value
 		product_family=$(resolve_root_product_family_from_makefile "$makefile")
 
 		ui_v1_token='$(V3_UI_V1)'
 		ui_v2_token='$(V3_UI_V2)'
 		ui_v3pro_v2_token='$(V3PRO_UI_V2)'
+		ui_v3_token='$(V3_UI_V3)'
+		ui_v3pro_v3_token='$(V3PRO_UI_V3)'
 		ui_v1_value=$(awk '/^V3_UI_V1[[:space:]]*\?=/{print $3; exit}' "$makefile")
 		ui_v2_value=$(awk '/^V3_UI_V2[[:space:]]*\?=/{print $3; exit}' "$makefile")
 		ui_v3pro_v2_value=$(awk '/^V3PRO_UI_V2[[:space:]]*\?=/{print $3; exit}' "$makefile")
+		ui_v3_value=$(awk '/^V3_UI_V3[[:space:]]*\?=/{print $3; exit}' "$makefile")
+		ui_v3pro_v3_value=$(awk '/^V3PRO_UI_V3[[:space:]]*\?=/{print $3; exit}' "$makefile")
 
 		if [[ "$product_family" == "V3Pro" ]]; then
 			ui_version_token=$(awk '
@@ -123,10 +127,17 @@ resolve_root_res_path() {
 		case "$ui_version_token" in
 			'$(V3_UI_V1)') printf "%s" "V1"; return 0 ;;
 			'$(V3_UI_V2)'|'$(V3PRO_UI_V2)') printf "%s" "V2"; return 0 ;;
+			'$(V3_UI_V3)'|'$(V3PRO_UI_V3)') printf "%s" "V3"; return 0 ;;
 			"$ui_v1_value") [[ -n "${ui_v1_value:-}" ]] && { printf "%s" "V1"; return 0; } ;;
 			"$ui_v2_value"|"$ui_v3pro_v2_value")
 				if [[ -n "${ui_version_token:-}" ]]; then
 					printf "%s" "V2"
+					return 0
+				fi
+				;;
+			"$ui_v3_value"|"$ui_v3pro_v3_value")
+				if [[ -n "${ui_version_token:-}" ]]; then
+					printf "%s" "V3"
 					return 0
 				fi
 				;;
@@ -135,6 +146,7 @@ resolve_root_res_path() {
 			case "$ui_version_token" in
 				*V1*) printf "%s" "V1"; return 0 ;;
 				*V2*) printf "%s" "V2"; return 0 ;;
+				*V3PRO_UI_V3*|*V3_UI_V3*) printf "%s" "V3"; return 0 ;;
 			esac
 		fi
 	fi
@@ -200,6 +212,7 @@ resolve_root_product_family_from_makefile() {
 build_resource_bin_dirs() {
 	# 根据资源路径与 GNUmakefile 中的产品配置，生成资源包搜索目录候选列表
 	# V1 保持不变；V2 在 V3Pro 项目中优先查 bin/V3PRO_V2，再回退 bin/V2
+	# V3 同理：V3Pro 优先 bin/V3PRO_V3，否则 bin/V3_V3，并回退 V2 资源包
 	local res_path="$1"
 	local product_family="$2"
 
@@ -218,9 +231,34 @@ build_resource_bin_dirs() {
 				RESOURCE_BIN_DIRS+=("$PROJECT_DIR/overlay/resources/bin/V2")
 			fi
 			;;
+		V3)
+			if [[ "$product_family" == "V3Pro" ]]; then
+				RESOURCE_BIN_DIRS+=(
+					"$PROJECT_DIR/overlay/resources/bin/V3PRO_V3"
+					"$PROJECT_DIR/overlay/resources/bin/V2"
+				)
+			else
+				RESOURCE_BIN_DIRS+=(
+					"$PROJECT_DIR/overlay/resources/bin/V3_V3"
+					"$PROJECT_DIR/overlay/resources/bin/V2"
+				)
+			fi
+			;;
 		V3PRO_V2)
 			RESOURCE_BIN_DIRS+=(
 				"$PROJECT_DIR/overlay/resources/bin/V3PRO_V2"
+				"$PROJECT_DIR/overlay/resources/bin/V2"
+			)
+			;;
+		V3_V3)
+			RESOURCE_BIN_DIRS+=(
+				"$PROJECT_DIR/overlay/resources/bin/V3_V3"
+				"$PROJECT_DIR/overlay/resources/bin/V2"
+			)
+			;;
+		V3PRO_V3)
+			RESOURCE_BIN_DIRS+=(
+				"$PROJECT_DIR/overlay/resources/bin/V3PRO_V3"
 				"$PROJECT_DIR/overlay/resources/bin/V2"
 			)
 			;;
@@ -504,6 +542,7 @@ do_rename_and_archive() {
 	# pack.sh 更新后，multi/all 产物默认落在 bin/<版本>/all/ 目录；
 	# 这里优先匹配 all 目录下的 *_RES_all.bin，并兼容旧目录里的 *_RES.bin。
 	# V1 保持 bin/V1；V2 保持 bin/V2，且在 GNUmakefile 指定为 V3Pro 产品时优先查 bin/V3PRO_V2
+	# V3 资源：bin/V3_V3 或 bin/V3PRO_V3（由 ROOT_RES_PATH / 产品族决定，见 build_resource_bin_dirs）
 	# ROOT_RES_VERSION 定义为 major*100 + minor，例如 100 -> V01.00
 	local res_path res_version res_major res_minor res_major2 res_minor2 res_dir res_file res_source_dir
 	local res_lookup_dir
