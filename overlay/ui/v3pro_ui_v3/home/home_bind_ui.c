@@ -13,6 +13,7 @@
 *****************************************************************************************
 */
 #define IS_SUPPORT_HOME_BIND_COMP_BG                         (0)
+#define IS_SUPPORT_HOME_BIND_LABEL_ICON                      (0)
 #define HOME_BIND_BG_COLOR                                   0xFFFFFF
 #define HOME_BIND_FG_COLOR                                   0x000000
 #define HOME_BIND_BORDER_COLOR                               (0xFFEAE6)  // 0xA6A6A6
@@ -21,8 +22,10 @@
 #define HOME_BIND_X_OFFSET                                   (111)
 #define HOME_BIND_Y_OFFSET                                   (69)
 #define HOME_BIND_TEXT_Y_OFFSET                              (223)
-#define HOME_BIND_IP_X_OFFSET                                (84)
-#define HOME_BIND_IP_Y_OFFSET                                (95)
+#define HOME_BIND_IP_X_OFFSET                                (0)
+#define HOME_BIND_IP_Y_OFFSET                                (64)
+#define HOME_BIND_STATUS_TEXT_X_OFFSET                       (0)
+#define HOME_BIND_STATUS_TEXT_Y_OFFSET                       (278)
 #define HOME_BIND_LABEL_X_OFFSET                             (12)
 #define HOME_BIND_LABEL_Y_OFFSET                             (111)
 
@@ -34,8 +37,10 @@ typedef struct {
     lv_obj_t * qrcode_container;
     lv_obj_t * qrcode;
     lv_obj_t * text[2];
+#if IS_SUPPORT_HOME_BIND_LABEL_ICON
     lv_obj_t * label_icon;
     res_img_info_t label_info;
+#endif
     lv_obj_t * ip_icon;
     res_img_info_t ip_info;
     uint8_t force_update;
@@ -67,14 +72,14 @@ typedef enum {
 */
 static home_bind_display_info_t *home_bind_info;
 const static char *bind_qr_str[] = {
-    "https://qr.momcozy.com/apps/?v=1&type=device&model=V3Pro&sn=",
+    "https://qr.momcozy.com/apps/?v=1&type=device&model=V3&sn=",
 };
 
 #if IS_SUPPORT_HOME_BIND_COMP_BG
 static PSRAM_DATA_LOC uint8_t home_bg_data[] = {
     // #include "comparison_png2txt/home_ble_cmp_360x360.txt"
-    // #include "comparison_png2txt/home_ble_connected_360x360.txt"
-    #include "comparison_png2txt/home_ble_connecting_360x360.txt"
+    #include "comparison_png2txt/home_ble_connected_360x360.txt"
+    // #include "comparison_png2txt/home_ble_connecting_360x360.txt"
 };
 #endif
 
@@ -86,17 +91,17 @@ const static home_bind_text_info_t bind_text_infos[2] = {
 };
 
 const static home_bind_text_info_t bind_disconnect_infos[2] = {
-    {"Disconnect", &lv_font_oppo_sans_14_medium, 80, 143, 0xB25962},
+    {"Disconnect", &lv_font_oppo_sans_16_medium, HOME_BIND_STATUS_TEXT_X_OFFSET, HOME_BIND_STATUS_TEXT_Y_OFFSET, 0xB25962},
     {"", &lv_font_oppo_sans_14_medium, 0, 0, HOME_BIND_TEXT_COLOR}
 };
 
 const static home_bind_text_info_t bind_connecting_infos[2] = {
-    {"Connecting", &lv_font_oppo_sans_14_medium, 80, 143, 0xB25962},
+    {"Connecting", &lv_font_oppo_sans_16_medium, HOME_BIND_STATUS_TEXT_X_OFFSET, HOME_BIND_STATUS_TEXT_Y_OFFSET, 0xB25962},
     {"", &lv_font_oppo_sans_14_medium, 0, 0, HOME_BIND_TEXT_COLOR}
 };
 
 const static home_bind_text_info_t bind_connected_infos[2] = {
-    {"Device connected", &lv_font_oppo_sans_14_medium, 60, 143, 0xB25962},
+    {"Device connected", &lv_font_oppo_sans_16_medium, HOME_BIND_STATUS_TEXT_X_OFFSET, HOME_BIND_STATUS_TEXT_Y_OFFSET, 0xB25962},
     {"", &lv_font_oppo_sans_14_medium, 0, 0, HOME_BIND_TEXT_COLOR}
 };
 
@@ -228,21 +233,27 @@ static void home_bind_img_update(ui_manager_context_t *thiz, uint8_t is_show)
     if (home_bind_info->ip_icon == NULL || !lv_obj_is_valid(home_bind_info->ip_icon)) {
         home_bind_info->ip_icon = lv_image_create(home_bind_info->root);
         EXCEPTION_CHECK_VOID(home_bind_info->ip_icon);
-        lv_obj_align(home_bind_info->ip_icon, LV_ALIGN_TOP_LEFT, HOME_BIND_IP_X_OFFSET, HOME_BIND_IP_Y_OFFSET);
+        lv_obj_align(home_bind_info->ip_icon, LV_ALIGN_TOP_MID, HOME_BIND_IP_X_OFFSET, HOME_BIND_IP_Y_OFFSET);
     }
 
+#if IS_SUPPORT_HOME_BIND_LABEL_ICON
     if (home_bind_info->label_icon == NULL || !lv_obj_is_valid(home_bind_info->label_icon)) {
         home_bind_info->label_icon = lv_image_create(home_bind_info->root);
         EXCEPTION_CHECK_VOID(home_bind_info->label_icon);
         lv_obj_align(home_bind_info->label_icon, LV_ALIGN_TOP_LEFT, HOME_BIND_LABEL_X_OFFSET, HOME_BIND_LABEL_Y_OFFSET);
     }
+#endif
 
     if (is_show) {
         lv_obj_clear_flag(home_bind_info->ip_icon, LV_OBJ_FLAG_HIDDEN);
+#if IS_SUPPORT_HOME_BIND_LABEL_ICON
         lv_obj_clear_flag(home_bind_info->label_icon, LV_OBJ_FLAG_HIDDEN);
+#endif
     } else {
         lv_obj_add_flag(home_bind_info->ip_icon, LV_OBJ_FLAG_HIDDEN);
+#if IS_SUPPORT_HOME_BIND_LABEL_ICON
         lv_obj_add_flag(home_bind_info->label_icon, LV_OBJ_FLAG_HIDDEN);
+#endif
         return;
     }
 
@@ -252,12 +263,14 @@ static void home_bind_img_update(ui_manager_context_t *thiz, uint8_t is_show)
     lv_fs_make_path_from_buffer(&ip_img_path, LV_FS_MEMFS_LETTER, home_bind_info->ip_info.data,
         home_bind_info->ip_info.size, "baj");
     lv_image_set_src(home_bind_info->ip_icon, (const void *)&ip_img_path);
+#if IS_SUPPORT_HOME_BIND_LABEL_ICON
     common_ui_img_resource_init(thiz, RESOURCE_ID_HOME_BLE_LABEL_ICON, &home_bind_info->label_info);
     EXCEPTION_CHECK_VOID(home_bind_info->label_info.data);
     lv_fs_path_ex_t label_img_path;
     lv_fs_make_path_from_buffer(&label_img_path, LV_FS_MEMFS_LETTER, home_bind_info->label_info.data,
         home_bind_info->label_info.size, "baj");
     lv_image_set_src(home_bind_info->label_icon, (const void *)&label_img_path);
+#endif
 }
 
 static void home_bind_status_ui_update(ui_manager_context_t *thiz, ui_proc_home_t *proc)
@@ -329,7 +342,9 @@ void ui_display_home_bind_remove(ui_manager_context_t *thiz)
 {
     EXCEPTION_CHECK_VOID(thiz && home_bind_info && home_bind_info->root);
     common_ui_bg_deinit(thiz);
+#if IS_SUPPORT_HOME_BIND_LABEL_ICON
     common_ui_img_resource_deinit(thiz, &home_bind_info->label_info);
+#endif
     common_ui_img_resource_deinit(thiz, &home_bind_info->ip_info);
     ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(home_bind_info->root);

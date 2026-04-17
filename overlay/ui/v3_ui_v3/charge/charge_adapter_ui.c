@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define CHARGE_ADAPTER_TEXT_COLOR                    0xFFFFFF
+#define CHARGE_ADAPTER_TEXT_COLOR                      0xB25962
 #define IS_SUPPORT_CHARGE_ADAPTER_COMP_BG              (0)
 
 typedef struct {  
@@ -34,9 +34,10 @@ typedef struct {
 static charge_adapter_display_info_t *adapter_info;
 #if IS_SUPPORT_CHARGE_ADAPTER_COMP_BG
 static PSRAM_DATA_LOC uint8_t charge_adapter_bg_data[] = {
-    #include "png2txt/charge_adapte_com_bg_360x360.txt"
+    #include "comparison_png2txt/charge_error_360x360.txt"
 };
 #endif
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -86,6 +87,11 @@ static void charge_adapter_bg_update(ui_manager_context_t *thiz)
         status = (status == 0) ? 1 : 0;
     }
 }
+#else
+static void charge_adapter_bg_update(ui_manager_context_t *thiz)
+{
+    common_ui_bg_update(thiz, adapter_info->root);
+}
 #endif
 
 static int charge_adapter_object_update(ui_manager_context_t *thiz)
@@ -106,7 +112,7 @@ static int charge_adapter_object_update(ui_manager_context_t *thiz)
     lv_obj_set_style_text_font(adapter_info->text, &lv_font_oppo_sans_16_medium, 0);  /// 设置字体
     lv_obj_set_style_text_line_space(adapter_info->text, 4, 0);  /// 设置行间距（像素）
     lv_obj_set_style_text_align(adapter_info->text, LV_TEXT_ALIGN_CENTER, 0);  /// 设置文本居中对齐
-    lv_obj_align(adapter_info->text, LV_ALIGN_TOP_LEFT, 62 + 10 + 4, 274);
+    lv_obj_align(adapter_info->text, LV_ALIGN_TOP_MID, 0, 268);
 
     /// 更新充电图标.
     if (adapter_info->charge_adapter_icon == NULL || !lv_obj_is_valid(adapter_info->charge_adapter_icon)) {
@@ -119,7 +125,7 @@ static int charge_adapter_object_update(ui_manager_context_t *thiz)
     lv_fs_make_path_from_buffer(&charge_adapter_icon_img_path, LV_FS_MEMFS_LETTER,
         adapter_info->charge_adapter_icon_info.data, adapter_info->charge_adapter_icon_info.size, "png");
     lv_image_set_src(adapter_info->charge_adapter_icon, charge_adapter_icon_img_path.path);
-    lv_obj_align(adapter_info->charge_adapter_icon, LV_ALIGN_TOP_LEFT, 106, 46 + 2);
+    lv_obj_align(adapter_info->charge_adapter_icon, LV_ALIGN_TOP_MID, 0, 54);
 
     return 0;
 }
@@ -136,6 +142,7 @@ void ui_display_charge_adapter_screen_prepare(ui_manager_context_t *thiz)
         EXCEPTION_CHECK_VOID(adapter_info);
     }
     charge_adapter_ui_root_init(thiz);  
+    common_ui_bg_init(thiz);
     thiz->priv.fps_count = 0;
     thiz->priv.fps_start_time = get_timestamp();
     adapter_info->force_update = true;
@@ -146,6 +153,7 @@ void ui_display_charge_adapter_screen_remove(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_VOID(thiz);
     EXCEPTION_CHECK_VOID(adapter_info);
     common_ui_img_resource_deinit(thiz, &adapter_info->charge_adapter_icon_info);
+    common_ui_bg_deinit(thiz);
     LVGL_OBJ_DELETE(adapter_info->root);
     u_free(adapter_info);
     adapter_info = NULL;
@@ -158,9 +166,7 @@ int ui_display_charge_adapter_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(adapter_info->root);
     ui_proc_charge_t *proc = (ui_proc_charge_t *)thiz->priv.play_info.user_data;
     EXCEPTION_CHECK_INT(proc);
-    #if IS_SUPPORT_CHARGE_ADAPTER_COMP_BG
     charge_adapter_bg_update(thiz);
-    #endif
     charge_adapter_object_update(thiz);
     thiz->priv.fps_count++;
     adapter_info->force_update = false; 
