@@ -97,6 +97,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_UART                           (1)
 /// 支持光传感器
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (1)
+/// 支持光传感器校准
+#define IS_SUPPORT_DEVICE_LIGHT_SENSOR_CALIB             (0)
 /// 支持资源管理
 #define IS_SUPPORT_MODULE_RES                            (1)
 /// 支持自适应背光  

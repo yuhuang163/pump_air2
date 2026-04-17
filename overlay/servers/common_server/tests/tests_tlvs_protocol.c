@@ -1207,6 +1207,53 @@ int tests_tlvs_read_key_cap_signal(comm_protocol_builder_t *builder, comm_protoc
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
 }
 
+int tests_tlvs_read_battery_charge_current(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                                           uint8_t *data, uint16_t data_len)
+{
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    (void)data;
+    if (data_len != 0) {
+        LOGW("tests_tlvs_read_battery_charge_current: ignore extra request bytes, len=%u", (unsigned)data_len);
+    }
+
+    uint32_t current_ma = 0;
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    if (pbus && pbus->find_device) {
+        rt_device_node_t *battery_dev = pbus->find_device(ID_DEVICE_BATTERY);
+        if (battery_dev && battery_dev->ioctl) {
+            uint16_t ibat_ma = 0;
+            DEVICE_IOCTL_ARGS_HAS_RET(battery_dev, OP_CODE_BAT_GET_CHARGE_IBAT_MA, &ibat_ma, ioctl_ret);
+            if (ioctl_ret == 0) {
+                current_ma = ibat_ma;
+            } else {
+                LOGW("tests_tlvs_read_battery_charge_current: ioctl failed ret=%d", ioctl_ret);
+            }
+        } else {
+            LOGW("tests_tlvs_read_battery_charge_current: battery device missing");
+        }
+    } else {
+        LOGW("tests_tlvs_read_battery_charge_current: device bus missing");
+    }
+
+    uint8_t response[4] = {
+        (uint8_t)(current_ma & 0xFFU),
+        (uint8_t)((current_ma >> 8) & 0xFFU),
+        (uint8_t)((current_ma >> 16) & 0xFFU),
+        (uint8_t)((current_ma >> 24) & 0xFFU),
+    };
+    LOG_SRV("tests_tlvs_read_battery_charge_current: %lu mA", (unsigned long)current_ma);
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_READ_BATTERY_CHARGE_CURRENT,
+        .length = sizeof(response),
+        .value = response,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+}
+
 int tests_tlvs_lcd_backlight_control(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                                      uint8_t *data, uint16_t data_len)
 {
@@ -1218,7 +1265,10 @@ int tests_tlvs_lcd_backlight_control(comm_protocol_builder_t *builder, comm_prot
     if (data_len == 1 && data != NULL) {
         ui_manager_context_t *ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
         if (ui && ui->hook && ui->hook->set_ui_backlight_onoff) {
+            /// 设置LCD背光开关
             ui->hook->set_ui_backlight_onoff(ui, data[0] ? true : false);
+            /// 设置夜灯LCD背光
+            ui->hook->set_ui_backlight_level(ui, data[0] ? LCD_BACKLIGHT_LEVEL_MAX : 0);
             result = 0x01;
             LOG_SRV("tests_tlvs_lcd_backlight_control: %s", data[0] ? "ON" : "OFF");
         } else {
@@ -1268,19 +1318,39 @@ int tests_tlvs_light_sensor_report_ctrl(comm_protocol_builder_t *builder, comm_p
 int tests_tlvs_light_sensor_calib_data_set(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                                           uint8_t *data, uint16_t data_len)
 {
+#if IS_SUPPORT_DEVICE_LIGHT_SENSOR_CALIB
     EXCEPTION_CHECK_INT(builder && service);
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
 
     uint8_t result = 0x00;
-    if (data_len == 4 && data != NULL) {
-        uint16_t calib_lo = (uint16_t)data[0] | ((uint16_t)data[1] << 8);
-        uint16_t calib_hi = (uint16_t)data[2] | ((uint16_t)data[3] << 8);
-        LOG_SRV("tests_tlvs_light_sensor_calib_data_set: calib_lo=%u calib_hi=%u", calib_lo, calib_hi);
-        /* TODO: 这里打桩实际光感校准写入逻辑 */
-        result = 0x01;
+    if (data_len == 5 && data != NULL) {
+        uint8_t point = data[0];
+        if (point < LIGHT_SENSOR_CALIB_POINT_NUM) {
+            uint32_t u = (uint32_t)data[1] | ((uint32_t)data[2] << 8) | ((uint32_t)data[3] << 16) |
+                         ((uint32_t)data[4] << 24);
+            int32_t calib = (int32_t)u;
+            storage_manager_context_t *st = get_storage_ctx();
+            if (st) {
+                factory_dev_info_t dev_info = {0};
+                st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
+                
+                dev_info.light_sensor_calib_tbl[point] = calib;
+                
+                if (st->put_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info) != 0) {
+                    result = 0x00; // 失败
+                    LOG_SRV("tests_tlvs_light_sensor_calib_data_set: point=%u calib=%ld, failed", point, (long)calib);
+                } else {
+                    result = 0x01; // 成功
+                    LOG_SRV("tests_tlvs_light_sensor_calib_data_set: point=%u calib=%ld, success", point, (long)calib);
+                }
+            }
+        } else {
+            LOGE("tests_tlvs_light_sensor_calib_data_set: invalid point=%u (max %u)", point,
+                 (unsigned)(LIGHT_SENSOR_CALIB_POINT_NUM - 1U));
+        }
     } else {
-        LOGE("tests_tlvs_light_sensor_calib_data_set: invalid data_len=%u, expected 4", (unsigned)data_len);
+        LOGE("tests_tlvs_light_sensor_calib_data_set: invalid data_len=%u, expected 5", (unsigned)data_len);
     }
 
     comm_protocol_tlv_node_t tlv_node = {
@@ -1289,6 +1359,38 @@ int tests_tlvs_light_sensor_calib_data_set(comm_protocol_builder_t *builder, com
         .value = &result,
     };
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+#endif
+}
+
+int tests_tlvs_light_sensor_calib_data_read(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
+                                            uint8_t *data, uint16_t data_len)
+{
+#if IS_SUPPORT_DEVICE_LIGHT_SENSOR_CALIB
+    EXCEPTION_CHECK_INT(builder && service);
+    protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
+    EXCEPTION_CHECK_INT(protocol_ctx);
+
+    int32_t calib = 0;
+    if (data_len >= 1 && data != NULL && data[0] < LIGHT_SENSOR_CALIB_POINT_NUM) {
+        storage_manager_context_t *st = get_storage_ctx();
+        if (st) {
+            factory_dev_info_t dev_info = {0};
+            st->get_store_val(STORE_ID_FACTORY_DEV_INFO, 0, 0, &dev_info);
+            calib = dev_info.light_sensor_calib_tbl[data[0]];
+        }
+    } else {
+        LOGW("tests_tlvs_light_sensor_calib_data_read: invalid request len=%u or point", (unsigned)data_len);
+        calib = 0;
+    }
+    LOG_SRV("tests_tlvs_light_sensor_calib_data_read: point=%u calib=%ld", data[0], (long)calib);
+
+    comm_protocol_tlv_node_t tlv_node = {
+        .type = TESTS_TLV_LIGHT_SENSOR_CALIB_DATA_READ,
+        .length = 4,
+        .value = (uint8_t *)&calib,
+    };
+    return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
+#endif
 }
 
 /// ======================== NOTIFY上报 ========================
