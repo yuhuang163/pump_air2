@@ -28,17 +28,24 @@
 static void airplane_mode_exit_cb(hdr_post_args_t *args)
 {
     ui_proc_airplane_mode_t *proc = (ui_proc_airplane_mode_t *)args->user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    EXCEPTION_CHECK_VOID(proc->airplane);
+    EXCEPTION_CHECK_VOID(proc && proc->wm && proc->airplane);
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_AIRPLANE_MODE);
     proc->airplane->exit(AIRPLANE_MODE_EXIT);
     multi_func_msg_data_t msg = {0};
+    if (proc->battery && proc->battery->is_adapter_mismatch() > 0) {
+        msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
+        LOG_WM("goto charge screen");
+        proc->wm->dispatch_new_window_args(proc->wm, &msg);
+        return;
+    }
+
     if (proc->wm->is_window_guidance_deployed() == 0) {
         LOG_WM("goto guide screen");
         msg.union_body.extra.window_id = ID_WINDOW_GUIDE;
         proc->wm->dispatch_new_window_args(proc->wm, &msg);
         return;
     }
+
     LOG_WM("goto home window.");
     msg.union_body.extra.window_id = ID_WINDOW_HOME;
     proc->wm->dispatch_new_window_args(proc->wm, &msg);

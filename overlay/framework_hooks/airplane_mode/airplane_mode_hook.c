@@ -52,6 +52,11 @@ static int airplane_mode_key_event_handler(void *user_data, uint16_t keycode, ui
             ctx->priv.is_count_down_popup_show = false;
         }
     } else if (keytype == KEY_EVENT_DOWN && wm->is_current_window(wm, ID_WINDOW_AIRPLANE_MODE) == 0) {
+        battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+        if (battery && battery->is_adapter_mismatch() > 0) {
+            LOG_AIR("enter airplane mode, but adapter mismatch, ignore.");
+            return 0;
+        }
         ctx->priv.is_count_down_popup_show = true;
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_POPUP_WINDOW;
