@@ -55,24 +55,24 @@
     {
       "start_resource_id": "RESOURCE_ID_NM_ANIM_IP_START",
       "end_resource_id": "RESOURCE_ID_NM_ANIM_IP_END",
-      "description": "通用模式动画帧",
-      "file_template": "base/animation/common_mode/baj/M_{file_index:05d}_194x194_a4_q99_422.baj",
+      "description": "刺激模式动画",
+      "file_template": "base/animation/stimulation/baj/Cbg_{file_index:05d}_210x196_a4_q99_422.baj",
       "start_file_index": 0,
       "id_to_file_offset": -1100,
       "x_offset": 0,
       "y_offset": 0,
-      "note": "动画资源ID范围: 1100-1214，共115帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 1100)。资源ID 1100→M_00000, 1101→M_00001...1214→M_00114"
+      "note": "动画资源ID范围: 1100-1265，共166帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 1100)。资源ID 1100→Cbg_00000, 1101→Cbg_00001...1265→Cbg_00165"
     },
     {
       "start_resource_id": "RESOURCE_ID_PM_ANIM_IP_START",
       "end_resource_id": "RESOURCE_ID_PM_ANIM_IP_END",
-      "description": "个性化模式动画帧",
-      "file_template": "base/animation/personalized_mode/baj/zj_{file_index:05d}_360x252_a4_q99_422.baj",
+      "description": "泌乳模式动画",
+      "file_template": "base/animation/expression/baj/Xbg_{file_index:05d}_210x196_a4_q99_422.baj",
       "start_file_index": 0,
       "id_to_file_offset": -1300,
       "x_offset": 0,
       "y_offset": 0,
-      "note": "动画资源ID范围: 1300-1419，共120帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 1300)。资源ID 1300→ZH_00000, 1301→ZH_00001...1419→ZH_00119"
+      "note": "动画资源ID范围: 1300-1465，共166帧。文件编号计算：file_index = resource_id + id_to_file_offset (即 resource_id - 1300)。资源ID 1300→Xbg_00000, 1301→Xbg_00001...1465→Xbg_00165"
     },
     {
       "start_resource_id": "RESOURCE_ID_HD_ANIM_IP_START",

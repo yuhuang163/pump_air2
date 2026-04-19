@@ -90,10 +90,10 @@ typedef enum {
     RESOURCE_ID_CHARGE_ADAPTER_IP,        /// 首页充电适配器图标
    
     RESOURCE_ID_NM_ANIM_IP_START = 1100,   /// 泵奶模式动画-开始
-    RESOURCE_ID_NM_ANIM_IP_END = 1214,     /// 泵奶模式动画-结束
+    RESOURCE_ID_NM_ANIM_IP_END = 1265,     /// 泵奶模式动画-结束
 
     RESOURCE_ID_PM_ANIM_IP_START = 1300,   /// 个性化模式动画-开始
-    RESOURCE_ID_PM_ANIM_IP_END = 1419,     /// 个性化模式动画-结束
+    RESOURCE_ID_PM_ANIM_IP_END = 1465,     /// 个性化模式动画-结束
 
     RESOURCE_ID_HD_ANIM_IP_START = 1500,   /// 首页默认动画-开始
     RESOURCE_ID_HD_ANIM_IP_END = 1619,     /// 首页默认动画-结束
