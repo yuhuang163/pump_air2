@@ -14,7 +14,8 @@ extern "C" {
 #include "lv_font_oppo_sans_32.h" // IWYU pragma: keep
 #include "lv_font_oppo_sans_72.h" // IWYU pragma: keep
 #include "lv_font_oppo_sans_96.h" // IWYU pragma: keep
-#include "lv_font_oppo_sans_14.h" // IWYU pragma: keep
+#include "lv_font_quicksand_64.h" // IWYU pragma: keep
+#include "lv_font_quicksand_80.h" // IWYU pragma: keep
 #include "lv_font_quicksand_96.h" // IWYU pragma: keep
 
 #ifdef __cplusplus
