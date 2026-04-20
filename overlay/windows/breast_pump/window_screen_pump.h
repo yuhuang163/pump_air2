@@ -17,7 +17,11 @@ extern "C" {
 
 /// 泵奶动画频率
 #if IS_SUPPORT_LVGL
-#define PUMP_ANIMATION_FREQ                    (25)
+#if (ROOT_UI_VERSION == ROOT_UI_V2)
+#define PUMP_ANIMATION_FREQ                    (24)
+#else
+#define PUMP_ANIMATION_FREQ                    (16)
+#endif
 #define PUMP_SPEED_ANIMATION_FREQ              (20) 
 #define PUMP_RESULT_ANIMATION_FREQ             (20) 
 #define PUMP_MODE_ANIMATION_FREQ               (20) 

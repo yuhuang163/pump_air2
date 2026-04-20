@@ -101,7 +101,7 @@ const static popup_text_info_t device_unbind_infos[POPUP_TIP_TEXT_COUNT] = {
 static void popup_window_ui_root_init(ui_manager_context_t *thiz)
 {
     if (popup_info->root == NULL || !lv_obj_is_valid(popup_info->root)) {
-        popup_info->root = lv_obj_create(lv_screen_active());
+        popup_info->root = lv_obj_create(lv_layer_top());
         EXCEPTION_CHECK_VOID(popup_info->root);
         lv_obj_set_size(popup_info->root, LV_PCT(100), LV_PCT(100));          /// 设置容器尺寸为屏幕的100%
         lv_obj_set_style_bg_color(popup_info->root, lv_color_black(), 0);     /// 黑色背景

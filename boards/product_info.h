@@ -55,9 +55,9 @@ extern "C" {
  * major版本表示固件支持的资源版本. 
  * minor表示资源差异化的版本.
 */
-#if (V3_UI_VERSION == V3_UI_V2 || V3_UI_VERSION == V3PRO_UI_V2)
+#if (ROOT_UI_VERSION == ROOT_UI_V2)
 #define ROOT_RES_PATH                                  "V2" /// 资源路径
-#elif (V3_UI_VERSION == V3_UI_V3 || V3_UI_VERSION == V3PRO_UI_V3)   
+#elif (ROOT_UI_VERSION == ROOT_UI_V3)   
 #define ROOT_RES_PATH                                  "V3" /// 资源路径
 #else
 #define ROOT_RES_PATH                                  "V2" /// 资源路径
