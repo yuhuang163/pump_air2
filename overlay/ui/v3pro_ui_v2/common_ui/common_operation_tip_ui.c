@@ -343,7 +343,7 @@ static void common_operation_ui_update(ui_manager_context_t *thiz, popup_ui_id_e
             common_operation_tip_icon_update(thiz, RESOURCE_ID_WARNING_ICON, 130);
             common_operation_tip_display_complete(thiz, popup_type);
             break;
-        case ID_POPUP_UI_AIRPLANE_MODE_EXIT:
+        case ID_POPUP_UI_AIRPLANE_MODE_PROMPT:
             common_operation_tip_mask_layer_update(thiz);
             common_operation_arc_update(thiz);
             common_operation_num_update(thiz);
@@ -373,7 +373,7 @@ void ui_common_operation_tip_prepare(ui_manager_context_t *thiz, lv_obj_t *paren
         type == ID_POPUP_UI_OP_FAILED || type == ID_POPUP_UI_ONLY_AVAILABLE_IN_PUMPING ||
         type == ID_POPUP_UI_OP_SUCCESS_PRESET) {
         time = 1000;
-    } else if (type == ID_POPUP_UI_AIRPLANE_MODE_EXIT) {
+    } else if (type == ID_POPUP_UI_AIRPLANE_MODE_PROMPT) {
         time = 5000;
     }
     operation_info->target_time = time;
@@ -425,7 +425,7 @@ void ui_common_operation_tip_update(ui_manager_context_t *thiz,
         case ID_POPUP_UI_PUMP_FINISH_MANUAL:
         case ID_POPUP_UI_PUMP_PAUSE_MANUAL:
         case ID_POPUP_UI_PUMP_PAUSE_TIMEOUT:
-        case ID_POPUP_UI_AIRPLANE_MODE_EXIT:
+        case ID_POPUP_UI_AIRPLANE_MODE_PROMPT:
             if (*ui_index != type) {
                 ui_common_operation_tip_remove(thiz);
                 ui_common_operation_tip_prepare(thiz, parent, type);
