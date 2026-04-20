@@ -543,7 +543,9 @@ FONT_V2_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_32 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_72 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_96 \
-	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_96 \
+	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_64 \
+	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_80 \
+	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_96 
 
 FONT_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/font
@@ -1124,6 +1126,8 @@ FONT_V2_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_32/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_72/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_96/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_64/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_80/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_96/*.c) 
 
 FONT_MODULE_SRCS := \
