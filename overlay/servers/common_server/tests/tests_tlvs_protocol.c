@@ -219,7 +219,7 @@ int tests_tlvs_aging_test_mode_exit(comm_protocol_builder_t *builder, comm_proto
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_INT(wm);
     /* 关闭测试窗口 */
-    if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {
+    if (0 == wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {
         multi_func_msg_data_t msg = {0};
         msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
         wm->dispatch_new_window_args(wm, &msg);
