@@ -158,11 +158,11 @@ void system_power_off_handle(ui_proc_system_t *proc)
             },
         };
         led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
-        msleep(10);
+#if IS_SUPPORT_NIGHT_LIGHT
         msg.led_index = NIGHT_LIGHT_LED;
         led_dev->ioctl(led_dev, OP_CODE_LED_STATUS_SET, (void *)&msg);
-        msleep(10);
+#endif
     }
-    
+   
     POST_TASK_HANDLER_DELAYED_ARG1(power_off_cb, POWER_OFF_DELAY_TIME, proc, POWER_OFF_TASK_NAME);
 }

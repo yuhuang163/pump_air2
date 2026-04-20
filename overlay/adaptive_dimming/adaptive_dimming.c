@@ -300,6 +300,12 @@ static void adaptive_dimming_polling_thread(void *user_data)
         return;
     }
 
+#if IS_SUPPORT_KEY_LIGHT_ADAPTIVE
+    if (led->hook && led->hook->key_light_adaptive_level_update) {
+        led->hook->key_light_adaptive_level_update(led, refresh_duty);
+    }
+#endif
+
     if (led->hook && led->hook->night_light_adaptive_level_update) {
         led->hook->night_light_adaptive_level_update(led, refresh_duty);
     }

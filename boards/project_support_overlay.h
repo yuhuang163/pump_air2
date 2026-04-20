@@ -102,7 +102,7 @@ extern "C" {
 /// 支持资源管理
 #define IS_SUPPORT_MODULE_RES                            (1)
 /// 支持自适应背光  
-#define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
+#define IS_SUPPORT_ADAPTIVE_DIMMING                      (1)
 /// 支持堵转检测
 #define IS_SUPPORT_MOTOR_STALL_DETECT                    (1)
 /// 支持睡眠关机
@@ -151,7 +151,10 @@ extern "C" {
 #else
 #define IS_SUPPORT_TOUCH_IC_OTA                          (1)
 #endif
-
+#if IS_SUPPORT_ADAPTIVE_DIMMING
+/// 支持触摸按键背光灯自适应亮度调节
+#define IS_SUPPORT_KEY_LIGHT_ADAPTIVE                    (1)
+#endif
 #ifdef __cplusplus
 }
 #endif
