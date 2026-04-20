@@ -134,11 +134,9 @@ static void breastfeeding_mode_ui_display_remove(void *user_data)
 static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
-    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-    proc->last_progress_ani_time = get_timestamp();
-   
+    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init); 
+    proc->last_progress_ani_time = get_timestamp();  
     if (proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE) {
-        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
@@ -153,7 +151,6 @@ static void show_breastfeeding_mode_ui(ui_proc_pump_t *proc)
         .display_remove_cb = breastfeeding_mode_ui_display_remove,
         .user_data = proc,
     };
-    proc->last_progress_ani_time = get_timestamp();
     proc->current_ui_type = PUMP_UI_TYPE_BREASTFEEDING_MODE;
     ui->hook->ui_animation_play_init(ui, play_info);
 }

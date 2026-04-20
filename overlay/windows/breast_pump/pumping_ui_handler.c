@@ -93,9 +93,8 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
-
+    proc->last_progress_ani_time = get_timestamp();
     if (proc->current_ui_type == PUMP_UI_TYPE_HOME) {
-        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         proc->goto_pump_home_ui= false;    
@@ -116,7 +115,6 @@ void show_pump_home_ui(ui_proc_pump_t *proc)
         .display_remove_cb = pumping_ui_display_remove,
         .user_data = proc,
     };
-    proc->last_progress_ani_time = get_timestamp();
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->current_ui_type = PUMP_UI_TYPE_HOME;
 }

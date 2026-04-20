@@ -137,8 +137,8 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    proc->last_progress_ani_time = get_timestamp();
     if (proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
-        proc->last_progress_ani_time = get_timestamp();
         return;
     } else {
         pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
@@ -153,7 +153,6 @@ static void show_pump_speed_ui(ui_proc_pump_t *proc)
         .user_data = proc,
 
     };
-    proc->last_progress_ani_time = get_timestamp();
     proc->current_ui_type = PUMP_UI_TYPE_SPEED;
     ui->hook->ui_animation_play_init(ui, play_info);
 }
