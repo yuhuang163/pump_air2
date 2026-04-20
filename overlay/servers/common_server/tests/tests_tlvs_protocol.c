@@ -177,6 +177,10 @@ int tests_tlvs_aging_test_mode(comm_protocol_builder_t *builder, comm_protocol_s
             msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
             wm->dispatch_new_window_args(wm, &msg);
         }
+        else {
+            SEND_BROADCAST_ARGS2(ID_BROADCAST_FACTORY_TEST_CMD, TST_AGING_TEST_TYPE, 1);
+        }
+
         //唤醒电源管理模块
         power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
         if (pm && pm->is_pm_suspend()) {
@@ -212,14 +216,17 @@ int tests_tlvs_aging_test_mode_exit(comm_protocol_builder_t *builder, comm_proto
 
     /* 退出老化模式 */
     tests_ctx->tests_manager_set_current_mode(TST_NONE_TYPE);
-    /* 关闭测试窗口 */
-    /*window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_INT(wm);
-    if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {   // 如果当前窗口是测试窗口，则关闭测试窗口
+    /* 关闭测试窗口 */
+    if (wm->is_current_window(wm, ID_WINDOW_PRODUCT_TEST_MODE)) {
         multi_func_msg_data_t msg = {0};
-        msg.union_body.extra.window_id = ID_WINDOW_LOGO;
+        msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
         wm->dispatch_new_window_args(wm, &msg);
-    }*/
+    }
+    else {
+        SEND_BROADCAST_ARGS2(ID_BROADCAST_FACTORY_TEST_CMD, TST_AGING_TEST_TYPE, 0);
+    }
 
     // 应答格式: Length=1, Value=0x00失败/0x01成功
     uint8_t result = 0x01; // 默认成功
