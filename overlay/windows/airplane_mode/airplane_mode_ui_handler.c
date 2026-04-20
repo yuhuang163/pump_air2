@@ -107,8 +107,8 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
+    proc->last_progress_ani_time = get_timestamp();
     if (proc->current_ui_type == AIRPLANE_MODE_UI_TYPE_HOME) {
-        proc->last_progress_ani_time = get_timestamp();
         return;
     }
     ui_play_info_t play_info = {
@@ -119,7 +119,6 @@ void start_airplane_mode_ui(ui_proc_airplane_mode_t *proc)
         .display_remove_cb = airplane_mode_ui_display_remove,
         .user_data = proc,
     };
-    proc->last_progress_ani_time = get_timestamp();
     ui->hook->ui_animation_play_init(ui, play_info);
     proc->current_ui_type = AIRPLANE_MODE_UI_TYPE_HOME;
 }
