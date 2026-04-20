@@ -60,9 +60,20 @@ static void breastfeeding_mode_popup_ui_finish_policy(ui_manager_context_t *ui, 
     LOG_WM("===> popup %d ui display complete.", popup_ui_index);
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
-    if (popup_ui_index == ID_POPUP_UI_OP_SUCCESS) {
-        POST_TASK_HANDLER_NO_DELAY(breastfeeding_mode_display_completed_cb, 
-            proc, BREASTFEEDING_MODE_DISPLAY_TASK_NAME);
+    switch (popup_ui_index) {
+        case ID_POPUP_UI_PUMP_FINISH_TIMEOUT:
+            pump_complete_event_handler(proc);
+            break;
+        case ID_POPUP_UI_PUMP_FINISH_MANUAL:
+            proc->forbid_start_pump = true;
+            pump_complete_event_handler(proc);
+            break;
+        case ID_POPUP_UI_OP_SUCCESS:
+            POST_TASK_HANDLER_NO_DELAY(breastfeeding_mode_display_completed_cb, 
+                proc, BREASTFEEDING_MODE_DISPLAY_TASK_NAME);
+            break;
+        default:
+            break;
     }
 }
 
