@@ -92,7 +92,7 @@ int tests_tlvs_factory_test_mode(comm_protocol_builder_t *builder, comm_protocol
     led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
     if (mode == 1) {
         /* 进入产测模式 */
-        set_log_ouput_level(US_LOG_LEVEL_NONE);
+        //set_log_ouput_level(US_LOG_LEVEL_NONE);
         /// 关闭自适应夜灯
         if (led && led->hook && led->hook->set_night_light_adaptive_switch &&
             led->hook->set_night_light_adaptive_dimming && led->hook->set_night_light_level) {
@@ -1297,12 +1297,14 @@ int tests_tlvs_light_sensor_report_ctrl(comm_protocol_builder_t *builder, comm_p
     if (data_len == 1 && data != NULL) {
         if (data[0]) {
             light_sensor_sampling_start();
-            LOG_SRV("tests_tlvs_light_sensor_report_ctrl: START");
+            /// 未初始化 adaptive_dimming 时 start 会直接返回，避免仍应答成功导致「开了但不报」
+            result = light_sensor_sampling_is_sampling() ? 0x01 : 0x00;
+            LOG_SRV("tests_tlvs_light_sensor_report_ctrl: START, ok=%u", (unsigned)result);
         } else {
             light_sensor_sampling_stop();
+            result = 0x01;
             LOG_SRV("tests_tlvs_light_sensor_report_ctrl: STOP");
         }
-        result = 0x01;
     } else {
         LOGE("tests_tlvs_light_sensor_report_ctrl: invalid data_len=%u, expected 1", (unsigned)data_len);
     }
