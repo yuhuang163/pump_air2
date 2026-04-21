@@ -554,19 +554,20 @@ FONT_INC_FLAGS += $(FONT_V2_INC_FLAGS)
 # 窗口模块头文件
 WINDOWS_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/windows \
-	-I$(PROJECT_ROOT)/overlay/windows/battery \
-	-I$(PROJECT_ROOT)/overlay/windows/airplane_mode \
-	-I$(PROJECT_ROOT)/overlay/windows/breast_pump \
-	-I$(PROJECT_ROOT)/overlay/windows/charge \
 	-I$(PROJECT_ROOT)/overlay/windows/dummy \
+	-I$(PROJECT_ROOT)/overlay/windows/setting \
+	-I$(PROJECT_ROOT)/overlay/windows/breast_pump \
 	-I$(PROJECT_ROOT)/overlay/windows/guide \
 	-I$(PROJECT_ROOT)/overlay/windows/home \
-	-I$(PROJECT_ROOT)/overlay/windows/logo \
+	-I$(PROJECT_ROOT)/overlay/windows/charge \
 	-I$(PROJECT_ROOT)/overlay/windows/ota \
+	-I$(PROJECT_ROOT)/overlay/windows/logo \
+	-I$(PROJECT_ROOT)/overlay/windows/battery \
 	-I$(PROJECT_ROOT)/overlay/windows/popup_windows \
-	-I$(PROJECT_ROOT)/overlay/windows/setting \
+	-I$(PROJECT_ROOT)/overlay/windows/airplane_mode \
 	-I$(PROJECT_ROOT)/overlay/windows/product_test_window \
-	-I$(PROJECT_ROOT)/overlay/windows/system \
+	-I$(PROJECT_ROOT)/overlay/windows/factory_reset \
+	-I$(PROJECT_ROOT)/overlay/windows/power_off \
 	-I$(PROJECT_ROOT)/trunk/root_source/windows
 
 # 飞行模式模块头文件
@@ -1142,19 +1143,20 @@ FONT_MODULE_SRCS += $(FONT_V2_SRCS)
 # 窗口模块源码
 WINDOWS_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/airplane_mode/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/breast_pump/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/dummy/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/breast_pump/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/guide/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/home/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/logo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/ota/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/logo/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/popup_windows/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/airplane_mode/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/windows/product_test_window/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/system/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/factory_reset/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/windows/power_off/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/windows/*.c)
 
 # 飞行模式模块源码
