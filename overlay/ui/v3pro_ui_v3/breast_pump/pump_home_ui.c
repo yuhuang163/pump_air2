@@ -32,8 +32,8 @@
 #define PUMP_RIGHT_ARC_END_ANGLE                   (404 - 8)
 #define PUMP_LEVEL_ARC_WIDTH                       (6)
 #define PUMP_LEVEL_CIRCLE_SIZE                     (9)
-#define PUMP_SPEED_ICON_X                          (186)
-#define PUMP_SPEED_ICON_Y                          (24)
+#define PUMP_SPEED_ICON_X                          (206)
+#define PUMP_SPEED_ICON_Y                          (26)
 #define HOME_CUSTOM_MODE_TEXT_Y                    (91 + 9)
 #define HOME_CUSTOM_LEFT_TEXT_CENTER_X             (136 - 4)
 #define HOME_CUSTOM_RIGHT_TEXT_CENTER_X            (224 + 2)
@@ -107,8 +107,9 @@ typedef struct {
     uint8_t seconds;
     uint8_t seconds_size; /// 隐藏秒数标志
     uint8_t hour_colon_hidden; /// 隐藏时间冒号标志
-    uint8_t animation_play_complete; /// 动画播放完成标志
-    uint8_t animation_index;
+    uint8_t mode_type;
+    uint16_t animation_id;
+    uint16_t animation_end_id;
 } pump_display_info_t;
 
 /*
@@ -704,38 +705,60 @@ static void pump_home_custom_mode_update(ui_manager_context_t *thiz, uint8_t mod
     pump_info->next_sub_mode = next_sub_mode;
 }
 
-static void pump_home_animation_update(ui_manager_context_t *thiz, uint16_t start_resource_id, uint16_t animation_size,
-    uint16_t x_offset, uint16_t y_offset)
+static void pump_home_animation_update(ui_manager_context_t *thiz, uint8_t mode_type)
 {
-    // if (pump_info->animation_play_complete) {
-    //     return;
-    // }
-
     if (pump_info->animation == NULL || !lv_obj_is_valid(pump_info->animation)) {
         pump_info->animation = lv_image_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->animation);
     }  
-    
-    if (pump_info->animation_index >= animation_size) {
-        pump_info->animation_play_complete = true;
-        // pump_info->animation_index = start_resource_id + 119;
-        pump_info->animation_index = 0;
+
+    if (pump_info->animation_id > pump_info->animation_end_id || pump_info->mode_type == PUMP_MODE_UNKNOWN) {
+        if (mode_type == PUMP_MODE_STIMULATION) {
+            if (pump_info->mode_type != mode_type) {
+                pump_info->mode_type = mode_type;
+                pump_info->animation_id = RESOURCE_ID_SHAKE_BOTTLE_ANIM_IP_START;
+                pump_info->animation_end_id = RESOURCE_ID_SHAKE_BOTTLE_ANIM_IP_END;
+            } else {
+                pump_info->animation_id = RESOURCE_ID_SUCTION_ANIM_IP_START;
+                pump_info->animation_end_id = RESOURCE_ID_SUCTION_ANIM_IP_END;
+            }
+        } else if (mode_type == PUMP_MODE_LACTATION) {
+            if (pump_info->mode_type != mode_type) {
+                pump_info->mode_type = mode_type;
+                pump_info->animation_id = RESOURCE_ID_YAWN_ANIM_IP_START;
+                pump_info->animation_end_id = RESOURCE_ID_YAWN_ANIM_IP_END;
+            } else {
+                pump_info->animation_id = RESOURCE_ID_SUCTION_ANIM_IP_START;
+                pump_info->animation_end_id = RESOURCE_ID_SUCTION_ANIM_IP_END;
+            }
+        } else if (mode_type == PUMP_MODE_MIX) {
+            pump_info->mode_type = mode_type;
+            pump_info->animation_id = RESOURCE_ID_SHAKE_BOTTLE_ANIM_IP_START;
+            pump_info->animation_end_id = RESOURCE_ID_SHAKE_BOTTLE_ANIM_IP_END;
+        } else {
+            pump_info->mode_type = mode_type;
+            pump_info->animation_id = RESOURCE_ID_YAWN_ANIM_IP_START;
+            pump_info->animation_end_id = RESOURCE_ID_YAWN_ANIM_IP_END;
+        }
+        LOG_UI("===> animation start id:%d, end id:%d; mode_type:%d", 
+            pump_info->animation_id, pump_info->animation_end_id, pump_info->mode_type);
     }  
-    
-    lv_obj_align(pump_info->animation, LV_ALIGN_TOP_MID, 0, y_offset); 
+ 
+    lv_obj_align(pump_info->animation, LV_ALIGN_TOP_MID, 0, 164); 
     if (pump_info->animation_info.data != NULL) {
         common_ui_img_resource_deinit(thiz, &pump_info->animation_info);
         memset(&pump_info->animation_info, 0, sizeof(pump_info->animation_info));
     }
     common_ui_img_resource_init_with_theme(thiz, 
-        start_resource_id + pump_info->animation_index, &pump_info->animation_info);
+        pump_info->animation_id, &pump_info->animation_info);
     EXCEPTION_CHECK_VOID(pump_info->animation_info.data);
     lv_fs_path_ex_t animation_img_path;
     lv_fs_make_path_from_buffer(&animation_img_path, LV_FS_MEMFS_LETTER, 
         pump_info->animation_info.data, pump_info->animation_info.size, "baj");
     lv_image_set_src(pump_info->animation, (const void *)&animation_img_path);
-    pump_info->animation_index++;
+    pump_info->animation_id++;
 }
+
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
@@ -752,10 +775,17 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     pump_home_init();  
     ble_ui_init(thiz);
     battery_ui_init(thiz);
-    pump_info->animation_index = 0;
-    pump_info->animation_play_complete = false;
     pump_info->force_update = true;
     pump_info->popup_ui_index = ID_POPUP_UI_NONE;
+    pump_info->mode_type = PUMP_MODE_UNKNOWN;
+    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
+    uint8_t sub_mode = 0;
+    uint8_t next_sub_mode = 0;
+    if (proc && proc->motor && proc->motor->get_runtime_mode_type) {
+        sub_mode = proc->motor->get_runtime_mode_type(false);
+        next_sub_mode = proc->motor->get_runtime_mode_type(true);
+        LOG_UI("===> sub_mode: %d, next_sub_mode: %d", sub_mode, next_sub_mode);
+    }
 }
 
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)
@@ -794,21 +824,16 @@ int ui_display_pump_home_screen_process(ui_manager_context_t *thiz)
     ble_ui_update(thiz, pump_info->root, proc->ble, PUMP_HOME_BLE_UI_X, PUMP_HOME_BLE_UI_Y);
     battery_ui_update(thiz, pump_info->root, proc->battery, false);
     pump_home_time_update(thiz, hold_time, is_regular_mode);
+    uint8_t sub_mode = 0;
+    uint8_t next_sub_mode = 0;
+    if (proc->motor->get_runtime_mode_type) {
+        sub_mode = proc->motor->get_runtime_mode_type(false);
+        next_sub_mode = proc->motor->get_runtime_mode_type(true);
+    }
+    pump_home_animation_update(thiz, sub_mode);
     if (is_regular_mode) {
-        pump_home_animation_update(thiz, RESOURCE_ID_NM_ANIM_IP_START, 
-            RESOURCE_ID_NM_ANIM_IP_END - RESOURCE_ID_NM_ANIM_IP_START + 1,
-            0, 164);
         pump_home_common_mode_update(thiz, pump_mode);  
     } else {
-        uint8_t sub_mode = 0;
-        uint8_t next_sub_mode = 0;
-        if (proc->motor->get_runtime_mode_type) {
-            sub_mode = proc->motor->get_runtime_mode_type(false);
-            next_sub_mode = proc->motor->get_runtime_mode_type(true);
-        }
-        pump_home_animation_update(thiz, RESOURCE_ID_PM_ANIM_IP_START, 
-            RESOURCE_ID_PM_ANIM_IP_END - RESOURCE_ID_PM_ANIM_IP_START + 1,
-            0, 164);
         pump_home_custom_mode_update(thiz, pump_mode, sub_mode, next_sub_mode);
     }
     pump_home_left_level_update(thiz, setting.level[0]);
