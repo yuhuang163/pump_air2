@@ -2,7 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "window_screen_system.h"
+#include "root_common_api.h" // IWYU pragma: keep
+#include "windows_manager.h" 
+#include "windows_map_define.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -14,6 +16,7 @@
 *****************************************************************************************
 */
 
+
 /*
 * GLOBAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -23,19 +26,33 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+#if 0
+static void on_create(void *ptr)
+{
 
+}
+
+static void on_resume(void *ptr)
+{
+
+}
+
+static void on_pause(void *ptr)
+{
+
+}
+
+static void on_destory(void)
+{
+
+}
+#endif
 /*
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void stop_system_ui_animation(ui_proc_system_t *proc)
-{
-    factory_reset_ui_hdr_remove();
-    factory_reset_confirm_ui_hdr_remove();
-    power_off_ui_hdr_remove();
-    ui_manager_context_t *ui = proc->ui;
-    EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_deinit);
-    ui->hook->ui_animation_play_deinit(ui);
-    proc->last_progress_ani_time = get_timestamp();
-}
+const window_life_cycle_t m_window_power_off = {0};
+
+
+
 

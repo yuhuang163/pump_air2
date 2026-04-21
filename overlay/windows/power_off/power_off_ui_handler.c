@@ -4,7 +4,7 @@
 */
 #include "ui_img_define.h" // IWYU pragma: keep
 #include "ui_page_define.h" // IWYU pragma: keep
-#include "window_screen_system.h" // IWYU pragma: keep
+#include "window_screen_power_off.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -27,11 +27,6 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void power_off_ui_before_policy(ui_manager_context_t *ui, int index)
-{
-
-}
-
 static void power_off_ui_after_policy(ui_manager_context_t *ui, int index)
 {
     EXCEPTION_CHECK_VOID(ui);
@@ -46,7 +41,6 @@ static void power_off_animation_progress_cb(void *user_data, int index, ui_ani_p
         case ANI_TIMER_DRAW_FINISH:
             break;
         case ANI_TIMER_DRAW_BEFORE:
-            power_off_ui_before_policy(ui, index);
             break;
         case ANI_TIMER_DRAW_AFTER:
             power_off_ui_after_policy(ui, index);
@@ -70,27 +64,27 @@ static void power_off_ui_display_remove(void *user_data)
     ui_display_power_off_remove(ui);
 }
 
-static void show_power_off_ui(ui_proc_system_t *proc)
+static void show_power_off_ui(ui_proc_power_off_t *proc)
 {
     ui_manager_context_t *ui = proc->ui;
     EXCEPTION_CHECK_VOID(ui->hook && ui->hook->ui_animation_play_init);
     proc->last_progress_ani_time = get_timestamp();
-    if (proc->current_ui_type == SYSTEM_UI_TYPE_POWER_OFF) {
+    if (proc->current_ui_type == POWER_OFF_UI_TYPE_POWER_OFF) {
         return;
     }
     ui_play_info_t play_info = {
         .tag = "power_off_screen",
-        .fps = SYSTEM_ANIMATION_FREQ,
+        .fps = POWER_OFF_ANIMATION_FREQ,
         .progress_cb = power_off_animation_progress_cb,
         .display_prepare_cb = power_off_ui_display_prepare,
         .display_remove_cb = power_off_ui_display_remove,
         .user_data = proc,
     };
     ui->hook->ui_animation_play_init(ui, play_info);
-    proc->current_ui_type = SYSTEM_UI_TYPE_POWER_OFF;
+    proc->current_ui_type = POWER_OFF_UI_TYPE_POWER_OFF;
 }
 
-static void start_power_off_ui_animation(ui_proc_system_t *proc)
+static void start_power_off_ui_animation(ui_proc_power_off_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc->pm);
     LOG_UI("start power off ui animation.");
@@ -99,9 +93,9 @@ static void start_power_off_ui_animation(ui_proc_system_t *proc)
 
 static void power_off_cb(hdr_post_args_t *args)
 {
-    ui_proc_system_t *proc = (ui_proc_system_t *)args->user_data;
+    ui_proc_power_off_t *proc = (ui_proc_power_off_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_SYSTEM);
+    WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_POWER_OFF);
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     pm->acquire_wakelock("power_off", 1000);
     LOGW("==========POWER_OFF==========");
@@ -117,12 +111,7 @@ static void power_off_cb(hdr_post_args_t *args)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-void power_off_ui_hdr_remove(void)
-{
-    REMOVE_TASK_HANDLER_DIRECTLY(POWER_OFF_TASK_NAME);
-}
-
-void system_power_off_handle(ui_proc_system_t *proc)
+void power_off_handle(ui_proc_power_off_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc);
     start_power_off_ui_animation(proc);
@@ -164,4 +153,14 @@ void system_power_off_handle(ui_proc_system_t *proc)
     }
    
     POST_TASK_HANDLER_DELAYED_ARG1(power_off_cb, POWER_OFF_DELAY_TIME, proc, POWER_OFF_TASK_NAME);
+}
+
+void stop_power_off_ui_animation(ui_proc_power_off_t *proc)
+{
+    REMOVE_TASK_HANDLER_DIRECTLY(POWER_OFF_TASK_NAME);
+    EXCEPTION_CHECK_VOID(proc);
+    ui_manager_context_t *ui = proc->ui;
+    EXCEPTION_CHECK_VOID(ui && ui->hook && ui->hook->ui_animation_play_deinit);
+    ui->hook->ui_animation_play_deinit(ui);
+    proc->last_progress_ani_time = get_timestamp();
 }

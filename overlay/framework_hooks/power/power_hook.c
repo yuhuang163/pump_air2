@@ -142,12 +142,12 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
         return 0;
     }
 
-    /// 进入关机状态.
+    /// 进入关机状态. 不在工厂重置界面时才允许进入关机状态.(按键冲突)
     if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_or_standby == 1) {
+        window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
 #if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)  
         battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
         if (battery && BATTERY_IS_CHARGING(battery->get_charge_status())) {
-            window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
             if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0) {
                 multi_func_msg_data_t msg = {0};
                 msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
@@ -156,16 +156,18 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
             return 0;
         }
 #endif
-
+        /// 不在工厂重置界面时才允许进入关机状态.(按键冲突)
+        if (wm && wm->is_current_window(wm, ID_WINDOW_FACTORY_RESET) == 0) {
 #if IS_SUPPORT_SLEEP_POWER_OFF
-        POST_TASK_HANDLER_NO_DELAY_ARG1(system_power_event_cb, ctx, HDR_ACTION_POWER_OFF,
-            POWER_OFF_TASK_NAME);
+            POST_TASK_HANDLER_NO_DELAY_ARG1(system_power_event_cb, ctx, HDR_ACTION_POWER_OFF,
+                POWER_OFF_TASK_NAME);
 #else
-        if (ctx->priv.allow_shutdown_or_standby == 1) {
             POST_TASK_HANDLER_NO_DELAY_ARG1(system_power_event_cb, ctx, HDR_ACTION_SYS_STANDBY,
                 SYS_STANDBY_TASK_NAME);
-        }
 #endif
+        } else {
+            LOG_PM("in factory reset, ignore");
+        }
     }
     return 0;
 }
