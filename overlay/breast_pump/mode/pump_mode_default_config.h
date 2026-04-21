@@ -12,13 +12,18 @@ extern "C" {
 #include "project_default_features.h"
 #include "motor_policy.h"
 #include "persist_storage.h"
+#include "breast_pump_manager_api.h" // IWYU pragma: keep
 
 #ifndef REGULAR_PUMPING_MODE_LEN
 #error "REGULAR_PUMPING_MODE_LEN not defined. Check project_default_features.h include."
 #endif
 
-/// 常规模式默认工作时长30分钟，单位：秒
+/// 常规模式默认工作时长
+#if IS_SUPPORT_MODE_WORK_TIME_ACCUMULATE
+#define NORMAL_MODE_DEFAULT_WORK_TIME                (SETTING_PUMP_TIME_MAX / 1000)
+#else
 #define NORMAL_MODE_DEFAULT_WORK_TIME                ((59 * 60) + 59)
+#endif
 /// 无效工作时长，子模式不需要指定工作时长
 #define INVALID_WORK_TIME                            0  
 /// 吸乳模式默认周期 单位：毫秒
