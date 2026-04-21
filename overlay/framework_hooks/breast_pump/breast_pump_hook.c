@@ -80,7 +80,8 @@ static void breast_pump_mode_update(breast_pump_manager_context_t *ctx, pump_res
         ctx->priv.st->put_store_ram_val(STORE_ID_BREAST_PUMP_MODE_WITH_TYPE,
             BREAST_PUMP_MODE_TYPE_BREASTFEEDING, m_info->mode, NULL);
     }
-    
+    /// 清除模式更新标志
+    ctx->priv.st->put_store_ram_val(STORE_ID_MODE_NEW_STEP_INFO_FLAG, m_info->mode, false, NULL);
     if (result_info->work_total_time < PUMP_AUTO_PAUSE_TIME_MS) {
         m_info->auto_pause_onoff = true;
     }
@@ -114,6 +115,8 @@ static void breast_pump_mode_update(breast_pump_manager_context_t *ctx, pump_res
         ctx->priv.st->put_store_ram_val(STORE_ID_BREAST_PUMP_MODE_WITH_TYPE,
             BREAST_PUMP_MODE_TYPE_BREASTFEEDING, m_info->mode, NULL);
     }
+    /// 清除模式更新标志
+    ctx->priv.st->put_store_ram_val(STORE_ID_MODE_NEW_STEP_INFO_FLAG, m_info->mode, false, NULL);
     if (result_info->work_total_time < PUMP_AUTO_PAUSE_TIME_MS) {
         m_info->auto_pause_onoff = true;
     }
