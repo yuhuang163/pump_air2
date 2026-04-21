@@ -53,7 +53,7 @@ static void charge_ui_common_cb(hdr_post_args_t *args)
     ui_proc_charge_t *proc = args->user_data;
     EXCEPTION_CHECK_VOID(proc);
     WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_CHARGE);
-    LOG_WM("charge_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
+    LOG_WM("margic:%x, action:%d.", proc->margic, args->arg1);
     int action = args->arg1;
     switch (action) {
         case CHARGE_HDR_EXIT_CHARGE_POLICY:
