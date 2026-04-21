@@ -778,14 +778,6 @@ void ui_display_pump_home_screen_prepare(ui_manager_context_t *thiz)
     pump_info->force_update = true;
     pump_info->popup_ui_index = ID_POPUP_UI_NONE;
     pump_info->mode_type = PUMP_MODE_UNKNOWN;
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    uint8_t sub_mode = 0;
-    uint8_t next_sub_mode = 0;
-    if (proc && proc->motor && proc->motor->get_runtime_mode_type) {
-        sub_mode = proc->motor->get_runtime_mode_type(false);
-        next_sub_mode = proc->motor->get_runtime_mode_type(true);
-        LOG_UI("===> sub_mode: %d, next_sub_mode: %d", sub_mode, next_sub_mode);
-    }
 }
 
 void ui_display_pump_home_screen_remove(ui_manager_context_t *thiz)

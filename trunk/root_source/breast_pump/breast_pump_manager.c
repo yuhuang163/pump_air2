@@ -6,7 +6,6 @@
 #include "breast_pump_mode.h"
 #include "breast_pump_manager.h" // IWYU pragma: keep
 
-
 /*
 * DEFINES
 *****************************************************************************************

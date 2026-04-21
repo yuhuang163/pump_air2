@@ -141,6 +141,7 @@ typedef enum {
     PUMP_MODE_LACTATION = 1, /// 吸乳模式
     PUMP_MODE_MIX = 2, /// 混合模式
     PUMP_MODE_IDLE = 3, /// 空闲模式
+    PUMP_MODE_UNKNOWN = 0xFF, /// 未知模式
 } pump_mode_type_e;
 
 /// 泵奶时长
