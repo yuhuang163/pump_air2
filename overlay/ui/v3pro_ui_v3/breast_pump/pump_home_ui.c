@@ -41,41 +41,29 @@
 #define NEXT_RING_R                                (NEXT_RING_SIZE / 2 - 43)
 #define NEXT_TEXT_CENTER_Y_OFFSET                  (60)
 
-#define HOME_TIME_H_64_X                           (20 - 20) // 20 居中对齐
+#define HOME_TIME_H_64_X                           (21) 
 #define HOME_TIME_H_64_Y                           (131)
-#define HOME_TIME_M_64_X                           (120)
+#define HOME_TIME_M_64_X                           (121 + 9)
 #define HOME_TIME_M_64_Y                           HOME_TIME_H_64_Y
-#define HOME_TIME_S_64_X                           (220 + 20) // 220 居中对齐
+#define HOME_TIME_S_64_X                           (220 + 20) 
 #define HOME_TIME_S_64_Y                           HOME_TIME_M_64_Y
 #define HOME_HOURS_COLON_64_X                      (121)
 #define HOME_HOURS_COLON_64_Y                      (126)
 #define HOME_MINUTES_COLON_64_X                    (HOME_HOURS_COLON_64_X + 100)
-#define HOME_MINUTES_COLON_64_Y                    HOME_HOURS_COLON_64_Y
+#define HOME_MINUTES_COLON_64_Y                    (HOME_HOURS_COLON_64_Y)
 
 #define HOME_TIME_M_96_X                           (46)
 #define HOME_TIME_M_96_Y                           (123)
 #define HOME_TIME_S_96_X                           (194)
 #define HOME_TIME_S_96_Y                           HOME_TIME_M_96_Y
-#define HOME_MINUTES_COLON_96_X                    (172)
+#define HOME_MINUTES_COLON_96_X                    (171)
 #define HOME_MINUTES_COLON_96_Y                    (126)
-
-/** 比例数字体时钟：固定槽宽 + 槽内对齐，避免数字变宽时相对冒号漂移 */
-#define HOME_TIME_SLOT_ROW_H_64                    (96)
-#define HOME_TIME_SLOT_ROW_H_96                    (116)
-#define HOME_TIME_SLOT_H_W_64                      (120)
-#define HOME_TIME_SLOT_M_W_64                      (120)
-#define HOME_TIME_SLOT_S_W_64                      (120)
-#define HOME_TIME_SLOT_M_W_96                      (HOME_MINUTES_COLON_96_X - HOME_TIME_M_96_X)
-#define HOME_TIME_SLOT_S_W_96                      (120)
 
 typedef struct {    
     lv_obj_t * root;
     lv_obj_t * background;
     lv_obj_t * mode_text[HOME_TEXT_COUNT];
     lv_obj_t * speed_icon;
-    lv_obj_t * time_slot_h;
-    lv_obj_t * time_slot_m;
-    lv_obj_t * time_slot_s;
     lv_obj_t * time_h;
     lv_obj_t * time_m;
     lv_obj_t * time_s;
@@ -284,14 +272,10 @@ static void pump_home_time_h_update(uint8_t hours, uint16_t y_offset, bool is_ho
         return;
     }
 
-    pump_home_time_slot_ensure(&pump_info->time_slot_h, pump_info->root,
-        HOME_TIME_SLOT_H_W_64, HOME_TIME_SLOT_ROW_H_64,
-        HOME_TIME_H_64_X, HOME_TIME_H_64_Y + y_offset);
-
     if (pump_info->time_h == NULL || !lv_obj_is_valid(pump_info->time_h)) {
-        pump_info->time_h = lv_label_create(pump_info->time_slot_h);
+        pump_info->time_h = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->time_h);
-        lv_obj_set_size(pump_info->time_h, LV_PCT(100), LV_PCT(100)); /// 铺满固定槽
+        lv_obj_set_width(pump_info->time_h, 100);
         lv_label_set_long_mode(pump_info->time_h, LV_LABEL_LONG_CLIP); /// 截断过长文本
         lv_obj_set_style_text_align(pump_info->time_h, LV_TEXT_ALIGN_RIGHT, 0); /// 靠冒号侧（右）对齐
         lv_obj_set_style_text_color(pump_info->time_h, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
@@ -299,16 +283,16 @@ static void pump_home_time_h_update(uint8_t hours, uint16_t y_offset, bool is_ho
     }
 
     if (is_hour_hidden) {
-        lv_obj_add_flag(pump_info->time_slot_h, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(pump_info->time_h, LV_OBJ_FLAG_HIDDEN);
         pump_info->hours = hours;
         pump_info->hours_hidden = is_hour_hidden;
         return;
     }
     char hours_value[4] = {0};
-    lv_obj_clear_flag(pump_info->time_slot_h, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(pump_info->time_h, LV_OBJ_FLAG_HIDDEN);
     snprintf(hours_value, sizeof(hours_value), "%02d", hours);
     lv_label_set_text(pump_info->time_h, hours_value);
-    lv_obj_set_size(pump_info->time_h, LV_PCT(100), LV_PCT(100));
+    lv_obj_align(pump_info->time_h, LV_ALIGN_TOP_LEFT, HOME_TIME_H_64_X, HOME_TIME_H_64_Y + y_offset);
     pump_info->hours = hours;
     pump_info->hours_hidden = is_hour_hidden;
 }
@@ -319,21 +303,10 @@ static void pump_home_time_m_update(uint8_t minutes, uint16_t y_offset, uint8_t 
         pump_info->minutes_size == minutes_size) {
         return;
     }
-
-    if (minutes_size == 96) {
-        pump_home_time_slot_ensure(&pump_info->time_slot_m, pump_info->root,
-            HOME_TIME_SLOT_M_W_96, HOME_TIME_SLOT_ROW_H_96,
-            HOME_TIME_M_96_X, HOME_TIME_M_96_Y + y_offset);
-    } else {
-        pump_home_time_slot_ensure(&pump_info->time_slot_m, pump_info->root,
-            HOME_TIME_SLOT_M_W_64, HOME_TIME_SLOT_ROW_H_64,
-            HOME_TIME_M_64_X, HOME_TIME_M_64_Y + y_offset);
-    }
-
+    
     if (pump_info->time_m == NULL || !lv_obj_is_valid(pump_info->time_m)) {
-        pump_info->time_m = lv_label_create(pump_info->time_slot_m);
+        pump_info->time_m = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->time_m);
-        lv_obj_set_size(pump_info->time_m, LV_PCT(100), LV_PCT(100));
         lv_label_set_long_mode(pump_info->time_m, LV_LABEL_LONG_CLIP); /// 截断过长文本
         lv_obj_set_style_text_color(pump_info->time_m, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
         lv_obj_set_style_text_font(pump_info->time_m, &lv_font_quicksand_64_bold, 0);
@@ -342,13 +315,16 @@ static void pump_home_time_m_update(uint8_t minutes, uint16_t y_offset, uint8_t 
     snprintf(minutes_value, sizeof(minutes_value), "%02d", minutes);
     lv_label_set_text(pump_info->time_m, minutes_value);
     if (minutes_size == 96) {
+        lv_obj_set_width(pump_info->time_m, 120);
         lv_obj_set_style_text_align(pump_info->time_m, LV_TEXT_ALIGN_RIGHT, 0); /// 靠中间冒号侧（右）对齐
         lv_obj_set_style_text_font(pump_info->time_m, &lv_font_quicksand_96_bold, 0);
+        lv_obj_align(pump_info->time_m, LV_ALIGN_TOP_LEFT, HOME_TIME_M_96_X, HOME_TIME_M_96_Y + y_offset);
     } else {
+        lv_obj_set_width(pump_info->time_m, 100);
         lv_obj_set_style_text_align(pump_info->time_m, LV_TEXT_ALIGN_CENTER, 0); /// 两冒号之间居中
         lv_obj_set_style_text_font(pump_info->time_m, &lv_font_quicksand_64_bold, 0);
+        lv_obj_align(pump_info->time_m, LV_ALIGN_TOP_LEFT, HOME_TIME_M_64_X, HOME_TIME_M_64_Y + y_offset);
     }
-    lv_obj_set_size(pump_info->time_m, LV_PCT(100), LV_PCT(100));
     pump_info->minutes = minutes;
     pump_info->minutes_size = minutes_size;
 }
@@ -360,20 +336,9 @@ static void pump_home_time_s_update(uint8_t seconds, uint16_t y_offset, uint8_t 
         return;
     }
 
-    if (seconds_size == 96) {
-        pump_home_time_slot_ensure(&pump_info->time_slot_s, pump_info->root,
-            HOME_TIME_SLOT_S_W_96, HOME_TIME_SLOT_ROW_H_96,
-            HOME_TIME_S_96_X, HOME_TIME_S_96_Y + y_offset);
-    } else {
-        pump_home_time_slot_ensure(&pump_info->time_slot_s, pump_info->root,
-            HOME_TIME_SLOT_S_W_64, HOME_TIME_SLOT_ROW_H_64,
-            HOME_TIME_S_64_X, HOME_TIME_S_64_Y + y_offset);
-    }
-
     if (pump_info->time_s == NULL || !lv_obj_is_valid(pump_info->time_s)) {
-        pump_info->time_s = lv_label_create(pump_info->time_slot_s);
+        pump_info->time_s = lv_label_create(pump_info->root);
         EXCEPTION_CHECK_VOID(pump_info->time_s);
-        lv_obj_set_size(pump_info->time_s, LV_PCT(100), LV_PCT(100));
         lv_label_set_long_mode(pump_info->time_s, LV_LABEL_LONG_CLIP); /// 截断过长文本
         lv_obj_set_style_text_align(pump_info->time_s, LV_TEXT_ALIGN_LEFT, 0); /// 靠冒号侧（左）对齐
         lv_obj_set_style_text_color(pump_info->time_s, lv_color_hex(PUMP_TIME_TEXT_COLOR), 0);
@@ -383,11 +348,14 @@ static void pump_home_time_s_update(uint8_t seconds, uint16_t y_offset, uint8_t 
     snprintf(seconds_value, sizeof(seconds_value), "%02d", seconds);
     lv_label_set_text(pump_info->time_s, seconds_value);
     if (seconds_size == 96) {
+        lv_obj_set_width(pump_info->time_s, 120);
         lv_obj_set_style_text_font(pump_info->time_s, &lv_font_quicksand_96_bold, 0);
+        lv_obj_align(pump_info->time_s, LV_ALIGN_TOP_LEFT, HOME_TIME_S_96_X, HOME_TIME_S_96_Y + y_offset);
     } else {
+        lv_obj_set_width(pump_info->time_s, 100);
         lv_obj_set_style_text_font(pump_info->time_s, &lv_font_quicksand_64_bold, 0);
+        lv_obj_align(pump_info->time_s, LV_ALIGN_TOP_LEFT, HOME_TIME_S_64_X, HOME_TIME_S_64_Y + y_offset);
     }
-    lv_obj_set_size(pump_info->time_s, LV_PCT(100), LV_PCT(100));
     pump_info->seconds = seconds;
     pump_info->seconds_size = seconds_size;
 }
@@ -398,6 +366,7 @@ static void pump_home_time_update(ui_manager_context_t *thiz, uint16_t hold_time
     uint8_t minutes = (hold_time / 60) % 60;
     uint8_t seconds = hold_time % 60;
     // hours = minutes = seconds;
+    // minutes = seconds;
     if (hours == 0) {
         uint16_t y_offset = is_regular_mode ? 0 : 20;
         pump_home_time_h_update(hours, y_offset, true);
