@@ -519,17 +519,7 @@ int write_pump_setting_info_to_ram(store_func_args_t args)
         LOGE("mode_step: %d, out of range", mode_step);
         return -1;
     }
-
-#if IS_PUMP_STEPS_USE_SAME_SETTING
-    for (uint8_t i = 0; i < ROOT_BREAST_PUMP_STEP_MAX; i++) {
-        pump_info->setting_wrap[mode].info[i].level[0] = setting->level[0];
-        pump_info->setting_wrap[mode].info[i].level[1] = setting->level[1];
-        pump_info->setting_wrap[mode].info[i].speed = setting->speed;
-    }
-#else
     memcpy(&pump_info->setting_wrap[mode].info[mode_step], setting, sizeof(pump_setting_t));
-#endif 
-
     return 0;
 }
 
