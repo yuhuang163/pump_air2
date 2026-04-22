@@ -137,6 +137,17 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     static uint8_t log_timer = 0;
     int ret = RESULT_PUMP_NORMAL;
     log_timer++;
+#if IS_SUPPORT_MODE_WORK_TIME_ACCUMULATE
+    if ((result_info->work_total_time >= result_info->target_total_time  || 
+        result_info->work_total_time >= SINGLE_PUMP_TIME_MAX)  && 
+        result_info->target_total_time != 0) {
+        LOG_PMP("finish, work_time=%d/%d, mode_time=%d", 
+            PUMP_TIME_TO_SECOND(result_info->work_total_time), PUMP_TIME_TO_SECOND(result_info->target_total_time),
+            result_info->current_mode_work_time);   
+        log_timer = 0;
+        return RESULT_PUMP_FINISH;
+    }
+#else
     if ((result_info->work_total_time >= result_info->target_total_time && result_info->target_total_time != 0)) {
         LOG_PMP("finish, work_time=%d/%d, mode_time=%d", 
             PUMP_TIME_TO_SECOND(result_info->work_total_time), PUMP_TIME_TO_SECOND(result_info->target_total_time),
@@ -144,6 +155,7 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
         log_timer = 0;
         return RESULT_PUMP_FINISH;
     }
+#endif
     /// 更新模式和力度.
     if (result_info->mode != ctx->priv.m_info.mode) {
         breast_pump_mode_update(ctx, result_info);
@@ -179,11 +191,13 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
         READ_PUMP_MODE_STEP_INDEX(ctx, time_index);
         READ_PUMP_SETTING_INFO(ctx, time_index, setting);
         uint32_t time_policy_remaining_time = ctx->priv.motor->get_time_policy_remaining_time();
-        LOG_PMP("%s, work_time=%d/%d/%d, mode_time=%d, policy_rtime=%d, setting=%d/%d/%d", 
+        uint32_t policy_running_time = ctx->priv.motor->get_policy_running_time();
+        LOG_PMP("%s, work_time=%d/%d/%d, mode_time=%d, policy_rtime=%d/%d, setting=%d/%d/%d", 
             ret == RESULT_PUMP_WILL_FINISH ? "will finish" : "normal",
             PUMP_TIME_TO_SECOND(result_info->work_total_time), PUMP_TIME_TO_SECOND(result_info->target_total_time),
             PUMP_TIME_TO_SECOND(result_info->setting_time), PUMP_TIME_TO_SECOND(result_info->current_mode_work_time),
-            time_policy_remaining_time, setting.level[0], setting.level[1], setting.speed);
+            time_policy_remaining_time, PUMP_TIME_TO_SECOND(policy_running_time), 
+            setting.level[0], setting.level[1], setting.speed);
         log_timer = 0;
     }
 
