@@ -45,11 +45,17 @@ static void set_key_backlight(led_manager_context_t *thiz, uint8_t level)
         LOGE("system power off, ignore set ui backlight.");
         return;
     }
-    led_key_backlight_uniform_msg_t msg = {
-        .level = level > LED_LEVEL_MAX ? LED_LEVEL_MAX : level,
+    led_status_msg_t msg = {
+        .led_index = PUMP_LED_ALL_ID,
+        .led_status = {
+            .mode = LED_MODE_LEVEL,
+            .un.luminous = {
+                .level = level > LED_LEVEL_MAX ? LED_LEVEL_MAX : level,
+            },
+        },
     };
     thiz->priv.led_dev->ioctl(thiz->priv.led_dev,
-        OP_CODE_LED_KEY_BACKLIGHT_UNIFORM_SET, (void *)&msg);
+        OP_CODE_LED_STATUS_SET, (void *)&msg);
 }
 
 static void set_key_backlight_rate(led_manager_context_t *thiz, uint8_t rate)
@@ -365,7 +371,7 @@ static int on_broadcast_receiver_route(broadcast_mask_id_t id, void *context, in
         case ID_BROADCAST_SYS_STATE_CHANGE:
             if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
                 /*
-                 * 关机必须强制全灭并清 BLINK 状态机，不能走 set_key_backlight(0) 的“保留 BLINK”路径。
+                 * 关机必须强制全灭并清 BLINK 状态机，不能只靠亮度置零。
                  */
                 thiz->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);
             } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
@@ -450,7 +456,6 @@ void register_led_hook(led_manager_context_t *ctx)
     ctx->hook->set_night_light_adaptive_dimming = set_night_light_adaptive_dimming;
     ctx->hook->get_night_light_adaptive_dimming = get_night_light_adaptive_dimming;
     ctx->hook->set_key_backlight = set_key_backlight;
-    ctx->hook->get_night_light_level = get_night_light_level;
     ctx->hook->get_night_light_onoff = get_night_light_onoff;
 #if IS_SUPPORT_KEY_LIGHT_ADAPTIVE
     ctx->hook->set_key_light_level = set_key_light_level;
