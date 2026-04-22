@@ -171,7 +171,7 @@ static int entry_event_cb(window_lift_cycle_e new_state, const struct window_con
         if (proc->led && proc->led->hook) {
             /*
              * 插 USB 的“伪关机/充电界面”必须强制灭灯并清 BLINK 状态机，
-             * 不能仅走 set_key_backlight(0)（该路径会保留 BLINK mode）。
+             * 不能仅依赖亮度置零。
              */
             if (proc->led->set_led_onoff) {
                 proc->led->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);

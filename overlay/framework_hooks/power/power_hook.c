@@ -398,7 +398,7 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
         }
         /// Keep dedicated task name for delayed power-on path to preserve existing scheduling behavior.
         POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 500, HDR_ACTION_POWER_ON, ctx,
-            POWER_ON_VBUS_PLUG_IN_TASK_NAME);
+            POWER_ONOFF_AND_STANDBY_TASK_NAME);
         return 0;
     }
 #else
