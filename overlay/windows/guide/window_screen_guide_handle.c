@@ -37,7 +37,7 @@ static int on_guide_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t 
     ui_proc_guide_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc);
     WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_GUIDE, 0);
-#if (ROOT_UI_VERSION == ROOT_UI_V2)
+#if 0
     if (keycode == KEY_CODE_KNOB_LEFT) {
         guide_knob_left_event_handler(proc);
     } else {
