@@ -222,24 +222,25 @@ static int start_breast_pump_work_route(breast_pump_manager_context_t *ctx, int 
     struct sys_persist_info *persist = ctx->priv.st->get_persist_sys_info();
     if (status == BREAST_PUMP_START) {
         result_info->work_total_time = 0;
+        result_info->start_time = get_timestamp();
         result_info->timestamp = platform_get_utc_time();
+        breast_pump_mode_update(ctx, result_info);      
+    } else {
+        result_info->start_time = get_timestamp();
+        if (result_info->mode != ctx->priv.m_info.mode) {
+            breast_pump_mode_update(ctx, result_info);
+        }
+        LOG_PMP("mode %d continue", result_info->mode);
     }
-    breast_pump_mode_update(ctx, result_info);       
     return 0;
 }
 
 static int stop_breast_pump_work_route(breast_pump_manager_context_t *ctx, int status)
 {
-    // pump_result_info_t *result_info = &ctx->priv.result_info[BREAST_PUMP_RESULT_PUMPING];
-    // sys_persist_info_t *sys_info = ctx->priv.st->get_persist_sys_info();
-    // EXCEPTION_CHECK_INT(sys_info);
-    // if (result_info->timestamp < PRODUCT_BUILD_TIMESTAMP) { 
-    //     uint32_t timestamp = platform_get_utc_time();
-    //     if (timestamp > PRODUCT_BUILD_TIMESTAMP) {
-    //         result_info->timestamp = timestamp;
-    //         LOG_PMP("breast pump timestamp calib: %lu", result_info->timestamp);
-    //     }
-    // }
+    pump_result_info_t *result_info = &ctx->priv.result_info[BREAST_PUMP_RESULT_PUMPING];
+    uint32_t poll_time = get_timestamp_ms(result_info->start_time);
+    result_info->work_total_time += poll_time;
+    LOG_PMP("stop, work_time=%d", PUMP_TIME_TO_SECOND(result_info->work_total_time));
     return 0;
 }
 
