@@ -248,10 +248,14 @@ static void key_light_adaptive_thread(void *user_data)
         return;
     }
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    if (wm && (wm->is_current_window(wm, ID_WINDOW_CHARGE) ||
-        wm->is_current_window(wm, ID_WINDOW_LOGO))) {
+    if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE)) {
         return;
     }
+#if (IS_SUPPORT_LOGO_BG_COLOR_TEST == 0 || IS_SUPPORT_LOGO_KEY_LIGHT_ADAPTIVE_TEST == 0)
+    if (wm && wm->is_current_window(wm, ID_WINDOW_LOGO)) {
+        return;
+    }
+#endif
     uint8_t level = thiz->priv.key_light_adaptive_level;
     if (level == 0) {
         level = KEY_LIGHT_DEFAULT_LEVEL;
@@ -277,10 +281,14 @@ static void key_light_adaptive_level_update(led_manager_context_t *thiz, uint8_t
         return;
     }
     window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-    if (wm && (wm->is_current_window(wm, ID_WINDOW_CHARGE) ||
-        wm->is_current_window(wm, ID_WINDOW_LOGO))) {
+    if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE)) {
         return;
     }
+#if (IS_SUPPORT_LOGO_BG_COLOR_TEST == 0 || IS_SUPPORT_LOGO_KEY_LIGHT_ADAPTIVE_TEST == 0)
+    if (wm && wm->is_current_window(wm, ID_WINDOW_LOGO)) {
+        return;
+    }
+#endif
     bsp_led_key_adaptive_duty_set(level);
 }
 
@@ -342,14 +350,14 @@ static int on_broadcast_receiver_route(broadcast_mask_id_t id, void *context, in
     switch (id.code) {
         case ID_BROADCAST_SYS_STATE_CHANGE:
             if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
-                set_key_backlight(thiz, 0);
+                    set_key_backlight(thiz, 0);
             } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
                 night_light_resume_after_power_on(thiz);
             }
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
-                set_key_backlight(thiz, 0);
+                    set_key_backlight(thiz, 0);
             } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
                 if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0 && wm->is_current_window(wm, ID_WINDOW_GUIDE) == 0) {
                     set_key_backlight(thiz, 100);
