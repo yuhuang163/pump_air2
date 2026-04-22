@@ -88,7 +88,21 @@ void start_home_ui_animation(ui_proc_home_t *proc)
     if (proc->pump_priming) {
         proc->pump_priming = false;
         if (proc->led)  {
+#if IS_SUPPORT_KEY_LIGHT_ADAPTIVE
+            /*
+             * key 自适应开启时，避免单灯 LEVEL 覆盖 BLINK：
+             * 改走统一背光入口（BLINK 灯仅按相位刷新，不改 mode）。
+             */
+            if (proc->led->hook && proc->led->hook->get_key_light_adaptive_dimming &&
+                proc->led->hook->set_key_backlight &&
+                proc->led->hook->get_key_light_adaptive_dimming(proc->led)) {
+                proc->led->hook->set_key_backlight(proc->led, LED_LEVEL_MAX);
+            } else {
+                proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX);
+            }
+#else
             proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX);
+#endif
         }
     }
 
