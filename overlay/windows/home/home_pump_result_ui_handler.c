@@ -2,9 +2,9 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
-#include "hal_led.h"
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "window_screen_home.h"
+#include "windows_manager_api.h"
 
 /*
 * DEFINES
@@ -30,8 +30,9 @@ static void home_pump_result_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_home_t *proc = (ui_proc_home_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_PUMP);
-    if (proc->current_ui_type != PUMP_UI_TYPE_RESULT) {
+    WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_HOME);
+    if (proc->current_ui_type != HOME_UI_TYPE_PUMP_RESULT) {
+        LOG_UI("pump result ui, ignore display completed.");
         return;
     }
     start_home_ui_animation(proc);

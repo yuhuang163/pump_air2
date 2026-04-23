@@ -4,7 +4,6 @@
 */
 #include "breast_pump_manager.h" // IWYU pragma: keep
 #include "input_key_code.h"
-#include "root_log_define.h"
 #include "window_screen_pump.h"// IWYU pragma: keep
 
 /*
@@ -86,11 +85,17 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
         case PUMP_HDR_ACTION_PROGRESS_STOP: 
             /// TODO: 停止进度条
             break;
-        case PUMP_HDR_ACTION_PUMP_COMPLETE: 
+        case PUMP_HDR_ACTION_PUMP_COMPLETE:        
+#if 1
+            LOG_WM("pump complete, goto home window.");
+            multi_func_msg_data_t msg = {0};
+            msg.union_body.extra.window_id = ID_WINDOW_HOME;
+            msg.union_body.extra.arg1 = HOME_SUB_UI_TYPE_PUMP_RESULT;
+            proc->wm->dispatch_new_window_args(proc->wm, &msg);
+#else
             LOG_WM("pump complete, show progress time policy.");
-            if (proc->pump) {
-                show_pump_result_ui(proc);
-            }
+            show_pump_result_ui(proc);
+#endif
             break;
         default:
             LOG_WM("unknow action: %d, ignore.", action);

@@ -77,7 +77,6 @@ void pump_popup_ui_type_update(ui_proc_pump_t *proc, popup_ui_id_e type)
 
 void pump_sub_ui_exit_handler(ui_proc_pump_t *proc)
 {
-#if IS_ALLLOW_PUMP_COMPLETE_BREAK
     int pump_status = 0;
     READ_PUMP_WORK_STATUS(proc->pump, pump_status);
     if (pump_status == BREAST_PUMP_FINISH || pump_status == BREAST_PUMP_IDLE) {
@@ -88,7 +87,4 @@ void pump_sub_ui_exit_handler(ui_proc_pump_t *proc)
     } else {
         show_pump_home_ui(proc);
     }
-#else
-    show_pump_home_ui(proc);
-#endif
 }
