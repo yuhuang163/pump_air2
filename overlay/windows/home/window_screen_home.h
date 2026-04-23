@@ -58,6 +58,7 @@ typedef enum {
 /// 主界面UI结构体
 typedef struct {
     window_context_t w_ctx;
+    window_entry_extra_t extra;
     window_manager_context_t *wm;
     ui_manager_context_t *ui;
     ble_manager_context_t *ble;
@@ -112,6 +113,9 @@ void home_bind_ui_hdr_remove(void);
 void home_popup_ui_type_update(ui_proc_home_t *proc, popup_ui_id_e type);
 /// 主界面UI切换
 void home_ui_change_hdr_remove(ui_proc_home_t *proc);
+/// 泵奶结果界面处理
+void show_home_pump_result_ui(ui_proc_home_t *proc);
+void home_pump_result_ui_hdr_remove(void);
 
 #ifdef __cplusplus
 }
