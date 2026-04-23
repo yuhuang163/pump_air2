@@ -363,8 +363,8 @@ static int exit_event_cb(window_lift_cycle_e new_state,
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);
             REMOVE_ALL_HANDER_TASK();
-            unregister_broadcast_receiver(&proc->receiver);  // 注销广播接收器，防止use-after-free
             remove_breast_pump_result_cb(proc->pump);
+            unregister_broadcast_receiver(&proc->receiver);  // 注销广播接收器，防止use-after-free
             if (proc->key) {
                 proc->key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
             } else {
