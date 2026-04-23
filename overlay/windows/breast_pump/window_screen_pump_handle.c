@@ -339,17 +339,17 @@ static int entry_event_cb(window_lift_cycle_e new_state,
     return 0;
 }
 
-static void remove_breast_pump_result_cb(breast_pump_manager_context_t *pump)
+static void remove_breast_pump_result_cb(ui_proc_pump_t *proc)
 {
-    EXCEPTION_CHECK_VOID(pump);
+    EXCEPTION_CHECK_VOID(proc && proc->pump);
     int pump_status = 0;
-    READ_PUMP_WORK_STATUS(pump, pump_status);
+    READ_PUMP_WORK_STATUS(proc->pump, pump_status);
     if (pump_status > BREAST_PUMP_IDLE && pump_status < BREAST_PUMP_FINISH) {
-        LOG_WM("pump status: %d => goto finish", pump_status);
-        WRITE_PUMP_WORK_STATUS(pump, BREAST_PUMP_FINISH, 1);
-    }
+        LOG_WM("next wm:%d pump status:%d => goto finish", proc->wm->get_next_window_id(), pump_status);
+        WRITE_PUMP_WORK_STATUS(proc->pump, BREAST_PUMP_FINISH, 1);
+    } 
     LOG_WM("==>remove breast_pump_result_listener");
-    pump->remove_breast_pump_result_listener(on_breast_pump_result_cb);
+    proc->pump->remove_breast_pump_result_listener(on_breast_pump_result_cb);
 }
 
 static int exit_event_cb(window_lift_cycle_e new_state,
@@ -368,7 +368,7 @@ static int exit_event_cb(window_lift_cycle_e new_state,
         case ID_SCR_STATE_ON_DESTORY:
             LOG_WM("==>%s window on destory", PAGE_NAME_STR);
             REMOVE_ALL_HANDER_TASK();
-            remove_breast_pump_result_cb(proc->pump);
+            remove_breast_pump_result_cb(proc);
             unregister_broadcast_receiver(&proc->receiver);  // 注销广播接收器，防止use-after-free
             if (proc->key) {
                 proc->key->remove_keyevent_handler(on_pump_ui_keyevent_hdr);
