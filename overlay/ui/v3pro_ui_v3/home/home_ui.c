@@ -511,6 +511,7 @@ void ui_display_home_prepare(ui_manager_context_t *thiz)
     thiz->priv.fps_start_time = get_timestamp();
     home_root_init();
     ble_ui_init(thiz);
+    battery_ui_init(thiz);
     common_ui_bg_init(thiz);
     home_info->force_update = true;
     home_info->animation_index = 0;
@@ -528,6 +529,7 @@ void ui_display_home_remove(ui_manager_context_t *thiz)
     common_ui_img_resource_deinit(thiz, &home_info->clock_colon_info);
 #endif
     ble_ui_deinit(thiz);
+    battery_ui_deinit(thiz);
     common_ui_bg_deinit(thiz);
     ui_common_operation_tip_remove(thiz);
     LVGL_OBJ_DELETE(home_info->root);
@@ -542,6 +544,7 @@ int ui_display_home_process(ui_manager_context_t *thiz)
     EXCEPTION_CHECK_INT(proc && proc->ble);
     home_root_bg_update(thiz);
     ble_ui_update(thiz, home_info->root, proc->ble, COMMON_BLE_UI_X, COMMON_BLE_UI_Y);
+    battery_ui_update(thiz, home_info->root, proc->battery, true);
     home_ui_update(thiz, proc);
     ui_common_operation_tip_update(thiz, proc->popup_ui_type, home_info->root,
         &home_info->popup_ui_index);
