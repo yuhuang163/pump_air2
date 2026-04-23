@@ -1058,6 +1058,9 @@ EXTERNAL_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/scan_key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/external/md5/*.c)
 
+# 佩戴检测库（源码目录有库则优先链接；无库则回退源码编译）
+WEAR_DETECTION_LIB := $(PROJECT_ROOT)/library/root_algo/wear_detecttion/libwear_detection.a
+
 # 算法模块源码
 ALGORITHM_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/algo/*.c) \
@@ -1066,6 +1069,18 @@ ALGORITHM_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/library/root_algo/wear_detecttion/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c)
+
+WEAR_DETECTION_SRC_CONFLICTS := \
+	$(PROJECT_ROOT)/library/root_algo/wear_detecttion/v3_wear_detection.c \
+	$(PROJECT_ROOT)/library/root_algo/wear_detecttion/v3_pressure_compensation_algo.c \
+	$(PROJECT_ROOT)/library/root_algo/wear_detecttion/v3_target_curve_table.c
+
+ifneq ($(wildcard $(WEAR_DETECTION_LIB)),)
+ALGORITHM_MODULE_SRCS := $(filter-out $(WEAR_DETECTION_SRC_CONFLICTS),$(ALGORITHM_MODULE_SRCS))
+WEAR_DETECTION_LINK_LIB := $(WEAR_DETECTION_LIB)
+else
+WEAR_DETECTION_LINK_LIB :=
+endif
 
 # BLE 模块源码
 BLE_MODULE_SRCS := \
@@ -1286,10 +1301,10 @@ endif
 
 all: extra sdk
 
-sdk: $(EXTRA_LIB) | $(BIN_DIR)
+sdk: $(EXTRA_LIB) $(WEAR_DETECTION_LINK_LIB) | $(BIN_DIR)
 	$(MAKE) -C $(SDK_SRCTREE) O=$(O) T=$(SDK_T) CONFIG_CROSS_COMPILE=$(CONFIG_CROSS_COMPILE) \
 		C++_ONLY_FLAGS+=" -fno-threadsafe-statics " \
-		LIB_LDFLAGS+=" $(EXTRA_LIB) -Wl,-defsym,__EXTRA_LIB_MTIME=$(shell stat -c %Y $(EXTRA_LIB)) " \
+		LIB_LDFLAGS+=" $(EXTRA_LIB) $(WEAR_DETECTION_LINK_LIB) -Wl,-defsym,__EXTRA_LIB_MTIME=$(shell stat -c %Y $(EXTRA_LIB)) " \
 		WATCHER_DOG=$(WATCHER_DOG) \
 		CRASH_REBOOT=$(CRASH_REBOOT) \
 		WERROR_ENABLE=$(WERROR_ENABLE) \
