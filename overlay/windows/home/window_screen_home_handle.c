@@ -130,6 +130,11 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
         LOG_WM("system idle, ignore key event.");
         return 0;
     }
+    
+    if (proc->current_ui_type == HOME_UI_TYPE_PUMP_RESULT) {
+        LOG_WM("pump result ui, ignore key event.");
+        return 0;
+    }
 
     switch (keycode) {
         case KEY_CODE_POWER:

@@ -545,13 +545,10 @@ FONT_V2_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_14 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_16 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_20 \
-	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_22 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_24 \
-	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_32 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_72 \
 	-I$(PROJECT_ROOT)/overlay/font/font_oppo_sans_96 \
 	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_64 \
-	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_80 \
 	-I$(PROJECT_ROOT)/overlay/font/font_quicksand_96 
 
 FONT_INC_FLAGS := \
@@ -1065,7 +1062,6 @@ WEAR_DETECTION_LIB := $(PROJECT_ROOT)/library/root_algo/wear_detecttion/libwear_
 ALGORITHM_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/algo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/library/root_algo/*.c) \
-	$(wildcard $(PROJECT_ROOT)/library/root_algo/include/*.c) \
 	$(wildcard $(PROJECT_ROOT)/library/root_algo/wear_detecttion/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/algo/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/algorithm/*.c)
@@ -1149,13 +1145,10 @@ FONT_V2_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_14/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_16/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_20/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_22/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_24/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_32/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_72/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_96/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_64/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_80/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_96/*.c) 
 
 FONT_MODULE_SRCS := \
