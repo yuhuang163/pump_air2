@@ -104,7 +104,15 @@ static void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
         LOG_WM("pump finish timeout, ignore knob event.");
         return;
     }
-    switch (proc->current_ui_type) {
+
+#if (IS_ALLLOW_PUMP_COMPLETE_BREAK == 0)
+    if (proc->current_ui_type == PUMP_UI_TYPE_RESULT) {
+        LOG_WM("pump will finish, ignore knob event.");
+        return;
+    }
+#endif
+    
+switch (proc->current_ui_type) {
         case PUMP_UI_TYPE_LEVEL:
             switch_pump_level_ui(proc, is_left ? false : true);
             break;
@@ -149,6 +157,13 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
         LOG_WM("pump finish timeout, ignore key event.");
         return;
     }
+
+#if (IS_ALLLOW_PUMP_COMPLETE_BREAK == 0)
+    if (proc->current_ui_type == PUMP_UI_TYPE_RESULT) {
+        LOG_WM("pump result ui, ignore key event.");
+        return;
+    }
+#endif
 
     switch (keycode) {
         case KEY_CODE_POWER:
