@@ -31,11 +31,6 @@
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-int battery_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, battery_manager_context_t *battery, uint8_t is_display_state)
-{
-    return 0;
-}
-
 void battery_ui_init(ui_manager_context_t *thiz)
 {
 

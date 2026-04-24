@@ -16,7 +16,7 @@
 #define I2C_MASTER_TIMEOUT_MS(x)                    ((x > 20) ? ((x / 20) * 50) : 50)
 
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
-#define I2C_MASTER_COUNT                            4
+#define I2C_MASTER_COUNT                            3
 #define I2C0_MASTER_SPEED                           400000
 #define I2C1_MASTER_SPEED                           200000
 #define I2C2_MASTER_SPEED                           100000
@@ -67,13 +67,6 @@ static const i2c_master_config_t s_i2c_config[I2C_MASTER_COUNT] = {
         .scl_pin = I2C1_SCL_PIN,
         .sda_pin = I2C1_SDA_PIN,
         .speed = I2C1_MASTER_SPEED,
-    },
-    {
-        .id = HAL_I2C_ID_2, 
-        .iomux_set = hal_iomux_set_i2c2,
-        .scl_pin = I2C2_SCL_PIN,
-        .sda_pin = I2C2_SDA_PIN,
-        .speed = I2C2_MASTER_SPEED,
     },
     {
         .id = HAL_I2C_ID_3, 

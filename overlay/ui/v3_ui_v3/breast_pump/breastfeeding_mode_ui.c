@@ -29,27 +29,27 @@
 */
 void ui_display_breastfeeding_mode_prepare(ui_manager_context_t *thiz)
 {
-    common_pump_bf_mode_ui_prepare(thiz);
-    thiz->priv.fps_count = 0;
-    thiz->priv.fps_start_time = get_timestamp();
+    // common_pump_bf_mode_ui_prepare(thiz);
+    // thiz->priv.fps_count = 0;
+    // thiz->priv.fps_start_time = get_timestamp();
 }
 
 void ui_display_breastfeeding_mode_remove(ui_manager_context_t *thiz)
 {
-    common_pump_bf_mode_ui_remove(thiz);
+    // common_pump_bf_mode_ui_remove(thiz);
 }
 
 int ui_display_breastfeeding_mode_process(ui_manager_context_t *thiz)
 {
-    EXCEPTION_CHECK_INT(thiz);
-    ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
-    EXCEPTION_CHECK_INT(proc);
-    common_pump_bf_mode_ui_process(thiz, proc->ui_bf_mode_index, proc->popup_ui_type);
-    thiz->priv.fps_count++;
-    if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
-        thiz->priv.fps_start_time = get_timestamp();
-        LOG_UI("===> bf mode fps: %d index:%d", thiz->priv.fps_count, proc->ui_bf_mode_index);
-        thiz->priv.fps_count = 0;
-    }
+    // EXCEPTION_CHECK_INT(thiz);
+    // ui_proc_pump_t *proc = (ui_proc_pump_t *)thiz->priv.play_info.user_data;
+    // EXCEPTION_CHECK_INT(proc);
+    // common_pump_bf_mode_ui_process(thiz, proc->ui_bf_mode_index, proc->popup_ui_type);
+    // thiz->priv.fps_count++;
+    // if (get_timestamp() - thiz->priv.fps_start_time >= 1000) {
+    //     thiz->priv.fps_start_time = get_timestamp();
+    //     LOG_UI("===> bf mode fps: %d index:%d", thiz->priv.fps_count, proc->ui_bf_mode_index);
+    //     thiz->priv.fps_count = 0;
+    // }
     return 0;
 }

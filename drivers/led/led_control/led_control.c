@@ -15,7 +15,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define LED_TOTAL_SIZE               (6)
+#define LED_TOTAL_SIZE               (3)
 #define LED_PWM_PERIOD               800 // 800 - 1ms  350 - 0.5ms  120 - 0.25ms
 #define LED_ON_TIME                  200 // 800 - 1ms  350 - 0.5ms  120 - 0.25ms
 #define LED_OFF_TIME                 1800 // 800 - 1ms  350 - 0.5ms  120 - 0.25ms
@@ -37,12 +37,9 @@ static os_timer_id s_led_timer_id;
 static uint8_t soft_level_status = 0;
 
 static const led_cfg_t led_cfg[LED_TOTAL_SIZE] = {
-    {PUMP_START_BL_PIN},
-    {PUMP_MODE_BL_PIN},
-    {PUMP_FREQ_SET_BL_PIN},
-    {PUMP_BREASTFEEDING_BL_PIN},
-    {PUMP_LEFT_CONTROL_BL_PIN},
-    {PUMP_RIGHT_CONTROL_BL_PIN},
+    {LED1_PIN},
+    {LED2_PIN},
+    {LED3_PIN},
 };
 
 /*
@@ -112,7 +109,7 @@ static void led_timer_deinit(void)
 static void led_pin_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)PUMP_START_BL_PIN,  
+        (enum HAL_IOMUX_PIN_T)LED1_PIN,  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_PULLUP_ENABLE

@@ -9,6 +9,7 @@
 #include "bsp_config.h" // IWYU pragma: keep
 #include "bsp_led_internal.h"
 
+#if IS_SUPPORT_NIGHT_LIGHT
 /*
 * DEFINES
 *****************************************************************************************
@@ -248,3 +249,4 @@ int bsp_night_light_rate_update(led_level_rate_msg_t *msg)
 {
     return 0;
 }
+#endif

@@ -48,9 +48,7 @@ void bsp_motor_pwm_test_all_step_counts(void);
 */
 static const motor_pwm_cfg_t motor_pwm_cfg[] = {
     {MOTOR_PUMP1_PWM_ID,   MOTOR_PUMP1_PWM_IMUX},
-    {MOTOR_PUMP2_PWM_ID,   MOTOR_PUMP2_PWM_IMUX},
     {MOTOR_VALVE1_PWM_ID,  MOTOR_VALVE1_PWM_IMUX},
-    {MOTOR_VALVE2_PWM_ID,  MOTOR_VALVE2_PWM_IMUX},
 };
 
 static uint8_t motor_pwm_status[MOTOR_PWM_ID_MAX] = {0};
@@ -484,8 +482,6 @@ static int8_t bsp_motor_pwm_gradual_gpio_irq_init(int8_t enable)
       HAL_GPIO_IRQ_POLARITY_LOW_FALLING, pump_1_irq_callback};
 
     hal_gpio_setup_irq(PWM_PUMP1_PIN, &gpio_irq_cfg);
-    gpio_irq_cfg.irq_handler = pump_2_irq_callback;
-    hal_gpio_setup_irq(PWM_PUMP2_PIN, &gpio_irq_cfg);
   return 0;
 }
 #endif

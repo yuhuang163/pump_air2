@@ -9,6 +9,7 @@
 #include "key_input_manager_api.h" // IWYU pragma: keep
 #endif
 
+#if IS_SUPPORT_ADAPTIVE_DIMMING
 /*
 * DEFINES
 *****************************************************************************************
@@ -448,3 +449,33 @@ bool light_sensor_data_report(uint8_t *data)
     s_light_report_batch_count = 0;
     return ret == 0;
 }
+#else
+void adaptive_dimming_init(void)
+{
+}
+
+void light_sensor_sampling_start(void)
+{
+}
+
+void light_sensor_sampling_stop(void)
+{
+}
+
+bool light_sensor_sampling_is_sampling(void)
+{
+    return false;
+}
+
+bool light_sensor_change_sampling_interval(uint16_t interval)
+{
+    (void)interval;
+    return false;
+}
+
+bool light_sensor_data_report(uint8_t *data)
+{
+    (void)data;
+    return false;
+}
+#endif

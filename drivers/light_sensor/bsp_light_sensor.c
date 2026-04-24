@@ -6,7 +6,7 @@
 #include "bsp_config.h"
 #include "hal_gpadc.h"
 #include "bsp_light_sensor_internal.h" // IWYU pragma: keep
-
+#if IS_SUPPORT_DEVICE_LIGHT_SENSOR
 /*
 * DEFINES
 *****************************************************************************************
@@ -136,3 +136,4 @@ void light_sensor_test(void)
     uint32_t tmp;
     light_sensor_get_voltage(&tmp);
 }
+#endif

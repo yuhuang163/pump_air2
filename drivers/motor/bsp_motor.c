@@ -29,14 +29,14 @@ static uint8_t motor_power_status = 0;
 */
 static int motor_power_gpio_init(void)
 {
-    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)PWM_PUMP_EN_PIN,  
-        HAL_IOMUX_FUNC_AS_GPIO, 
-        HAL_IOMUX_PIN_VOLTAGE_VIO, 
-        HAL_IOMUX_PIN_NOPULL,
-    };
-    hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(PWM_PUMP_EN_PIN, HAL_GPIO_DIR_OUT, 1);
+    // struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+    //     (enum HAL_IOMUX_PIN_T)PWM_PUMP_EN_PIN,  
+    //     HAL_IOMUX_FUNC_AS_GPIO, 
+    //     HAL_IOMUX_PIN_VOLTAGE_VIO, 
+    //     HAL_IOMUX_PIN_NOPULL,
+    // };
+    // hal_iomux_init(&gpio_map, 1);
+    // hal_gpio_pin_set_dir(PWM_PUMP_EN_PIN, HAL_GPIO_DIR_OUT, 1);
 
     return BSP_OK;
 }

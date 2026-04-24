@@ -19,8 +19,7 @@ extern "C" {
 /// 电池
 void battery_ui_init(ui_manager_context_t *thiz);
 void battery_ui_deinit(ui_manager_context_t *thiz);
-int battery_ui_update(ui_manager_context_t *thiz, lv_obj_t *root, 
-    battery_manager_context_t *battery, uint8_t is_display_state);
+
 
 /// 低电量页面
 void ui_display_battery_low_power_prepare(ui_manager_context_t *thiz);

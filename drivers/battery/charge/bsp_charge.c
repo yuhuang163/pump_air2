@@ -180,41 +180,20 @@ static int charge_read_nbyte_no_retry(uint8_t reg_addr, uint8_t *data, uint16_t 
 static void charge_power_gpio_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux = {
-        (enum HAL_IOMUX_PIN_T)CHARGE_POWER_PIN, 
+        (enum HAL_IOMUX_PIN_T)CHARGE_ENABLE_PIN, 
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&pinmux, 1);
-    hal_gpio_pin_set_dir(CHARGE_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
-    pinmux.pin = (enum HAL_IOMUX_PIN_T)CHARGE_SLEEP_PIN;
-    hal_iomux_init(&pinmux, 1);
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
-    hal_gpio_pin_set_dir(CHARGE_SLEEP_PIN, HAL_GPIO_DIR_OUT, 0);
-    #else
-    hal_gpio_pin_set_dir(CHARGE_SLEEP_PIN, HAL_GPIO_DIR_OUT, 1);
-#endif
-#endif
+    hal_gpio_pin_set_dir(CHARGE_ENABLE_PIN, HAL_GPIO_DIR_OUT, 1);
 }
 
 static void charge_power_control(bool enable)
 {
-    GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 0 : 1);
+    GPIO_PIN_CTRL(CHARGE_ENABLE_PIN, enable ? 0 : 1);
     is_charging = enable ? true:false;
     LOG_PBUS("charge_power_control: %d", enable);
-}
-
-static void charge_sleep_control(bool enable)
-{
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)   
-    GPIO_PIN_CTRL(CHARGE_SLEEP_PIN, enable ? 1 : 0);
-#else
-    GPIO_PIN_CTRL(CHARGE_SLEEP_PIN, enable ? 0 : 1);
-#endif
-    LOG_PBUS("charge_sleep_control: %d", enable);
-#endif
 }
 
 static int charge_device_is_ready(void)
@@ -358,9 +337,6 @@ static int charge_ntc_temperature_get(float resistance)
 static void charge_chip_init(void)
 {
     int ret = BSP_OK;
-    msleep(20);
-    charge_sleep_control(true);
-    msleep(20);
     ret = charge_device_is_ready();
     if (ret != BSP_OK) {
         LOGE("charge device is not ready, ret: %d", ret);
@@ -475,19 +451,20 @@ static void charge_thread_timer_handle(void *arg)
 */
 void charge_vbus_init(void)
 {
-    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)CHARGE_PD_INT_PIN,  
-        HAL_IOMUX_FUNC_AS_GPIO, 
-        HAL_IOMUX_PIN_VOLTAGE_VIO, 
-        HAL_IOMUX_PIN_PULLUP_ENABLE,
-    };
-    hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(CHARGE_PD_INT_PIN,  HAL_GPIO_DIR_IN,  1);
+    // struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+    //     (enum HAL_IOMUX_PIN_T)CHARGE_PD_INT_PIN,  
+    //     HAL_IOMUX_FUNC_AS_GPIO, 
+    //     HAL_IOMUX_PIN_VOLTAGE_VIO, 
+    //     HAL_IOMUX_PIN_PULLUP_ENABLE,
+    // };
+    // hal_iomux_init(&gpio_map, 1);
+    // hal_gpio_pin_set_dir(CHARGE_PD_INT_PIN,  HAL_GPIO_DIR_IN,  1);
 }
 
 bool vbus_is_plug_in(void)
 {
-    return hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0 ? true : false;
+    // return hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0 ? true : false;
+    return false;
 }
 
 void add_charge_event_callback(charge_event_cb cb)

@@ -57,25 +57,25 @@ static int post_msg_to_flush(const char *tag, multi_func_msg_data_t *msg)
 
 static void ui_handler_thread(const void *args)
 {
-    if (thiz->hook && thiz->hook->ui_thread_init_route) {
-        thiz->hook->ui_thread_init_route(thiz);
-    }
-    while (1) {
-        if (thiz->hook && thiz->hook->lvgl_display_handler) {
-            thiz->hook->lvgl_display_handler(thiz);
-        } else {
-            msleep(100); // 1s
-            LOG_UI("lvgl_display_handler is not set, sleep 1s");
-        }
-    }
+    // if (thiz->hook && thiz->hook->ui_thread_init_route) {
+    //     thiz->hook->ui_thread_init_route(thiz);
+    // }
+    // while (1) {
+    //     if (thiz->hook && thiz->hook->lvgl_display_handler) {
+    //         thiz->hook->lvgl_display_handler(thiz);
+    //     } else {
+    //         msleep(100); // 1s
+    //         LOG_UI("lvgl_display_handler is not set, sleep 1s");
+    //     }
+    // }
 }
 
 static void on_ui_broadcast_receiver(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
-    ui_manager_context_t *ui = (ui_manager_context_t *)context;
-    if (ui->hook && ui->hook->on_ui_broadcast_receiver_route) {
-        ui->hook->on_ui_broadcast_receiver_route(id, context, arg1, arg2, pdata);
-    }
+    // ui_manager_context_t *ui = (ui_manager_context_t *)context;
+    // if (ui->hook && ui->hook->on_ui_broadcast_receiver_route) {
+    //     ui->hook->on_ui_broadcast_receiver_route(id, context, arg1, arg2, pdata);
+    // }
 }
 
 #if IS_SUPPORT_LVGL

@@ -7,7 +7,7 @@
 #include "bsp_i2c.h"
 #include "bsp_charge_pd.h" 
 #include "bsp_battery_internal.h"
-
+#if IS_SUPPORT_PD_CHARGE
 /*
 * DEFINES
 *****************************************************************************************
@@ -214,3 +214,4 @@ void charge_pd_status_poll(void)
         // LOG_PBUS("%s", "CHARGE_EVENT_PLUG_OUT");
     }
 }
+#endif
