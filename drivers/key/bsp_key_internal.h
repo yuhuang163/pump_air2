@@ -1,0 +1,38 @@
+#ifndef __BSP_KEY_INTERNAL_H__
+#define __BSP_KEY_INTERNAL_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+/*******************************************************************************
+* Include files
+******************************************************************************/
+#include <stdint.h>
+#include "stdbool.h"
+
+/**@brief Firmware information define*/
+
+/*
+* GLOBAL FUNCTION DECLARATION
+*****************************************************************************************
+*/
+int bsp_key_init(void);
+int bsp_key_deinit(void);
+int bsp_read_key_value(uint8_t key_index);
+int bsp_read_all_key_value(void);
+int bsp_key_sensitivity_set(uint8_t key_index, uint8_t sensitivity);
+int bsp_touch_is_ready(void *args);
+int bsp_touch_signal_read(void *args);
+
+int bsp_add_touch_key_ota_event_cb(void *args);
+int bsp_start_touch_key_update_fw(void);
+int bsp_get_touch_key_fw_version(void);
+bool bsp_touch_key_is_upgrading(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif 
