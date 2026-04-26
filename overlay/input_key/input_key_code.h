@@ -13,7 +13,7 @@ extern "C" {
 
 /// 按键索引
 typedef enum {
-    KEY_INDEX_POWER = 0,   
+    KEY_INDEX_POWER = 0, 
     KEY_INDEX_START,
     KEY_INDEX_MODE,
     KEY_INDEX_FREQUENCY,
@@ -24,12 +24,15 @@ typedef enum {
     KEY_INDEX_TRAVEL_LOCK,
     KEY_INDEX_KNOB_LEFT,
     KEY_INDEX_KNOB_RIGHT,
+    KEY_INDEX_UP,
+    
+    KEY_INDEX_DOWN,
     KEY_INDEX_MAX,
 } key_index_e;
 
 /// 按键编码
 typedef enum {
-    KEY_CODE_POWER = (1 << KEY_INDEX_POWER),   /// 支持唤醒
+    KEY_CODE_POWER = (1 << KEY_INDEX_POWER),    /// 电源键
     KEY_CODE_START = (1 << KEY_INDEX_START),   /// 启动键
     KEY_CODE_MODE = (1 << KEY_INDEX_MODE),   /// 模式键
     KEY_CODE_FREQUENCY = (1 << KEY_INDEX_FREQUENCY),   /// 频率键
@@ -40,6 +43,9 @@ typedef enum {
     KEY_CODE_TRAVEL_LOCK = (1 << KEY_INDEX_TRAVEL_LOCK),   /// 旅行锁键
     KEY_CODE_KNOB_LEFT = (1 << KEY_INDEX_KNOB_LEFT),   /// 旋钮逆时针
     KEY_CODE_KNOB_RIGHT = (1 << KEY_INDEX_KNOB_RIGHT),   /// 旋钮顺时针
+
+    KEY_CODE_UP = (1 << KEY_INDEX_UP),          /// 加键
+    KEY_CODE_DOWN = (1 << KEY_INDEX_DOWN),      /// 减键
 } input_key_code_e;
 
 /// 包含组合按键

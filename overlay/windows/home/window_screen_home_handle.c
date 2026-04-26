@@ -107,18 +107,7 @@ static void home_knob_right_event_cb(ui_proc_home_t *proc)
 
 static void home_power_key_event_cb(ui_proc_home_t *proc)
 {
-    if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT || 
-        proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
-        POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_HOME) {
-#if IS_SUPPORT_NIGHT_LIGHT
-        if (proc->led && proc->led->hook && proc->led->hook->toggle_night_light) {
-            proc->led->hook->toggle_night_light(proc->led);
-        }
-#endif
-    } else {
-        LOG_WM("ignore key event.");
-    }
+    POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
 }
 
 static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
@@ -142,6 +131,7 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             home_knob_right_event_cb(proc);
             break;
         case KEY_CODE_MODE:
+        case KEY_CODE_DOWN:
             home_pump_normal_mode_key_click_handler(proc);
             break;
         case KEY_CODE_BREASTFEEDING:
@@ -157,7 +147,8 @@ static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             home_pump_speed_key_click_handler(proc);
             break;
         case KEY_CODE_START:
-            POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
+        case KEY_CODE_UP:
+            home_pump_speed_key_click_handler(proc);
             break;
         default:
             break;
