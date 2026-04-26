@@ -27,10 +27,10 @@ extern "C" {
 /// 泵阀相关定义
 #define PWM_PUMP1_PIN                   HAL_GPIO_PIN_P3_7    /// 气泵PWM引脚
 #define PWM_VALVE1_PIN                  HAL_GPIO_PIN_P3_6    /// 阀门PWM引脚
-#define MOTOR_PUMP1_PWM_ID              HAL_PWM_ID_3
-#define MOTOR_PUMP1_PWM_IMUX            hal_iomux_set_pwm3
+#define MOTOR_PUMP1_PWM_ID              HAL_PWM1_ID_3
+#define MOTOR_PUMP1_PWM_IMUX            hal_iomux_set_pwm7
 #define MOTOR_VALVE1_PWM_ID             HAL_PWM1_ID_2
-#define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm2
+#define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm6
 
 /// 按键相关定义
 #define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_5
@@ -62,6 +62,7 @@ extern "C" {
 #define IMU_I2C_ID                      I2C_MASTER_ID_1
 #define CAP_SENSOR_I2C_ID               I2C_MASTER_ID_1
 #define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_3
+#define PRESSURE_SENSOR_I2C_ID          I2C_MASTER_ID_3
 
 /// 充电芯片相关定义
 #define CHARGE_ENABLE_PIN               HAL_GPIO_PIN_P3_4

@@ -315,7 +315,9 @@ DRIVERS_ADC_INC_FLAGS := \
 
 # 气压传感器驱动头文件
 DRIVERS_AIR_PRESSURE_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/drivers/air_pressure
+	-I$(PROJECT_ROOT)/drivers/air_pressure \
+	-I$(PROJECT_ROOT)/drivers/pressure_sensor \
+	-I$(PROJECT_ROOT)/drivers/pressure_sensor/chip/sdp3x
 ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
 DRIVERS_AIR_PRESSURE_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d
 else
@@ -891,7 +893,9 @@ DRIVERS_ADC_SRCS := \
 
 # 气压传感器驱动源码
 DRIVERS_AIR_PRESSURE_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) 
+	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/pressure_sensor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/pressure_sensor/chip/sdp3x/*.c)
 ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
 DRIVERS_AIR_PRESSURE_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d/*.c)
 else 

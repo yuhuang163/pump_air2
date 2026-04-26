@@ -172,30 +172,36 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
 
     switch (keycode) {
         case KEY_CODE_POWER:
-            pump_power_key_handler(proc);
-            break;
-        case KEY_CODE_START:
             switch_pump_status_ui(proc);
             break;
+        case KEY_CODE_START:
+        case KEY_CODE_UP:
+            switch_pump_level_ui(proc, true);
+            break;
         case KEY_CODE_MODE:
-            pump_mode_key_click_handler(proc);
+        case KEY_CODE_DOWN:
+            if (proc->current_ui_type == PUMP_UI_TYPE_LEVEL) {
+                switch_pump_level_ui(proc, false);
+            } else {
+                pump_mode_key_click_handler(proc);
+            }
             break;
-        case KEY_CODE_FREQUENCY:
-            pump_speed_key_click_handler(proc);
-            break;
-        case KEY_CODE_BREASTFEEDING:
-            breastfeeding_mode_key_click_handler(proc);
-            break;
-        case KEY_CODE_RIGHT_CONTROL:
-            switch_pump_control_type_ui(proc, BREAST_PUMP_CONTROL_TYPE_RIGHT);
-            break;
-        case KEY_CODE_LEFT_CONTROL:
-            switch_pump_control_type_ui(proc, BREAST_PUMP_CONTROL_TYPE_LEFT);
-            break;
-        case KEY_CODE_KNOB_LEFT:
-        case KEY_CODE_KNOB_RIGHT:
-            pump_knob_event_cb(proc, keycode == KEY_CODE_KNOB_LEFT);
-            break;
+        // case KEY_CODE_FREQUENCY:
+        //     pump_speed_key_click_handler(proc);
+        //     break;
+        // case KEY_CODE_BREASTFEEDING:
+        //     breastfeeding_mode_key_click_handler(proc);
+        //     break;
+        // case KEY_CODE_RIGHT_CONTROL:
+        //     switch_pump_control_type_ui(proc, BREAST_PUMP_CONTROL_TYPE_RIGHT);
+        //     break;
+        // case KEY_CODE_LEFT_CONTROL:
+        //     switch_pump_control_type_ui(proc, BREAST_PUMP_CONTROL_TYPE_LEFT);
+        //     break;
+        // case KEY_CODE_KNOB_LEFT:
+        // case KEY_CODE_KNOB_RIGHT:
+        //     pump_knob_event_cb(proc, keycode == KEY_CODE_KNOB_LEFT);
+        //     break;
         default:
             LOG_WM("unknow keycode: %d, ignore.", keycode);
             break;
