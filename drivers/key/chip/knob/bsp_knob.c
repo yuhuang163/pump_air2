@@ -7,6 +7,8 @@
 #include "bsp_internal.h" // IWYU pragma: keep
 #include "bsp_key_internal.h" // IWYU pragma: keep
 #include "bsp_knob.h" // IWYU pragma: keep
+
+#if IS_SUPPORT_DEVICE_KNOB
 /*
 * DEFINES
 *****************************************************************************************
@@ -129,3 +131,4 @@ uint16_t bsp_knob_get_count(uint8_t index)
         return s_knob_right_count;
     }
 }
+#endif

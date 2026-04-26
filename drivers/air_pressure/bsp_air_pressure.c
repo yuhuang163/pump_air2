@@ -31,7 +31,6 @@ static rt_device_node_t *node = NULL;
 static int air_pressure_dev_open(struct rt_device_node *dev)
 {
     bsp_i2c_init(AIR_PRESSURE_I2C_ID1);
-    bsp_i2c_init(AIR_PRESSURE_I2C_ID2);
     msleep(10);
     return bsp_air_pressure_init();
 }

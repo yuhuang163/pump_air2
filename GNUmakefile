@@ -111,10 +111,10 @@ CFG_CUSTOM_BLE_SERVICE ?= 1
 CFG_OTA_EVENT_CALLBACK ?= 1
 
 # LVGL开关
-CFG_LVGL_ENABLE := 1
+CFG_LVGL_ENABLE := 0
 
 # LVGL snapshot开关
-CFG_LVGL_SNAPSHOT_ENABLE := 1
+CFG_LVGL_SNAPSHOT_ENABLE := 0
 
 # 外部flash开关
 CFG_EXTERNAL_FLASH_ENABLE := 1
@@ -384,14 +384,8 @@ DRIVERS_IMU_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/imu
 
 DRIVERS_KEY_INC_FLAGS := -I$(PROJECT_ROOT)/drivers/key
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V4)),)
-DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/hyn
-else
-DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/sc09b
-endif
-ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
-DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
-endif
+DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/gpio_key
+
 
 # LCD 驱动头文件
 DRIVERS_LCD_INC_FLAGS := \
@@ -969,6 +963,7 @@ DRIVERS_IMU_SRCS := \
 
 # 按键驱动源码（触摸芯片二选一）
 DRIVERS_KEY_SRCS := $(wildcard $(PROJECT_ROOT)/drivers/key/*.c)
+DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/gpio_key/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/hyn/*.c)
 $(info [KEY] TOUCH_KEY_CHIP=hyn -> building HYN driver)
@@ -994,14 +989,8 @@ endif
 DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
-
-ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1))
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
-else ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_htr3316/*.c)
-else
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c)
-endif
+
 
 # 电机驱动源码C
 DRIVERS_MOTOR_SRCS := \
