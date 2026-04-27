@@ -5,7 +5,7 @@
 #include "bsp_common.h" // IWYU pragma: keep
 #include "bsp_config.h" // IWYU pragma: keep
 #include "bsp_lcd_internal.h" // IWYU pragma: keep
-#if IS_SUPPORT_DEVICE_LCD
+
 #if IS_SUPPORT_DEVICE_LCD
 /*
 * DEFINES

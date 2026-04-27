@@ -76,12 +76,9 @@ extern "C" {
 #define IS_SUPPORT_LVGL                                  (0)
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (0)
-#define IS_SUPPORT_PD_CHARGE                             (0)
 /// 支持PD充电适配器不匹配
 #define IS_SUPPORT_PD_CHARGE_ADAPTER_MISMATCH            (0)
-#define IS_SUPPORT_PD_CHARGE_ADAPTER_MISMATCH            (0)
 /// 支持旋钮
-#define IS_SUPPORT_DEVICE_KNOB                           (0)
 #define IS_SUPPORT_DEVICE_KNOB                           (0)
 /// 支持电池直采
 #define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (0)
@@ -92,12 +89,9 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
 /// 支持光传感器校准
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR_CALIB             (0)
-#define IS_SUPPORT_DEVICE_LIGHT_SENSOR_CALIB             (0)
 /// 支持资源管理
 #define IS_SUPPORT_MODULE_RES                            (0)
-#define IS_SUPPORT_MODULE_RES                            (0)
 /// 支持自适应背光  
-#define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
 /// 支持堵转检测
 #define IS_SUPPORT_MOTOR_STALL_DETECT                    (1)
