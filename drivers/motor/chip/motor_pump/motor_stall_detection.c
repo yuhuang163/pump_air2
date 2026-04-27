@@ -139,8 +139,7 @@ static int motor_pump_stall_detection_start(motor_pump_id_e pump_id, uint16_t ta
         LOGE("pump id is out of range: %d", pump_id);
         return BSP_ERROR;
     }
-
-    uint8_t adc_channel_id = PUMP1_ADC_CHANNEL;
+    
     uint8_t adc_channel_id = PUMP1_ADC_CHANNEL;
     if (s_pump_stall_status[pump_id].is_running) {
         ret = hal_gpadc_close(adc_channel_id);
@@ -181,7 +180,6 @@ static int motor_pump_stall_detection_stop(motor_pump_id_e pump_id)
         return BSP_ERROR;
     }
 
-    uint8_t adc_channel_id = PUMP1_ADC_CHANNEL;
     uint8_t adc_channel_id = PUMP1_ADC_CHANNEL;
     if (s_pump_stall_status[pump_id].is_running) {
         int ret = hal_gpadc_close(adc_channel_id);
