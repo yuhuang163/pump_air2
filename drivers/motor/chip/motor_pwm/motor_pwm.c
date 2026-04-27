@@ -39,7 +39,6 @@ typedef struct {
 
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
 static void bsp_motor_pump_1_timer_timeout_handler(void *param);
-static void bsp_motor_pump_2_timer_timeout_handler(void *param);
 void bsp_motor_pwm_test_all_step_counts(void);
 #endif
 /*
@@ -79,23 +78,7 @@ static motor_pwm_timer_cfg_t timer_info[MOTOR_PWM_PUMP_2 + 1] = {
             .current_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
             .gpio_irq_update = 0,
         },
-    [MOTOR_PWM_PUMP_2] = {
-        .time_id = NULL,
-        .time_handler = bsp_motor_pump_2_timer_timeout_handler,
-        .time_period = PUMP_PWM_GRADUAL_CHANGE_PERIOD, //2ms
-        .pwm_cfg =
-            {
-                .freq = 0,
-                .ratio = 0,
-                .inv = false,
-                .sleep_on = false,
-            },
-        .init_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
-        .target_duty = 0,
-        .duty_step = 0,
-        .current_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
-        .gpio_irq_update = 0,
-    }};
+    };
 #endif
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -267,7 +250,6 @@ static void bsp_motor_pump_1_timer_timeout_handler(void *param)
 
 static void bsp_motor_pump_2_timer_timeout_handler(void *param)
 {
-    bsp_motor_pwm_step_update_pump2(MOTOR_PWM_PUMP_2);
 }
 
 static void bsp_motor_start_periodic_task(motor_pwm_control_id_e pwm_id)
@@ -322,11 +304,6 @@ static int8_t bsp_motor_init_timer_system(void)
     // 分配定时器
     timer_info[MOTOR_PWM_PUMP_1].time_id = hwtimer_alloc(bsp_motor_pump_1_timer_timeout_handler, NULL);
     if (timer_info[MOTOR_PWM_PUMP_1].time_id == NULL) {
-        LOGE("Failed to allocate timer");
-        return -1;
-    }
-    timer_info[MOTOR_PWM_PUMP_2].time_id = hwtimer_alloc(bsp_motor_pump_2_timer_timeout_handler, NULL);
-    if (timer_info[MOTOR_PWM_PUMP_2].time_id == NULL) {
         LOGE("Failed to allocate timer");
         return -1;
     }

@@ -8,7 +8,6 @@
 #include "bsp_common.h"
 #include "bsp_config.h" // IWYU pragma: keep
 #include "bsp_led_internal.h"
-
 #if IS_SUPPORT_NIGHT_LIGHT
 /*
 * DEFINES

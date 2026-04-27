@@ -9,6 +9,7 @@
 #include "bsp_led_internal.h"
 #include "hal_led.h"
 
+#if IS_SUPPORT_DEVICE_TOUCH_KEY
 /*
 * DEFINES
 *****************************************************************************************
@@ -758,3 +759,4 @@ void bsp_touch_rst_pin_output_set(uint8_t high_level)
     led_htr3316_p16_output_set(high_level > 0 ? true : false);
 #endif
 }
+#endif

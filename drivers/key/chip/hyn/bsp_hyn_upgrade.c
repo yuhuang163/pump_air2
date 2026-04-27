@@ -8,6 +8,7 @@
 #include "bsp_hyn.h"
 #include <stdint.h>
 
+#if IS_SUPPORT_DEVICE_TOUCH_KEY
 #if IS_SUPPORT_TOUCH_IC_OTA
 #include "hyn_firmware.h"
 
@@ -314,4 +315,5 @@ int touch_firmware_target_version(void)
 {
     return TOUCH_IC_FW_VERSION;
 }
+#endif
 #endif

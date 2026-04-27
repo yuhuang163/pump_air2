@@ -7,6 +7,7 @@
 #include "hal_gpadc.h"
 #include "bsp_light_sensor_internal.h" // IWYU pragma: keep
 #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
+#if IS_SUPPORT_DEVICE_LIGHT_SENSOR
 /*
 * DEFINES
 *****************************************************************************************

@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "root_common_api.h"
-#include "windows_manager.h" // IWYU pragma: keep
 #include "airplane_mode.h" // IWYU pragma: keep
 
 /*

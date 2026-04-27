@@ -60,10 +60,10 @@ void framework_extra_hook(void)
         register_airplane_mode_hook(airplane_ctx);
     });
     /// 注册UI管理钩子.
-    ui_manager_context_t *ui_ctx = (ui_manager_context_t *)find_module(ID_MODULE_UI);
-    CHECK_IF_VALID(ui_ctx, {
-        register_ui_manager_hook(ui_ctx);
-    });
+    // ui_manager_context_t *ui_ctx = (ui_manager_context_t *)find_module(ID_MODULE_UI);
+    // CHECK_IF_VALID(ui_ctx, {
+    //     register_ui_manager_hook(ui_ctx);
+    // });
     /// 注册算法钩子.
     algo_manager_context_t *algo_ctx = (algo_manager_context_t *)find_module(ID_MODULE_ALGO_HUB);
     CHECK_IF_VALID(algo_ctx, {

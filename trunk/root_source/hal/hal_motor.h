@@ -66,7 +66,6 @@ typedef struct {
 */
 typedef enum {
     MOTOR_PUMP_1 = 0,
-    MOTOR_PUMP_2,
     MOTOR_PUMP_ID_MAX,
 } motor_pump_id_e;
 

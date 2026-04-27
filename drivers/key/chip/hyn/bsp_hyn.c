@@ -8,7 +8,6 @@
 #include "bsp_i2c.h"
 #include "bsp_hyn.h"
 #include "bsp_key_internal.h"
-
 #if IS_SUPPORT_DEVICE_TOUCH_KEY
 /*
 * DEFINES
@@ -734,4 +733,3 @@ int bsp_touch_signal_read(void *args)
     return BSP_OK;
 }
 #endif
-
