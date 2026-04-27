@@ -111,13 +111,13 @@ CFG_CUSTOM_BLE_SERVICE ?= 1
 CFG_OTA_EVENT_CALLBACK ?= 1
 
 # LVGL开关
-CFG_LVGL_ENABLE := 1
+CFG_LVGL_ENABLE := 0
 
 # LVGL snapshot开关
-CFG_LVGL_SNAPSHOT_ENABLE := 1
+CFG_LVGL_SNAPSHOT_ENABLE := 0
 
 # 外部flash开关
-CFG_EXTERNAL_FLASH_ENABLE := 1
+CFG_EXTERNAL_FLASH_ENABLE := 0
 
 # BT 校准开关
 CFG_BT_CALIB ?= 1
@@ -316,8 +316,8 @@ DRIVERS_ADC_INC_FLAGS := \
 # 气压传感器驱动头文件
 DRIVERS_AIR_PRESSURE_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/air_pressure \
-	-I$(PROJECT_ROOT)/drivers/pressure_sensor \
-	-I$(PROJECT_ROOT)/drivers/pressure_sensor/chip/sdp3x
+	-I$(PROJECT_ROOT)/drivers/diff_pressure \
+	-I$(PROJECT_ROOT)/drivers/diff_pressure/chip/sdp3x
 ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
 DRIVERS_AIR_PRESSURE_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d
 else
@@ -392,6 +392,7 @@ endif
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
 endif
+DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/gpio_key
 
 # LCD 驱动头文件
 DRIVERS_LCD_INC_FLAGS := \
@@ -508,6 +509,7 @@ SENSOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/imu \
 	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
+	-I$(PROJECT_ROOT)/overlay/sensor/diff_pressure \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
@@ -900,8 +902,8 @@ DRIVERS_ADC_SRCS := \
 # 气压传感器驱动源码
 DRIVERS_AIR_PRESSURE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/pressure_sensor/*.c) \
-	$(wildcard $(PROJECT_ROOT)/drivers/pressure_sensor/chip/sdp3x/*.c)
+	$(wildcard $(PROJECT_ROOT)/drivers/diff_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/diff_pressure/chip/sdp3x/*.c)
 ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
 DRIVERS_AIR_PRESSURE_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d/*.c)
 else 
@@ -979,6 +981,7 @@ endif
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/knob/*.c)
 endif
+DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/gpio_key/*.c)
 
 # LCD 驱动源码
 DRIVERS_LCD_SRCS := \
@@ -995,13 +998,13 @@ DRIVERS_LED_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/led/night_light/*.c)
 
-ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1))
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
-else ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
-DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_htr3316/*.c)
-else
+# ifeq ($(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1))
+# DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_tm1650/*.c)
+# else ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
+# DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_htr3316/*.c)
+# else
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c)
-endif
+# endif
 
 # 电机驱动源码C
 DRIVERS_MOTOR_SRCS := \
@@ -1111,6 +1114,7 @@ SENSOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/sensor/diff_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
@@ -1126,57 +1130,6 @@ INPUT_KEY_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/input_key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/input_key/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/key_input/*.c)
-
-# UI 模块源码
-UI_MODULE_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/ui/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/ui/*.c) 
-ifeq ($(V3_UI_VERSION), $(V3_UI_V2))
-UI_MODULE_SRCS += $(UI_LCD_DIRECT_V3_V2_SRCS)
-else ifeq ($(V3_UI_VERSION), $(V3PRO_UI_V2))
-UI_MODULE_SRCS += $(UI_LCD_DIRECT_V3PRO_V2_SRCS)
-else ifeq ($(V3_UI_VERSION), $(V3_UI_V3))
-UI_MODULE_SRCS += $(UI_LCD_DIRECT_V3_V3_SRCS)
-else ifeq ($(V3_UI_VERSION), $(V3PRO_UI_V3))
-UI_MODULE_SRCS += $(UI_LCD_DIRECT_V3PRO_V3_SRCS)
-else
-warn "Invalid UI version"
-endif
-
-# 字体模块源码
-FONT_V2_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_12/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_14/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_16/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_20/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_24/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_72/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_oppo_sans_96/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_64/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/font/font_quicksand_96/*.c) 
-
-FONT_MODULE_SRCS := \
-   $(wildcard $(PROJECT_ROOT)/overlay/font/*.c)
-FONT_MODULE_SRCS += $(FONT_V2_SRCS)
-
-# 窗口模块源码
-WINDOWS_MODULE_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/dummy/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/setting/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/breast_pump/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/guide/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/home/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/charge/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/ota/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/logo/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/battery/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/popup_windows/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/airplane_mode/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/product_test_window/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/factory_reset/*.c) \
-	$(wildcard $(PROJECT_ROOT)/overlay/windows/power_off/*.c) \
-	$(wildcard $(PROJECT_ROOT)/trunk/root_source/windows/*.c)
 
 # 飞行模式模块源码
 AIRPLANE_MODE_MODULE_SRCS := \

@@ -57,7 +57,6 @@ typedef struct {
 */
 static const motor_pump_cfg_t motor_pump_cfg[MOTOR_PUMP_ID_MAX] = {
     {MOTOR_PUMP1_PWM_ID, MOTOR_VALVE1_PWM_ID,  MOTOR_PUMP1_PWM_IMUX,  MOTOR_VALVE1_PWM_IMUX},
-    {MOTOR_PUMP2_PWM_ID, MOTOR_VALVE2_PWM_ID,  MOTOR_PUMP2_PWM_IMUX,  MOTOR_VALVE2_PWM_IMUX},
 };
 
 static motor_pump_status_t pump_status[MOTOR_PUMP_ID_MAX] = {0};
@@ -251,16 +250,8 @@ POSSIBLY_UNUSED static void bsp_motor_pump_irq_callback(enum HAL_GPIO_PIN_T pin)
         hal_pwm_update_pulse_width(MOTOR_PUMP1_PWM_ID, 
             pump_status[MOTOR_PUMP_1].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         pump_status[MOTOR_PUMP_1].current_pulse_width -= (1 * PUMP_DUTY_SCALE_FACTOR);
-    } else if (pin == PWM_PUMP2_PIN) {
-        if (pump_status[MOTOR_PUMP_2].current_pulse_width <= pump_status[MOTOR_PUMP_2].target_pulse_width) {
-            hal_pwm_update_pulse_width(MOTOR_PUMP2_PWM_ID, 
-                pump_status[MOTOR_PUMP_2].target_pulse_width, BREAST_PUMP_PUMP_FREQ);
-            bsp_motor_pwm_irq_control(PWM_PUMP2_PIN, false);
-            return;
-        } 
-        hal_pwm_update_pulse_width(MOTOR_PUMP2_PWM_ID, 
-            pump_status[MOTOR_PUMP_2].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
-        pump_status[MOTOR_PUMP_2].current_pulse_width -= (1 * PUMP_DUTY_SCALE_FACTOR);
+    } else {
+        LOGE("pump %d pin is not supported", pin);
     }
 }
 #endif
@@ -284,13 +275,13 @@ POSSIBLY_UNUSED static void bsp_motor_pwm_irq_control(enum HAL_GPIO_PIN_T pin, b
 static int motor_pwm_gpio_control(enum HAL_PWM_ID_T pwm_id ,bool enable, bool is_output)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
-        (enum HAL_IOMUX_PIN_T)(pwm_id == MOTOR_PUMP1_PWM_ID ? PWM_PUMP1_PIN : PWM_PUMP2_PIN),  
+        (enum HAL_IOMUX_PIN_T)(PWM_PUMP1_PIN),  
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(pwm_id == MOTOR_PUMP1_PWM_ID ? PWM_PUMP1_PIN : PWM_PUMP2_PIN, \
+    hal_gpio_pin_set_dir(gpio_map.pin, \
             is_output ? HAL_GPIO_DIR_OUT : HAL_GPIO_DIR_IN, enable ? 1 : 0);
 
     return BSP_OK;
@@ -299,7 +290,7 @@ static int motor_pwm_gpio_control(enum HAL_PWM_ID_T pwm_id ,bool enable, bool is
 
 static int bsp_motor_pwm_duty_set(enum HAL_PWM_ID_T pwm_id, uint8_t duty)
 {   
-    if ((pwm_id == MOTOR_PUMP1_PWM_ID || pwm_id == MOTOR_PUMP2_PWM_ID) \
+    if ((pwm_id == MOTOR_PUMP1_PWM_ID) \
         && (duty == MOTOR_PUMP_IDLE_PWM_DUTY))
     {
 #if PUMP_GPIO_IDLE_CTRL
@@ -312,7 +303,7 @@ static int bsp_motor_pwm_duty_set(enum HAL_PWM_ID_T pwm_id, uint8_t duty)
     }
 #if PUMP_GPIO_IDLE_CTRL
     ///如果pwm_id是泵1或泵2，重新初始化为pwm输出
-    if ((pwm_id == MOTOR_PUMP1_PWM_ID || pwm_id == MOTOR_PUMP2_PWM_ID)) {
+    if (pwm_id == MOTOR_PUMP1_PWM_ID) {
         motor_pwm_gpio_control(pwm_id, true, false); //使能GPIO 输入
         for (uint8_t i = 0; i < LENGTH_OF_ARRAY(motor_pump_cfg); i++) {
             if(motor_pump_cfg[i].pump_pwm_id == pwm_id) {
@@ -393,7 +384,7 @@ int bsp_motor_pump_parameter_set(void *args)
                 if (ret != BSP_OK) {
                     LOGE("set pump duty failed, ret=%d", ret);
                 }
-                bsp_motor_pwm_irq_control(pump_id == MOTOR_PUMP_1 ? PWM_PUMP1_PIN : PWM_PUMP2_PIN, true);
+                bsp_motor_pwm_irq_control(PWM_PUMP1_PIN, true);
                 pump_status[pump_id].pump_irq_is_running = true;
             } else {
                 pump_status[pump_id].current_pulse_width = MOTOR_PUMP_PULSE_WIDTH_MAX;
@@ -423,7 +414,7 @@ int bsp_motor_pump_parameter_set(void *args)
             } else {
                 LOGW("pump %d pump off duration_ms is 0", pump_id);
             }
-            bsp_motor_pwm_irq_control(pump_id == MOTOR_PUMP_1 ? PWM_PUMP1_PIN : PWM_PUMP2_PIN, false);
+            bsp_motor_pwm_irq_control(PWM_PUMP1_PIN, false);
             pump_status[pump_id].pump_irq_is_running = false;
             break;
         case MOTOR_PUMP_OFF_AND_VALVE_ON:

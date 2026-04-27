@@ -132,29 +132,6 @@ static void motor1_adc_irq_cb(uint16_t irq_val, HAL_GPADC_MV_T volt)
     }
 }
 
-static void motor2_adc_irq_cb(uint16_t irq_val, HAL_GPADC_MV_T volt)
-{
-    s_pump_stall_status[1].work_times++;
-    s_pump_stall_status[1].sum_voltage += volt;
-    s_pump_stall_status[1].is_running = false;
-#if IS_SUPPORT_STALL_DETECTION_ADC_VALUE_DEBUG
-    s_pump_stall_adc_value[1].adc_value_all[s_pump_stall_adc_value[1].adc_value_count] = volt;
-    s_pump_stall_adc_value[1].adc_value_count++;
-    if (volt > s_pump_stall_adc_value[1].adc_value_max) {
-        s_pump_stall_adc_value[1].adc_value_max = volt;
-    }
-    if (volt < s_pump_stall_adc_value[1].adc_value_min) {
-        s_pump_stall_adc_value[1].adc_value_min = volt;
-    }
-#endif
-    if (s_pump_stall_status[1].work_times >= s_pump_stall_status[1].target_times) {
-        s_pump_stall_status[1].last_voltage = s_pump_stall_status[1].work_times > 0 ? \
-            s_pump_stall_status[1].sum_voltage / s_pump_stall_status[1].work_times : 0;
-    } else {
-        bsp_pump_stall_detection_timer_start(MOTOR_PUMP_2, STALL_DETECTION_INTERVAL_MS);
-    }
-}
-
 static int motor_pump_stall_detection_start(motor_pump_id_e pump_id, uint16_t target_times)
 {
     int ret = 0;
@@ -163,7 +140,7 @@ static int motor_pump_stall_detection_start(motor_pump_id_e pump_id, uint16_t ta
         return BSP_ERROR;
     }
 
-    uint8_t adc_channel_id = (pump_id == MOTOR_PUMP_1) ? PUMP1_ADC_CHANNEL : PUMP2_ADC_CHANNEL;
+    uint8_t adc_channel_id = PUMP1_ADC_CHANNEL;
     if (s_pump_stall_status[pump_id].is_running) {
         ret = hal_gpadc_close(adc_channel_id);
         if (ret != BSP_OK) {
@@ -174,7 +151,7 @@ static int motor_pump_stall_detection_start(motor_pump_id_e pump_id, uint16_t ta
     s_pump_stall_status[pump_id].sum_voltage = 0;
     s_pump_stall_status[pump_id].target_times = target_times;
     s_pump_stall_status[pump_id].last_voltage = 0;
-    ret = hal_gpadc_open(adc_channel_id, HAL_GPADC_ATP_ONESHOT, pump_id == MOTOR_PUMP_1 ? motor1_adc_irq_cb : motor2_adc_irq_cb);
+    ret = hal_gpadc_open(adc_channel_id, HAL_GPADC_ATP_ONESHOT, motor1_adc_irq_cb);
     if (ret != BSP_OK) {
         LOGE("adc channel: %d open failed", adc_channel_id);
     }
@@ -188,9 +165,8 @@ static void motor_pump_stall_detection_continue(motor_pump_id_e pump_id)
         LOGE("pump id is out of range: %d", pump_id);
         return;
     }
-    uint8_t adc_channel_id = (pump_id == MOTOR_PUMP_1) ? PUMP1_ADC_CHANNEL : PUMP2_ADC_CHANNEL;
-    int ret = hal_gpadc_open(adc_channel_id, HAL_GPADC_ATP_ONESHOT, 
-        pump_id == MOTOR_PUMP_1 ? motor1_adc_irq_cb : motor2_adc_irq_cb);
+    uint8_t adc_channel_id = PUMP1_ADC_CHANNEL;
+    int ret = hal_gpadc_open(adc_channel_id, HAL_GPADC_ATP_ONESHOT, motor1_adc_irq_cb);
     if (ret != BSP_OK) {
         LOGE("adc channel: %d open failed", adc_channel_id);
     }
@@ -204,7 +180,7 @@ static int motor_pump_stall_detection_stop(motor_pump_id_e pump_id)
         return BSP_ERROR;
     }
 
-    uint8_t adc_channel_id = (pump_id == MOTOR_PUMP_1) ? PUMP1_ADC_CHANNEL : PUMP2_ADC_CHANNEL;
+    uint8_t adc_channel_id = PUMP1_ADC_CHANNEL;
     if (s_pump_stall_status[pump_id].is_running) {
         int ret = hal_gpadc_close(adc_channel_id);
         if (ret != BSP_OK) {

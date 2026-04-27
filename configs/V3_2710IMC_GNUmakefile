@@ -315,7 +315,9 @@ DRIVERS_ADC_INC_FLAGS := \
 
 # 气压传感器驱动头文件
 DRIVERS_AIR_PRESSURE_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/drivers/air_pressure
+	-I$(PROJECT_ROOT)/drivers/air_pressure \
+	-I$(PROJECT_ROOT)/drivers/diff_pressure \
+	-I$(PROJECT_ROOT)/drivers/diff_pressure/chip/sdp3x
 ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
 DRIVERS_AIR_PRESSURE_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d
 else
@@ -390,6 +392,7 @@ endif
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
 endif
+DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/gpio_key
 
 # LCD 驱动头文件
 DRIVERS_LCD_INC_FLAGS := \
@@ -506,6 +509,7 @@ SENSOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/imu \
 	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
+	-I$(PROJECT_ROOT)/overlay/sensor/diff_pressure \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
@@ -897,7 +901,9 @@ DRIVERS_ADC_SRCS := \
 
 # 气压传感器驱动源码
 DRIVERS_AIR_PRESSURE_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) 
+	$(wildcard $(PROJECT_ROOT)/drivers/air_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/diff_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/diff_pressure/chip/sdp3x/*.c)
 ifeq ($(V3_HARDWARE_VERSION), $(V3_2710IMC_HARDWARE_V1))
 DRIVERS_AIR_PRESSURE_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/air_pressure/chip/wf100d/*.c)
 else 
@@ -975,6 +981,7 @@ endif
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/knob/*.c)
 endif
+DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/gpio_key/*.c)
 
 # LCD 驱动源码
 DRIVERS_LCD_SRCS := \
@@ -1107,6 +1114,7 @@ SENSOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/imu/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/sensor/diff_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)

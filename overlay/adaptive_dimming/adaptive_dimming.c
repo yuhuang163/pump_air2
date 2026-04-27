@@ -8,7 +8,7 @@
 #include "input_key_code.h" // IWYU pragma: keep
 #include "key_input_manager_api.h" // IWYU pragma: keep
 #endif
-
+#if IS_SUPPORT_ADAPTIVE_DIMMING
 /*
 * DEFINES
 *****************************************************************************************
@@ -448,3 +448,4 @@ bool light_sensor_data_report(uint8_t *data)
     s_light_report_batch_count = 0;
     return ret == 0;
 }
+#endif

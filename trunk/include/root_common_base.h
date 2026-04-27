@@ -44,6 +44,7 @@ extern "C" {
 #include "hal_power.h" // IWYU pragma: keep
 #include "hal_uarts.h" // IWYU pragma: keep
 #include "hal_air_pressure.h" // IWYU pragma: keep
+#include "hal_diff_pressure.h" // IWYU pragma: keep
 #include "hal_light_sensor.h" // IWYU pragma: keep
 
 /// 内存申请宏定义.

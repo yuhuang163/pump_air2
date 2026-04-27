@@ -62,6 +62,7 @@ extern "C" {
 #define IMU_I2C_ID                      I2C_MASTER_ID_1
 #define CAP_SENSOR_I2C_ID               I2C_MASTER_ID_1
 #define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_3
+#define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_3 /// no use
 #define PRESSURE_SENSOR_I2C_ID          I2C_MASTER_ID_3
 
 /// 充电芯片相关定义
