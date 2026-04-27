@@ -40,6 +40,7 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_DATABASE                       (1)
 #define IS_SUPPORT_DEVICE_INPUT_KEY                      (1)
 #define IS_SUPPORT_DEVICE_TOUCH_KEY                      (0)
+#define IS_SUPPORT_DEVICE_TOUCH_KEY                      (0)
 #define IS_SUPPORT_DEVICE_POWER                          (1)
 #define IS_SUPPORT_DEVICE_PMU                            (1)
 #define IS_SUPPORT_DEVICE_IMU                            (0)
@@ -50,10 +51,13 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_MOTOR                          (1)
 #define IS_SUPPORT_DEVICE_AUDIO                          (0)
 #define IS_SUPPORT_DEVICE_LCD                            (0)
+#define IS_SUPPORT_DEVICE_LCD                            (0)
 #define IS_SUPPORT_DEVICE_BLE                            (1)
 #define IS_SUPPORT_DEVICE_FS                             (0)
 #define IS_SUPPORT_DEVICE_WIFI                           (0)
 /// 叠图功能
+#define IS_SUPPORT_OVERLAY_IMG                           (0)
+#define IS_SUPPORT_ASYNC_RESET_UI_PLAY_INFO              (0)
 #define IS_SUPPORT_OVERLAY_IMG                           (0)
 #define IS_SUPPORT_ASYNC_RESET_UI_PLAY_INFO              (0)
 /// 振动马达震动功能
@@ -72,9 +76,12 @@ extern "C" {
 #define IS_SUPPORT_LVGL                                  (0)
 /// 支持PD充电
 #define IS_SUPPORT_PD_CHARGE                             (0)
+#define IS_SUPPORT_PD_CHARGE                             (0)
 /// 支持PD充电适配器不匹配
 #define IS_SUPPORT_PD_CHARGE_ADAPTER_MISMATCH            (0)
+#define IS_SUPPORT_PD_CHARGE_ADAPTER_MISMATCH            (0)
 /// 支持旋钮
+#define IS_SUPPORT_DEVICE_KNOB                           (0)
 #define IS_SUPPORT_DEVICE_KNOB                           (0)
 /// 支持电池直采
 #define IS_SUPPORT_BATTERY_DIRECT_SAMPLING               (0)
@@ -82,11 +89,15 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_UART                           (1)
 /// 支持光传感器
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
+#define IS_SUPPORT_DEVICE_LIGHT_SENSOR                   (0)
 /// 支持光传感器校准
+#define IS_SUPPORT_DEVICE_LIGHT_SENSOR_CALIB             (0)
 #define IS_SUPPORT_DEVICE_LIGHT_SENSOR_CALIB             (0)
 /// 支持资源管理
 #define IS_SUPPORT_MODULE_RES                            (0)
+#define IS_SUPPORT_MODULE_RES                            (0)
 /// 支持自适应背光  
+#define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
 #define IS_SUPPORT_ADAPTIVE_DIMMING                      (0)
 /// 支持堵转检测
 #define IS_SUPPORT_MOTOR_STALL_DETECT                    (1)

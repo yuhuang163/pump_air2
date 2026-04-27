@@ -279,6 +279,30 @@ static void on_ui_broadcast_receiver_route(broadcast_mask_id_t id, void *context
     //     default:
     //         break;
     // }
+    // ui_manager_context_t *ui = context;
+    // EXCEPTION_CHECK_VOID(ui);
+    // LOG_UI("broadcast id: %d, arg1: %d, arg2: %d", id.code, arg1, arg2);
+    // switch (id.code) {
+    //     case ID_BROADCAST_SYS_STATE_CHANGE:
+    //         if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
+    //             set_backlight_onoff(ui, false);
+    //         } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
+    //             set_backlight_onoff(ui, true);
+    //         }
+    //         break;
+    //     case ID_BROADCAST_PM_STATE_CHANGE: 
+    //         if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
+    //             set_backlight_onoff(ui, false);
+    //             ui_lvgl_msg_t msg = {0};
+    //             msg.cmd = UI_LVGL_MSG_CMD_PM_SUSPEND;
+    //             MSG_QUEUE_SEND(ui->priv.ui_hdr_thd.msg_id, &msg, 0);
+    //         } else if (arg1 == PM_BROADCAST_SYS_RESUME) {
+    //             set_backlight_onoff(ui, true);
+    //         }
+    //         break;
+    //     default:
+    //         break;
+    // }
 }
 
 static int on_post_ui_init_route(struct ui_manager_context *ctx)
@@ -296,6 +320,12 @@ static int on_perpare_ui_init_route(struct ui_manager_context *thiz)
     //         lcd_ready_callback);
     // }
     // ui_ctx = thiz;
+    // thiz->priv.lvgl_initialized = false;
+    // if (thiz->priv.panel_dev) {
+    //     DEVICE_IOCTL_ARGS_NO_RET(thiz->priv.panel_dev, OP_CODE_PANEL_ADD_READY_CB,
+    //         lcd_ready_callback);
+    // }
+    // ui_ctx = thiz;
     return 0;
 }
 
@@ -305,17 +335,17 @@ static int on_perpare_ui_init_route(struct ui_manager_context *thiz)
 */
 void register_ui_manager_hook(ui_manager_context_t *ctx)
 {
-    ctx->hook = u_malloz(sizeof(struct __ui_manager_hook));
-    ctx->hook->on_post_init_route = on_post_ui_init_route;
-    ctx->hook->on_perpare_init_route = on_perpare_ui_init_route;
-    ctx->hook->ui_animation_play_init = ui_animation_play_init;
-    ctx->hook->ui_animation_play_deinit = ui_animation_play_deinit;
-    ctx->hook->ui_animation_overlay_init = ui_animation_overlay_init;
-    ctx->hook->ui_animation_overlay_deinit = ui_animation_overlay_deinit;
-    ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
-    ctx->hook->ui_thread_init_route = ui_thread_init_route;
-    ctx->hook->lvgl_display_handler = lvgl_display_handler;
-    ctx->hook->set_ui_backlight_onoff = set_backlight_onoff;
-    ctx->hook->set_ui_backlight_level = set_backlight_level;
-    ctx->hook->set_ui_backlight_adaptive_level = set_backlight_adaptive_level;
+    // ctx->hook = u_malloz(sizeof(struct __ui_manager_hook));
+    // ctx->hook->on_post_init_route = on_post_ui_init_route;
+    // ctx->hook->on_perpare_init_route = on_perpare_ui_init_route;
+    // ctx->hook->ui_animation_play_init = ui_animation_play_init;
+    // ctx->hook->ui_animation_play_deinit = ui_animation_play_deinit;
+    // ctx->hook->ui_animation_overlay_init = ui_animation_overlay_init;
+    // ctx->hook->ui_animation_overlay_deinit = ui_animation_overlay_deinit;
+    // ctx->hook->on_ui_broadcast_receiver_route = on_ui_broadcast_receiver_route;
+    // ctx->hook->ui_thread_init_route = ui_thread_init_route;
+    // ctx->hook->lvgl_display_handler = lvgl_display_handler;
+    // ctx->hook->set_ui_backlight_onoff = set_backlight_onoff;
+    // ctx->hook->set_ui_backlight_level = set_backlight_level;
+    // ctx->hook->set_ui_backlight_adaptive_level = set_backlight_adaptive_level;
 }

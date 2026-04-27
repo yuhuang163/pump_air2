@@ -8,6 +8,7 @@
 #include "bsp_charge_pd.h" 
 #include "bsp_battery_internal.h"
 #if IS_SUPPORT_PD_CHARGE
+#if IS_SUPPORT_PD_CHARGE
 /*
 * DEFINES
 *****************************************************************************************

@@ -13,7 +13,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define KEY_CODE_SIZE (6 + 1 + 2) // 6个按键 + 1个电源键 + 2个组合按键
+#define KEY_CODE_SIZE (2 + 1) // 2个按键 + 1个电源键 + 2个组合按键
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -25,17 +25,6 @@ static const uint32_t key_code_value[SCAN_KEY_CODE_MAX] = {
     SCAN_KEY_CODE_1_VALUE,
     SCAN_KEY_CODE_2_VALUE,
     SCAN_KEY_CODE_3_VALUE,
-    SCAN_KEY_CODE_4_VALUE,
-    SCAN_KEY_CODE_5_VALUE,
-    SCAN_KEY_CODE_6_VALUE,
-    SCAN_KEY_CODE_7_VALUE,
-    SCAN_KEY_CODE_67_VALUE,
-#if V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4
-    SCAN_KEY_CODE_36_VALUE,
-    // SCAN_KEY_CODE_23_VALUE,
-#else
-    SCAN_KEY_CODE_23_VALUE,
-#endif
 };
 
 /*

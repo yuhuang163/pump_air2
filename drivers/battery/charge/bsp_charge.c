@@ -181,16 +181,19 @@ static void charge_power_gpio_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux = {
         (enum HAL_IOMUX_PIN_T)CHARGE_ENABLE_PIN, 
+        (enum HAL_IOMUX_PIN_T)CHARGE_ENABLE_PIN, 
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&pinmux, 1);
     hal_gpio_pin_set_dir(CHARGE_ENABLE_PIN, HAL_GPIO_DIR_OUT, 1);
+    hal_gpio_pin_set_dir(CHARGE_ENABLE_PIN, HAL_GPIO_DIR_OUT, 1);
 }
 
 static void charge_power_control(bool enable)
 {
+    GPIO_PIN_CTRL(CHARGE_ENABLE_PIN, enable ? 0 : 1);
     GPIO_PIN_CTRL(CHARGE_ENABLE_PIN, enable ? 0 : 1);
     is_charging = enable ? true:false;
     LOG_PBUS("charge_power_control: %d", enable);

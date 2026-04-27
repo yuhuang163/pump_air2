@@ -60,7 +60,7 @@ static int lims_write_nbyte(uint8_t index, uint8_t reg_addr, uint8_t *data, uint
     };
 
     for (uint8_t i = 0; i < 3; i++) {
-        ret = bsp_i2c_write_byte(index == 0 ? AIR_PRESSURE_I2C_ID1 : AIR_PRESSURE_I2C_ID2, &i2c_data);
+        ret = bsp_i2c_write_byte(AIR_PRESSURE_I2C_ID1, &i2c_data);
         if (ret == BSP_OK) {
             s_dev_abnormal_count[index] = 0;
             return BSP_OK;
@@ -103,7 +103,7 @@ static int lims_read_nbyte(uint8_t index, uint8_t reg_addr, uint8_t *data, uint1
     };
 
     for (uint8_t i = 0; i < 3; i++) {
-        ret = bsp_i2c_read_byte(index == 0 ? AIR_PRESSURE_I2C_ID1 : AIR_PRESSURE_I2C_ID2, &i2c_data);
+        ret = bsp_i2c_read_byte(AIR_PRESSURE_I2C_ID1, &i2c_data);
         if (ret == BSP_OK) {
             s_dev_abnormal_count[index] = 0;
             return BSP_OK;
@@ -137,7 +137,7 @@ static int lims_read_nbyte_no_retry(uint8_t index, uint8_t reg_addr, uint8_t *da
         .len = len,
     };
 
-    ret = bsp_i2c_read_byte(index == 0 ? AIR_PRESSURE_I2C_ID1 : AIR_PRESSURE_I2C_ID2, &i2c_data);
+    ret = bsp_i2c_read_byte(AIR_PRESSURE_I2C_ID1, &i2c_data);
     if (ret == BSP_OK) {
         s_dev_abnormal_count[index] = 0;
         return BSP_OK;

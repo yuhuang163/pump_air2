@@ -16,7 +16,7 @@
 #define I2C_MASTER_TIMEOUT_MS(x)                    ((x > 20) ? ((x / 20) * 50) : 50)
 
 #if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
-#define I2C_MASTER_COUNT                            4
+#define I2C_MASTER_COUNT                            3
 #define I2C0_MASTER_SPEED                           400000
 #define I2C1_MASTER_SPEED                           200000
 #define I2C2_MASTER_SPEED                           100000

@@ -112,8 +112,10 @@ CFG_OTA_EVENT_CALLBACK ?= 1
 
 # LVGL开关
 CFG_LVGL_ENABLE := 0
+CFG_LVGL_ENABLE := 0
 
 # LVGL snapshot开关
+CFG_LVGL_SNAPSHOT_ENABLE := 0
 CFG_LVGL_SNAPSHOT_ENABLE := 0
 
 # 外部flash开关
@@ -393,6 +395,8 @@ ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HA
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/chip/knob
 endif
 DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/gpio_key
+DRIVERS_KEY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/key/gpio_key
+
 
 # LCD 驱动头文件
 DRIVERS_LCD_INC_FLAGS := \
@@ -971,6 +975,7 @@ DRIVERS_IMU_SRCS := \
 
 # 按键驱动源码（触摸芯片二选一）
 DRIVERS_KEY_SRCS := $(wildcard $(PROJECT_ROOT)/drivers/key/*.c)
+DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/gpio_key/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_KEY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/key/chip/hyn/*.c)
 $(info [KEY] TOUCH_KEY_CHIP=hyn -> building HYN driver)
@@ -1005,6 +1010,7 @@ DRIVERS_LED_SRCS := \
 # else
 DRIVERS_LED_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/led/led_control/*.c)
 # endif
+
 
 # 电机驱动源码C
 DRIVERS_MOTOR_SRCS := \
