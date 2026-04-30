@@ -8,7 +8,8 @@
 #include "bsp_common.h"  // IWYU pragma: keep
 #include "bsp_config.h"  // IWYU pragma: keep
 #include "bsp_lcd_internal.h" // IWYU pragma: keep
-#if IS_SUPPORT_DEVICE_LCD
+
+#if IS_SUPPORT_DEVICE_LIGHT_SENSOR
 /*
 * DEFINES
 *****************************************************************************************
@@ -312,7 +313,9 @@ static void lcd_backlight_level_set(uint16_t level)
 */
 void bsp_lcd_backlight_init(void)
 {
+#if IS_SUPPORT_LCD_BACKLIGHT
     LCD_LCD_BL_PWM_IMUX();
+#endif    
 #if IS_SUPPORT_LCD_BACKLIGHT_CLIMB
     if (bsp_lcd_backlight_timer_register() != 0) {
         return;
@@ -329,7 +332,11 @@ void bsp_lcd_backlight_resume(void)
     backlight_info.current_duty = 0;
     backlight_info.target_duty = 0;
 #endif
+#if IS_SUPPORT_LCD_BACKLIGHT
     bsp_lcd_backlight_init();
+#else
+    (void)level;
+#endif
 }
 
 void bsp_lcd_backlight_suspend(void)
@@ -338,11 +345,15 @@ void bsp_lcd_backlight_suspend(void)
     backlight_info.current_duty = 0;
     backlight_info.target_duty = 0;
 #endif
+#if IS_SUPPORT_LCD_BACKLIGHT
     hal_pwm_disable(LCD_LCD_BL_PWM_ID);
+#endif
 }
 
 void bsp_lcd_backlight_control(uint16_t level)
 {
+#if IS_SUPPORT_LCD_BACKLIGHT
     lcd_backlight_level_set(level);
+#endif
 }
 #endif

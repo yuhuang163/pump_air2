@@ -133,6 +133,7 @@ typedef enum {
     BREAST_PUMP_PUMP_MODE_DEFAULT = BREAST_PUMP_REGULAR_PUMPING_MODE, /// 
  
     BREAST_PUMP_MODE_INVALID = 0xFF,
+    BREAST_PUMP_ALL_MODE_AND_PROGRAM = 0xFFFF, /// 所有模式和韵律
 } breast_pump_mode_e;
 
 /// 泵奶模式类型
@@ -308,8 +309,8 @@ typedef struct {
 /// 泵奶数据头
 typedef struct {
     uint8_t num;        /// 存储数量.
-    uint8_t head;  
-    uint8_t tail;
+    uint8_t head;       /// 头索引
+    uint8_t tail;       /// 尾索引
     uint8_t resv;
     uint16_t crc[ROOT_BREAST_PUMP_DATA_BODY_NUM + 1];  
 } breast_pump_data_head_t;

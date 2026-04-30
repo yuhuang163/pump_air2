@@ -11,22 +11,18 @@
 #if IS_SUPPORT_PD_CHARGE
 #include "bsp_charge_pd.h"
 #endif
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+#include "chip/sgm41519/sgm41519.h"
+#endif
 
 
+#if IS_SUPPORT_DEVICE_CHARGE 
 /*
 * DEFINES
 *****************************************************************************************
 */
 #define IS_SUPPORT_CHARGE_CURRENT_ADJUST    1
-#define CHARGING_STATUS_VALUE               0x02
-#define CHARHE_FULL_STATUS_VALUE            0x01
-#define UNCHARGE_STATUS_VALUE               0x00 
 
-#define CHARHE_CHECK_NO_BATT_0              0xFF 
-#define CHARHE_CHECK_NO_BATT_1              0xFE 
-#define CHARGE_I2C_ADDR                     0x75
-#define CHARGE_RETRY_COUNT                  3
-#define CHARGE_GET_10BIT_DATA(data)         (((data[1] & 0xFF03) << 8) | data[0])
 
 #define CHARGE_ABNORMAL_MAX_COUNT           10
 #define CHARGE_THREAD_POLL_INTERVAL         100
@@ -64,255 +60,24 @@ static const char *charge_status_arr[] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-#if IS_SUPPORT_DEVICE_CHARGE 
-static int charge_write_nbyte(uint8_t reg_addr, uint8_t *data, uint16_t len)
-{
-    int ret = 0;
 
-    if (s_charge_is_ready == 0) {
-        LOGE("charge is not ready");
-        return BSP_NOT_READY;
-    }
-
-#if CHARGE_I2C_ID == TOUCH_KEY_I2C_ID
-    if (touch_key_is_upgrading()) {
-        return BSP_OK;
-    }
-#endif
-
-    i2c_master_data_t i2c_data = {
-        .dev_address = CHARGE_I2C_ADDR,
-        .reg_addr = &reg_addr,
-        .reg_addr_len = 1,
-        .data = data,
-        .len = len,
-    };
-
-    for (uint8_t i = 0; i < CHARGE_RETRY_COUNT; i++) {
-        ret = bsp_i2c_write_byte(CHARGE_I2C_ID, &i2c_data);
-        if (ret == BSP_OK) {
-            s_charge_abnormal_count = 0;
-            return BSP_OK;
-        }
-        msleep(10);
-    }
-
-    s_charge_abnormal_count++;
-    if (s_charge_abnormal_count > CHARGE_ABNORMAL_MAX_COUNT) {
-        s_charge_is_ready = 0;
-    }
-
-    return BSP_ERROR;
-}
-
-static int charge_read_nbyte(uint8_t reg_addr, uint8_t *data, uint16_t len)
-{
-    int ret = 0;
-    
-    if (s_charge_is_ready == 0) {
-        // LOGE("charge is not ready");
-        // return BSP_NOT_READY;
-    }
-
-#if CHARGE_I2C_ID == TOUCH_KEY_I2C_ID
-    if (touch_key_is_upgrading()) {
-        return BSP_OK;
-    }
-#endif
-
-    i2c_master_data_t i2c_data = {
-        .dev_address = CHARGE_I2C_ADDR,
-        .reg_addr = &reg_addr,
-        .reg_addr_len = 1,
-        .data = data,
-        .len = len,
-    };
-
-    for (uint8_t i = 0; i < CHARGE_RETRY_COUNT; i++) {
-        ret = bsp_i2c_read_byte(CHARGE_I2C_ID, &i2c_data);
-        if (ret == BSP_OK) {
-            s_charge_abnormal_count = 0;
-            return BSP_OK;
-        }
-        msleep(10);
-    }
-
-    s_charge_abnormal_count++;
-    if (s_charge_abnormal_count > CHARGE_ABNORMAL_MAX_COUNT) {
-        s_charge_is_ready = 0;
-    }
-
-    return BSP_ERROR;
-}
-
-static int charge_read_nbyte_no_retry(uint8_t reg_addr, uint8_t *data, uint16_t len)
-{
-    int ret = 0;
-
-#if CHARGE_I2C_ID == TOUCH_KEY_I2C_ID
-    if (touch_key_is_upgrading()) {
-        return BSP_OK;
-    }
-#endif
-
-    i2c_master_data_t i2c_data = {
-        .dev_address = CHARGE_I2C_ADDR,
-        .reg_addr = &reg_addr,
-        .reg_addr_len = 1,
-        .data = data,
-        .len = len,
-    };
-
-    ret = bsp_i2c_read_byte(CHARGE_I2C_ID, &i2c_data);
-    if (ret == BSP_OK) {
-        s_charge_abnormal_count = 0;
-        return BSP_OK;
-    }
-
-    s_charge_abnormal_count++;
-    if (s_charge_abnormal_count > CHARGE_ABNORMAL_MAX_COUNT) {
-        s_charge_is_ready = 0;
-    }
-
-    return BSP_ERROR;
-}
-
-static void charge_power_gpio_init(void)
+static void charge_enable_gpio_init(void)
 {
     struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux = {
-        (enum HAL_IOMUX_PIN_T)CHARGE_ENABLE_PIN, 
-        (enum HAL_IOMUX_PIN_T)CHARGE_ENABLE_PIN, 
+        (enum HAL_IOMUX_PIN_T)CHARGE_POWER_PIN, 
         HAL_IOMUX_FUNC_AS_GPIO, 
         HAL_IOMUX_PIN_VOLTAGE_VIO, 
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&pinmux, 1);
-    hal_gpio_pin_set_dir(CHARGE_ENABLE_PIN, HAL_GPIO_DIR_OUT, 1);
-    hal_gpio_pin_set_dir(CHARGE_ENABLE_PIN, HAL_GPIO_DIR_OUT, 1);
+    hal_gpio_pin_set_dir(CHARGE_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
 }
 
-static void charge_power_control(bool enable)
+static void charge_enable_control(bool enable)
 {
-    GPIO_PIN_CTRL(CHARGE_ENABLE_PIN, enable ? 0 : 1);
-    GPIO_PIN_CTRL(CHARGE_ENABLE_PIN, enable ? 0 : 1);
+    GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 0 : 1);
     is_charging = enable ? true:false;
-    LOG_PBUS("charge_power_control: %d", enable);
-}
-
-static int charge_device_is_ready(void)
-{
-    int ret = 0;
-    uint8_t value = 0;
-    for (uint8_t i = 0; i < 5; i++) {
-        ret = charge_read_nbyte_no_retry(CHARGE_ID_REG, &value, 1);
-        if (value == CHARGE_ID_VALUE) {            
-            s_charge_is_ready = true;
-            s_charge_abnormal_count = 0;
-            return BSP_OK;
-        }
-        msleep(20);
-    }
-    return BSP_ERROR;
-}
-
-static int charge_vbat_config(void)
-{
-    uint8_t reg_data = 0;
-    uint8_t reg_addr = CHARGE_VBAT_SET_REG;
-    reg_data = VCELL_4_2V | CSEL_3_CELL | IRCOMP_0MOHM;
-    if (charge_write_nbyte(CHARGE_VBAT_SET_REG, &reg_data, 1) != BSP_OK) {
-        return BSP_ERROR;
-    }
-    /// 设置充电电流限制
-#if IS_SUPPORT_CHARGE_CURRENT_ADJUST
-    s_charging_current = BATT_INPUT_CURRENT_LIMIT;
-#else
-    s_charging_current = 1500;
-
-#endif
-    reg_data = s_charging_current / BATT_CURRENT_LIMIT_SCALE; /// 1000mA
-    if (charge_write_nbyte(CHARGE_IBAT_CHG_REG, &reg_data, 1) != BSP_OK) {
-        return BSP_ERROR;
-    }
-    LOG_PBUS("charge_vbat_config: %dmA", s_charging_current);
-    /// 设置放电电流限制
-    reg_data = BATT_OUTPUT_CURRENT_LIMIT / BATT_CURRENT_LIMIT_SCALE; /// 3000mA
-    if (charge_write_nbyte(CHARGE_IBAT_DCHG_REG, &reg_data, 1) != BSP_OK) {
-        return BSP_ERROR;
-    }
-    return BSP_OK;
-}
-
-static int charge_ibat_config(uint16_t current)
-{
-    uint8_t reg_data = current / BATT_CURRENT_LIMIT_SCALE;
-    s_charging_current = current;
-    int ret = charge_write_nbyte(CHARGE_IBAT_CHG_REG, &reg_data, 1);    
-    LOG_PBUS("charge_ibat_config: %dmA, ret: %d", current, ret);
-    return ret;
-}
-
-static int charge_vin_config(void)
-{
-    uint8_t reg_data[2] = {0};
-    /// 输入电压限制
-    reg_data[0] = 0; 
-    reg_data[1] = CHARGE_INPUT_VOLTAGE_LIMIT / CHARGE_INPUT_VOLTAGE_LIMIT_SCALE; /// 低于4.2V，启用限流
-    if (charge_write_nbyte(CHARGE_VINDPM_H_REG, reg_data, 2) != BSP_OK) {
-        return BSP_ERROR;
-    }   
-    /// 输入电流限制
-    reg_data[0] = CHARGE_INPUT_CURRENT_LIMIT / CHARGE_INPUT_CURRENT_LIMIT_SCALE; /// 3000mA
-    return charge_write_nbyte(CHARGE_IIN_LIMIT_REG, reg_data, 1);
-}
-
-static int charge_adc_config(uint8_t adc_en)
-{
-    uint8_t adc_set = 0;
-    if (adc_en) {
-        adc_set = AD_START_ENABLE | ADC_VBUS_ENABLE | ADC_IBUS_ENABLE |\
-         ADC_VBAT_ENABLE | ADC_IBAT_ENABLE | ADC_NTC_ENABLE;
-    }
-    return charge_write_nbyte(CHARGE_ADC_SET_REG, &adc_set, 1);
-}
-
-static int charge_scale_config(void)
-{
-    uint8_t scale = 0;
-    scale = VBUS_SCALE_CFG | IBUS_SCALE_CFG | VBAT_SCALE_CFG | IBAT_SCALE_CFG;
-    return charge_write_nbyte(CHARGE_ADC_SCALE_REG, &scale, 1);
-}
-
-static int charge_interrupt_config(void)
-{
-    uint8_t reg_data[2] = {0};
-    reg_data[0] = CHARGE_AC_PRESENT_INT_ENABLE | CHARGE_INDET_INT_ENABLE | CHARGE_BUSUVP_CHG_INT_ENABLE | 
-        CHARGE_BATOVP_INT_ENABLE | CHARGE_BAT_FULL_INT_ENABLE | CHARGE_RE_CHG_INT_ENABLE;
-    reg_data[1] = CHARGE_CHG_TIMEOUT_INT_ENABLE | CHARGE_TSHUT_INT_ENABLE | CHARGE_BAT_EMPTY_INT_ENABLE | 
-        CHARGE_NTC_FAULT_INT_ENABLE;
-    return charge_write_nbyte(CHARGE_ADC_SCALE_REG, reg_data, 2);
-}
-
-static int charge_status_poll(charge_chip_status_t *status)
-{
-    uint8_t reg_data[12] = {0};
-    int ret = charge_read_nbyte(CHARGE_ADC_VBUS_L_REG, reg_data, 12);
-    if (ret != BSP_OK) {
-        LOGE("charge adc poll failed, ret: %d", ret);
-        return ret;
-    }
-    uint8_t *data_ptr = reg_data;
-    status->vbus = CHARGE_GET_10BIT_DATA(data_ptr) * CHARGE_INPUT_VOLTAGE_LIMIT_SCALE;
-    data_ptr += 2;
-    status->ibus = CHARGE_GET_10BIT_DATA(data_ptr) * CHARGE_ADC_CURRENT_LIMIT_SCALE;
-    data_ptr += 2;
-    status->vbat = CHARGE_GET_10BIT_DATA(data_ptr) * BATT_VOLTAGE_SCALE;
-    data_ptr += 2;
-    status->ibat = CHARGE_GET_10BIT_DATA(data_ptr) * BATT_ADC_CURRENT_LIMIT_SCALE;
-    data_ptr += 2;
-    status->ntc_resistance  = CHARGE_GET_10BIT_DATA(data_ptr) * NTC_VOLTAGE_SCALE / NTC_CURRENT_COEFF;
-    status->status = ((reg_data[10] & 0xFFFF) << 8) | reg_data[11];
-    return BSP_OK;
+    LOG_PBUS("charge_enable_control: %d", enable);
 }
 
 static int charge_ntc_temperature_get(float resistance)
@@ -339,37 +104,20 @@ static int charge_ntc_temperature_get(float resistance)
 
 static void charge_chip_init(void)
 {
-    int ret = BSP_OK;
-    ret = charge_device_is_ready();
-    if (ret != BSP_OK) {
-        LOGE("charge device is not ready, ret: %d", ret);
-        return;
-    }
-
-    ret = charge_scale_config();
-    if (ret != BSP_OK) {
-        LOGE("charge scale config failed, ret: %d", ret);
-        return;
-    }
-    ret = charge_adc_config(true); 
-    if (ret != BSP_OK) {
-        LOGE("charge adc enable failed, ret: %d", ret);
-        return;
-    }
-    ret = charge_vin_config();
-    if (ret != BSP_OK) {
-        LOGE("charge vin config failed, ret: %d", ret);
-        return;
-    }
-    ret = charge_vbat_config();
-    if (ret != BSP_OK) {
-        LOGE("charge vbat config failed, ret: %d", ret);
-        return;
-    }
-    LOG_PBUS("charge chip init success");
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+    sgm41519_chip_init();
+#endif
 }
 
-POSSIBLY_UNUSED static void charging_temp_policy_handler(int8_t temp)
+static void charge_ibat_config(uint16_t current_ma)
+{
+    s_charging_current = current_ma;
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+    sgm41519_set_charge_current(current_ma);
+#endif
+}
+
+static void charging_temp_policy_handler(int8_t temp)
 {
     if (temp >= CHARGE_NORMAL_TEMP_MIN && temp <= CHARGE_NORMAL_TEMP_MAX) {
         if (s_charge_temp_status != CHARGE_TEMP_NORMAL) {
@@ -407,13 +155,12 @@ POSSIBLY_UNUSED static void charging_temp_policy_handler(int8_t temp)
         if (s_charge_temp_count > CHARGE_TEMP_POLICY_POLL_INTERVAL) {
             s_charge_temp_count = 0;
             if (is_charging) {
-                charge_power_control(false);
+                charge_enable_control(false);
                 LOG_PBUS("temp abnormal disable charing");
             }
         }
     }
 }
-#endif
 
 static void charge_device_thread(void *arg)
 {
@@ -427,7 +174,7 @@ static void charge_device_thread(void *arg)
 #endif
 #if IS_SUPPORT_DEVICE_CHARGE
         charge_status_poll(&s_charge_status);
-        s_charge_status.charge_full = (s_charge_status.status & BAT_FULL_STATUS_POS) > 0 ? true : false;        
+        s_charge_status.charge_full = (s_charge_status.status & CHARGE_STATUS_BAT_FULL_MSK) > 0 ? true : false;        
         s_charge_status.temp = charge_ntc_temperature_get(s_charge_status.ntc_resistance);
 #if IS_SUPPORT_CHARGE_CURRENT_ADJUST
         charging_temp_policy_handler(s_charge_status.temp);
@@ -471,7 +218,7 @@ bool vbus_is_plug_in(void)
 #if IS_SUPPORT_PD_CHARGE
     return hal_gpio_pin_get_val(CHARGE_PD_INT_PIN) == 0 ? true : false;
 #else
-    return false;
+    return true;
 #endif
 }
 
@@ -523,7 +270,7 @@ int bsp_charge_init(void)
     bsp_charge_pd_init();
 #endif
 #if IS_SUPPORT_DEVICE_CHARGE
-    charge_power_gpio_init();
+    charge_enable_gpio_init();
     bsp_i2c_init(CHARGE_I2C_ID);
     charge_chip_init();
     charge_status_poll(&s_charge_status);
@@ -560,7 +307,7 @@ int bsp_charge_suspend(void)
 
 int bsp_charge_is_ready(void)
 {
-    return s_charge_is_ready;
+    return s_charge_is_ready ? 1 : 0;
 }
 
 void charge_event_internal_cb(charge_event_e event)
@@ -579,10 +326,10 @@ void charge_event_internal_cb(charge_event_e event)
 #endif
 #endif 
         s_charge_status.plug_in = true;      
-        charge_power_control(true);
+        charge_enable_control(true);
     } else if (event == CHARGE_EVENT_PLUG_OUT) {
         s_charge_status.plug_in = false;
-        charge_power_control(false);
+        charge_enable_control(false);
 
     }
 #endif
@@ -611,3 +358,5 @@ int bsp_charge_get_ibat_ma(uint16_t *ibat_ma)
     *ibat_ma = s_charge_status.ibat;
     return BSP_OK;
 }
+#endif
+

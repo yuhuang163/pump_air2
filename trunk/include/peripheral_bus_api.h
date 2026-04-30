@@ -36,7 +36,6 @@ typedef enum {
     ID_DEVICE_FSENSOR,
     ID_DEVICE_AIR_PRESSURE,
     ID_DEVICE_LIGHT_SENSOR,
-    ID_DEVICE_DIFF_PRESSURE,
     ID_DEVICE_MOTOR,
     ID_DEVICE_AUDIO,
     ID_DEVICE_MAX
@@ -62,7 +61,7 @@ typedef struct rt_device_node {
     list_head_t list;
     int (*open)(struct rt_device_node *dev);
     int (*close)(struct rt_device_node *dev);
-    int (*read)(struct rt_device_node *dev,void *buf, uint32_t n_bytes);
+    int (*read)(struct rt_device_node *dev, void *buf, uint32_t n_bytes);
     int (*write)(struct rt_device_node *dev, const void *buf, uint32_t n_bytes);
     int (*ioctl)(struct rt_device_node *dev, uint32_t op_code, void *args);
     int (*suspend)(struct rt_device_node *dev);

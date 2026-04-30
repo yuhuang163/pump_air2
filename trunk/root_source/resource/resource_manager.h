@@ -11,8 +11,8 @@ extern "C" {
 ******************************************************************************/
 #include "resource_img_define.h" // IWYU pragma: keep
 #include "resource_manager_api.h" // IWYU pragma: keep
-#include "resource_id_define.h" // IWYU pragma: keep
-#include "resource_info.h" // IWYU pragma: keep
+// #include "resource_id_define.h" // IWYU pragma: keep
+// #include "resource_info.h" // IWYU pragma: keep
 
 /*
 * GLOBAL FUNCTION DECLARATION

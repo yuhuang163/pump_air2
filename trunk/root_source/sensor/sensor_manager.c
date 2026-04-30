@@ -26,9 +26,6 @@ static const sensor_register_fptr s_sensor_register[] = {
     #if IS_SUPPORT_DEVICE_AIR_PRESSURE
         register_module_for_air_pressure_new,
     #endif
-    #if IS_SUPPORT_DEVICE_DIFF_PRESSURE
-        register_module_for_diff_pressure_new,
-    #endif
     #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
         register_module_for_light_sensor_new,
     #endif

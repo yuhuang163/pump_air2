@@ -39,6 +39,7 @@ typedef struct {
 
 #if IS_SUPPORT_PUMP_PWM_GRADUAL_CHANGE
 static void bsp_motor_pump_1_timer_timeout_handler(void *param);
+static void bsp_motor_pump_2_timer_timeout_handler(void *param);
 void bsp_motor_pwm_test_all_step_counts(void);
 #endif
 /*
@@ -78,7 +79,23 @@ static motor_pwm_timer_cfg_t timer_info[MOTOR_PWM_PUMP_2 + 1] = {
             .current_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
             .gpio_irq_update = 0,
         },
-    };
+    [MOTOR_PWM_PUMP_2] = {
+        .time_id = NULL,
+        .time_handler = bsp_motor_pump_2_timer_timeout_handler,
+        .time_period = PUMP_PWM_GRADUAL_CHANGE_PERIOD, //2ms
+        .pwm_cfg =
+            {
+                .freq = 0,
+                .ratio = 0,
+                .inv = false,
+                .sleep_on = false,
+            },
+        .init_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
+        .target_duty = 0,
+        .duty_step = 0,
+        .current_duty = PUMP_PWM_GRADUAL_CHANGE_INIT_DUTY,
+        .gpio_irq_update = 0,
+    }};
 #endif
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -250,6 +267,7 @@ static void bsp_motor_pump_1_timer_timeout_handler(void *param)
 
 static void bsp_motor_pump_2_timer_timeout_handler(void *param)
 {
+    bsp_motor_pwm_step_update_pump2(MOTOR_PWM_PUMP_2);
 }
 
 static void bsp_motor_start_periodic_task(motor_pwm_control_id_e pwm_id)
@@ -304,6 +322,11 @@ static int8_t bsp_motor_init_timer_system(void)
     // 分配定时器
     timer_info[MOTOR_PWM_PUMP_1].time_id = hwtimer_alloc(bsp_motor_pump_1_timer_timeout_handler, NULL);
     if (timer_info[MOTOR_PWM_PUMP_1].time_id == NULL) {
+        LOGE("Failed to allocate timer");
+        return -1;
+    }
+    timer_info[MOTOR_PWM_PUMP_2].time_id = hwtimer_alloc(bsp_motor_pump_2_timer_timeout_handler, NULL);
+    if (timer_info[MOTOR_PWM_PUMP_2].time_id == NULL) {
         LOGE("Failed to allocate timer");
         return -1;
     }
@@ -444,14 +467,6 @@ static void pump_1_irq_callback(enum HAL_GPIO_PIN_T pin)
     
 }
 
-static void pump_2_irq_callback(enum HAL_GPIO_PIN_T pin)
-{
-    //LOG_PBUS("power key pin[%d] irq triggered", pin);
-    if (timer_info[MOTOR_PWM_PUMP_2].gpio_irq_update == 1) {
-        timer_info[MOTOR_PWM_PUMP_2].gpio_irq_update = 0;
-        hal_pwm_update_duty_only(motor_pwm_cfg[MOTOR_PWM_PUMP_2].id, timer_info[MOTOR_PWM_PUMP_2].current_duty, timer_info[MOTOR_PWM_PUMP_2].pwm_cfg.freq);
-    }
-}
 static int8_t bsp_motor_pwm_gradual_gpio_irq_init(int8_t enable)
 {
     struct HAL_GPIO_IRQ_CFG_T gpio_irq_cfg = {

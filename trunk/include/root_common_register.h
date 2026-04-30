@@ -26,7 +26,6 @@ DECLARE_DEVICE_REGISTER(register_device_for_imu);
 DECLARE_DEVICE_REGISTER(register_device_for_force_sensor);
 DECLARE_DEVICE_REGISTER(register_device_for_light_sensor);
 DECLARE_DEVICE_REGISTER(register_device_for_air_pressure);
-DECLARE_DEVICE_REGISTER(register_device_for_diff_pressure);
 DECLARE_DEVICE_REGISTER(register_device_for_motor);
 DECLARE_DEVICE_REGISTER(register_device_for_log_uart);
 DECLARE_DEVICE_REGISTER(register_device_for_led);

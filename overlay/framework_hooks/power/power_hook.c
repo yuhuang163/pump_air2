@@ -11,7 +11,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define POWER_ON_BOOT_RUN_TIME_MS                   1000     /// boot 启动补偿, 冷启动和热启动时间不一致
+#define POWER_ON_BOOT_RUN_TIME_MS                   600    /// boot 启动补偿, 冷启动和热启动时间不一致
 #define POWER_ON_TIMEOUT_MS_DEFAULT                 (3000 - POWER_ON_BOOT_RUN_TIME_MS)     /// 电源按键超时时间，单位ms
 #define POWER_ON_TIMEOUT_MS                         (POWER_ON_TIMEOUT_MS_DEFAULT - get_timestamp_ms(0))
 #define POWER_ONOFF_AND_STANDBY_TASK_NAME           "power_onoff_and_standby"
@@ -40,6 +40,7 @@ static bool is_prohibit_pm_suspend(struct power_manager_context *ctx)
     if (battery && BATTERY_IS_CHARGING(battery->get_charge_status())) {
         if (wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0) {
             multi_func_msg_data_t msg = {0};
+            msg.union_body.extra.is_bg_dispatch = 0;
             msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
             wm->dispatch_new_window_args(wm, &msg);
         }
@@ -60,15 +61,15 @@ static void system_power_event_cb(hdr_post_args_t *args)
             battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
             pm->priv.is_power_on_timeout_detect = 0;
             if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
-#if IS_SUPPORT_PWR_ON_WHEN_PLUG_IN
+#if IS_SUPPORT_POWER_KEY_ON_BOOT
+                pm->system_power_control(false); 
+#else
                 if (battery && battery->is_vbus_plug_in() > 0) {
                     pm->system_power_control(true);
                     SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
                 } else {
                     pm->system_power_control(false); /// 非充电状态下进行开机超时检测.
                 }
-#else
-                pm->system_power_control(false); 
 #endif
             } else {
                 pm->system_power_control(true);
@@ -142,7 +143,8 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     }
 
     /// 允许关机/待机标志设置. 
-    if (keytype == KEY_EVENT_DOWN && ctx->priv.allow_shutdown_or_standby == 0 && ctx->is_system_power_on() > 0) {
+    if (keytype == KEY_EVENT_DOWN && ctx->priv.allow_shutdown_or_standby == 0 && 
+        ctx->is_system_power_on() > 0 && get_timestamp() > 4000) {
         ctx->priv.allow_shutdown_or_standby = 1; /// 允许关机/待机标志.
         LOG_PM("key down on power-on state, allow shutdown or standby: %d", ctx->priv.allow_shutdown_or_standby);
         return 0;
@@ -152,14 +154,10 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_or_standby == 1) {
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
 #if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)  
-        battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
-        if (battery && BATTERY_IS_CHARGING(battery->get_charge_status())) {
-            if (wm && wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0) {
-                multi_func_msg_data_t msg = {0};
-                msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
-                wm->dispatch_new_window_args(wm, &msg);
+        if (wm && wm->is_current_window(wm, ID_WINDOW_FACTORY_RESET) == 0) {
+            if (is_prohibit_pm_suspend(ctx)) {
+                return 0;
             }
-            return 0;
         }
 #endif
         /// 不在工厂重置界面时才允许进入关机状态.(按键冲突)
@@ -216,21 +214,6 @@ static void pm_suspend_prepare_enter(power_manager_context_t *ctx)
     SEND_BROADCAST_SYNC_ARGS1(ID_BROADCAST_PM_STATE_CHANGE, get_pm_broadcast_id(ctx->priv.pm_state));
 }
 
-static void set_pm_state_progress(power_manager_context_t *ctx, const char *tag, int state, int t0)
-{
-    int tmp = state;
-
-    if (ctx->priv.pm_state_change_progress != tmp) {
-        ctx->priv.pm_state_change_progress = tmp;
-        const char *s = ctx->print_wakeup_state(tmp);
-        if (t0 > 0) {
-            LOG_PM("New pm_state: %s, time escaped: %d ms", tag, s, t0);
-        } else {
-            LOG_PM("New pm_state: %s", tag, s);
-        }
-    }
-}
-
 static int pm_suspend_internal(power_manager_context_t *ctx)
 {
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
@@ -273,6 +256,20 @@ static void pm_resume_post_enter(power_manager_context_t *ctx)
     } while (++counter < 50);
 }
 #endif
+static void set_pm_state_progress(power_manager_context_t *ctx, const char *tag, int state, int t0)
+{
+    int tmp = state;
+
+    if (ctx->priv.pm_state_change_progress != tmp) {
+        ctx->priv.pm_state_change_progress = tmp;
+        const char *s = ctx->print_wakeup_state(tmp);
+        if (t0 > 0) {
+            LOG_PM("New pm_state: %s, time escaped: %d ms", tag, s, t0);
+        } else {
+            LOG_PM("New pm_state: %s", tag, s);
+        }
+    }
+}
 
 static int on_pm_suspend_route(struct power_manager_context *ctx, int state)
 {
@@ -293,12 +290,13 @@ static int on_pm_suspend_route(struct power_manager_context *ctx, int state)
     msg.union_body.extra.arg1 = ID_POPUP_UI_WILL_POWER_OFF;
     msg.union_body.extra.popup_exit_time = 3000;
     msg.union_body.extra.user_data = ctx;
-    msg.union_body.extra.forbid_short_press_exit_popup = true;
+    msg.union_body.extra.forbid_short_press_exit_popup = false;
     wm->dispatch_new_window_args(wm, &msg); 
 #else
     ctx->priv.allow_shutdown_or_standby = 0;
     ctx->system_power_control(false);
 #endif
+    set_pm_state_progress(ctx, __func__, PM_WILL_POWER_OFF, 0);
     return 0;
 #else
     uint32_t t0 = 0;
@@ -331,6 +329,7 @@ static int on_pm_resume_route(struct power_manager_context *ctx, int state)
     EXCEPTION_CHECK_INT(ctx);
 #if IS_SUPPORT_SLEEP_POWER_OFF
     LOG_PM("==> pm resume");
+    set_pm_state_progress(ctx, __func__, PM_RESUME_FINISH, 0);
     return 0;
 #else
     uint32_t t0 = 0;
@@ -389,19 +388,7 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
     EXCEPTION_CHECK_INT(ctx);
     ctx->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
-#if IS_SUPPORT_PWR_ON_WHEN_PLUG_IN
-    if ((battery && battery->is_vbus_plug_in() > 0) ||
-        platform_is_startup_caused_by_reboot()) {
-        key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);  
-        if (key && key->is_key_triggered(KEY_INDEX_POWER)) {
-            ctx->priv.is_power_on_timeout_detect = 1;
-        }
-        /// Keep dedicated task name for delayed power-on path to preserve existing scheduling behavior.
-        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 500, HDR_ACTION_POWER_ON, ctx,
-            POWER_ONOFF_AND_STANDBY_TASK_NAME);
-        return 0;
-    }
-#else
+#if IS_SUPPORT_POWER_KEY_ON_BOOT
     if (platform_is_startup_caused_by_reboot()) {
         key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
         if (key && key->is_key_triggered(KEY_INDEX_POWER)) {
@@ -412,7 +399,23 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
             POWER_ONOFF_AND_STANDBY_TASK_NAME);
         return 0;
     }
+#else
+    if ((battery && battery->is_vbus_plug_in() > 0) || platform_is_startup_caused_by_reboot()) {
+        key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);  
+        if (key && key->is_key_triggered(KEY_INDEX_POWER)) {
+            ctx->priv.is_power_on_timeout_detect = 1;
+        }
+        POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 500, HDR_ACTION_POWER_ON, ctx,
+            POWER_ONOFF_AND_STANDBY_TASK_NAME);
+        return 0;
+    }
 #endif
+    key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
+    if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
+        ctx->priv.is_power_on_timeout_detect = 0;
+        ctx->system_power_control(false);
+        return 0;
+    }
     uint32_t timeout_ms = POWER_ON_TIMEOUT_MS;
     LOG_PM("power on time: %d", timeout_ms);
     if (timeout_ms > POWER_ON_TIMEOUT_MS_DEFAULT) {

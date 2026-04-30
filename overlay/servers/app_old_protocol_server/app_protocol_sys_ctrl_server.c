@@ -1,11 +1,6 @@
-#include "root_common.h"
 #include "root_common_api.h" // IWYU pragma: keep
 #include "app_protocol_handler.h"
-#include "servers_manager_api.h"
-#include "storage_manager_api.h"
 #include "app_protocol_sys_ctrl_server.h"
-#include "hal_led.h" // IWYU pragma: keep
-#include "ble_manager_api.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -60,6 +55,7 @@ static const char* app_old_comm_get_abnormal_type_str(old_publish_abnormal_type_
         case OLD_PUBLISH_ABNORMAL_AIR_LEAK: return "AIR_LEAK";
         case OLD_PUBLISH_ABNORMAL_TRAVEL_LOCK: return "TRAVEL_LOCK";
         case OLD_PUBLISH_ABNORMAL_ADAPTER_ERROR: return "ADAPTER_ERROR";
+        case OLD_PUBLISH_ABNORMAL_GUIDE_WINDOW: return "GUIDE_WINDOW";
         default: return "UNKNOWN_ERROR";
     }
 }
@@ -99,7 +95,10 @@ void app_old_comm_handle_set_rtc_req(uint8_t cal, uint8_t *cab)
     uint32_t utc_time = (cab[3] << 24) | (cab[2] << 16) | (cab[1] << 8) | cab[0];
     LOG_SRV(" Setting RTC time to 0x%08X", utc_time);
     // TODO: Call RTC setting interface
-    platform_set_utc_time(utc_time, 0);
+    time_system_t *time_system = (time_system_t *)find_module(ID_MODULE_TIME);
+    if (time_system) {
+        time_system->sync_utc_time(utc_time);
+    }
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SET_RTC, 0, NULL);
 }
 
@@ -364,12 +363,16 @@ void app_old_comm_handle_dev_abnormal_app_req(uint8_t cal, uint8_t *cab)
     ///电量不足无法开始
     if (percent <= LOW_BAT_PERCENTAGE_RUN_ONCE_NOT_ALLOWED) {
         report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_ACTIVE;
+    }else {
+        report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_CLEARED;
     }
     ///设备低电
     report_data[data_len++] = 0;
     ///设备低电即将关键
     if (percent <= LOW_BAT_PERCENTAGE) {
         report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_ACTIVE;
+    }else {
+        report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_CLEARED;
     }
     ///设备漏气提醒
     report_data[data_len++] = 0;
@@ -377,9 +380,15 @@ void app_old_comm_handle_dev_abnormal_app_req(uint8_t cal, uint8_t *cab)
     if (air_ctx->is_on_airplane_mode()) {
         report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_ACTIVE;
     }
+    else {
+        report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_CLEARED;
+    }
     ///适配器
     if (batt_ctx->is_adapter_mismatch()) {
         report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_ACTIVE;
+    }
+    else {
+        report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_CLEARED;
     }
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_ABNORMAL_INFOR, \
         data_len, report_data);

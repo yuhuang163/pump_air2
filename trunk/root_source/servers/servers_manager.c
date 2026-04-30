@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "root_common_api.h"
+#include "windows_manager.h" // IWYU pragma: keep
 #include "servers_manager.h" // IWYU pragma: keep
 
 /*

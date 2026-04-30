@@ -1296,11 +1296,10 @@ int tests_tlvs_lcd_backlight_control(comm_protocol_builder_t *builder, comm_prot
 int tests_tlvs_light_sensor_report_ctrl(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
                                         uint8_t *data, uint16_t data_len)
 {
-#if IS_SUPPORT_ADAPTIVE_DIMMING
     EXCEPTION_CHECK_INT(builder && service);
     protocol_manager_context_t *protocol_ctx = get_protocol_ctx();
     EXCEPTION_CHECK_INT(protocol_ctx);
-
+#if IS_SUPPORT_NIGHT_LIGHT
     uint8_t result = 0x00;
     if (data_len == 1 && data != NULL) {
         if (data[0]) {
@@ -1323,9 +1322,8 @@ int tests_tlvs_light_sensor_report_ctrl(comm_protocol_builder_t *builder, comm_p
         .value = &result,
     };
     return protocol_ctx->comm_protocol_builder_add_tlv(builder, service, &tlv_node);
-#else
+    #endif
     return 0;
-#endif
 }
 
 int tests_tlvs_light_sensor_calib_data_set(comm_protocol_builder_t *builder, comm_protocol_service_t *service,
