@@ -39,6 +39,8 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_FLASH                          (1)
 #define IS_SUPPORT_DEVICE_DATABASE                       (1)
 #define IS_SUPPORT_DEVICE_INPUT_KEY                      (1)
+/// 三键 GPIO：电源短按映射为「启动/暂停」(KEY_CODE_START)，UP/DOWN 映射为档位±(旋钮码)
+#define IS_SUPPORT_GPIO_THREE_KEY_LAYOUT                 (1)
 #define IS_SUPPORT_DEVICE_TOUCH_KEY                      (0)
 #define IS_SUPPORT_DEVICE_POWER                          (1)
 #define IS_SUPPORT_DEVICE_PMU                            (1)
@@ -67,7 +69,7 @@ extern "C" {
 /// 支持爬升策略
 #define IS_SUPPORT_CLIMB_POLICY                          (1)
 /// 支持长按软复位
-#define IS_SUPPORT_KEY_SOFT_RESET                        (1)
+#define IS_SUPPORT_KEY_SOFT_RESET                        (0)
 /// 支持LVGL
 #define IS_SUPPORT_LVGL                                  (0)
 /// 支持PD充电

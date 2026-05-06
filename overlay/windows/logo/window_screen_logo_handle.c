@@ -106,6 +106,10 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         logo_test_key_backlight_on(proc);
 #endif
 #endif
+#if !IS_SUPPORT_LVGL && !IS_SUPPORT_DEVICE_TOUCH_KEY
+        /// 无屏且无触摸：不会走 start_logo_ui_animation / 动画结束回调，否则永远卡在 LOGO，泵窗按键无法注册
+        logo_schedule_headless_boot_transition(proc);
+#endif
 #if IS_SUPPORT_DEVICE_TOUCH_KEY
     } else if (new_state == ID_SCR_STATE_ON_CREATE) {
         LOG_WM("==>%s window on create", PAGE_NAME_STR);
