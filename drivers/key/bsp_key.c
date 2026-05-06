@@ -3,8 +3,11 @@
 *****************************************************************************************
 */
 #include "bsp_common.h" // IWYU pragma: keep
+#include "bsp_config.h" // IWYU pragma: keep (IS_SUPPORT_GPIO_THREE_KEY_LAYOUT)
+#include "input_key_code.h" // IWYU pragma: keep (KEY_CODE_KNOB_* 与泵/主页掩码一致)
 #include "scan_key.h" // IWYU pragma: keep
 #include "bsp_key_internal.h"
+#include "key_input_manager_api.h" // IWYU pragma: keep (KEY_CODE_*, KEY_EVENT_*)
 #if IS_SUPPORT_DEVICE_KNOB
 #include "bsp_knob.h" // IWYU pragma: keep
 #endif
@@ -13,7 +16,7 @@
 * DEFINES
 *****************************************************************************************
 */
-#define KEY_CODE_SIZE (2 + 1) // 2个按键 + 1个电源键 + 2个组合按键
+#define KEY_CODE_SIZE (2 + 1) // 2个按键 + 1个电源键 + 0个组合按键
 
 /*
 * LOCAL VARIABLE DEFINITIONS
@@ -92,6 +95,15 @@ static int key_dev_write(struct rt_device_node *dev, const void *buf, uint32_t n
         keycode = tmp[0];
         keytype = tmp[1];
     }
+
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT && !IS_SUPPORT_DEVICE_TOUCH_KEY
+    /// 物理键保持上报 KEY_CODE_POWER；UP/DOWN 使用与 ALL_KEY_CODE_NO_COMBINE / 泵页相同的旋钮码
+    if (keycode == KEY_CODE_2) {
+        keycode = KEY_CODE_KNOB_LEFT;
+    } else if (keycode == KEY_CODE_3) {
+        keycode = KEY_CODE_KNOB_RIGHT;
+    }
+#endif
 
     // LOG_PBUS("keycode: %d, keytype: %d, key_cb: %p", keycode, keytype, key_cb);
     if (keycode && key_cb) {

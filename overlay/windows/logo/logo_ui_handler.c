@@ -25,11 +25,9 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
-static void logo_display_completed_cb(hdr_post_args_t *args)
+static void logo_apply_post_logo_navigation(ui_proc_logo_t *proc)
 {
-    ui_proc_logo_t *proc = (ui_proc_logo_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    LOG_UI("logo play finished");
     WINDOW_ID_GUARD_VOID(proc, ID_WINDOW_LOGO);
     multi_func_msg_data_t msg = {0};
 #if IS_SUPPORT_LVGL
@@ -67,7 +65,7 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
         msg.union_body.extra.window_id = ID_WINDOW_GUIDE;
         proc->wm->dispatch_new_window_args(proc->wm, &msg);
         return;
-    }    
+    }
     LOG_WM("goto home window.");
     msg.union_body.extra.window_id = ID_WINDOW_HOME;
     proc->wm->dispatch_new_window_args(proc->wm, &msg);
@@ -82,6 +80,22 @@ static void logo_display_completed_cb(hdr_post_args_t *args)
     msg.union_body.extra.window_id = ID_WINDOW_PUMP;
     proc->wm->dispatch_new_window_args(proc->wm, &msg);
 #endif
+}
+
+static void logo_display_completed_cb(hdr_post_args_t *args)
+{
+    ui_proc_logo_t *proc = (ui_proc_logo_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    LOG_UI("logo play finished");
+    logo_apply_post_logo_navigation(proc);
+}
+
+static void logo_headless_boot_task(hdr_post_args_t *args)
+{
+    ui_proc_logo_t *proc = (ui_proc_logo_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    LOG_WM("logo headless: no animation/touch path, apply post-logo navigation");
+    logo_apply_post_logo_navigation(proc);
 }
 
 static void logo_ui_after_policy(ui_manager_context_t *ui, int index)
@@ -156,6 +170,12 @@ static void logo_ui_hdr_remove(void)
 * GLOBAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+void logo_schedule_headless_boot_transition(ui_proc_logo_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    POST_TASK_HANDLER_NO_DELAY(logo_headless_boot_task, proc, LOGO_DISPLAY_TASK_NAME);
+}
+
 void start_logo_ui_animation(ui_proc_logo_t *proc)
 {
     EXCEPTION_CHECK_VOID(proc->pm);

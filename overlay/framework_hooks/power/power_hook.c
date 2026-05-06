@@ -411,18 +411,20 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
     }
 #endif
     key_input_context_t *key = (key_input_context_t *)find_module(ID_MODULE_KEY_INPUT);
-    if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
-        ctx->priv.is_power_on_timeout_detect = 0;
-        ctx->system_power_control(false);
-        return 0;
-    }
+    // if (key && key->is_key_triggered(KEY_INDEX_POWER) == 0) {
+    //     ctx->priv.is_power_on_timeout_detect = 0;
+    //     ctx->system_power_control(false);
+    //     return 0;
+    // }
     uint32_t timeout_ms = POWER_ON_TIMEOUT_MS;
     LOG_PM("power on time: %d", timeout_ms);
     if (timeout_ms > POWER_ON_TIMEOUT_MS_DEFAULT) {
         timeout_ms = POWER_ON_TIMEOUT_MS_DEFAULT;
     }
     ctx->priv.is_power_on_timeout_detect = 1;
-    POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, timeout_ms, HDR_ACTION_POWER_ON_DETECT,
+    // POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, timeout_ms, HDR_ACTION_POWER_ON_DETECT,
+    //     ctx, POWER_ONOFF_AND_STANDBY_TASK_NAME);
+    POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 100, HDR_ACTION_POWER_ON,
         ctx, POWER_ONOFF_AND_STANDBY_TASK_NAME);
     return 0;
 }

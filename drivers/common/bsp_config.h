@@ -36,7 +36,7 @@ extern "C" {
 #define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm6
 
 /// 按键相关定义
-#define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_7
+#define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_5
 #define UP_KEY_PIN                      HAL_GPIO_PIN_P4_6
 #define DOWN_KEY_PIN                    HAL_GPIO_PIN_P4_5
 

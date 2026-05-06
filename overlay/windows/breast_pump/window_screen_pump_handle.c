@@ -4,6 +4,7 @@
 */
 #include "breast_pump_manager.h" // IWYU pragma: keep
 #include "input_key_code.h"
+#include "project_support_overlay.h" // IWYU pragma: keep (IS_SUPPORT_GPIO_THREE_KEY_LAYOUT, IS_SUPPORT_LVGL)
 #include "window_screen_pump.h"// IWYU pragma: keep
 
 /*
@@ -172,7 +173,18 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
 
     switch (keycode) {
         case KEY_CODE_POWER:
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+            /// 三键机：电源单击 = 原启动键（启停）；子界面仍可用电源单击回泵主页
+            if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE ||
+                proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE ||
+                proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
+                pump_power_key_handler(proc);
+            } else {
+                switch_pump_status_ui(proc);
+            }
+#else
             pump_power_key_handler(proc);
+#endif
             break;
         case KEY_CODE_START:
             switch_pump_status_ui(proc);
@@ -230,7 +242,7 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             }
         }
 
-        if (keytype == KEY_EVENT_CLICK) {
+        if (keytype & KEY_EVENT_CLICK) {
             pump_click_event_cb(proc, keycode);
         }
     }
@@ -333,7 +345,11 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         if (proc->led && proc->led->hook && proc->led->hook->set_key_backlight) {
             proc->led->hook->set_key_backlight(proc->led, 100);
         }
+#if !IS_SUPPORT_LVGL
+        pump_ui_on_window_create_idle_home(proc);
+#else
         switch_pump_status_ui(proc);
+#endif
     }
     return 0;
 }

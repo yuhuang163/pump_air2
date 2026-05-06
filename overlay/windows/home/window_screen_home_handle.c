@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "input_key_code.h" // IWYU pragma: keep
+#include "project_support_overlay.h" // IWYU pragma: keep (IS_SUPPORT_GPIO_THREE_KEY_LAYOUT)
 #include "root_common_api.h" // IWYU pragma: keep
 #include "windows_manager.h" 
 #include "windows_map_define.h" // IWYU pragma: keep
@@ -155,7 +156,10 @@ static void home_power_key_event_cb(ui_proc_home_t *proc)
         proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
         POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
     } else if (proc->current_ui_type == HOME_UI_TYPE_HOME) {
-#if IS_SUPPORT_NIGHT_LIGHT
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+        /// 无屏三键机：电源短按等同原「启动」键，从主页进入泵窗口（否则一直停在 HOME，泵按键回调未注册）
+        POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
+#elif IS_SUPPORT_NIGHT_LIGHT
         if (proc->led && proc->led->hook && proc->led->hook->toggle_night_light) {
             proc->led->hook->toggle_night_light(proc->led);
         }

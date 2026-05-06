@@ -4,6 +4,8 @@
 */
 #include "root_log_define.h"
 #include "ui_page_define.h" // IWYU pragma: keep
+#include "hal_led.h" // IWYU pragma: keep (PUMP_LED_ALL_ID, LED_STATUS_*)
+#include "project_support_overlay.h" // IWYU pragma: keep (IS_SUPPORT_GPIO_THREE_KEY_LAYOUT)
 #include "window_screen_pump.h"
 
 /*
@@ -142,7 +144,12 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
         int next_status = (pump_status == BREAST_PUMP_PAUSE) ? BREAST_PUMP_CONTINUE : BREAST_PUMP_START;    
         WRITE_PUMP_WORK_STATUS(proc->pump, next_status, 1);
         if (proc->led)  {
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+            /// 三键无屏：三颗 LED 全亮表示运行中
+            proc->led->set_led_level(PUMP_LED_ALL_ID, LED_LEVEL_MAX);
+#else
             proc->led->set_led_level(PUMP_START_BL, LED_LEVEL_MAX);
+#endif
         }
         pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
         show_pump_home_ui(proc);
@@ -151,10 +158,35 @@ void switch_pump_status_ui(ui_proc_pump_t *proc)
         proc->forbid_start_pump = false;
         WRITE_PUMP_WORK_STATUS(proc->pump, BREAST_PUMP_PAUSE, 1);
         if (proc->led)  {
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+            proc->led->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);
+#else
             proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+#endif
         }
         show_pump_home_ui(proc);
         pump_popup_ui_type_update(proc, ID_POPUP_UI_PUMP_PAUSE_MANUAL);
         LOG_UI("pump stop ui create: %d", pump_status);
     }
 }
+
+#if !IS_SUPPORT_LVGL
+void pump_ui_on_window_create_idle_home(ui_proc_pump_t *proc)
+{
+    EXCEPTION_CHECK_VOID(proc);
+    pump_popup_ui_type_update(proc, ID_POPUP_UI_NONE);
+    if (proc->led) {
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+        proc->led->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);
+#else
+        proc->led->set_led_blink(PUMP_START_BL, LED_SLOW_BLINK_TIME, 0, LED_STATUS_OFF);
+#endif
+    }
+    proc->current_ui_type = PUMP_UI_TYPE_HOME;
+}
+#else
+void pump_ui_on_window_create_idle_home(ui_proc_pump_t *proc)
+{
+    (void)proc;
+}
+#endif

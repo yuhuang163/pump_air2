@@ -163,6 +163,8 @@ typedef struct {
 */
 /// 显示泵奶主界面
 void show_pump_home_ui(ui_proc_pump_t *proc);
+/// 无屏时泵窗口 on_create 用；有屏时为空操作（逻辑在 switch_pump_status_ui）
+void pump_ui_on_window_create_idle_home(ui_proc_pump_t *proc);
 /// 普通模式UI相关
 void pump_mode_key_click_handler(ui_proc_pump_t *proc);
 void switch_pump_common_mode_ui(ui_proc_pump_t *proc, bool is_increase);

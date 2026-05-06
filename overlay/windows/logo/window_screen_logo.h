@@ -56,6 +56,8 @@ typedef struct {
 */
 void start_logo_ui_animation(ui_proc_logo_t *proc);
 void stop_logo_ui_animation(ui_proc_logo_t *proc);
+/// 无 LVGL / 无触摸键时不会走开机动画完成回调，在 LOGO on_resume 调用以跳转到后续窗口
+void logo_schedule_headless_boot_transition(ui_proc_logo_t *proc);
 
 #ifdef __cplusplus
 }

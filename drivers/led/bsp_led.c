@@ -43,18 +43,9 @@ static int led_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *arg
 {
     switch (op_code) {
         case OP_CODE_LED_STATUS_SET: {
-//             led_status_msg_t *msg = (led_status_msg_t *)args;
-//             EXCEPTION_CHECK_INT(msg);
-//             if (NIGHT_LIGHT_LED == msg->led_index) {
-// #if IS_SUPPORT_NIGHT_LIGHT
-//                 return bsp_night_light_status_set(args);
-// #else
-//                 return 0;
-// #endif
-//             } else {
-//                 return bsp_led_status_set(msg);
-//             }
-            return 0;
+            led_status_msg_t *msg = (led_status_msg_t *)args;
+            EXCEPTION_CHECK_INT(msg);
+            return bsp_led_status_set(msg);
         }
         case OP_CODE_LED_LEVEL_RATE_SET: {
 //             led_level_rate_msg_t *msg = (led_level_rate_msg_t *)args;

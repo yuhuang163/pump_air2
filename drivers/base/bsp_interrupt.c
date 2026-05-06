@@ -33,6 +33,7 @@ static void interrupt_msg_thread(const void *args)
         switch (io_num) {
             case INT_NUM_KEY_1:
             case INT_NUM_KEY_2:
+            case INT_NUM_KEY_3:
                 key_irq_event_callback(io_num);
                 break;
             case INT_NUM_TOUCH_KEY:
