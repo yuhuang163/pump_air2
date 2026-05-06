@@ -184,7 +184,8 @@ void switch_breastfeeding_mode_ui(ui_proc_pump_t *proc, bool is_increase)
     char *mode_name = "unknow";
     READ_PUMP_MODE_NAME(proc->pump, mode, &mode_name);
     LOG_UI("switch %s mode: %d", mode_name, mode);
-    show_breastfeeding_mode_ui(proc);
+    // show_breastfeeding_mode_ui(proc);
+    WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_bf_mode_index, true, 1);
 }
 
 void breastfeeding_mode_ui_hdr_remove(void)

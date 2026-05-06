@@ -5,7 +5,6 @@
 #include "root_log_define.h"
 #include "ui_page_define.h" // IWYU pragma: keep
 #include "hal_led.h" // IWYU pragma: keep (PUMP_LED_ALL_ID, LED_STATUS_*)
-#include "project_support_overlay.h" // IWYU pragma: keep (IS_SUPPORT_GPIO_THREE_KEY_LAYOUT)
 #include "window_screen_pump.h"
 
 /*

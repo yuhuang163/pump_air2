@@ -722,6 +722,7 @@ DRIVERS_BASE_SRCS := \
 DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/chip/*/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
 
 # BLE 驱动源码

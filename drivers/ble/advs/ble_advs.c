@@ -32,7 +32,6 @@
 *****************************************************************************************
 */
 #if IS_SUPPORT_OLD_ADV_DATA
-#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 static uint8_t s_adv_rsp_data_set[] = {
     0x0A,                              /// length
     0xFF,                              /// manufacturer type 1
@@ -40,9 +39,9 @@ static uint8_t s_adv_rsp_data_set[] = {
     ROOT_PRODUCT_ID,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
-    0x07,
+    0x05,
     BES_GAP_AD_TYPE_COMPLETE_NAME,      /// type
-    0x56, 0x33, 0x20, 0x50, 0x72, 0x6F, // name, V3 Pro
+    0x41, 0x69, 0x72, 0x32, // name, Air2
 };
 
 static uint8_t s_adv_data_set[] = {
@@ -52,35 +51,10 @@ static uint8_t s_adv_data_set[] = {
     ROOT_PRODUCT_ID,                  /// pump product code
     0x30,                              /// pump model code
     0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
-    0x07,
+    0x05,
     BES_GAP_AD_TYPE_COMPLETE_NAME,      /// type
-    0x56, 0x33, 0x20, 0x50, 0x72, 0x6F, // name, V3 Pro
+    0x41, 0x69, 0x72, 0x32, // name, Air2
 };
-#else
-static uint8_t s_adv_rsp_data_set[] = {
-    0x0A,                              /// length
-    0xFF,                              /// manufacturer type 1
-    0xAA,                              /// ROOT company flag
-    ROOT_PRODUCT_ID,                  /// pump product code
-    0x30,                              /// pump model code
-    0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
-    0x03,
-    BES_GAP_AD_TYPE_COMPLETE_NAME,      /// type
-    0x56, 0x33, /// name, V3
-};
-
-static uint8_t s_adv_data_set[] = {
-    0x0A,                              /// length
-    0xFF,                              /// manufacturer type 1
-    0xAA,                              /// ROOT company flag
-    ROOT_PRODUCT_ID,                  /// pump product code
-    0x30,                              /// pump model code
-    0x34,0x25,0x00,0x10,0xC5,0xDA, /// MAC(little endian)
-    0x03,
-    BES_GAP_AD_TYPE_COMPLETE_NAME,      /// type
-    0x56, 0x33, /// name, V3
-};
-#endif
 #else
 #if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
 static uint8_t s_adv_data_set[] = {

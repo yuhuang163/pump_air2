@@ -5,11 +5,7 @@
 extern "C" {
 #endif
 
-#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
-#define ROOT_DEVICE_NAME                              "V3Pro"
-#else
-#define ROOT_DEVICE_NAME                              "V3"
-#endif
+#define ROOT_DEVICE_NAME                              "Air2"
 
 /*
 * 主固件版本类型:
@@ -42,13 +38,8 @@ extern "C" {
 /**
  * 正式版本从100-900
 */
-#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
-#define ROOT_FIRMWARE_VERSION                          208
-#define ROOT_FW_VERSION_STR                            "208"
-#else
-#define ROOT_FIRMWARE_VERSION                          220
-#define ROOT_FW_VERSION_STR                            "220"
-#endif
+#define ROOT_FIRMWARE_VERSION                          100
+#define ROOT_FW_VERSION_STR                            "100"
 
 /**
  * 资源版本号定义(major*100 + minor)

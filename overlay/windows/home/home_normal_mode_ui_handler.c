@@ -3,7 +3,11 @@
 *****************************************************************************************
 */
 #include "ui_page_define.h" // IWYU pragma: keep
+#include "persist_storage.h" // IWYU pragma: keep (BREAST_PUMP_* enums)
 #include "window_screen_home.h"
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+#include "window_screen_pump.h" // IWYU pragma: keep (ui_proc_pump_t for CONTAINER_OF sync)
+#endif
 
 /*
 * DEFINES
@@ -25,6 +29,23 @@
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void cycle_pump_common_work_mode(uint8_t *mode, bool is_increase)
+{
+    if (is_increase) {
+        if (*mode < BREAST_PUMP_MIX_MODE) {
+            (*mode)++;
+        } else {
+            *mode = BREAST_PUMP_STIMULATION_MODE;
+        }
+    } else {
+        if (*mode > BREAST_PUMP_STIMULATION_MODE) {
+            (*mode)--;
+        } else {
+            *mode = BREAST_PUMP_MIX_MODE;
+        }
+    }
+}
+
 static void home_pump_normal_mode_ui_display_completed_cb(hdr_post_args_t *args)
 {
     ui_proc_home_t *proc = (ui_proc_home_t *)args->user_data;
@@ -111,25 +132,50 @@ void switch_home_pump_normal_mode(ui_proc_home_t *proc, bool is_increase)
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
     uint8_t mode = proc->ui_normal_mode_index;
-    if (is_increase) {
-        if (mode < BREAST_PUMP_MIX_MODE) {
-            mode++;
-        } else {
-            mode = BREAST_PUMP_STIMULATION_MODE;
-        }
-    } else {
-        if (mode > BREAST_PUMP_STIMULATION_MODE) {
-            mode--;
-        } else {
-            mode = BREAST_PUMP_MIX_MODE;
-        }
-    }
+    cycle_pump_common_work_mode(&mode, is_increase);
     proc->ui_normal_mode_index = mode;
     char *mode_name = "unknow";
     READ_PUMP_MODE_NAME(proc->pump, mode, &mode_name);
     LOG_UI("switch %s mode: %d", mode_name, mode);
-    show_home_pump_normal_mode_ui(proc);
+    // show_home_pump_normal_mode_ui(proc);
+    WRITE_PUMP_WORK_MODE(proc->pump, proc->ui_normal_mode_index, true, 1);
 }
+
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+void gpio_three_key_global_switch_pump_normal_mode(bool is_increase)
+{
+    breast_pump_manager_context_t *pump =
+        (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    EXCEPTION_CHECK_VOID(pump);
+    uint8_t mode = 0;
+    READ_PUMP_COMMON_MODE(pump, false, mode);
+    if (PUMP_IS_COMMON_MODE(mode) == 0) {
+        mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+    }
+    cycle_pump_common_work_mode(&mode, is_increase);
+    char *mode_name = "unknow";
+    READ_PUMP_MODE_NAME(pump, mode, &mode_name);
+    LOG_UI("gpio3 global switch %s mode: %d", mode_name, mode);
+    WRITE_PUMP_WORK_MODE(pump, mode, true, 1);
+
+    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+    if (wm && wm->get_window_private_context) {
+        if (wm->is_current_window(wm, ID_WINDOW_HOME)) {
+            window_context_t *wctx = (window_context_t *)wm->get_window_private_context(wm, ID_WINDOW_HOME);
+            if (wctx) {
+                ui_proc_home_t *home_proc = CONTAINER_OF(wctx, ui_proc_home_t, w_ctx);
+                home_proc->ui_normal_mode_index = mode;
+            }
+        } else if (wm->is_current_window(wm, ID_WINDOW_PUMP)) {
+            window_context_t *wctx = (window_context_t *)wm->get_window_private_context(wm, ID_WINDOW_PUMP);
+            if (wctx) {
+                ui_proc_pump_t *pump_proc = CONTAINER_OF(wctx, ui_proc_pump_t, w_ctx);
+                pump_proc->ui_normal_mode_index = mode;
+            }
+        }
+    }
+}
+#endif
 
 void home_pump_normal_mode_ui_hdr_remove(void)
 {
