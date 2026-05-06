@@ -18,7 +18,7 @@
 #define IS_SUPPORT_PUMP_DEBUG_LOG              (0)
 #define IS_SUPPORT_PUMP_PWM_IDLE_HIGH          (1)
 #define PUMP_PWM_TIME_NUMBER                   (1)   /// 泵1和泵2各一个定时器
-#define MOTOR_PUMP_IDLE_PWM_DUTY               (100)
+#define MOTOR_PUMP_IDLE_PWM_DUTY               (0)
 #define MOTOR_PUMP_PULSE_WIDTH_MAX             (100 * PUMP_DUTY_SCALE_FACTOR)
 #define MOTOR_PUMP_START_PWM_DUTY              (90)
 #define MOTOR_VALVE_START_PWM_DUTY             (100)
@@ -273,7 +273,7 @@ static int bsp_motor_pwm_duty_set(enum HAL_PWM_ID_T pwm_id, uint8_t duty)
         && (duty == MOTOR_PUMP_IDLE_PWM_DUTY))
     {
 #if PUMP_GPIO_IDLE_CTRL
-        motor_pwm_gpio_control(pwm_id, true, true); //使能GPIO 输出高
+        motor_pwm_gpio_control(pwm_id, true, false); //使能GPIO 输出低
 #endif
         hal_pwm_disable(pwm_id);
 #if PUMP_GPIO_IDLE_CTRL

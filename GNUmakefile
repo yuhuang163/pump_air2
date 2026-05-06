@@ -125,7 +125,7 @@ CFG_BT_CALIB ?= 1
 # 产品型号
 ROOT_PRODUCT_V3_ID ?= 0x08
 ROOT_PRODUCT_V3PRO_ID ?= 0x09
-ROOT_PRODUCT_ID ?= $(ROOT_PRODUCT_V3_ID)
+ROOT_PRODUCT_ID ?= $(ROOT_PRODUCT_V3PRO_ID)
 
 # 产品UI版本
 ROOT_UI_V2 ?= 0x02
@@ -146,8 +146,6 @@ V3_UI_VERSION ?= $(V3PRO_UI_V2)
 else
 V3_UI_VERSION ?= $(V3PRO_UI_V3)
 endif
-# 长按硬件重启
-CFG_POWER_KEY_HW_RESET_ENABLE ?= 1
 else
 # UI版本为V2时，使用V3_UI_V2
 ifeq ($(ROOT_UI_VERSION), $(ROOT_UI_V2))
@@ -155,9 +153,10 @@ V3_UI_VERSION ?= $(V3_UI_V2)
 else
 V3_UI_VERSION ?= $(V3_UI_V3)
 endif
+endif
+
 # 长按硬件重启
 CFG_POWER_KEY_HW_RESET_ENABLE ?= 0
-endif
 
 # 泵驱动版本(1:旧版本, 2:新版本)
 MOTOR_DRIVER_V1 ?= 1
@@ -878,6 +877,7 @@ DRIVERS_BASE_SRCS := \
 DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/chip/*/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_BATTERY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/battery/charge_pd/*.c)

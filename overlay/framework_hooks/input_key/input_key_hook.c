@@ -5,6 +5,7 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "input_key_code.h"  // IWYU pragma: keep
 #include "key_input_manager.h" // IWYU pragma: keep
+#include "window_screen_home.h" // IWYU pragma: keep (gpio_three_key_global_switch_pump_normal_mode)
 
 /*
 * DEFINES
@@ -51,7 +52,25 @@ static int input_keyevent_route(struct key_input_context *ctx, uint16_t keycode,
         wm->dispatch_new_window_args(wm, &msg);
         LOG_KEY("goto factory reset");
     }
-#endif 
+#endif
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+    if ((keycode == KEY_CODE_KNOB_LEFT || keycode == KEY_CODE_KNOB_RIGHT) &&
+        keytype == KEY_EVENT_CLICK) {
+        window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
+        if (wm) {
+            if (wm->is_current_window(wm, ID_WINDOW_FACTORY_RESET)) {
+                return 0;
+            }
+#if IS_SUPPORT_MODULE_AIRPLANE_MODE
+            if (wm->is_current_window(wm, ID_WINDOW_AIRPLANE_MODE)) {
+                return 0;
+            }
+#endif
+        }
+        gpio_three_key_global_switch_pump_normal_mode(keycode == KEY_CODE_KNOB_RIGHT);
+        return 1;
+    }
+#endif
     return 0;
 }
 

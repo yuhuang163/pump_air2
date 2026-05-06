@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "cmsis_os_api.h"
 #include "pmu.h"
 #include "bsp_config.h"
 #include "bsp_common.h" // IWYU pragma: keep
@@ -49,7 +50,9 @@ static void peripheral_power_gpio_init(void)
 static void sys_power_gpio_control(bool enable)
 { 
     if (enable == false) {
-        // pmu_shutdown();
+        LOG_PBUS("pmu_shutdown");
+        msleep(100);
+        pmu_shutdown();
     }
 }
 

@@ -104,6 +104,10 @@ void home_start_key_event_handler(ui_proc_home_t *proc);
 
 /// 模式选择界面按键处理
 void switch_home_pump_normal_mode(ui_proc_home_t *proc, bool is_increase);
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+/// 三键机：UP/DOWN（映射为旋钮码）在任意界面切换常规工作模式并立即写入泵状态（先于各窗口 handler）
+void gpio_three_key_global_switch_pump_normal_mode(bool is_increase);
+#endif
 void home_pump_normal_mode_ui_hdr_remove(void);
 void home_pump_normal_mode_key_click_handler(ui_proc_home_t *proc);
 /// 追奶模式选择界面按键处理

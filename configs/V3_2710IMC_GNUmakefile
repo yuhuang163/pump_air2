@@ -918,6 +918,7 @@ DRIVERS_BASE_SRCS := \
 DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/chip/*/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_BATTERY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/battery/charge_pd/*.c)

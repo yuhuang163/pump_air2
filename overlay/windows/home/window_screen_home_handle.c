@@ -3,7 +3,6 @@
 *****************************************************************************************
 */
 #include "input_key_code.h" // IWYU pragma: keep
-#include "project_support_overlay.h" // IWYU pragma: keep (IS_SUPPORT_GPIO_THREE_KEY_LAYOUT)
 #include "root_common_api.h" // IWYU pragma: keep
 #include "windows_manager.h" 
 #include "windows_map_define.h" // IWYU pragma: keep
@@ -121,33 +120,33 @@ static void home_start_key_event_ui_cb(hdr_post_args_t *args)
 static void home_knob_left_event_cb(ui_proc_home_t *proc)
 {
     // LOG_WM("home knob left event cb: %d", proc->current_ui_type);
-    if (proc->current_ui_type == HOME_UI_TYPE_BIND_QRCODE) {
-        start_home_ui_animation(proc);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT) {
+    // if (proc->current_ui_type == HOME_UI_TYPE_BIND_QRCODE) {
+    //     start_home_ui_animation(proc);
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT) {
         switch_home_pump_normal_mode(proc, false);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
-        switch_home_pump_bf_mode(proc, false);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST) {
-        switch_home_pump_level(proc, false);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
-        switch_home_pump_speed(proc, false);
-    }
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
+    //     switch_home_pump_bf_mode(proc, false);
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST) {
+    //     switch_home_pump_level(proc, false);
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
+    //     switch_home_pump_speed(proc, false);
+    // }
 }
 
 static void home_knob_right_event_cb(ui_proc_home_t *proc)
 {
     // LOG_WM("home knob right event cb: %d", proc->current_ui_type);
-    if (proc->current_ui_type == HOME_UI_TYPE_HOME) {
-        start_home_bind_ui_animation(proc);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT) {
+    // if (proc->current_ui_type == HOME_UI_TYPE_HOME) {
+    //     start_home_bind_ui_animation(proc);
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT) {
         switch_home_pump_normal_mode(proc, true);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
-        switch_home_pump_bf_mode(proc, true);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST) {
-        switch_home_pump_level(proc, true);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
-        switch_home_pump_speed(proc, true);
-    }
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
+    //     switch_home_pump_bf_mode(proc, true);
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_LEVEL_ADJUST) {
+    //     switch_home_pump_level(proc, true);
+    // } else if (proc->current_ui_type == HOME_UI_TYPE_SPEED_ADJUST) {
+    //     switch_home_pump_speed(proc, true);
+    // }
 }
 
 static void home_power_key_event_cb(ui_proc_home_t *proc)
