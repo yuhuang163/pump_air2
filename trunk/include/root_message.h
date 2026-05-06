@@ -96,7 +96,6 @@ typedef enum {
     SENSOR_MASK_IMU = 1 << 0,
     SENSOR_MASK_FSENSOR = 1 << 1,
     SENSOR_MASK_AIR_PRESSURE = 1 << 2,
-    SENSOR_MASK_DIFF_PRESSURE = 1 << 3,
 } sensor_wrapper_data_mask_e;
 
 /// sensor数据集
@@ -112,10 +111,6 @@ typedef struct {
     #if IS_SUPPORT_DEVICE_AIR_PRESSURE
     uint16_t air_pressure_serial_num;
     air_pressue_status_t air_pressure_data[AIR_PRESSURE_NUM];
-    #endif
-    #if IS_SUPPORT_DEVICE_DIFF_PRESSURE
-    uint16_t diff_pressure_serial_num;
-    diff_pressure_status_t diff_pressure_data[DIFF_PRESSURE_NUM];
     #endif
     #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
     uint16_t light_sensor_serial_num;

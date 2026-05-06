@@ -101,7 +101,6 @@ typedef struct {
 * INTERNAL FUNCTION DECLARATION
 *****************************************************************************************
 */
-#if IS_SUPPORT_ADAPTIVE_DIMMING
 void adaptive_dimming_init(void);
 #if ADAP_DIM_USE_ENCODER_KNOB_SHIELD
 /// 旋钮活动时调用：置屏蔽计数；若开启光感延时确认策略则同时复位其状态机。（由本模块注册的左旋/右旋回调触发。）
@@ -112,15 +111,6 @@ void light_sensor_sampling_stop(void);
 bool light_sensor_sampling_is_sampling(void);
 bool light_sensor_change_sampling_interval(uint16_t interval);
 bool light_sensor_data_report(uint8_t *data);
-#else
-#define adaptive_dimming_init()
-#define adaptive_dimming_notify_encoder_activity()
-#define light_sensor_sampling_start()
-#define light_sensor_sampling_stop()
-#define light_sensor_sampling_is_sampling()
-#define light_sensor_change_sampling_interval(interval)
-#define light_sensor_data_report(data)
-#endif
 #ifdef __cplusplus
 }
 #endif

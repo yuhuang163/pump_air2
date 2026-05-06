@@ -20,9 +20,12 @@ extern "C" {
 
 
 /// ADC相关定义
-#define BATT_ADC_CHANNEL                HAL_GPADC_CHAN_4    /// 电池ADC通道 no use
-#define PUMP1_ADC_CHANNEL               HAL_GPADC_CHAN_2    /// 气泵工作电流
+#define BATT_ADC_CHANNEL                HAL_GPADC_CHAN_4
+#define PUMP1_ADC_CHANNEL               HAL_GPADC_CHAN_2
+#define PUMP2_ADC_CHANNEL               HAL_GPADC_CHAN_2    /// no used
+#define LIGHT_ADC_CHANNEL               HAL_GPADC_CHAN_4    /// no used
 #define HARD_VERSION_CHANNEL            HAL_GPADC_CHAN_3    /// 版本识别定义
+
 
 /// 泵阀相关定义
 #define PWM_PUMP1_PIN                   HAL_GPIO_PIN_P3_7    /// 气泵PWM引脚
@@ -33,7 +36,7 @@ extern "C" {
 #define MOTOR_VALVE1_PWM_IMUX           hal_iomux_set_pwm6
 
 /// 按键相关定义
-#define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_5
+#define POWER_KEY_PIN                   HAL_GPIO_PIN_P1_7
 #define UP_KEY_PIN                      HAL_GPIO_PIN_P4_6
 #define DOWN_KEY_PIN                    HAL_GPIO_PIN_P4_5
 
@@ -43,12 +46,12 @@ extern "C" {
 #define LED3_PIN                        HAL_GPIO_PIN_P4_2
 
 /// 通信串口
-#define LOG_UART_TX_PIN                 HAL_GPIO_PIN_P1_0
-#define LOG_UART_RX_PIN                 HAL_GPIO_PIN_P1_1
+#define LOG_UART_TX_PIN1                 HAL_GPIO_PIN_P1_0
+#define LOG_UART_RX_PIN1                 HAL_GPIO_PIN_P1_1
 
 /// 日志串口
-#define ONE_WIRE_UART_TX_PIN            HAL_GPIO_PIN_P2_3
-#define ONE_WIRE_UART_RX_PIN            HAL_GPIO_PIN_P2_2
+#define LOG_UART_TX_PIN                 HAL_GPIO_PIN_P2_3
+#define LOG_UART_RX_PIN                 HAL_GPIO_PIN_P2_2
 
 /// I2C相关定义
 #define I2C0_SCL_PIN                    HAL_GPIO_PIN_P0_0
@@ -58,17 +61,16 @@ extern "C" {
 #define I2C3_SCL_PIN                    HAL_GPIO_PIN_P0_6
 #define I2C3_SDA_PIN                    HAL_GPIO_PIN_P0_7
 #define FUEL_GAUGE_I2C_ID               I2C_MASTER_ID_0 /// 电量计IC
-#define CHARGE_I2C_ID                   I2C_MASTER_ID_0
+#define CHARGE_I2C_ID                   I2C_MASTER_ID_0 /// 充电芯片IC
 #define IMU_I2C_ID                      I2C_MASTER_ID_1
 #define CAP_SENSOR_I2C_ID               I2C_MASTER_ID_1
-#define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_3
-#define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_3 /// no use
-#define PRESSURE_SENSOR_I2C_ID          I2C_MASTER_ID_3
+#define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_2
+#define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_2 /// no use
+#define PRESSURE_SENSOR_I2C_ID          I2C_MASTER_ID_2
 
 /// 充电芯片相关定义
-#define CHARGE_ENABLE_PIN               HAL_GPIO_PIN_P3_4
+#define CHARGE_POWER_PIN                HAL_GPIO_PIN_P3_4
 #define CHARGE_STATUS_PIN               HAL_GPIO_PIN_P3_3
-
 /// 中断引脚
 #define P_SENSOR1_INT_PIN               HAL_GPIO_PIN_P0_4
 #define FUEL_GAUGE_INT_PIN              HAL_GPIO_PIN_P2_5   /// 电量计中断
@@ -85,8 +87,6 @@ extern "C" {
 /// 外设电源相关定义
 #define PERIPHERAL_POWER_PIN            HAL_GPIO_PIN_P2_6
 #define SENSOR_POWER_PIN                HAL_GPIO_PIN_P2_7
-
-
 
 /*
 * GLOBAL FUNCTION DECLARATION

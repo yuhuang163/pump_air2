@@ -33,18 +33,18 @@
 */
 static void power_key_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
-    // LOG_PBUS("power key pin[%d] irq triggered", pin);
+    LOG_PBUS("power key pin[%d] irq triggered", pin);
     bsp_irq_msg_send(INT_NUM_KEY_1);
 }
 
 static void up_key_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
-    // LOG_PBUS("up key pin[%d] irq triggered", pin);
+    LOG_PBUS("up key pin[%d] irq triggered", pin);
     bsp_irq_msg_send(INT_NUM_KEY_2);
 }
 static void down_key_irq_callback(enum HAL_GPIO_PIN_T pin)
 {
-    // LOG_PBUS("down key pin[%d] irq triggered", pin);
+    LOG_PBUS("down key pin[%d] irq triggered", pin);
     bsp_irq_msg_send(INT_NUM_KEY_3);
 }
 

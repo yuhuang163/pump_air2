@@ -279,6 +279,60 @@ static int pump1_motor_error_check_adc_open(void)
     return BSP_OK;
 }
 
+static void pump2_motor_error_check_handler(uint16_t irq_val, HAL_GPADC_MV_T volt)
+{
+    s_pump2_motor_adc_result.work_times++;
+    s_pump2_motor_adc_result.sum_voltage += volt;
+    if (s_pump2_motor_adc_result.work_times >= s_pump2_motor_adc_result.target_times) {
+        hal_gpadc_close(PUMP2_ADC_CHANNEL);
+#if IS_PRINT_LOG_ENABLE
+        LOG_PBUS("pump[%d] adc_value: %d", MOTOR_PWM_PUMP_2, volt);
+#endif
+        s_pump2_motor_adc_result.last_voltage = s_pump2_motor_adc_result.work_times > 0 ? \
+            s_pump2_motor_adc_result.sum_voltage / s_pump2_motor_adc_result.work_times : 0;
+        MSG_QUEUE_SEND(s_pump_motor_check_ctx.pump2_adc_msg_id, &volt, 0);
+    }
+}
+
+static int pump2_motor_error_check_adc_open(void)
+{
+    /// 检查上一次采样是否完成
+    if (s_pump2_motor_adc_result.work_times < s_pump2_motor_adc_result.target_times) {
+        /// 检查是否超时（采样时间超过阈值）
+        uint32_t current_time = get_timestamp();
+        uint32_t elapsed_time = current_time - s_pump2_motor_adc_result.start_time;
+        
+        if (elapsed_time > PUMP_MOTOR_ADC_TIMEOUT_MS) {
+            /// 超时重置：关闭ADC，重置状态
+            LOGW_TAG("PUMP_ADC", "pump2 motor adc timeout, reset. work_times:%d, target_times:%d, elapsed:%dms", 
+                s_pump2_motor_adc_result.work_times, s_pump2_motor_adc_result.target_times, elapsed_time);
+            hal_gpadc_close(PUMP2_ADC_CHANNEL);
+            s_pump2_motor_adc_result.work_times = 0;
+            s_pump2_motor_adc_result.sum_voltage = 0;
+            s_pump2_motor_adc_result.target_times = 0;
+        } else {
+            /// 采样进行中，等待完成（不打印日志，避免刷屏）
+            return BSP_OK;
+        }
+    }
+    s_pump2_motor_adc_result.work_times   = 0;
+    s_pump2_motor_adc_result.sum_voltage  = 0;
+    s_pump2_motor_adc_result.start_time   = get_timestamp();  /// 记录采样开始时间
+#if IS_ADC_FILTER_ENABLE
+    s_pump2_motor_adc_result.target_times = ADC_FILTER_TIMES;
+    int ret = hal_gpadc_open(PUMP2_ADC_CHANNEL, HAL_GPADC_ATP_125US, pump2_motor_error_check_handler);
+#else
+    s_pump2_motor_adc_result.target_times = 1;
+    int ret = hal_gpadc_open(PUMP2_ADC_CHANNEL, HAL_GPADC_ATP_ONESHOT, pump2_motor_error_check_handler);
+#endif
+    if (ret != 0) {
+        LOGE("gpadc open failed: %d", ret);
+        return ret;
+    }
+    return BSP_OK;
+}
+
+
 /// 定时器回调函数，发送消息到线程触发采样
 static void pump_motor_check_polling_timer_handler(void *handle)
 {
@@ -328,6 +382,19 @@ static void pump_motor_check_dispatch_thread(const void *args)
                 LOG_PBUS("pump[%d] adc_value: %d", MOTOR_PWM_PUMP_1, adc_value1);
 #endif
                 ctx->pump_is_stall[MOTOR_PWM_PUMP_1] = pump_motor_error_check_handler_internal(MOTOR_PWM_PUMP_1, adc_value1);
+            }
+        }
+        
+        /// 执行泵2电机ADC采样和堵转检测
+        if (pump2_motor_error_check_adc_open() == BSP_OK) {
+            /// 等待ADC采样完成（从消息队列接收采样值）
+            adc_value2 = 0;  /// 清零，避免上次采样值影响
+            if (MSG_QUEUE_RECV(ctx->pump2_adc_msg_id, &adc_value2, 100) == 0) {
+                adc_value2 = s_pump2_motor_adc_result.last_voltage > 0 ? s_pump2_motor_adc_result.last_voltage : 0;
+#if IS_PRINT_LOG_ENABLE
+                LOG_PBUS("pump[%d] adc_value: %d", MOTOR_PWM_PUMP_2, adc_value2);
+#endif
+                ctx->pump_is_stall[MOTOR_PWM_PUMP_2] = pump_motor_error_check_handler_internal(MOTOR_PWM_PUMP_2, adc_value2);
             }
         }
         

@@ -36,9 +36,7 @@ typedef enum {
 */
 typedef enum {
     MOTOR_PWM_PUMP_1 = 0,
-    MOTOR_PWM_PUMP_2,
     MOTOR_PWM_VALVE_1,
-    MOTOR_PWM_VALVE_2,
     MOTOR_PWM_ID_MAX,
     MOTOR_PWM_ALL_ID,
 } motor_pwm_control_id_e;

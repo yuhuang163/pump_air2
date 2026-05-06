@@ -309,7 +309,7 @@ static void charging_voltage_handler(uint16_t voltage)
     int16_t step = 0;
     int16_t offset = 0;
     uint8_t health_coeff = 0, table_size = 0, debounce = 0;
-
+return;
     /// 充电状态下重启电量补偿
     if (battery.voltage == 0) {
         battery.voltage = battery_charging_compensation(voltage);
@@ -427,10 +427,13 @@ static int battery_voltage_poll(void)
         return ret;
     }
 #else
-    voltage = get_charge_battery_voltage();
-#endif
+    // voltage = get_charge_battery_voltage();
+    voltage = 3600;
+#endif  
+#if IS_SUPPORT_DEVICE_CHARGE  
     battery.charge = get_charge_state();
     battery.temperature = get_charging_temperature();
+#endif
     if (battery.charge == CHARGE_STATE_CHARGING) {
         batt_voltage = voltage;
         charging_voltage_handler(batt_voltage);
@@ -452,7 +455,9 @@ static int battery_voltage_poll(void)
 
 static int battery_dev_open(struct rt_device_node *dev)
 {
+#if IS_SUPPORT_DEVICE_CHARGE        
     bsp_charge_init();
+#endif
 #if IS_SUPPORT_BATTERY_POLL
 #if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     battery_adc_init();
@@ -514,6 +519,7 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
         case OP_CODE_BAT_HEALTH_SET:
             return 0;
 #endif
+#if IS_SUPPORT_DEVICE_CHARGE  
         case OP_CODE_BAT_VBUS_IS_PLUG_IN:
             return vbus_is_plug_in();
         case OP_CODE_BAT_ADD_CHARGE_EVENT_CALLBACK:
@@ -523,7 +529,7 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
             return get_charge_state();
         case OP_CODE_BAT_GET_CHARGE_TEMPERATURE:
             return get_charging_temperature();
-        case OP_CODE_BAT_IS_READY:
+        case OP_CODE_BAT_IS_READY:     
             return bsp_charge_is_ready();
         case OP_CODE_BAT_PD_IS_MISMATCH:
 #if IS_SUPPORT_PD_CHARGE
@@ -543,6 +549,7 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
             int r = bsp_charge_get_ibat_ma(out_ma);
             return (r == BSP_OK) ? 0 : -1;
         }
+#endif     
         default:
             LOGE("bat err op_code: %lx", op_code);
             return -1;
@@ -556,16 +563,20 @@ static int battery_dev_suspend(struct rt_device_node *dev)
     battery_adc_suspend();
 #endif
 #endif
+#if IS_SUPPORT_DEVICE_CHARGE        
     bsp_charge_suspend();
     if (node) {
         node->status = DEVICE_BUS_SUSPEND;
     }
+#endif
     return BSP_OK;
 }
 
 static int battery_dev_resume(struct rt_device_node *dev)
 {
+#if IS_SUPPORT_DEVICE_CHARGE        
     bsp_charge_resume();
+#endif
 #if IS_SUPPORT_BATTERY_POLL
 #if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
     battery_adc_resume();

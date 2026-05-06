@@ -16,6 +16,12 @@ extern "C" {
 
 /**@brief Firmware information define*/
 
+/// 支持JW3702充电芯片
+#define IS_SUPPORT_CHARGE_IC_JW3702         (0)
+/// 支持SGM41519充电芯片
+#define IS_SUPPORT_CHARGE_IC_SGM41519       (1)
+
+
 /// 单节电池充电曲线参数
 #define SG_CHARGING_FORCE_UPDATE_THRESHOLD   300     ///单位mV  偏差超阈值强制更新
 #define SG_CHARGING_UPDATE_THRESHOLD_1       240     ///单位mV  偏差阈值1

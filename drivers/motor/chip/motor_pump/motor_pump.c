@@ -17,7 +17,7 @@
 #define IS_SUPPORT_PUMP_RUN_TIME_TEST          (0)
 #define IS_SUPPORT_PUMP_DEBUG_LOG              (0)
 #define IS_SUPPORT_PUMP_PWM_IDLE_HIGH          (1)
-#define PUMP_PWM_TIME_NUMBER                   (2)   /// 泵1和泵2各一个定时器
+#define PUMP_PWM_TIME_NUMBER                   (1)   /// 泵1和泵2各一个定时器
 #define MOTOR_PUMP_IDLE_PWM_DUTY               (100)
 #define MOTOR_PUMP_PULSE_WIDTH_MAX             (100 * PUMP_DUTY_SCALE_FACTOR)
 #define MOTOR_PUMP_START_PWM_DUTY              (90)
@@ -215,25 +215,6 @@ POSSIBLY_UNUSED static void bsp_motor_pump_irq_callback(enum HAL_GPIO_PIN_T pin)
                 pump_status[MOTOR_PUMP_1].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         }
         
-    } else if (pin == PWM_PUMP2_PIN) {
-        if (pump_status[MOTOR_PUMP_2].current_pulse_width == pump_status[MOTOR_PUMP_2].target_pulse_width) {
-            pump_status[MOTOR_PUMP_2].pump_irq_is_running = false;
-            bsp_motor_pwm_irq_control(PWM_PUMP2_PIN, false);
-        } else if (pump_status[MOTOR_PUMP_2].current_pulse_width > pump_status[MOTOR_PUMP_2].target_pulse_width) {
-            pump_status[MOTOR_PUMP_2].current_pulse_width -= (1 * PUMP_DUTY_SCALE_FACTOR);
-            if (pump_status[MOTOR_PUMP_2].current_pulse_width < pump_status[MOTOR_PUMP_2].target_pulse_width) {
-                pump_status[MOTOR_PUMP_2].current_pulse_width = pump_status[MOTOR_PUMP_2].target_pulse_width;
-            }
-            hal_pwm_update_pulse_width(MOTOR_PUMP2_PWM_ID, 
-                pump_status[MOTOR_PUMP_2].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
-        } else {
-            pump_status[MOTOR_PUMP_2].current_pulse_width += (1 * PUMP_DUTY_SCALE_FACTOR);
-            if (pump_status[MOTOR_PUMP_2].current_pulse_width > pump_status[MOTOR_PUMP_2].target_pulse_width) {
-                pump_status[MOTOR_PUMP_2].current_pulse_width = pump_status[MOTOR_PUMP_2].target_pulse_width;
-            }
-            hal_pwm_update_pulse_width(MOTOR_PUMP2_PWM_ID, 
-                pump_status[MOTOR_PUMP_2].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
-        }
     }
 }
 #else
@@ -250,8 +231,6 @@ POSSIBLY_UNUSED static void bsp_motor_pump_irq_callback(enum HAL_GPIO_PIN_T pin)
         hal_pwm_update_pulse_width(MOTOR_PUMP1_PWM_ID, 
             pump_status[MOTOR_PUMP_1].current_pulse_width, BREAST_PUMP_PUMP_FREQ);
         pump_status[MOTOR_PUMP_1].current_pulse_width -= (1 * PUMP_DUTY_SCALE_FACTOR);
-    } else {
-        LOGE("pump %d pin is not supported", pin);
     }
 }
 #endif
@@ -281,7 +260,7 @@ static int motor_pwm_gpio_control(enum HAL_PWM_ID_T pwm_id ,bool enable, bool is
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&gpio_map, 1);
-    hal_gpio_pin_set_dir(gpio_map.pin, \
+    hal_gpio_pin_set_dir(PWM_PUMP1_PIN, \
             is_output ? HAL_GPIO_DIR_OUT : HAL_GPIO_DIR_IN, enable ? 1 : 0);
 
     return BSP_OK;
@@ -497,7 +476,7 @@ int bsp_motor_pump_parameter_set(void *args)
 #endif
                     pump_status[pump_id].target_pulse_width = target_pulse_width;
                     if (!pump_status[pump_id].pump_irq_is_running) {
-                        bsp_motor_pwm_irq_control(pump_id == MOTOR_PUMP_1 ? PWM_PUMP1_PIN : PWM_PUMP2_PIN, true);
+                        bsp_motor_pwm_irq_control(PWM_PUMP1_PIN, true);
                         pump_status[pump_id].pump_irq_is_running = true;
                     }
                 } else {
