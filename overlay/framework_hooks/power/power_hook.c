@@ -110,7 +110,8 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     if (keycode != KEY_CODE_POWER) {
         return 0;
     }
-
+    /// 装机固件先屏蔽长按开关机功能，后续再开放.
+    #if 0
     /// 待机状态下长按3s退出待机状态.
     if (ctx->priv.is_enter_suspend == true  && keytype == KEY_EVENT_LONG_3S) {
         ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER); /// 唤醒电源管理器.
@@ -142,8 +143,8 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
         return 0;
     }
 
-    /// 允许关机/待机标志设置. 
-    if (keytype == KEY_EVENT_DOWN && ctx->priv.allow_shutdown_or_standby == 0 && 
+    /// 允许关机/待机标志设置.
+    if (keytype == KEY_EVENT_DOWN && ctx->priv.allow_shutdown_or_standby == 0 &&
         ctx->is_system_power_on() > 0 && get_timestamp() > 4000) {
         ctx->priv.allow_shutdown_or_standby = 1; /// 允许关机/待机标志.
         LOG_PM("key down on power-on state, allow shutdown or standby: %d", ctx->priv.allow_shutdown_or_standby);
@@ -153,7 +154,7 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     /// 进入关机状态. 不在工厂重置界面时才允许进入关机状态.(按键冲突)
     if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_or_standby == 1) {
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)  
+#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
         if (wm && wm->is_current_window(wm, ID_WINDOW_FACTORY_RESET) == 0) {
             if (is_prohibit_pm_suspend(ctx)) {
                 return 0;
@@ -175,6 +176,7 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     } else {
         LOG_PM("key:%d, ignore", keytype);
     }
+#endif
     return 0;
 }
 

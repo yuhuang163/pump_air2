@@ -107,7 +107,9 @@ extern "C" {
 /// 叠图最大数量
 #define OVERLAY_IMG_NUM_MAX                            (2)
 /// 气压传感器数量
-#define AIR_PRESSURE_NUM                               (2)
+#define AIR_PRESSURE_NUM                               (1)
+/// 差压传感器数量
+#define DIFF_PRESSURE_NUM                              (1)
 /// LVGL定时器周期
 #define LVGL_TIME_TICK_PERIOD                          (20) /// 单位ms
 /// 开机长按时间

@@ -66,6 +66,7 @@ extern "C" {
 #define CAP_SENSOR_I2C_ID               I2C_MASTER_ID_1
 #define AIR_PRESSURE_I2C_ID1            I2C_MASTER_ID_2
 #define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_2 /// no use
+#define DIFF_PRESSURE_I2C_ID            I2C_MASTER_ID_2
 #define PRESSURE_SENSOR_I2C_ID          I2C_MASTER_ID_2
 
 /// 充电芯片相关定义

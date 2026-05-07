@@ -297,19 +297,30 @@ int bsp_read_air_pressure_status(void *args)
 #if LIMS_LOG_DEBUG
     uint32_t start_time = get_timestamp();
 #endif
-    if (s_dev_is_ready[0] == 0 || s_dev_is_ready[1] == 0) {
-        return BSP_NOT_READY;
+    for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
+        if (s_dev_is_ready[i] == 0) {
+            return BSP_NOT_READY;
+        }
     }
-    
+
     memset(out_status, 0, sizeof(air_pressue_status_t) * AIR_PRESSURE_NUM);
     /// 温度转换未完成，则进行单次转换
-    if (s_temp_is_ready[0] == 0 || s_temp_is_ready[1] == 0) {
-        if (temperature_single_conversion() != BSP_OK) {
-            return BSP_ERROR;
+    {
+        uint8_t need_temp = 0;
+        for (uint8_t i = 0; i < AIR_PRESSURE_NUM; i++) {
+            if (s_temp_is_ready[i] == 0) {
+                need_temp = 1;
+                break;
+            }
         }
-        LOG_PBUS("start pressure conversion");
-        start_air_pressure_conversion(LIMS_PRESSURE_DATA); /// 重新开始压力转换
-        msleep(LIMS_PRESSURE_CONVERSION_TIME); /// 等待压力转换完成
+        if (need_temp != 0) {
+            if (temperature_single_conversion() != BSP_OK) {
+                return BSP_ERROR;
+            }
+            LOG_PBUS("start pressure conversion");
+            start_air_pressure_conversion(LIMS_PRESSURE_DATA); /// 重新开始压力转换
+            msleep(LIMS_PRESSURE_CONVERSION_TIME); /// 等待压力转换完成
+        }
     }
 
     /// 等待转换完成
@@ -326,9 +337,9 @@ int bsp_read_air_pressure_status(void *args)
     }
     start_air_pressure_conversion(LIMS_PRESSURE_DATA);
 #if LIMS_LOG_DEBUG
-    BSP_LOG_PASS("4 time: %d, pressure: %f, %f, raw: %d, %d\r\n", 
-        get_timestamp_ms(start_time), out_status[0].pressure, 
-        out_status[1].pressure, out_status[0].raw_data, out_status[1].raw_data);
+    BSP_LOG_PASS("4 time: %d, pressure: %f, raw: %d\r\n",
+        get_timestamp_ms(start_time), out_status[0].pressure,
+        out_status[0].raw_data);
 #endif
     s_log_count++;
     return BSP_OK;

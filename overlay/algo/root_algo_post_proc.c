@@ -40,11 +40,13 @@ void algo_fusion_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_le
     algo_data.timestamp = get_timestamp_ms(0);
     /// 气压数据
 #if IS_SUPPORT_DEVICE_AIR_PRESSURE
+    float p0 = sensor_data->air_pressure_data[0].pressure;
     for (int i = 0; i < ALGO_AIR_PRESSURE_NUM; i++) {
-        if (i >= AIR_PRESSURE_NUM) {
-            break;
+        if (i < AIR_PRESSURE_NUM) {
+            algo_data.air_pressure[i] = sensor_data->air_pressure_data[i].pressure;
+        } else {
+            algo_data.air_pressure[i] = p0;
         }
-        algo_data.air_pressure[i] = sensor_data->air_pressure_data[i].pressure;
     }
 #endif
     /// 泵奶数据

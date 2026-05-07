@@ -20,6 +20,9 @@ extern "C" {
 #if IS_SUPPORT_DEVICE_AIR_PRESSURE
 #include "air_pressure_module.h" // IWYU pragma: keep
 #endif
+#if IS_SUPPORT_DEVICE_DIFF_PRESSURE
+#include "diff_pressure_module.h" // IWYU pragma: keep
+#endif
 #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
 #include "light_sensor_module.h" // IWYU pragma: keep
 #endif
@@ -30,6 +33,7 @@ typedef enum {
     ID_SENSOR_IMU,
     ID_SENSOR_FSENSOR,
     ID_SENSOR_AIR_PRESSURE,
+    ID_SENSOR_DIFF_PRESSURE,
     ID_SENSOR_LIGHT_SENSOR,
     ID_SENSOR_MAX
 } sensor_module_desc_id_e;
@@ -52,6 +56,7 @@ typedef enum {
     IMU_EVT_IRQ,
     F_SENSOR_EVT_POLLING,
     AIR_PRESSURE_EVT_POLLING,
+    DIFF_PRESSURE_EVT_POLLING,
     LIGHT_SENSOR_EVT_POLLING,
 } sensor_report_type_e;
 
@@ -60,7 +65,8 @@ typedef enum {
     SENSOR_TASK_ID_IMU_POLLING = 0,
     SENSOR_TASK_ID_FSENSOR_POLLING = 1,
     SENSOR_TASK_ID_AIR_PRESSURE_POLLING = 2,
-    SENSOR_TASK_ID_LIGHT_SENSOR_POLLING = 3,
+    SENSOR_TASK_ID_DIFF_PRESSURE_POLLING = 3,
+    SENSOR_TASK_ID_LIGHT_SENSOR_POLLING = 4,
     SENSOR_TASK_ID_MAX
 } sensor_task_id_e;
 
