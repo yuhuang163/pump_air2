@@ -14,7 +14,7 @@
 
 /// 单次读数前短时等待（ms），0 表示不等待
 #ifndef SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE
-#define SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE                  (1)
+#define SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE                  (1000)
 #endif
 
 /// 启用差压读数后进入 flow_algo 流水线
@@ -25,6 +25,11 @@
 /// 每次硬件读数后向 flow_algo 注入的「虚拟 10ms 采样」次数（须 ≥1，与 SAMPLE_INTERVAL 一致）
 #ifndef SDP3X_FLOW_VIRTUAL_10MS_SAMPLES_PER_READ
 #define SDP3X_FLOW_VIRTUAL_10MS_SAMPLES_PER_READ           (2)
+#endif
+
+/// 串口打印每次采样（经 BSP），0=关闭
+#ifndef SDP3X_LOG_DEBUG
+#define SDP3X_LOG_DEBUG                         (1)
 #endif
 
 #endif /* SDP3X_REMAIN_DETECTION_CONFIG_H */

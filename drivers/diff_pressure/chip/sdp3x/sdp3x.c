@@ -3,15 +3,11 @@
 *****************************************************************************************
 */
 #include "sdp3x.h" // IWYU pragma: keep
+#include "diff_pressure_flow_model.h"
 #include "bsp_common.h"
 #include "bsp_config.h"
 #include "bsp_internal.h" // IWYU pragma: keep
 #include "bsp_i2c.h" // IWYU pragma: keep
-#include "hal_air_pressure.h"
-#include "hal_diff_pressure.h"
-#if SDP3X_FLOW_PIPELINE_ENABLE
-#include "flow_algo.h"
-#endif
 #include "sdp3x_sensirion_reference.h"
 #include <stdint.h>
 #include <string.h>
@@ -21,8 +17,6 @@
 * DEFINES
 *****************************************************************************************
 */
-#define SDP3X_I2C_ADDR                  0x21
-#define SDP3X_LOG_DEBUG                 1
 #define SDP3X_ABNORMAL_MAX_COUNT        10
 #define SDP3X_LOG_COUNT_INTERVAL        100
 
@@ -38,7 +32,6 @@ static uint16_t s_log_count = 0;
 
 static uint8_t s_sdp3x_initialized = 0;
 static uint8_t s_sdp3x_measurement_started = 0;
-static uint8_t s_sdp3x_i2c_address = 0x21; // Current I2C address
 static float s_last_diff_pressure = 0.0f;
 static float s_last_temperature = 0.0f;
 
@@ -50,31 +43,8 @@ static int CheckCrc(const uint8_t data[], uint8_t size, uint8_t checksum);
 
 static const float scaleFactorTemperature = 200;
 
-#define PRESSURE_BUFFER_SIZE           50
-#define BASELINE_SAMPLES               10
-
-static uint8_t _i2cAddress;
-
-#if SDP3X_FLOW_PIPELINE_ENABLE
-static FlowContext s_flow_ctx __attribute__((section(".volatile_ram")));
-static FlowResult s_flow_results[5] __attribute__((section(".volatile_ram")));
-#endif
-static float s_pressure_buffer[PRESSURE_BUFFER_SIZE] __attribute__((section(".volatile_ram")));
-static uint16_t s_pressure_buffer_index = 0;
-static diff_pressure_flow_status_t s_latest_flow_status;
-static float s_pressure_baseline = 0.0f;
-static uint8_t s_baseline_calibrated = 0;
-static uint8_t s_baseline_sample_count = 0;
-static float s_baseline_sum = 0.0f;
-
 static int sdp3x_start_continuous_selected(void);
 static int sdp3x_bringup_soft_reset_and_start(void);
-static void sdp3x_flow_pipeline_reset_state(void);
-
-#if SDP3X_FLOW_PIPELINE_ENABLE
-static void sdp3x_feed_flow_pipeline(float pressure_sample);
-#endif
-
 
 /*
 * LOCAL FUNCTION IMPLEMENTATIONS (I2C primitives)
@@ -91,18 +61,32 @@ static int sdp3x_write_nbyte(uint8_t index, uint8_t reg_addr, uint8_t *data, uin
 
     if (s_dev_is_ready[index] == 0) {
         if (s_log_count % SDP3X_LOG_COUNT_INTERVAL == 0) {
-            LOGE("pressure sensor is not ready: %d", index);
+            LOGE("diff pressure sensor is not ready: %d", index);
         }
         return BSP_NOT_READY;
     }
     
     i2c_master_data_t i2c_data = {
-        .dev_address = _i2cAddress,
+        .dev_address = SDP3X_I2C_ADDR,
         .reg_addr = &reg_addr,
         .reg_addr_len = 1,
         .data = data,
         .len = len,
     };
+
+    /*
+     * I2C General Call：从机地址 0x00 + 单字节命令 0x06（如软复位序列要求）。
+     * 错误写法：i2c_data.reg_addr = (uint8_t *)0x06 → 会从物理地址 0x6 读内存，触发 BusFault。
+     * 正确写法：把 0x06 放在栈上，令 reg_addr 指向该字节；payload 仅此一字节，故 len=0、data=NULL。
+     */
+    uint8_t general_call_cmd_byte = 0x06;
+    if (reg_addr == 0x00 && len >= 1 && data != NULL && data[0] == 0x06) {
+        i2c_data.dev_address = 0x00;
+        i2c_data.reg_addr = &general_call_cmd_byte;
+        i2c_data.reg_addr_len = 1;
+        i2c_data.data = NULL;
+        i2c_data.len = 0;
+    }
 
     for (uint8_t i = 0; i < 3; i++) {
         ret = bsp_i2c_write_byte(DIFF_PRESSURE_I2C_ID, &i2c_data);
@@ -117,7 +101,7 @@ static int sdp3x_write_nbyte(uint8_t index, uint8_t reg_addr, uint8_t *data, uin
     if (s_dev_abnormal_count[index] > SDP3X_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
     } else {
-        LOG_PBUS("pressure sensor %d abnormal count: %d", index, s_dev_abnormal_count[index]);
+        LOG_PBUS("diff pressure sensor %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;
@@ -128,19 +112,19 @@ static int sdp3x_read_nbyte(uint8_t index, uint8_t reg_addr, uint8_t *data, uint
     int ret = 0;
     
     if (index >= DIFF_PRESSURE_NUM) {
-        LOGE("pressure sensor index is invalid: %d", index);
+        LOGE("diff pressure sensor index is invalid: %d", index);
         return BSP_INVALID_PARAMETER;
     }
     
     if (s_dev_is_ready[index] == 0) {
         if (s_log_count % SDP3X_LOG_COUNT_INTERVAL == 0) {
-            LOGE("pressure sensor is not ready: %d", index);
+            LOGE("diff pressure sensor is not ready: %d", index);
         }
         return BSP_NOT_READY;
     }
 
     i2c_master_data_t i2c_data = {
-        .dev_address = _i2cAddress,
+        .dev_address = SDP3X_I2C_ADDR,
         .reg_addr = &reg_addr,
         .reg_addr_len = 0,
         .data = data,
@@ -160,7 +144,7 @@ static int sdp3x_read_nbyte(uint8_t index, uint8_t reg_addr, uint8_t *data, uint
     if (s_dev_abnormal_count[index] > SDP3X_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
     } else {
-        LOG_PBUS("pressure sensor %d abnormal count: %d", index, s_dev_abnormal_count[index]);
+        LOG_PBUS("diff pressure sensor %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;
@@ -170,12 +154,12 @@ static int sdp3x_read_nbyte_no_retry(uint8_t index, uint8_t reg_addr, uint8_t *d
 {
     int ret = 0;
     if (index >= DIFF_PRESSURE_NUM) {
-        LOGE("pressure sensor index is invalid: %d", index);
+        LOGE("diff pressure sensor index is invalid: %d", index);
         return BSP_INVALID_PARAMETER;
     }
 
     i2c_master_data_t i2c_data = {
-        .dev_address = _i2cAddress,
+        .dev_address = SDP3X_I2C_ADDR,
         .reg_addr = &reg_addr,
         .reg_addr_len = 0,
         .data = data,
@@ -192,7 +176,7 @@ static int sdp3x_read_nbyte_no_retry(uint8_t index, uint8_t reg_addr, uint8_t *d
     if (s_dev_abnormal_count[index] > SDP3X_ABNORMAL_MAX_COUNT) {
         s_dev_is_ready[index] = 0;
     } else {
-        LOG_PBUS("pressure sensor %d abnormal count: %d", index, s_dev_abnormal_count[index]);
+        LOG_PBUS("diff pressure sensor %d abnormal count: %d", index, s_dev_abnormal_count[index]);
     }
 
     return BSP_ERROR;
@@ -239,65 +223,12 @@ static int sdp3x_bringup_soft_reset_and_start(void)
                                               SDP3X_SENSIRION_MS_AFTER_START_CONTINUOUS);
 }
 
-static void sdp3x_flow_pipeline_reset_state(void)
-{
-    s_pressure_buffer_index = 0;
-    s_pressure_baseline = 0.0f;
-    s_baseline_calibrated = 0;
-    s_baseline_sample_count = 0;
-    s_baseline_sum = 0.0f;
-    memset(&s_latest_flow_status, 0, sizeof(s_latest_flow_status));
-#if SDP3X_FLOW_PIPELINE_ENABLE
-    flow_algo_init(&s_flow_ctx);
-#endif
-}
-
-#if SDP3X_FLOW_PIPELINE_ENABLE
-static void sdp3x_feed_flow_pipeline(float pressure_sample)
-{
-    if (!s_baseline_calibrated && s_baseline_sample_count < BASELINE_SAMPLES) {
-        s_baseline_sum += pressure_sample;
-        s_baseline_sample_count++;
-        if (s_baseline_sample_count >= BASELINE_SAMPLES) {
-            s_pressure_baseline = s_baseline_sum / (float)BASELINE_SAMPLES;
-            s_baseline_calibrated = 1;
-        }
-    }
-
-    float rel = pressure_sample;
-    if (s_baseline_calibrated) {
-        rel = pressure_sample - s_pressure_baseline;
-    }
-
-    int repeats = (int)SDP3X_FLOW_VIRTUAL_10MS_SAMPLES_PER_READ;
-    if (repeats < 1) {
-        repeats = 1;
-    }
-    for (int r = 0; r < repeats; r++) {
-        if (s_pressure_buffer_index < PRESSURE_BUFFER_SIZE) {
-            s_pressure_buffer[s_pressure_buffer_index++] = rel;
-        }
-    }
-
-    if (s_pressure_buffer_index >= PRESSURE_BUFFER_SIZE) {
-        int n = process_pressure_batch(&s_flow_ctx, s_pressure_buffer, PRESSURE_BUFFER_SIZE, s_flow_results,
-                                       (int)(sizeof(s_flow_results) / sizeof(s_flow_results[0])));
-        s_pressure_buffer_index = 0;
-        if (n > 0) {
-            FlowResult *last = &s_flow_results[n - 1];
-            s_latest_flow_status.valid = 1;
-            s_latest_flow_status.volume_ml = last->volume;
-            s_latest_flow_status.flow_rate_ml_min = last->flow_rate;
-            s_latest_flow_status.algo_time_s = last->timestamp;
-        }
-    }
-}
-#endif
-
 
 //-----------------------------------------------------------------------------
 int app_sdp3x_init(uint8_t i2cAddress)
 {
+    int ret = BSP_OK;
+
     if (s_sdp3x_initialized) {
         LOG_PBUS("SDP3x already initialized\n");
         return BSP_OK;
@@ -308,24 +239,8 @@ int app_sdp3x_init(uint8_t i2cAddress)
         s_dev_abnormal_count[i] = 0;
     }
 
-    Sdp3x_Init(i2cAddress);
-    s_sdp3x_i2c_address = i2cAddress;
-
-    sdp3x_flow_pipeline_reset_state();
-
-    int ret = sdp3x_bringup_soft_reset_and_start();
-    if (ret != BSP_OK) {
-        LOGE("SDP3x bring-up (SoftReset + start continuous) failed: %d", ret);
-        for (uint8_t i = 0; i < DIFF_PRESSURE_NUM; i++) {
-            s_dev_is_ready[i] = 0;
-        }
-        return BSP_ERROR;
-    }
-
-#if SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE > 0
-    sdp3x_sensirion_reference_delay_before_read(
-        &s_sdp3x_sens_ref_ops, (uint32_t)SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE);
-#endif
+    diff_pressure_flow_model_reset();
+    Sdp3x_SoftReset();
 
     ret = Sdp3x_ReadMeasurementResults(&s_last_diff_pressure, &s_last_temperature);
     if (ret != BSP_OK) {
@@ -358,7 +273,7 @@ int app_sdp3x_init(uint8_t i2cAddress)
              s_last_diff_pressure, s_last_temperature);
 
 #if SDP3X_FLOW_PIPELINE_ENABLE
-    sdp3x_feed_flow_pipeline(s_last_diff_pressure);
+    diff_pressure_flow_model_on_sample(s_last_diff_pressure);
 #endif
 
     s_sdp3x_measurement_started = 1;
@@ -380,7 +295,8 @@ void app_sdp3x_deinit(void)
         s_dev_is_ready[i] = 0;
         s_dev_abnormal_count[i] = 0;
     }
-    sdp3x_flow_pipeline_reset_state();
+    s_log_count = 0;
+    diff_pressure_flow_model_reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -483,11 +399,8 @@ int app_sdp3x_start_continuous_measurement(void)
     } else {
         LOG_PBUS("SDP3x start measurement failed: %d", ret);
         LOG_PBUS(" (ERROR_ACK - No response from sensor)");
-        LOG_PBUS("Current I2C address: 0x%02X\n", s_sdp3x_i2c_address);
         LOG_PBUS("Possible causes:");
-        LOG_PBUS("  1) I2C address mismatch (current: 0x%02X, try: 0x%02X)",
-                        s_sdp3x_i2c_address, (s_sdp3x_i2c_address == 0x21) ? 0x25 : 0x21);
-        LOG_PBUS("  2) I2C wiring issue (SDA/SCL on PA08/PA07)");
+        LOG_PBUS("  1) I2C address mismatch, try: 0x25 or 0x21)");
         LOG_PBUS("  3) Sensor not powered (need 3.3V)");
         LOG_PBUS("  4) Sensor needs more time after reset");
     }
@@ -510,13 +423,6 @@ float app_sdp3x_get_last_pressure(void)
 float app_sdp3x_get_last_temperature(void)
 {
     return s_last_temperature;
-}
-
-
-//-----------------------------------------------------------------------------
-void Sdp3x_Init(uint8_t i2cAddress)
-{
-    _i2cAddress = i2cAddress;
 }
   
 //-----------------------------------------------------------------------------
@@ -659,42 +565,20 @@ static int CheckCrc(const uint8_t data[], uint8_t size, uint8_t checksum)
 
 
 
-int bsp_diff_pressure_init(void)
+int sdp3x_chip_measurement_read(float *diff_pa, float *temp)
 {
-    return app_sdp3x_init(SDP3X_I2C_ADDR);
-}
-
-int bsp_diff_pressure_deinit(void)
-{
-    app_sdp3x_deinit();
-    memset(s_dev_is_ready, 0, sizeof(s_dev_is_ready));
-    memset(s_dev_abnormal_count, 0, sizeof(s_dev_abnormal_count));
-    s_log_count = 0;
-    return BSP_OK;
-}
-
-int bsp_read_diff_pressure_status(void *args)
-{
-    air_pressue_status_t *out_status = (air_pressue_status_t *)args;
-
-    if (out_status == NULL) {
+    if (diff_pa == NULL || temp == NULL) {
         return BSP_INVALID_PARAMETER;
     }
     if (!s_sdp3x_initialized || !s_sdp3x_measurement_started) {
         return BSP_NOT_READY;
     }
 
-#if SDP3X_LOG_DEBUG
-    uint32_t start_time = get_timestamp();
-#endif
-
     for (uint8_t i = 0; i < DIFF_PRESSURE_NUM; i++) {
         if (s_dev_is_ready[i] == 0) {
             return BSP_NOT_READY;
         }
     }
-
-    memset(out_status, 0, sizeof(air_pressue_status_t) * DIFF_PRESSURE_NUM);
 
 #if SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE > 0
     sdp3x_sensirion_reference_delay_before_read(
@@ -719,57 +603,18 @@ int bsp_read_diff_pressure_status(void *args)
         s_sdp3x_measurement_started = 1;
     }
 
-    for (uint8_t i = 0; i < DIFF_PRESSURE_NUM; i++) {
-        out_status[i].pressure = s_last_diff_pressure;
-        out_status[i].temp = s_last_temperature;
-        float rd = s_last_diff_pressure * 1000.0f;
-        if (rd > 2147483647.0f) {
-            rd = 2147483647.0f;
-        } else if (rd < -2147483648.0f) {
-            rd = -2147483648.0f;
-        }
-        out_status[i].raw_data = (uint32_t)(int32_t)rd;
-    }
-
-#if SDP3X_FLOW_PIPELINE_ENABLE
-    sdp3x_feed_flow_pipeline(s_last_diff_pressure);
-#endif
-
-#if SDP3X_LOG_DEBUG
-    BSP_LOG_PASS("sdp3x rd time: %d, Pa: %f, T: %f\r\n",
-        get_timestamp_ms(start_time),
-        out_status[0].pressure,
-        out_status[0].temp);
-#endif
+    *diff_pa = s_last_diff_pressure;
+    *temp = s_last_temperature;
     s_log_count++;
     return BSP_OK;
 }
 
-int bsp_diff_pressure_get_flow_status(void *args)
+void sdp3x_chip_copy_ready_status(uint8_t *dst, unsigned count)
 {
-#if !SDP3X_FLOW_PIPELINE_ENABLE
-    (void)args;
-    return BSP_ERROR;
-#else
-    diff_pressure_flow_status_t *out = (diff_pressure_flow_status_t *)args;
-
-    if (out == NULL) {
-        return BSP_INVALID_PARAMETER;
-    }
-    *out = s_latest_flow_status;
-    return BSP_OK;
-#endif
-}
-
-int bsp_diff_pressure_is_ready(void *args)
-{
-    uint8_t *pressure_is_ready_status = (uint8_t *)args;
-
-    if (pressure_is_ready_status == NULL) {
-        return BSP_INVALID_PARAMETER;
+    if (dst == NULL || count < DIFF_PRESSURE_NUM) {
+        return;
     }
     for (uint8_t i = 0; i < DIFF_PRESSURE_NUM; i++) {
-        pressure_is_ready_status[i] = (uint8_t)(s_dev_is_ready[i] & 1U);
+        dst[i] = (uint8_t)(s_dev_is_ready[i] & 1U);
     }
-    return BSP_OK;
 }
