@@ -30,7 +30,15 @@ static rt_device_node_t *node = NULL;
 */
 static void sys_power_gpio_init(void)
 {
-
+    struct HAL_IOMUX_PIN_FUNCTION_MAP gpio_map = {
+        (enum HAL_IOMUX_PIN_T)SENSOR_POWER_PIN,  
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL,
+    };
+    hal_iomux_init(&gpio_map, 1);
+    hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)SENSOR_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
+    LOG_PBUS("sys_power_gpio_init");
 }
 
 static void peripheral_power_gpio_init(void)

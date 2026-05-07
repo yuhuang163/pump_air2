@@ -12,6 +12,10 @@ extern "C" {
 ******************************************************************************/
 #include "bsp_common.h" // IWYU pragma: keep
 
+/// SDP3x I2C 从地址（与 Sensirion 默认一致；BSP/芯片层共用）
+#ifndef SDP3X_I2C_ADDR
+#define SDP3X_I2C_ADDR                (0x21)
+#endif
 
 // Sensor Commands
 typedef enum {

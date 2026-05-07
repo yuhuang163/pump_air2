@@ -15,18 +15,13 @@
  */
 #define I2C_MASTER_TIMEOUT_MS(x)                    ((x > 20) ? ((x / 20) * 50) : 50)
 
-#if (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V2) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V3) || (V3_HARDWARE_VERSION == V3_2710IMC_HARDWARE_V4)
 #define I2C_MASTER_COUNT                            3
 #define I2C0_MASTER_SPEED                           400000
-#define I2C1_MASTER_SPEED                           200000
-#define I2C2_MASTER_SPEED                           100000
+#define I2C1_MASTER_SPEED                           400000
+#define I2C2_MASTER_SPEED                           400000
 #define I2C3_MASTER_SPEED                           400000
 #define IS_SUPPORT_I2C_MASTER_TASK                  1 
-#else
-#define I2C_MASTER_COUNT                            3
-#define I2C_MASTER_SPEED                            400000
-#define IS_SUPPORT_I2C_MASTER_TASK                  0
-#endif
+
 
 #define I2C_MASTER_ID_IS_INVALID(x) \
 do { \
@@ -160,27 +155,46 @@ int bsp_i2c_write_byte(i2c_master_id_e device_id, i2c_master_data_t *data)
     int ret = 0;
     I2C_MASTER_ID_IS_INVALID(device_id);
     EXCEPTION_CHECK_INT(data);
-    uint16_t data_len = data->len + data->reg_addr_len;
+    if (data->len > 0 && data->data == NULL) {
+        LOGE("i2c write: len>0 but data is NULL");
+        return BSP_INVALID_PARAMETER;
+    }
+    /*
+     * General call style: dev_address 0x00 with register byte 0x00 and command 0x06 in payload.
+     * On the wire this must be one data byte 0x06 (not 0x00 concatenated with 0x06).
+     */
+    int general_call_cmd = (data->reg_addr_len == 1 && data->reg_addr != NULL &&
+                            data->reg_addr[0] == 0x00 && data->len >= 1 && data->data != NULL &&
+                            data->data[0] == 0x06);
+    uint16_t data_len =
+        (uint16_t)(general_call_cmd ? 1 : ((unsigned)data->reg_addr_len + (unsigned)data->len));
     if (data_len > 1024) {
         LOGE("data_len is too long: %d", data_len);
         return BSP_ERROR;
     }
-    uint8_t * data_buf = (uint8_t *)u_malloz(data_len);
+    uint8_t *data_buf = (uint8_t *)u_malloz(data_len);
     if (!data_buf) {
         return BSP_ERROR;
     }
-    memcpy(data_buf, data->reg_addr, data->reg_addr_len);
-    memcpy(&data_buf[data->reg_addr_len], data->data, data->len);
+    if (general_call_cmd) {
+        data_buf[0] = data->data[0];
+    } else {
+        memcpy(data_buf, data->reg_addr, data->reg_addr_len);
+        if (data->len > 0) {
+            memcpy(&data_buf[data->reg_addr_len], data->data, data->len);
+        }
+    }
+    
     MUTEX_LOCK(s_i2c_mux[device_id]);
     if (s_i2c_is_ready[device_id]) {
         #if IS_SUPPORT_I2C_MASTER_TASK
         ret = (int)hal_i2c_task_send(s_i2c_config[device_id].id, data->dev_address, data_buf, data_len, 0, NULL);
         #else
-        ret = (int)hal_i2c_simple_send(s_i2c_config[device_id].id, data->dev_address, 
-            data_buf, data->len + 1);
+        ret = (int)hal_i2c_simple_send(s_i2c_config[device_id].id, data->dev_address,
+            data_buf, data_len);
         #endif
         if (ret != 0) {
-            LOGE("write i2c-%d timeout:%x, ret:%d", device_id, data->dev_address, ret);
+            LOGE("write i2c-%d timeout:%x, ret:%d", (device_id == 2) ? 3 : device_id, data->dev_address, ret);
             BSP_LOG_HEX("i2c_write_byte", data_buf, data_len);
         }
     } else {
@@ -207,7 +221,7 @@ int bsp_i2c_read_byte(i2c_master_id_e device_id, i2c_master_data_t *data)
             data->reg_addr_len, data->data, data->len);
         #endif
         if (ret != 0) {
-            LOGE("read i2c-%d timeout:%x ret:%d", device_id, data->dev_address, ret);
+            LOGE("read i2c-%d timeout:%x ret:%d", (device_id == 2) ? 3 : device_id, data->dev_address, ret);
             BSP_LOG_HEX("i2c_read_byte", data->data, data->len);
         }
     } else {

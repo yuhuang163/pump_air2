@@ -49,7 +49,6 @@ static void set_diff_pressure_sampling_interval(uint16_t interval_ms)
 {
     if (thiz->priv.sampling_interval != interval_ms) {
         thiz->priv.sampling_interval = interval_ms;
-        int support_ok = -1;
         DEVICE_IOCTL_HAS_RET(thiz->priv.dev, OP_CODE_DIFF_PRESSURE_IS_SUPPORT, support_ok);
         if (support_ok <= 0) {
             LOG_SENSOR("diff pressure not supported, skip set sampling interval");
@@ -72,7 +71,6 @@ static int on_post_diff_pressure_init(void *ptr)
     EXCEPTION_CHECK_INT(pbus);
     thiz->priv.dev = pbus->find_device(ID_DEVICE_DIFF_PRESSURE);
     thiz->priv.sampling_interval = DIFF_PRESSURE_POLLING_PERIOD;
-    int support_ok = -1;
     DEVICE_IOCTL_HAS_RET(thiz->priv.dev, OP_CODE_DIFF_PRESSURE_IS_SUPPORT, support_ok);
     if (support_ok <= 0) {
         LOG_SENSOR("diff pressure not supported, skip init");
