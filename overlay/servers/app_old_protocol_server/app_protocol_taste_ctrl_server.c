@@ -78,8 +78,8 @@ uint8_t app_old_comm_handle_ctrl_taste_dev_ctrl(app_old_comm_pump_taste_ctrl *ta
         }
         for (uint8_t j = 0; j < BREAST_PUMP_NUM; j++) {
             taste_setting.level[j] = taste_ctrl_date->taste_pump_level;
-            if (taste_setting.level[j] > BREAST_PUMP_LEVEL_15) {
-                taste_setting.level[j] = BREAST_PUMP_LEVEL_15;
+            if (taste_setting.level[j] > (BREAST_PUMP_LEVEL_MAX - 1)) {
+                taste_setting.level[j] = (BREAST_PUMP_LEVEL_MAX - 1);
             }
         }
         motor->hook->motor_debug_with_taste_setting(motor, &taste_setting);

@@ -35,7 +35,7 @@ static algo_sampling_data_t *algo_sampling_data = NULL;
 */
 void algo_sampling_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_len)
 {
-    int ret = 0;
+    (void)data_len;
     EXCEPTION_CHECK_VOID(ctx && data && ctx->priv.motor);
     sensor_wrapper_data_t *sensor_data = (sensor_wrapper_data_t *)data;
     algo_sampling_data_t *sampling_data = &algo_sampling_data[sampling_count];
@@ -47,11 +47,11 @@ void algo_sampling_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_
         sampling_data->air_pressure[i] = sensor_data->air_pressure_data[i].pressure;
     }
 #endif
-// #if IS_SUPPORT_DEVICE_DIFF_PRESSURE
-//     for (int i = 0; i < DIFF_PRESSURE_NUM; i++) {
-//         sampling_data->diff_pressure[i] = sensor_data->diff_pressure_data[i].pressure;
-//     }
-// #endif
+#if IS_SUPPORT_DEVICE_DIFF_PRESSURE
+    for (int i = 0; i < DIFF_PRESSURE_NUM; i++) {
+        sampling_data->diff_pressure[i] = sensor_data->diff_pressure_data[i].pressure;
+    }
+#endif
     /// 泵奶数据
     for (int i = 0; i < BREAST_PUMP_NUM; i++) {
         sampling_data->pump_state[i].state = info[i].state.status;

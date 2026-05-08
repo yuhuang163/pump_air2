@@ -52,6 +52,16 @@ static void peripheral_power_gpio_init(void)
     hal_iomux_init(&gpio_map, 1);
     hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)PERIPHERAL_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
     msleep(20);
+
+    struct HAL_IOMUX_PIN_FUNCTION_MAP pinmux = {
+        (enum HAL_IOMUX_PIN_T)CHARGE_POWER_PIN, 
+        HAL_IOMUX_FUNC_AS_GPIO, 
+        HAL_IOMUX_PIN_VOLTAGE_VIO, 
+        HAL_IOMUX_PIN_NOPULL,
+    };
+    hal_iomux_init(&pinmux, 1);
+    hal_gpio_pin_set_dir(CHARGE_POWER_PIN, HAL_GPIO_DIR_OUT, 0);
+
     LOG_PBUS("peripheral_power_gpio_init");
 }
 

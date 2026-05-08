@@ -8,7 +8,6 @@
 #include "bsp_config.h"
 #include "bsp_internal.h" // IWYU pragma: keep
 #include "bsp_i2c.h" // IWYU pragma: keep
-#include "sdp3x_sensirion_reference.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -194,35 +193,14 @@ static int sdp3x_start_continuous_selected(void)
 #endif
 }
 
-static void sdp3x_ref_delay_ms(uint32_t ms)
-{
-    msleep(ms);
-}
-
-static int sdp3x_ref_soft_reset(void)
-{
-    return (int)Sdp3x_SoftReset();
-}
-
-static int sdp3x_ref_start_continuous_measurement(void)
-{
-    return (int)sdp3x_start_continuous_selected();
-}
-
-static const sdp3x_sensirion_reference_ops_t s_sdp3x_sens_ref_ops = {
-    .soft_reset = sdp3x_ref_soft_reset,
-    .start_continuous_measurement = sdp3x_ref_start_continuous_measurement,
-    .delay_ms = sdp3x_ref_delay_ms,
-};
-
 static int sdp3x_bringup_soft_reset_and_start(void)
 {
-    /* 与 BSP：成功为 0（BSP_OK）；失败为 ops 返回的 bsp_status_e 或 bringup 的 -1 */
-    return sdp3x_sensirion_reference_bringup(&s_sdp3x_sens_ref_ops,
-                                              SDP3X_SENSIRION_MS_AFTER_SOFT_RESET,
-                                              SDP3X_SENSIRION_MS_AFTER_START_CONTINUOUS);
+    Sdp3x_SoftReset();
+    msleep(1000);
+    sdp3x_start_continuous_selected();
+    msleep(10);
+    return BSP_OK;
 }
-
 
 //-----------------------------------------------------------------------------
 int app_sdp3x_init(uint8_t i2cAddress)
@@ -240,17 +218,15 @@ int app_sdp3x_init(uint8_t i2cAddress)
     }
 
     diff_pressure_flow_model_reset();
-    Sdp3x_SoftReset();
+    if (Sdp3x_SoftReset() != BSP_OK) {
+        LOGE("SDP3x soft reset failed");
+    }
 
     ret = Sdp3x_ReadMeasurementResults(&s_last_diff_pressure, &s_last_temperature);
     if (ret != BSP_OK) {
         LOG_PBUS("SDP3x first read failed, retry after bring-up");
         ret = sdp3x_bringup_soft_reset_and_start();
         if (ret == BSP_OK) {
-#if SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE > 0
-            sdp3x_sensirion_reference_delay_before_read(
-                &s_sdp3x_sens_ref_ops, (uint32_t)SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE);
-#endif
             ret = Sdp3x_ReadMeasurementResults(&s_last_diff_pressure, &s_last_temperature);
         }
     }
@@ -580,20 +556,11 @@ int sdp3x_chip_measurement_read(float *diff_pa, float *temp)
         }
     }
 
-#if SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE > 0
-    sdp3x_sensirion_reference_delay_before_read(
-        &s_sdp3x_sens_ref_ops, (uint32_t)SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE);
-#endif
-
     int ret = Sdp3x_ReadMeasurementResults(&s_last_diff_pressure, &s_last_temperature);
     if (ret != BSP_OK) {
         LOG_PBUS("SDP3x read failed: %d, recover (SoftReset+start)", ret);
         int br = sdp3x_bringup_soft_reset_and_start();
         if (br == BSP_OK) {
-#if SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE > 0
-            sdp3x_sensirion_reference_delay_before_read(
-                &s_sdp3x_sens_ref_ops, (uint32_t)SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE);
-#endif
             ret = Sdp3x_ReadMeasurementResults(&s_last_diff_pressure, &s_last_temperature);
         }
         if (ret != BSP_OK) {

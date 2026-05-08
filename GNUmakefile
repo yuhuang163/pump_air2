@@ -884,7 +884,6 @@ DRIVERS_DIFF_PRESSURE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/diff_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/diff_pressure/chip/sdp3x/*.c) \
 	$(PROJECT_ROOT)/library/root_algo/remain_detection/flow_algo.c \
-	$(PROJECT_ROOT)/library/root_algo/remain_detection/sdp3x_sensirion_reference.c
 
 # 音频驱动源码
 DRIVERS_AUDIO_SRCS := \

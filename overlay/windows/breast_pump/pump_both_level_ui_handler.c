@@ -84,13 +84,13 @@ static void pump_both_level_ui_after_policy(ui_manager_context_t *ui, int index)
     ui_proc_pump_t *proc = (ui_proc_pump_t *)ui->priv.play_info.user_data;
     EXCEPTION_CHECK_VOID(proc);
     // ui_display_pump_both_level_process(ui);
-    // uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
-    // if (time_diff >= PUMP_LEVEL_DISPLAY_TIMEOUT) {
-    //     proc->last_progress_ani_time = get_timestamp();
-    //     LOG_UI("both level ui timeout: %d", proc->last_progress_ani_time);
-    //     POST_TASK_HANDLER_NO_DELAY(pump_both_level_display_completed_cb, proc,
-    //         PUMP_BOTH_LEVEL_DISPLAY_TASK_NAME);
-    // }
+    uint32_t time_diff = get_timestamp_ms(proc->last_progress_ani_time);
+    if (time_diff >= PUMP_LEVEL_DISPLAY_TIMEOUT) {
+        proc->last_progress_ani_time = get_timestamp();
+        LOG_UI("both level ui timeout: %d", proc->last_progress_ani_time);
+        POST_TASK_HANDLER_NO_DELAY(pump_both_level_display_completed_cb, proc,
+            PUMP_BOTH_LEVEL_DISPLAY_TASK_NAME);
+    }
 }
 
 static void pump_both_level_animation_progress_cb(void *user_data, int index, ui_ani_progress_state_e state)
@@ -175,13 +175,36 @@ void switch_pump_both_level_ui(ui_proc_pump_t *proc, bool is_increase)
     int16_t left_level = proc->setting.level[0] + proc->level_change;
     int16_t right_level = proc->setting.level[1] + proc->level_change;
     if (is_increase) {
-        if (left_level < BREAST_PUMP_LEVEL_15 || right_level < BREAST_PUMP_LEVEL_15) {
+        if (left_level < (BREAST_PUMP_LEVEL_MAX - 1) || right_level < (BREAST_PUMP_LEVEL_MAX - 1)) {
             proc->level_change++;
         }
     } else {
         if (left_level > BREAST_PUMP_LEVEL_0 || right_level > BREAST_PUMP_LEVEL_0) {
             proc->level_change--;
         }
+    }
+
+    /// 三键无屏路径需要按键后立即生效，避免依赖 UI 动画超时回写。
+    if (proc->level_change != 0) {
+        int time_index = 0;
+        READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
+        if (proc->level_change > 0) {
+            for (int i = 0; i < BREAST_PUMP_NUM; i++) {
+                proc->setting.level[i] = proc->setting.level[i] + proc->level_change;
+                if (proc->setting.level[i] >= BREAST_PUMP_LEVEL_MAX) {
+                    proc->setting.level[i] = BREAST_PUMP_LEVEL_MAX - 1;
+                }
+            }
+        } else {
+            uint8_t abs_level_change = abs(proc->level_change);
+            for (int i = 0; i < BREAST_PUMP_NUM; i++) {
+                proc->setting.level[i] = proc->setting.level[i] < abs_level_change ?
+                    0 : (proc->setting.level[i] - abs_level_change);
+            }
+        }
+        WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
+        LOG_UI("both level apply now: L=%d, R=%d", proc->setting.level[0], proc->setting.level[1]);
+        proc->level_change = 0;
     }
     show_pump_both_level_ui(proc);
 }   
