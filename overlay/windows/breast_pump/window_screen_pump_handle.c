@@ -284,7 +284,8 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
             break;
         case KEY_CODE_KNOB_LEFT:
         case KEY_CODE_KNOB_RIGHT:
-            pump_knob_event_cb(proc, keycode == KEY_CODE_KNOB_LEFT);
+            /// 三键机要求：UP(keycode=KNOB_LEFT) 加档，DOWN(KNOB_RIGHT) 减档
+            pump_knob_event_cb(proc, keycode == KEY_CODE_KNOB_RIGHT);
             break;
         default:
             LOG_WM("unknow keycode: %d, ignore.", keycode);

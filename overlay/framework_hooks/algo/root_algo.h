@@ -28,6 +28,7 @@ typedef struct algo_breast_pump_data_t {
 typedef struct {
     uint32_t timestamp;
     float air_pressure[AIR_PRESSURE_NUM];
+    float diff_pressure[DIFF_PRESSURE_NUM];
     motor_component_state_t pump_state[BREAST_PUMP_NUM];
 } algo_sampling_data_t;
 

@@ -352,9 +352,9 @@ static void pump_algo_compensation_callback(void *user_data, algo_breast_pump_da
         runtime->compensation_delta_pwm[1] == result->wear_detection.compensation_delta_pwm[1]) {
         return;
     }
-    LOG_MOTOR("compensation status %d/%d; %d/%d", 
-        result->wear_detection.compensation_status[0], result->wear_detection.compensation_status[1], 
-        result->wear_detection.compensation_delta_pwm[0], result->wear_detection.compensation_delta_pwm[1]);
+    // LOG_MOTOR("compensation status %d/%d; %d/%d", 
+    //     result->wear_detection.compensation_status[0], result->wear_detection.compensation_status[1], 
+    //     result->wear_detection.compensation_delta_pwm[0], result->wear_detection.compensation_delta_pwm[1]);
     motor_timer_event_msg_t msg = {
         .msg_type = MOTOR_PUMP_LEVEL_ADJUST_MSG,
         .un.pulse_width[0] = result->wear_detection.compensation_delta_pwm[0],

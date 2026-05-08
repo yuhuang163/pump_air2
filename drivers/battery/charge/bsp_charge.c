@@ -70,13 +70,13 @@ static void charge_enable_gpio_init(void)
         HAL_IOMUX_PIN_NOPULL,
     };
     hal_iomux_init(&pinmux, 1);
-    hal_gpio_pin_set_dir(CHARGE_POWER_PIN, HAL_GPIO_DIR_OUT, 1);
+    hal_gpio_pin_set_dir(CHARGE_POWER_PIN, HAL_GPIO_DIR_OUT, 0);
 }
 
 static void charge_enable_control(bool enable)
 {
-    GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 0 : 1);
-    is_charging = enable ? true:false;
+    // GPIO_PIN_CTRL(CHARGE_POWER_PIN, enable ? 0 : 1);
+    // is_charging = enable ? true:false;
     LOG_PBUS("charge_enable_control: %d", enable);
 }
 

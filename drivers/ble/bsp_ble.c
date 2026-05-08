@@ -9,6 +9,10 @@
 #include "bsp_ble_internal.h" // IWYU pragma: keep
 #include "ble_test/ble_tests.h" // IWYU pragma: keep
 
+#if CFG_OTA_EVENT_CALLBACK
+extern void ota_event_router_register(ota_event_router_func func) __attribute__((weak));
+#endif
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -115,7 +119,9 @@ static void ota_event_router(ota_state_type_e state, uint8_t *otaBuf, bool isVia
 static int ble_dev_open(struct rt_device_node *dev)
 {
 #if CFG_OTA_EVENT_CALLBACK
-    ota_event_router_register(ota_event_router);
+    if (ota_event_router_register) {
+        ota_event_router_register(ota_event_router);
+    }
 #endif
     return 0;
 }

@@ -183,13 +183,33 @@ void switch_pump_level_ui(ui_proc_pump_t *proc, bool is_increase)
     }
 
     if (is_increase) {
-        if (level < BREAST_PUMP_LEVEL_15) {
+        if (level < (BREAST_PUMP_LEVEL_MAX - 1)) {
             proc->level_change++;
         }
     } else {
         if (level > BREAST_PUMP_LEVEL_0) {
             proc->level_change--;
         }
+    }
+
+    /// 三键无屏路径需要按键后立即生效，避免依赖 UI 动画超时回写。
+    if (proc->level_change != 0) {
+        int time_index = 0;
+        uint8_t level_idx = proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_LEFT ? 0 : 1;
+        READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
+        if (proc->level_change > 0) {
+            proc->setting.level[level_idx] = proc->setting.level[level_idx] + proc->level_change;
+            if (proc->setting.level[level_idx] >= BREAST_PUMP_LEVEL_MAX) {
+                proc->setting.level[level_idx] = BREAST_PUMP_LEVEL_MAX - 1;
+            }
+        } else {
+            uint8_t abs_level_change = abs(proc->level_change);
+            proc->setting.level[level_idx] = proc->setting.level[level_idx] < abs_level_change ?
+                0 : (proc->setting.level[level_idx] - abs_level_change);
+        }
+        WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
+        LOG_UI("level apply now: idx=%d, level=%d", level_idx, proc->setting.level[level_idx]);
+        proc->level_change = 0;
     }
 
     show_pump_level_ui(proc);

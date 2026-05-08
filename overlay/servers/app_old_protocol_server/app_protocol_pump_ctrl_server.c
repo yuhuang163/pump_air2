@@ -528,7 +528,7 @@ static uint8_t app_old_comm_set_nommal_pump_level(app_old_comm_pump_ctrl *app_ol
             app_broadcast_pump_level_to_window(setting.level[0], OLD_BROADCAST_LEFT_CT);
         }
     } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT) {
-        if (app_old_comm_pump_ctrl_date->normal_pump_level <= BREAST_PUMP_LEVEL_15) {
+        if (app_old_comm_pump_ctrl_date->normal_pump_level <= (BREAST_PUMP_LEVEL_MAX - 1)) {
             ///相同不进行设置
             if (setting.level[1] == app_old_comm_pump_ctrl_date->normal_pump_level) {
                 LOG_SRV("right pump level no change %d", setting.level[1]);
@@ -540,7 +540,7 @@ static uint8_t app_old_comm_set_nommal_pump_level(app_old_comm_pump_ctrl *app_ol
         }
     } else {
         if (app_old_comm_pump_ctrl_date->normal_pump_level >= 0
-            && app_old_comm_pump_ctrl_date->normal_pump_level <= BREAST_PUMP_LEVEL_15) {
+            && app_old_comm_pump_ctrl_date->normal_pump_level <= (BREAST_PUMP_LEVEL_MAX - 1)) {
             ///相同不进行设置
             if (setting.level[0] == app_old_comm_pump_ctrl_date->normal_pump_level && setting.level[1] == app_old_comm_pump_ctrl_date->normal_pump_level) {
                 LOG_SRV("all pump level no change %d", setting.level[0]);
@@ -644,7 +644,7 @@ static uint8_t app_old_comm_set_custom_pump_level(app_old_comm_pump_ctrl *app_ol
             app_broadcast_pump_level_to_window(setting.level[0] ,OLD_BROADCAST_LEFT_CT);
         }
     } else if (app_old_comm_pump_ctrl_date->pump_mode_lr_or_all == APP_OLD_COMM_RIGHT_CT) {
-        if (app_old_comm_pump_ctrl_date->user_define_pump_level <= BREAST_PUMP_LEVEL_15) {
+        if (app_old_comm_pump_ctrl_date->user_define_pump_level <= (BREAST_PUMP_LEVEL_MAX - 1)) {
             ///相同不进行设置
             if (setting.level[1] == app_old_comm_pump_ctrl_date->user_define_pump_level) {
                 LOG_SRV("right pump level no change %d", setting.level[1]);
@@ -656,7 +656,7 @@ static uint8_t app_old_comm_set_custom_pump_level(app_old_comm_pump_ctrl *app_ol
         }
     } else {
         if (app_old_comm_pump_ctrl_date->user_define_pump_level >= 0
-            && app_old_comm_pump_ctrl_date->user_define_pump_level <= BREAST_PUMP_LEVEL_15) {
+            && app_old_comm_pump_ctrl_date->user_define_pump_level <= (BREAST_PUMP_LEVEL_MAX - 1)) {
             ///相同不进行设置
             if (setting.level[0] == app_old_comm_pump_ctrl_date->user_define_pump_level && setting.level[1] == app_old_comm_pump_ctrl_date->user_define_pump_level) {
                 LOG_SRV("all pump level no change %d", setting.level[0]);
@@ -1070,7 +1070,7 @@ void app_old_comm_handle_set_user_define_req(uint8_t cal, uint8_t *cab)
 		n = 6 + 10 * i;
 		if (cab[n] <= ROOT_BREAST_PUMP_STEP_MAX) {
             mode_type = cab[n + 1];
-            level = cab[n + 2] >= BREAST_PUMP_LEVEL_MAX ? BREAST_PUMP_LEVEL_15 : cab[n + 2];
+            level = cab[n + 2] >= BREAST_PUMP_LEVEL_MAX ? (BREAST_PUMP_LEVEL_MAX - 1) : cab[n + 2];
             speed = (cab[n + 3] - 1) >= BREAST_PUMP_SPEED_MAX ? BREAST_PUMP_SPEED_HIGH : (cab[n + 3] - 1);
             time_policy_duration = cab[n + 4] << 8 | cab[n + 5];
 		    if (mode_type == APP_OLD_COMM_MODE_SHORT) {
@@ -1199,7 +1199,7 @@ void app_old_comm_handle_set_trail_user_define_req(uint8_t cal, uint8_t *cab)
 		n = 6 + 10 * i;
 		if (cab[n] <= ROOT_BREAST_PUMP_STEP_MAX) {
             mode_type = cab[n + 1];
-            level = cab[n + 2] >= BREAST_PUMP_LEVEL_MAX ? BREAST_PUMP_LEVEL_15 : cab[n + 2];
+            level = cab[n + 2] >= BREAST_PUMP_LEVEL_MAX ? (BREAST_PUMP_LEVEL_MAX - 1) : cab[n + 2];
             speed = (cab[n + 3] - 1) >= BREAST_PUMP_SPEED_MAX ? BREAST_PUMP_SPEED_HIGH : (cab[n + 3] - 1);
             time_policy_duration = cab[n + 4] << 8 | cab[n + 5];
 		    if (mode_type == APP_OLD_COMM_MODE_SHORT) {
@@ -1565,8 +1565,8 @@ void app_old_comm_handle_set_bilateral_pump_param_req(uint8_t cal, uint8_t *cab)
     uint8_t right_speed = cab[3];  // 右边频次 1-低, 2-中, 3-高
     
     // 参数有效性检查
-    if (left_level > BREAST_PUMP_LEVEL_15 || right_level > BREAST_PUMP_LEVEL_15) {
-        LOG_SRV("Invalid pump level: left=%d, right=%d (max=%d)", left_level, right_level, BREAST_PUMP_LEVEL_15);
+    if (left_level > (BREAST_PUMP_LEVEL_MAX - 1) || right_level > (BREAST_PUMP_LEVEL_MAX - 1)) {
+        LOG_SRV("Invalid pump level: left=%d, right=%d (max=%d)", left_level, right_level, (BREAST_PUMP_LEVEL_MAX - 1));
         uint8_t nack_data = 0x00; // 错误状态
         app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_NACK, APP_OLD_COMM_CID_SET_BILATERAL_PUMP_PARAM, 1, &nack_data);
         return;

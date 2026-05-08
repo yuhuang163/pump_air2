@@ -16,11 +16,10 @@
 #include "bsp_config.h"
 #include "bsp_internal.h" // IWYU pragma: keep
 #include "bsp_i2c.h" // IWYU pragma: keep
-#include "sdp3x_sensirion_reference.h"
+#include "cmsis_os_api.h"
 #include <stdint.h>
 #include <string.h>
 #include "hal_timer.h"
-#include "hwtimer_list.h"
 #include "hx90xx.h"
 
 
@@ -171,45 +170,69 @@ uint8_t  wear_s[2] = {0};
 uint8_t  pre_wear_s[2] = {0};
 
 #define HX90XX_POLL_INTERVAL_MS 150
-static HWTIMER_ID hx90xx_poll_timer = NULL;
+static os_timer_id hx90xx_poll_timer = NULL;
+static thread_context_t hx90xx_poll_thd = {0};
+static uint8_t hx90xx_poll_worker_inited = 0;
 uint8_t  timer_start = 0;
+static void hx90xx_poll_timer_handler(void *param);
+
+static void hx90xx_poll_worker_thread(void *arg)
+{
+    uint8_t msg = 0;
+    (void)arg;
+    while (1) {
+        MSG_QUEUE_RECV(hx90xx_poll_thd.msg_id, (void *)&msg, OS_WAIT_FOREVER);
+        if (timer_start) {
+            hx90xx_report_diff_prox_status();
+        }
+    }
+}
+
+static bool hx90xx_poll_worker_init(void)
+{
+    if (hx90xx_poll_worker_inited) {
+        return true;
+    }
+    CREATE_MSG_TYPE_QUEUE(&hx90xx_poll_thd.msg_id, 4, 1);
+    if (hx90xx_poll_thd.msg_id == NULL) {
+        LOGE("hx90xx poll queue create fail");
+        return false;
+    }
+    if (RUN_NEW_THREAD(&hx90xx_poll_thd, "cap_poll", hx90xx_poll_worker_thread,
+                       RT_PRIO_SENSOR_INPUT_DISPATCH_THREAD, INPUT_SENSOR_THREAD_STACKSIZE) != 0) {
+        LOGE("hx90xx poll thread create fail");
+        return false;
+    }
+    CREATE_TIMER(&hx90xx_poll_timer, "hx90xx_poll", NULL, OS_TIMER_PERIODIC, hx90xx_poll_timer_handler);
+    if (hx90xx_poll_timer == NULL) {
+        LOGE("hx90xx poll timer create fail");
+        return false;
+    }
+    hx90xx_poll_worker_inited = 1;
+    return true;
+}
 
 static void hx90xx_poll_timer_handler(void *param)
 {
 	(void)param;
-	hx90xx_report_diff_prox_status();
-	if (timer_start && hx90xx_poll_timer != NULL)
-	{
-		(void)hwtimer_start(hx90xx_poll_timer, MS_TO_HWTICKS(HX90XX_POLL_INTERVAL_MS));
-	}
+    uint8_t msg = 0x5A;
+    if (timer_start && hx90xx_poll_thd.msg_id != NULL) {
+        (void)MSG_QUEUE_SEND(hx90xx_poll_thd.msg_id, (void *)&msg, 0);
+    }
 }
 
 // 150ms 启动定时器轮询， uint8_t hx90xx_report_diff_prox_status(void)
 void hx90xx_timer_start(void)
 {
-	int ret = 0;
-	if (hx90xx_poll_timer == NULL)
+	if (!hx90xx_poll_worker_init())
 	{
-		hx90xx_poll_timer = hwtimer_alloc(hx90xx_poll_timer_handler, NULL);
-		if (hx90xx_poll_timer == NULL)
-		{
-			LOG_PBUS("hx90xx timer alloc fail\r\n");
-			timer_start = 0;
-			return;
-		}
+		timer_start = 0;
+		return;
 	}
-	if (hwtimer_active(hx90xx_poll_timer))
+	(void)STOP_TIMER(hx90xx_poll_timer);
+	if (START_TIMER(hx90xx_poll_timer, HX90XX_POLL_INTERVAL_MS) != osOK)
 	{
-		ret = hwtimer_stop(hx90xx_poll_timer);
-		if (ret != E_HWTIMER_OK && ret != E_HWTIMER_IN_CALLBACK)
-		{
-			LOG_PBUS("hx90xx timer stop fail, ret=%d\r\n", ret);
-		}
-	}
-	ret = hwtimer_start(hx90xx_poll_timer, MS_TO_HWTICKS(HX90XX_POLL_INTERVAL_MS));
-	if (ret != E_HWTIMER_OK)
-	{
-		LOG_PBUS("hx90xx timer start fail, ret=%d\r\n", ret);
+		LOG_PBUS("hx90xx timer start fail\r\n");
 		timer_start = 0;
 		return;
 	}
@@ -219,16 +242,14 @@ void hx90xx_timer_start(void)
 // 停止定时器
 void hx90xx_timer_stop(void)
 {
-	int ret = 0;
 	timer_start = 0;
 	if (hx90xx_poll_timer == NULL)
 	{
 		return;
 	}
-	ret = hwtimer_stop(hx90xx_poll_timer);
-	if (ret != E_HWTIMER_OK && ret != E_HWTIMER_IN_CALLBACK)
+	if (STOP_TIMER(hx90xx_poll_timer) != osOK)
 	{
-		LOG_PBUS("hx90xx timer stop fail, ret=%d\r\n", ret);
+		LOG_PBUS("hx90xx timer stop fail\r\n");
 	}
 }
 
@@ -275,25 +296,18 @@ uint8_t hx9033s_read_reg(uint8_t addr)
     i2c_master_data_t i2c_data = {
         .dev_address = hx9033s_ADDR,
         .reg_addr = &addr,
-        .reg_addr_len = 0,
+        .reg_addr_len = 1,
         .data = &read_data,
         .len = 1,
     };
     
-    for (uint8_t i = 0; i < 3; i++) {
-        ret = bsp_i2c_write_byte(CAP_SENSOR_I2C_ID, &i2c_data);
-        if (ret == BSP_OK) {
-            return true;
-        }
-        msleep(10);
-    }
-    for (uint8_t i = 0; i < 3; i++) {
-        ret = bsp_i2c_read_byte(CAP_SENSOR_I2C_ID, &i2c_data);
-        if (ret == BSP_OK) {
-            return read_data;
-        }
-        msleep(10);
-    }
+	for (uint8_t j = 0; j < 3; j++) {
+		ret = bsp_i2c_read_byte(CAP_SENSOR_I2C_ID, &i2c_data);
+		if (ret == BSP_OK) {
+			return read_data;
+		}
+		msleep(10);
+	}
 
     return 0;   
 }
@@ -1033,25 +1047,25 @@ uint8_t hx90xx_report_diff_prox_status(void)
   prox_status = hx9033s_read_reg(RO_A8_PROX_STATUS);
 
 	raw[0] = hx90xx_read_diff_lp(WEAR0);
-	raw[1] = hx90xx_read_diff_lp(WEAR1);
+	// raw[1] = hx90xx_read_diff_lp(WEAR1);
 	if (start_updata_nv ==1)
 	{
 		glp[0] = WinFilter(0,glp[0],raw[0], window_raw0,WIN_SIZE);
-		glp[1] = WinFilter(1,glp[1],raw[1], window_raw1,WIN_SIZE);
+		// glp[1] = WinFilter(1,glp[1],raw[1], window_raw1,WIN_SIZE);
 		
 		if (is_offset_manual ==1)
 		{
 			diff[0] = glp[0] - nv_base_data[0];
-			diff[1] = glp[1] - nv_base_data[1];
+			// diff[1] = glp[1] - nv_base_data[1];
 		}
 		else
 		{
 			diff[0] = glp[0] - min_glp[0];
-			diff[1] = glp[1] - min_glp[1];
+			// diff[1] = glp[1] - min_glp[1];
 		}
-
+		LOG_PBUS("raw:%d, glp:%d, diff:%d\r\n", raw[0], glp[0], diff[0]); 
 		
-	//	LOG_PBUS("0x6b: 0x%.2x, 0x%x\r\n", prox_status, wear_flag); 
+		LOG_PBUS("0x6b: 0x%.2x, 0x%x\r\n", prox_status, wear_status); 
 		
 		if (diff[0] > wear0_high_diff)
 		{
@@ -1064,16 +1078,16 @@ uint8_t hx90xx_report_diff_prox_status(void)
 			}
 		}
 
-		if (diff[1] > wear1_high_diff)
-		{
-			unwear_cnt[1] = 0;
-			wear_cnt[1]++;
-			if (wear_cnt[1] >= CALCU_CNT)
-			{
-				wear_cnt[1] = CALCU_CNT;
-				wear_s[1] = 1;
-			}
-		}
+		// if (diff[1] > wear1_high_diff)
+		// {
+		// 	unwear_cnt[1] = 0;
+		// 	wear_cnt[1]++;
+		// 	if (wear_cnt[1] >= CALCU_CNT)
+		// 	{
+		// 		wear_cnt[1] = CALCU_CNT;
+		// 		wear_s[1] = 1;
+		// 	}
+		// }
 		
 		if (diff[0] < wear0_low_diff)
 		{
@@ -1086,26 +1100,27 @@ uint8_t hx90xx_report_diff_prox_status(void)
 			}
 		}
 		
-		if (diff[1] < wear1_low_diff)
-		{
-			wear_cnt[1] = 0;
-			unwear_cnt[1]++;
-			if (unwear_cnt[1] > CALCU_CNT)
-			{
-				unwear_cnt[1] = CALCU_CNT;
-				wear_s[1] = 0;
-			}
-		}
+		// if (diff[1] < wear1_low_diff)
+		// {
+		// 	wear_cnt[1] = 0;
+		// 	unwear_cnt[1]++;
+		// 	if (unwear_cnt[1] > CALCU_CNT)
+		// 	{
+		// 		unwear_cnt[1] = CALCU_CNT;
+		// 		wear_s[1] = 0;
+		// 	}
+		// }
 
-		if ((wear_s[0] == 1) && (wear_s[1] == 1))
-		{
-			wear_status = 1;
-		}
+		// if ((wear_s[0] == 1) && (wear_s[1] == 1))
+		// {
+		// 	wear_status = 1;
+		// }
 		
-		if ((wear_s[0] == 0) && (wear_s[1] == 0))
-		{
-			wear_status = 0;
-		}
+		// if ((wear_s[0] == 0) && (wear_s[1] == 0))
+		// {
+		// 	wear_status = 0;
+		// }
+		wear_status = wear_s[0];
 #if 0
 		if ((wear_status ==1)&&(wear_s[0] == 0))
 		{
@@ -1169,7 +1184,7 @@ uint8_t hx90xx_report_diff_prox_status(void)
 			start_updata_nv = 1;
 			LOG_PBUS("start_updata_nv = 1,glp 0~1, %d, %d\r\n",glp[0],glp[1]);
 		}	
-		//LOG_PBUS("reoffset_flag:%d, cur_offset0:%d,cur_offset1:%d,wear_lp0:%d,wear_lp1:%d\r\n", reoffset_flag, cur_offset[0],cur_offset[1], wear_lp0, wear_lp1);
+		// LOG_PBUS("reoffset_flag:%d, cur_offset0:%d,cur_offset1:%d,wear_lp0:%d,wear_lp1:%d\r\n", reoffset_flag, cur_offset[0],cur_offset[1], wear_lp0, wear_lp1);
 		reoffset_flag++;
 	}
 
@@ -1630,10 +1645,10 @@ bool hx90xx_init(void)
 	
     for (i = 0; i<5; i++)
     {
-				hx90xx_chip_id = hx90xx_check_device_id();
+		hx90xx_chip_id = hx90xx_check_device_id();
 
-				LOG_PBUS("init device_id is : 0x%.2x\r\n", hx90xx_chip_id);
-				start_updata_nv = 0; // 防止更新数据出错
+		// LOG_PBUS("init device_id is : 0x%.2x\r\n", hx90xx_chip_id);
+		start_updata_nv = 0; // 防止更新数据出错
         if (hx90xx_chip_id == DEVICE_ID_REV2)
         {
             hx90xx_reg_init();
@@ -1656,12 +1671,15 @@ bool hx90xx_init(void)
 	hx90xx_touch_key_reset();
 #endif
 	
-		if (ret)
-		{
-			hx90xx_timer_start();
-		}
+	if (ret)
+	{
+		hx90xx_timer_start();
+	}
 	//hx90xx_spp_open_log();
 	
+	if(timer_start) {
+		LOG_PBUS("init hx90xx success\r\n");
+	}
     return ret;
 }
 

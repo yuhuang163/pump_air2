@@ -171,8 +171,8 @@ int factory_tests_aging_test_enter_mode1(void)
     READ_PUMP_MODE_STEP_INDEX(pump_ctx, time_index);
     pump_setting_t setting = {0};
     READ_PUMP_SETTING_INFO(pump_ctx, time_index, setting); 
-    setting.level[0] = BREAST_PUMP_LEVEL_15;
-    setting.level[1] = BREAST_PUMP_LEVEL_15;
+    setting.level[0] = (BREAST_PUMP_LEVEL_MAX - 1);
+    setting.level[1] = (BREAST_PUMP_LEVEL_MAX - 1);
     WRITE_PUMP_SETTING_INFO(pump_ctx, time_index, false, setting);
     LOG_TEST("tests_tlvs_suction_test: level[0] = %d, level[1] = %d", setting.level[0],
             setting.level[1]);
@@ -338,8 +338,8 @@ int factory_tests_suction_test(tests_func_args_t args)
         READ_PUMP_MODE_STEP_INDEX(pump_ctx, time_index);
         pump_setting_t setting = {0};
         READ_PUMP_SETTING_INFO(pump_ctx, time_index, setting);
-        setting.level[0] = BREAST_PUMP_LEVEL_15;
-        setting.level[1] = BREAST_PUMP_LEVEL_15;
+        setting.level[0] = (BREAST_PUMP_LEVEL_MAX - 1);
+        setting.level[1] = (BREAST_PUMP_LEVEL_MAX - 1);
         WRITE_PUMP_SETTING_INFO(pump_ctx, time_index, false, setting);
         LOG_TEST("tests_tlvs_suction_test_mode_handler: level[0] = %d, level[1] = %d", setting.level[0],
                 setting.level[1]);

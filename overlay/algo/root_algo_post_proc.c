@@ -28,7 +28,7 @@
 */
 void algo_fusion_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_len)
 {
-    int ret = 0;
+    (void)data_len;
     EXCEPTION_CHECK_VOID(ctx && data && ctx->priv.motor);
     sensor_wrapper_data_t *sensor_data = (sensor_wrapper_data_t *)data;
     algo_air_pressure_data_t algo_data = {0};

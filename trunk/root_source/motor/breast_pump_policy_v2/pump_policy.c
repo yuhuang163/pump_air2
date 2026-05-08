@@ -148,6 +148,9 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id, motor_timer_e
 
     return 0;
 }
+const static uint8_t pump_delay_table[16] = {
+    170,170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 60, 60, 100,
+};
 
 void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_runtime_t *runtime, uint8_t pump_id) 
 {
@@ -193,7 +196,7 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
         info->original.pump_level    = short_suction_table[pump_level].pump_level * PUMP_DUTY_SCALE_FACTOR;
         info->original.pumping_time  = short_suction_table[pump_level].pumping_time;
         info->original.valve_on_time = short_suction_table[pump_level].valve_on_time;
-        info->original.hold_time     = SHORT_SUCTION_HOLD_TIME; 
+        info->original.hold_time     = pump_delay_table[level]; 
         info->original.sleep_time    = short_suction_time_table[speed] - info->original.pumping_time - 
                             info->original.valve_on_time - info->original.hold_time;
         if (info->original.sleep_time < PUMP_SLEEP_TIME_MIN || info->original.sleep_time > PUMP_SLEEP_TIME_MAX) {
@@ -217,7 +220,7 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
         info->original.pump_level    = long_suction_table[pump_level].pump_level * PUMP_DUTY_SCALE_FACTOR;
         info->original.pumping_time  = long_suction_table[pump_level].pumping_time;
         info->original.valve_on_time = long_suction_table[pump_level].valve_on_time;
-        info->original.hold_time     = LONG_SUCTION_HOLD_TIME; 
+        info->original.hold_time     = pump_delay_table[level]; 
         pump_time = (ONE_MIN_TIME_MS / pump_freq / 10) * 10;
         info->original.sleep_time    = pump_time - info->original.pumping_time - info->original.valve_on_time - 
                 info->original.hold_time;

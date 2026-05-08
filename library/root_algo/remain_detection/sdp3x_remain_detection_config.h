@@ -12,11 +12,6 @@
 #define SDP3X_MEASUREMENT_USE_MASS_FLOW_REFERENCE          (1)
 #endif
 
-/// 单次读数前短时等待（ms），0 表示不等待
-#ifndef SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE
-#define SDP3X_READ_PAUSE_MS_BEFORE_SAMPLE                  (1000)
-#endif
-
 /// 启用差压读数后进入 flow_algo 流水线
 #ifndef SDP3X_FLOW_PIPELINE_ENABLE
 #define SDP3X_FLOW_PIPELINE_ENABLE                         (1)
