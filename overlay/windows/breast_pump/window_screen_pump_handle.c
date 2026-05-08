@@ -14,10 +14,12 @@
 #define PAGE_STATIC_NAME                    pump
 #define PAGE_NAME_STR                       "pump"
 #define PUMP_UI_KEY_CODE                    (ALL_KEY_CODE_NO_COMBINE)
-#define PUMP_UI_KEY_TYPE                    (KEY_EVENT_CLICK | KEY_EVENT_LONG_2S | KEY_EVENT_UP)
+#define PUMP_UI_KEY_TYPE                    (KEY_EVENT_CLICK | KEY_EVENT_DOUBLE | KEY_EVENT_LONG_2S | KEY_EVENT_UP)
 #define PUMP_START_TASK_NAME                "pump_start"
 #define PUMP_STATE_CHANGE_TASK_NAME         "pump_state_change"
 #define PUMP_COMPLETE_TASK_NAME             "pump_complete"
+#define PUMP_POWER_SINGLE_TASK_NAME         "pump_power_single"
+#define PUMP_POWER_DOUBLE_INTERVAL_MS       (300)
 
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
@@ -25,6 +27,7 @@ do { \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_START_TASK_NAME); \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_STATE_CHANGE_TASK_NAME); \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_TASK_NAME); \
+    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_POWER_SINGLE_TASK_NAME); \
 } while (0)
 
 /*
@@ -104,6 +107,50 @@ static void pump_ui_common_cb(hdr_post_args_t *args)
     }
 }
 
+static void pump_cycle_common_mode_by_power_double(ui_proc_pump_t *proc, bool is_increase)
+{
+    EXCEPTION_CHECK_VOID(proc && proc->pump);
+    uint8_t old_mode = 0;
+    uint8_t new_mode = 0;
+    READ_PUMP_COMMON_MODE(proc->pump, false, old_mode);
+    if (PUMP_IS_COMMON_MODE(old_mode) == 0) {
+        old_mode = BREAST_PUMP_NORMAL_MODE_DEFAULT;
+    }
+    if (is_increase) {
+        if (old_mode < BREAST_PUMP_MIX_MODE) {
+            new_mode = old_mode + 1;
+        } else {
+            new_mode = BREAST_PUMP_STIMULATION_MODE;
+        }
+    } else {
+        if (old_mode > BREAST_PUMP_STIMULATION_MODE) {
+            new_mode = old_mode - 1;
+        } else {
+            new_mode = BREAST_PUMP_MIX_MODE;
+        }
+    }
+    char *old_mode_name = "unknow";
+    char *new_mode_name = "unknow";
+    READ_PUMP_MODE_NAME(proc->pump, old_mode, &old_mode_name);
+    READ_PUMP_MODE_NAME(proc->pump, new_mode, &new_mode_name);
+    LOG_WM("power dbl mode switch: %d(%s) -> %d(%s), dir=%s",
+        old_mode, old_mode_name, new_mode, new_mode_name, is_increase ? "inc" : "dec");
+    proc->ui_normal_mode_index = new_mode;
+    WRITE_PUMP_WORK_MODE(proc->pump, new_mode, true, 1);
+}
+
+static void pump_power_single_click_confirm_cb(hdr_post_args_t *args)
+{
+    ui_proc_pump_t *proc = args->user_data;
+    EXCEPTION_CHECK_VOID(proc);
+    WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_PUMP);
+    if (!proc->power_click_pending) {
+        return;
+    }
+    proc->power_click_pending = 0;
+    switch_pump_status_ui(proc);
+}
+
 static void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
 {
     if (proc->popup_ui_type == ID_POPUP_UI_PUMP_FINISH_TIMEOUT) {
@@ -118,6 +165,16 @@ static void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
     }
 #endif
     
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+    /// 三键机：UP/DOWN（映射旋钮左右）统一用于档位调整
+    if (proc->info.control_type == BREAST_PUMP_CONTROL_TYPE_BILATERAL) {
+        switch_pump_both_level_ui(proc, is_left ? false : true);
+    } else {
+        switch_pump_level_ui(proc, is_left ? false : true);
+    }
+    return;
+#endif
+
 switch (proc->current_ui_type) {
         case PUMP_UI_TYPE_LEVEL:
             switch_pump_level_ui(proc, is_left ? false : true);
@@ -139,6 +196,25 @@ switch (proc->current_ui_type) {
             break;
         default:
             LOG_WM("unknow ui type: %d, ignore.", proc->current_ui_type);
+            break;
+    }
+}
+
+static void pump_double_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
+{
+    switch (keycode) {
+        case KEY_CODE_POWER:
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+            /// 三键机：电源双击按原 UP/DOWN 逻辑切换模式（按“递增”方向循环）
+            proc->power_click_pending = 0;
+            REMOVE_TASK_HANDLER_DIRECTLY(PUMP_POWER_SINGLE_TASK_NAME);
+            pump_cycle_common_mode_by_power_double(proc, true);
+#else
+            LOG_WM("keycode %d double click is not used in this layout.", keycode);
+#endif
+            break;
+        default:
+            LOG_WM("unknow keycode: %d, ignore.", keycode);
             break;
     }
 }
@@ -174,13 +250,15 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
     switch (keycode) {
         case KEY_CODE_POWER:
 #if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
-            /// 三键机：电源单击 = 原启动键（启停）；子界面仍可用电源单击回泵主页
-            if (proc->current_ui_type == PUMP_UI_TYPE_COMMON_MODE ||
-                proc->current_ui_type == PUMP_UI_TYPE_BREASTFEEDING_MODE ||
-                proc->current_ui_type == PUMP_UI_TYPE_SPEED) {
-                pump_power_key_handler(proc);
+            /// 三键机：电源键采用“单击延迟确认 + 双击切模式”
+            if (proc->power_click_pending) {
+                proc->power_click_pending = 0;
+                REMOVE_TASK_HANDLER_DIRECTLY(PUMP_POWER_SINGLE_TASK_NAME);
+                pump_cycle_common_mode_by_power_double(proc, true);
             } else {
-                switch_pump_status_ui(proc);
+                proc->power_click_pending = 1;
+                POST_TASK_HANDLER_DELAYED_ARG2(pump_power_single_click_confirm_cb, PUMP_POWER_DOUBLE_INTERVAL_MS, 0,
+                    proc, PUMP_POWER_SINGLE_TASK_NAME);
             }
 #else
             pump_power_key_handler(proc);
@@ -242,7 +320,9 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
             }
         }
 
-        if (keytype & KEY_EVENT_CLICK) {
+        if (keytype & KEY_EVENT_DOUBLE) {
+            pump_double_click_event_cb(proc, keycode);
+        } else if (keytype & KEY_EVENT_CLICK) {
             pump_click_event_cb(proc, keycode);
         }
     }
