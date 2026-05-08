@@ -49,6 +49,11 @@ void algo_fusion_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_le
         }
     }
 #endif
+// #if IS_SUPPORT_DEVICE_DIFF_PRESSURE
+//     for (int i = 0; i < DIFF_PRESSURE_NUM; i++) {
+//         algo_data.diff_pressure[i] = sensor_data->diff_pressure_data[i].pressure;
+//     }
+// #endif
     /// 泵奶数据
     algo_data.do_work = ctx->priv.motor->is_on_motor_task_running(ctx->priv.motor);
     for (int i = 0; i < ALGO_AIR_PRESSURE_NUM; i++) {
