@@ -16,6 +16,10 @@ extern "C" {
 #define ALGO_AIR_PRESSURE_NUM 2
 #endif
 
+#ifndef ALGO_DIFF_PRESSURE_NUM
+#define ALGO_DIFF_PRESSURE_NUM 1
+#endif
+
 #define IS_SUPPORT_ALGO_LIB_LOG_OUTPUT     0
 
 /*
@@ -123,6 +127,7 @@ typedef struct {
     uint8_t do_work;     /// 是否正在泵奶
     uint32_t timestamp;
     float air_pressure[ALGO_AIR_PRESSURE_NUM];
+    float diff_pressure[ALGO_DIFF_PRESSURE_NUM];
     algo_pump_state_t pump_state[ALGO_AIR_PRESSURE_NUM];
 } algo_air_pressure_data_t;
 

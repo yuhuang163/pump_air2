@@ -46,8 +46,9 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_PMU                            (1)
 #define IS_SUPPORT_DEVICE_IMU                            (0)
 #define IS_SUPPORT_DEVICE_FSENSOR                        (0)
+#define IS_SUPPORT_DEVICE_CAP_SENSOR                     (0)
 #define IS_SUPPORT_DEVICE_PRESSURE_KEY                   (0)
-#define IS_SUPPORT_DEVICE_AIR_PRESSURE                   (0)
+#define IS_SUPPORT_DEVICE_AIR_PRESSURE                   (1)
 /// 差压（如 SDP3x）
 #define IS_SUPPORT_DEVICE_DIFF_PRESSURE                  (1)
 #define IS_SUPPORT_DEVICE_MOTOR                          (1)

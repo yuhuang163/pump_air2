@@ -333,6 +333,11 @@ DRIVERS_DIFF_PRESSURE_INC_FLAGS := \
 DRIVERS_LIGHT_SENSOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/light_sensor
 
+# 电容传感器驱动头文件
+DRIVERS_CAP_SENSOR_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/cap_sensor \
+	-I$(PROJECT_ROOT)/drivers/cap_sensor/chip/hx9033s
+
 # 音频驱动头文件
 DRIVERS_AUDIO_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/audio
@@ -455,6 +460,7 @@ DRIVERS_INC_FLAGS := \
 
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_INC_FLAGS += $(DRIVERS_LIGHT_SENSOR_INC_FLAGS)
+DRIVERS_INC_FLAGS += $(DRIVERS_CAP_SENSOR_INC_FLAGS)
 endif	
 
 # 基础模块头文件
@@ -930,6 +936,11 @@ DRIVERS_FORCE_SENSOR_SRCS := \
 DRIVERS_LIGHT_SENSOR_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/light_sensor/*.c)
 
+# 电容传感器驱动源码
+DRIVERS_CAP_SENSOR_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/cap_sensor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/cap_sensor/chip/hx9033s/*.c)
+
 # I2C 驱动源码
 DRIVERS_I2C_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/i2c/*.c)
@@ -1018,6 +1029,7 @@ DRIVERS_SRCS := \
 
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_SRCS += $(DRIVERS_LIGHT_SENSOR_SRCS)
+DRIVERS_SRCS += $(DRIVERS_CAP_SENSOR_SRCS)
 endif	
 
 # 基础模块源码

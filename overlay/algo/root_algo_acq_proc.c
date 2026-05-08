@@ -47,6 +47,11 @@ void algo_sampling_data_cb(algo_manager_context_t *ctx, uint8_t *data, int data_
         sampling_data->air_pressure[i] = sensor_data->air_pressure_data[i].pressure;
     }
 #endif
+// #if IS_SUPPORT_DEVICE_DIFF_PRESSURE
+//     for (int i = 0; i < DIFF_PRESSURE_NUM; i++) {
+//         sampling_data->diff_pressure[i] = sensor_data->diff_pressure_data[i].pressure;
+//     }
+// #endif
     /// 泵奶数据
     for (int i = 0; i < BREAST_PUMP_NUM; i++) {
         sampling_data->pump_state[i].state = info[i].state.status;
@@ -120,6 +125,12 @@ bool algo_change_sampling_interval(algo_manager_context_t *ctx, uint16_t interva
         air_pressure_ctx->set_sampling_interval(interval);
     }
 #endif
+// #if IS_SUPPORT_DEVICE_DIFF_PRESSURE
+//     diff_pressure_context_t *diff_pressure_ctx = (diff_pressure_context_t *)ctx->priv.sensor->find_sensor(ID_SENSOR_DIFF_PRESSURE);
+//     if (diff_pressure_ctx) {
+//         diff_pressure_ctx->set_sampling_interval(interval);
+//     }
+// #endif
     algo_sampling_start(ctx);
     return true;
 }

@@ -39,6 +39,7 @@ typedef enum {
     ID_DEVICE_LIGHT_SENSOR,
     ID_DEVICE_MOTOR,
     ID_DEVICE_AUDIO,
+    ID_DEVICE_CAP_SENSOR,
     ID_DEVICE_MAX
 } device_desc_id_e;
 
