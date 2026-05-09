@@ -172,39 +172,40 @@ void switch_pump_both_control_type_ui(ui_proc_pump_t *proc)
 void switch_pump_both_level_ui(ui_proc_pump_t *proc, bool is_increase)
 {
     EXCEPTION_CHECK_VOID(proc && proc->pump);
-    int16_t left_level = proc->setting.level[0] + proc->level_change;
-    int16_t right_level = proc->setting.level[1] + proc->level_change;
+    int time_index = 0;
+    READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
+    READ_PUMP_SETTING_INFO(proc->pump, time_index, proc->setting);
+
+    uint8_t old_left = proc->setting.level[0];
+    uint8_t old_right = proc->setting.level[1];
+    uint8_t new_left = old_left;
+    uint8_t new_right = old_right;
     if (is_increase) {
-        if (left_level < (BREAST_PUMP_LEVEL_MAX - 1) || right_level < (BREAST_PUMP_LEVEL_MAX - 1)) {
-            proc->level_change++;
+        if (new_left < (BREAST_PUMP_LEVEL_MAX - 1)) {
+            new_left++;
+        }
+        if (new_right < (BREAST_PUMP_LEVEL_MAX - 1)) {
+            new_right++;
         }
     } else {
-        if (left_level > BREAST_PUMP_LEVEL_0 || right_level > BREAST_PUMP_LEVEL_0) {
-            proc->level_change--;
+        if (new_left > BREAST_PUMP_LEVEL_0) {
+            new_left--;
+        }
+        if (new_right > BREAST_PUMP_LEVEL_0) {
+            new_right--;
         }
     }
 
-    /// 三键无屏路径需要按键后立即生效，避免依赖 UI 动画超时回写。
-    if (proc->level_change != 0) {
-        int time_index = 0;
-        READ_PUMP_MODE_STEP_INDEX(proc->pump, time_index);
-        if (proc->level_change > 0) {
-            for (int i = 0; i < BREAST_PUMP_NUM; i++) {
-                proc->setting.level[i] = proc->setting.level[i] + proc->level_change;
-                if (proc->setting.level[i] >= BREAST_PUMP_LEVEL_MAX) {
-                    proc->setting.level[i] = BREAST_PUMP_LEVEL_MAX - 1;
-                }
-            }
-        } else {
-            uint8_t abs_level_change = abs(proc->level_change);
-            for (int i = 0; i < BREAST_PUMP_NUM; i++) {
-                proc->setting.level[i] = proc->setting.level[i] < abs_level_change ?
-                    0 : (proc->setting.level[i] - abs_level_change);
-            }
-        }
+    proc->level_change = 0;
+    if (new_left != old_left || new_right != old_right) {
+        proc->setting.level[0] = new_left;
+        proc->setting.level[1] = new_right;
         WRITE_PUMP_SETTING_INFO(proc->pump, time_index, true, proc->setting);
-        LOG_UI("both level apply now: L=%d, R=%d", proc->setting.level[0], proc->setting.level[1]);
-        proc->level_change = 0;
+        LOG_UI("both level apply now: step=%d L:%d->%d R:%d->%d",
+            time_index, old_left, new_left, old_right, new_right);
+    } else {
+        LOG_UI("both level keep: step=%d L=%d R=%d boundary",
+            time_index, old_left, old_right);
     }
     show_pump_both_level_ui(proc);
 }   

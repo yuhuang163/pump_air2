@@ -113,30 +113,21 @@ static const suction_parameters_t short_suction_table[SUCTION_LEVEL_MAX] = {
 /// 长吸泵频次表 (泵频次 1分/次)
 static const uint16_t long_pump_freq_table[BREAST_PUMP_LEVEL_MAX][SUCTION_SPEED_MAX] = {
     /// 低，中，高 
-    // {64, 90, 116}, /// level 0
-    // {61, 85,  110},  /// level 1      
-    // {56, 79,  102 }, /// level 2  
-    // {51, 72,  94 }, /// level 3
-    // {46, 67,  89 }, /// level 4    
-    // {41, 62,  84 }, /// level 5 
-    // {37, 58,  79 }, /// level 6    
-    // {34, 54,  74 }, /// level 7   
-    {60, 60, 60}, /// level 0
-    {60, 60, 60}, /// level 0
-    {57, 57,  57},  /// level 1      
-    {55, 55,  55 }, /// level 2  
+    {60, 60,  60 }, /// level 0
+    {57, 57,  57 }, /// level 1
+    {55, 55,  55 }, /// level 2
     {53, 53,  53 }, /// level 3
-    {51, 51,  51 }, /// level 4    
-    {48, 48,  48 }, /// level 5 
-    {45, 45,  45 }, /// level 6    
-    {43, 43,  43 }, /// level 7     
-    {40, 40,  40 }, /// level 8  
+    {51, 51,  51 }, /// level 4
+    {48, 48,  48 }, /// level 5
+    {45, 45,  45 }, /// level 6
+    {43, 43,  43 }, /// level 7
+    {40, 40,  40 }, /// level 8
     {37, 37,  37 }, /// level 9
-    {35, 35,  35 }, /// level 10    
-    {33, 33,  33 }, /// level 11 
-    {30, 30,  30 }, /// level 12    
-    {27, 27,  27 }, /// level 13 
-    {25, 25,  25 }, /// level 14 
+    {35, 35,  35 }, /// level 10
+    {33, 33,  33 }, /// level 11
+    {30, 30,  30 }, /// level 12
+    {27, 27,  27 }, /// level 13
+    {25, 25,  25 }, /// level 14
 };
 #else
 /// 吸力参数表（单位kpa）//泌乳力表
@@ -222,28 +213,27 @@ static const suction_parameters_t short_suction_table[SUCTION_LEVEL_MAX] = {
 /// 长吸泵频次表 (泵频次 1分/次)
 static const uint16_t long_pump_freq_table[BREAST_PUMP_LEVEL_MAX][SUCTION_SPEED_MAX] = {
     /// 低，中，高     
-    {90, 100, 110}, /// level 0      
-    {72, 76,  80},  /// level 1      
-    {68, 72,  76 }, /// level 2  
-    {65, 69,  73 }, /// level 3
-    {62, 66,  70 }, /// level 4    
-    {60, 64,  68 }, /// level 5 
-    {58, 62,  66 }, /// level 6    
-    {56, 60,  64 }, /// level 7     
-    {54, 58,  62 }, /// level 8   
-    {52, 56,  60 }, /// level 9  
-    {50, 54,  58 }, /// level 10   
-    {48, 52,  56 }, /// level 11  
-    {46, 50,  54 }, /// level 12     
-    {44, 48,  52 }, /// level 13 
-    {42, 46,  50 }, /// level 14
-    {40, 44,  48 }, /// level 15 
+    // 0kPa 档位去除后，level0 对应原最小有效档位
+    {72, 76,  80 }, /// level 0
+    {68, 72,  76 }, /// level 1
+    {65, 69,  73 }, /// level 2
+    {62, 66,  70 }, /// level 3
+    {60, 64,  68 }, /// level 4
+    {58, 62,  66 }, /// level 5
+    {56, 60,  64 }, /// level 6
+    {54, 58,  62 }, /// level 7
+    {52, 56,  60 }, /// level 8
+    {50, 54,  58 }, /// level 9
+    {48, 52,  56 }, /// level 10
+    {46, 50,  54 }, /// level 11
+    {44, 48,  52 }, /// level 12
+    {42, 46,  50 }, /// level 13
+    {40, 44,  48 }, /// level 14
 };
 #endif
 
 /// 短吸力度表 //按摩力表
 static const uint16_t short_level_table[BREAST_PUMP_LEVEL_MAX] = {
-    SUCTION_LEVEL_0KPA, /// 0KPA
     SUCTION_LEVEL_16KPA, /// 6KPA
     SUCTION_LEVEL_17KPA, /// 7.4KPA
     SUCTION_LEVEL_18KPA, /// 8.1KPA
@@ -263,7 +253,6 @@ static const uint16_t short_level_table[BREAST_PUMP_LEVEL_MAX] = {
 
 /// 长吸力度表 //泌乳力表
 static const uint16_t long_level_table[BREAST_PUMP_LEVEL_MAX] = {
-    SUCTION_LEVEL_0KPA, /// 0KPA
     SUCTION_LEVEL_16KPA, /// 6KPA
     SUCTION_LEVEL_17KPA, /// 7.4KPA
     SUCTION_LEVEL_18KPA, /// 8.1KPA

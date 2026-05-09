@@ -349,7 +349,7 @@ int bsp_motor_pump_parameter_set(void *args)
             pump_motor_stall_detection_start(pump_id, pump_para->duration_ms, pump_para->pulse_width);
             uint16_t start_pulse_width = MOTOR_PUMP_START_PWM_DUTY * PUMP_DUTY_SCALE_FACTOR;
             pump_status[pump_id].pump_is_running = true;
-            pump_status[pump_id].setting_pulse_width = MOTOR_PUMP_PULSE_WIDTH_MAX - pump_para->pulse_width;
+            pump_status[pump_id].setting_pulse_width = pump_para->pulse_width;
             if (pump_status[pump_id].setting_pulse_width > start_pulse_width && pump_para->pulse_width != 0) {
                 pump_status[pump_id].target_pulse_width = start_pulse_width;
                 LOGE("pump %d error, pump_para->pulse_width:%d", pump_id, pump_para->pulse_width);
