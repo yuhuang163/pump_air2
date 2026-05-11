@@ -14,6 +14,7 @@
 #if IS_SUPPORT_CHARGE_IC_SGM41519
 #include "chip/sgm41519/sgm41519.h"
 #endif
+#include "fuel_gauge/chip/cw221x/cw221x.h"
 
 
 #if IS_SUPPORT_DEVICE_CHARGE 
@@ -80,26 +81,87 @@ static void charge_enable_control(bool enable)
     LOG_PBUS("charge_enable_control: %d", enable);
 }
 
-static int charge_ntc_temperature_get(float resistance)
+/// TODO: 温度检测放到电量计中
+static int charge_fg_status_poll_retry(fuel_gauge_status_t *fg)
 {
-    int left = 0;
-    int right = NTC_TEMP_TABLE_SIZE - 1;
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        if (resistance >= ntc_temp_table[mid].r_min && resistance <= ntc_temp_table[mid].r_max) {
-            return ntc_temp_table[mid].temp;
+    unsigned int fg_vol_mv = 0;
+    unsigned int fg_alert = 0;
+    long fg_current_ma = 0;
+    int fg_temp_deci_c = 0;
+    int fg_soc = 0;
+    int fg_cycle = 0;
+    int fg_soh = 0;
+    const uint8_t max_retry = 5;
+    if (fg == NULL) {
+        return BSP_ERROR;
+    }
+    for (uint8_t i = 0; i < max_retry; i++) {
+        if (cw221x_get_vol(&fg_vol_mv) != 0) {
+            msleep(5);
+            continue;
         }
-        if (resistance > ntc_temp_table[mid].r_max) {
-            right = mid - 1;
-        } else {
-            left = mid + 1;
+        if (cw221x_get_current(&fg_current_ma) != 0) {
+            msleep(5);
+            continue;
         }
+        if (cw221x_get_temp(&fg_temp_deci_c) != 0) {
+            msleep(5);
+            continue;
+        }
+        if (cw221x_get_capacity(&fg_soc) != 0) {
+            msleep(5);
+            continue;
+        }
+        if (cw221x_get_cycle_count(&fg_cycle) != 0) {
+            msleep(5);
+            continue;
+        }
+        if (cw221x_get_soh(&fg_soh) != 0) {
+            msleep(5);
+            continue;
+        }
+        if (cw221x_get_alert(&fg_alert) != 0) {
+            msleep(5);
+            continue;
+        }
+
+        fg->ready = 1;
+        fg->voltage_mv = (uint16_t)fg_vol_mv;
+        fg->current_ma = (int32_t)fg_current_ma;
+        fg->temperature_c = (int16_t)(fg_temp_deci_c / 10);
+        fg->soc = (uint8_t)((fg_soc < 0) ? 0 : (fg_soc > 100 ? 100 : fg_soc));
+        fg->cycle_count = (uint16_t)((fg_cycle < 0) ? 0 : fg_cycle);
+        fg->soh = (uint8_t)((fg_soh < 0) ? 0 : (fg_soh > 100 ? 100 : fg_soh));
+        fg->alert = (uint16_t)fg_alert;
+        return BSP_OK;
+    }
+    fg->ready = 0;
+    return BSP_ERROR;
+}
+
+static int charge_status_poll_by_fg(charge_chip_status_t *status)
+{
+    if (status == NULL) {
+        return BSP_ERROR;
     }
 
-    if (left >= NTC_TEMP_TABLE_SIZE) {
-        return ntc_temp_table[NTC_TEMP_TABLE_SIZE - 1].temp + 1;
+    if (charge_fg_status_poll_retry(&status->fg) != BSP_OK || !status->fg.ready) {
+        return BSP_ERROR;
     }
-    return ntc_temp_table[0].temp - 1;
+
+    status->vbat = status->fg.voltage_mv;
+    status->ibat = (status->fg.current_ma > 0) ? (uint16_t)status->fg.current_ma : 0;
+    status->temp = (int8_t)status->fg.temperature_c;
+    status->plug_in = vbus_is_plug_in() ? 1 : 0;
+
+    if (status->plug_in && status->fg.soc >= 100) {
+        status->charge_full = 1;
+        status->status |= CHARGE_STATUS_BAT_FULL_MSK;
+    } else {
+        status->charge_full = 0;
+        status->status &= (uint16_t)(~CHARGE_STATUS_BAT_FULL_MSK);
+    }
+    return BSP_OK;
 }
 
 static void charge_chip_init(void)
@@ -166,19 +228,35 @@ static void charge_device_thread(void *arg)
 {
     uint8_t msg = 0;
     uint32_t log_timer = 0;
-    uint16_t test_count = 0;
+    uint8_t last_plug_in = 0;
+    uint8_t last_full = 0;
+    uint8_t last_temp_abnormal = 0;
     while (1) {
         MSG_QUEUE_RECV(s_charge_device_thd.msg_id, &msg, OS_WAIT_FOREVER);
 #if IS_SUPPORT_PD_CHARGE
         charge_pd_status_poll();
 #endif
 #if IS_SUPPORT_DEVICE_CHARGE
-        charge_status_poll(&s_charge_status);
+        charge_status_poll_by_fg(&s_charge_status);
         s_charge_status.charge_full = (s_charge_status.status & CHARGE_STATUS_BAT_FULL_MSK) > 0 ? true : false;        
-        s_charge_status.temp = charge_ntc_temperature_get(s_charge_status.ntc_resistance);
+        if (s_charge_status.plug_in != last_plug_in) {
+            last_plug_in = s_charge_status.plug_in;
+            charge_event_internal_cb(last_plug_in ? CHARGE_EVENT_PLUG_IN : CHARGE_EVENT_PLUG_OUT);
+        }
+        if (s_charge_status.charge_full && !last_full) {
+            charge_event_internal_cb(CHARGE_EVENT_FULL);
+        } else if (!s_charge_status.charge_full && last_full) {
+            charge_event_internal_cb(CHARGE_EVENT_UNCHARGE);
+        }
+        last_full = s_charge_status.charge_full ? 1 : 0;
 #if IS_SUPPORT_CHARGE_CURRENT_ADJUST
         charging_temp_policy_handler(s_charge_status.temp);
 #endif
+        uint8_t temp_abnormal = (s_charge_temp_status == CHARGE_TEMP_DISABLE) ? 1 : 0;
+        if (temp_abnormal != last_temp_abnormal) {
+            last_temp_abnormal = temp_abnormal;
+            charge_event_internal_cb(temp_abnormal ? CHARGE_EVENT_TEMPERATURE_ERROR : CHARGE_EVENT_UNCHARGE);
+        }
         if (get_timestamp_ms(log_timer) > 2000) {
             log_timer = get_timestamp();
             BSP_LOG("charge status", "vbus:%d mV, ibus:%d mA, vbat:%d mV, ibat:%d mA, ntc:%.2f KOhm, temp:%d C, status:0x%04X", 
@@ -273,7 +351,7 @@ int bsp_charge_init(void)
     charge_enable_gpio_init();
     bsp_i2c_init(CHARGE_I2C_ID);
     charge_chip_init();
-    charge_status_poll(&s_charge_status);
+    charge_status_poll_by_fg(&s_charge_status);
     s_charge_is_ready = true;
 #endif
     CREATE_MSG_TYPE_QUEUE(&s_charge_device_thd.msg_id, 1, 1);
@@ -357,6 +435,51 @@ int bsp_charge_get_ibat_ma(uint16_t *ibat_ma)
     }
     *ibat_ma = s_charge_status.ibat;
     return BSP_OK;
+}
+
+int charge_ship_mode_enter(void)
+{
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+    return (sgm41519_enter_ship_mode() == BSP_OK) ? 0 : -1;
+#else
+    return -1;
+#endif
+}
+
+int charge_ship_mode_exit(void)
+{
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+    return (sgm41519_exit_ship_mode() == BSP_OK) ? 0 : -1;
+#else
+    return -1;
+#endif
+}
+
+int charge_ship_mode_get(void)
+{
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+    return sgm41519_get_ship_mode();
+#else
+    return 0;
+#endif
+}
+
+int charge_boost_set(uint8_t enable)
+{
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+    return (sgm41519_set_otg_boost_enable(enable) == BSP_OK) ? 0 : -1;
+#else
+    return -1;
+#endif
+}
+
+int charge_boost_get(void)
+{
+#if IS_SUPPORT_CHARGE_IC_SGM41519
+    return sgm41519_get_otg_boost_enable();
+#else
+    return 0;
+#endif
 }
 #endif
 

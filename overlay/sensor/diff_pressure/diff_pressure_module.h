@@ -10,7 +10,7 @@ extern "C" {
  ******************************************************************************/
 #include "root_common_base.h" // IWYU pragma: keep
 
-#define DIFF_PRESSURE_POLLING_PERIOD              (1000)
+#define DIFF_PRESSURE_POLLING_PERIOD              (10)  ///(10)
 
 struct rt_device_node;
 typedef struct diff_pressure_context {

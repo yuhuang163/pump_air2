@@ -38,13 +38,28 @@ static bool is_prohibit_pm_suspend(struct power_manager_context *ctx)
     EXCEPTION_CHECK_BOOL(wm);
     battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
     if (battery && BATTERY_IS_CHARGING(battery->get_charge_status())) {
-        if (wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0) {
+        /// 已在泵页时不要强行 dispatch 充电页：会销毁泵窗口，电源单击只会落到 charge（原 charge 仅处理长按电源），表现为「插着电用一会儿电源失灵」
+        if (wm->is_current_window(wm, ID_WINDOW_CHARGE) == 0 &&
+            wm->is_current_window(wm, ID_WINDOW_PUMP) == 0 &&
+            wm->get_overlay_window_id(wm) != ID_WINDOW_PUMP) {
             multi_func_msg_data_t msg = {0};
             msg.union_body.extra.is_bg_dispatch = 0;
             msg.union_body.extra.window_id = ID_WINDOW_CHARGE;
             wm->dispatch_new_window_args(wm, &msg);
         }
         return true; /// 充电状态下禁止进入待机状态.
+    }
+    /// 泵窗口在前台或作为 overlay 底层时禁止待机：否则会 dispatch DUMMY 销毁泵页，按键分发仍在但泵回调已卸载
+    if (wm->is_current_window(wm, ID_WINDOW_PUMP) || wm->get_overlay_window_id(wm) == ID_WINDOW_PUMP) {
+        return true;
+    }
+    breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+    if (pump) {
+        uint8_t is_working = 0;
+        READ_PUMP_IS_WORKING(pump, is_working);
+        if (is_working) {
+            return true;
+        }
     }
     return false;
 }

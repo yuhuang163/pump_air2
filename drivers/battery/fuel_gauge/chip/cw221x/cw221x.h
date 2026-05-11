@@ -9,6 +9,7 @@ int cw221x_get_temp(int *lp_temp);
 int cw221x_get_current(long *lp_current);
 int cw221x_get_cycle_count(int *lp_count);
 int cw221x_get_soh(int *lp_soh);
+int cw221x_get_alert(unsigned int *lp_alert);
 int cw221x_dump_register(void);
 int cw221x_bat_init(void);
 #endif

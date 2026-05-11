@@ -172,6 +172,30 @@ static uint8_t app_old_comm_get_battery_percent(void)
     return percent;
 }
 
+static uint8_t app_old_comm_get_ship_mode(void)
+{
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    EXCEPTION_CHECK_UINT(pbus);
+    struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
+    if (battery == NULL) {
+        return 0;
+    }
+    int ret = DEVICE_IOCTL(battery, OP_CODE_BAT_SHIP_MODE_STATUS);
+    return ret > 0 ? 1 : 0;
+}
+
+static uint8_t app_old_comm_get_boost_mode(void)
+{
+    peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+    EXCEPTION_CHECK_UINT(pbus);
+    struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
+    if (battery == NULL) {
+        return 0;
+    }
+    int ret = DEVICE_IOCTL(battery, OP_CODE_BAT_BOOST_GET);
+    return ret > 0 ? 1 : 0;
+}
+
 static bool app_old_comm_check_if_low_battery(void)
 {
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
@@ -928,8 +952,8 @@ void app_old_comm_report_device_status(app_old_commd_l_r_ctrl_e lr_ct, servers_o
     app_old_comm_append_u16_le(report_data, &data_len, custom_mode_total_time);
     report_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
     report_data[data_len++] = app_old_comm_get_current_mode_pump_speed(id) + 1; //normal speed //频次（1-低 2-中 3-高）（1字节）
-    report_data[data_len++] = 0x00; //预留
-    report_data[data_len++] = 0x00; //预留
+    report_data[data_len++] = app_old_comm_get_ship_mode();  // ship mode状态
+    report_data[data_len++] = app_old_comm_get_boost_mode(); // boost状态
     report_data[data_len++] = app_old_comm_get_current_running_mode_step();
     app_old_comm_append_u16_le(report_data, &data_len, mode_step_time);
     report_data[data_len++] = app_old_comm_get_night_light_onoff();
@@ -965,8 +989,8 @@ void app_old_comm_handle_get_status_req(app_old_commd_l_r_ctrl_e lr_ct)
     app_old_comm_append_u16_le(ack_data, &data_len, custom_mode_total_time);
     ack_data[data_len++] = app_old_comm_get_system_is_airplane_mode();
     ack_data[data_len++] = app_old_comm_get_current_mode_pump_speed(OLD_PUBLISH_DATA_POLL_REPORT) + 1; //normal speed
-    ack_data[data_len++] = 0x00; //预留
-    ack_data[data_len++] = 0x00; //预留
+    ack_data[data_len++] = app_old_comm_get_ship_mode();  // ship mode状态
+    ack_data[data_len++] = app_old_comm_get_boost_mode(); // boost状态
     ack_data[data_len++] = app_old_comm_get_current_running_mode_step();
     app_old_comm_append_u16_le(ack_data, &data_len, mode_step_time);
     ack_data[data_len++] = app_old_comm_get_night_light_onoff();

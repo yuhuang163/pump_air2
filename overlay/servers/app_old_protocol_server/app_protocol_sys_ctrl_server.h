@@ -15,6 +15,10 @@ typedef enum {
     APP_OLD_COMM_SYS_REBOOT = 0x02,
     APP_OLD_COMM_SYS_OTA = 0x03,
     APP_OLD_COMM_SYS_OFF_OTA_RECOVERY = 0x04,
+    APP_OLD_COMM_SYS_SHIP_MODE_ENTER = 0x05,
+    APP_OLD_COMM_SYS_SHIP_MODE_EXIT = 0x06,
+    APP_OLD_COMM_SYS_BOOST_ON = 0x07,
+    APP_OLD_COMM_SYS_BOOST_OFF = 0x08,
 } app_old_commd_sys_ctrl_e;
 
 typedef struct {

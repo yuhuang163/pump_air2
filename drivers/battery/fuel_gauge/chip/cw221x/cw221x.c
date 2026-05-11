@@ -1,4 +1,7 @@
-#include "Cellwise_CW221X_Driver_V1.0.h"
+#include "bsp_common.h"
+#include "bsp_config.h"
+#include "bsp_i2c.h"
+#include "cw221x.h"
 
 #define REG_CHIP_ID             0x00
 #define REG_VCELL_H             0x02
@@ -36,7 +39,7 @@
 
 #define SIZE_OF_PROFILE         80
 
-#define USER_RSENSE (10 * 1000)  //rsense * 1000
+#define USER_RSENSE (20 * 1000)  //rsense * 1000
 
 #define INIT_TEST_TIME      50 /*must >= 50 , can not modify */
 
@@ -54,34 +57,85 @@
 #define CW2217_MARK             0x40
 #define CW2218_MARK             0x00
 
+#define CW221X_I2C_ADDR         0x64
+#define CW221X_I2C_RETRY_COUNT  3
+
 /**************************global**********************************/
 static unsigned char config_profile_info[SIZE_OF_PROFILE] = {
-	0x5A,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0xB9,0xB6,0xC2,0xBD,0xC4,0xC1,0x95,0x5B,
-	0x2C,0xFF,0xFF,0xE1,0xBF,0x7F,0x6A,0x5B,
-	0x51,0x4C,0x46,0x84,0xC2,0xD9,0x9E,0xD5,
-	0xCF,0xCE,0xCD,0xCA,0xC9,0xB1,0xE0,0xAE,
-	0xBD,0xC6,0xAB,0x98,0x8C,0x83,0x7C,0x6C,
-	0x63,0x65,0x80,0x91,0xA2,0x73,0x61,0x53,
-	0x00,0x00,0x57,0x10,0x00,0x40,0xF6,0x00,
-	0x00,0x00,0x64,0x1F,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xF4,
+	0x46,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0xB0,0xBC,0xC2,0xC6,0xC5,0xC5,0x8C,0x4E,
+	0x26,0xFF,0xFF,0xF3,0xC9,0x96,0x7A,0x5C,
+	0x4D,0x45,0x38,0x7A,0xB4,0xDB,0xEF,0xCA,
+	0xCA,0xCE,0xD1,0xD0,0xCD,0xCB,0xC6,0xCB,
+	0xC6,0xC6,0xC8,0xA3,0x97,0x8C,0x85,0x7B,
+	0x73,0x76,0x83,0x8E,0xA5,0x8E,0x52,0x4D,
+	0x00,0x00,0x57,0x10,0x00,0x82,0xC6,0x00,
+	0x00,0x00,0x64,0x10,0x91,0xAE,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0A,
 };
 
 int cw_read(unsigned char PointReg,unsigned char *pData);
 int cw_write(unsigned char PointReg,unsigned char *pData);
 int cw_read_nbyte(unsigned char point_reg,unsigned char *r_pdata, unsigned char len);
 
-void cw_delay10us(unsigned int us)
+int cw_read(unsigned char point_reg, unsigned char *p_data)
 {
-	unsigned char a, b;
-	unsigned int i;
-	for(i = 0; i < us; i++){
-		for(b=1; b>0; b--)
-		{
-			for(a=2; a>0; a--);
-		}
-	}
+    if (p_data == NULL) {
+        return BSP_ERROR;
+    }
+    i2c_master_data_t i2c_data = {
+        .dev_address = CW221X_I2C_ADDR,
+        .reg_addr = &point_reg,
+        .reg_addr_len = 1,
+        .data = p_data,
+        .len = 1,
+    };
+    for (uint8_t i = 0; i < CW221X_I2C_RETRY_COUNT; i++) {
+        if (bsp_i2c_read_byte(FUEL_GAUGE_I2C_ID, &i2c_data) == BSP_OK) {
+            return BSP_OK;
+        }
+    }
+    return BSP_ERROR;
+}
+
+int cw_write(unsigned char point_reg, unsigned char *p_data)
+{
+    if (p_data == NULL) {
+        return BSP_ERROR;
+    }
+    i2c_master_data_t i2c_data = {
+        .dev_address = CW221X_I2C_ADDR,
+        .reg_addr = &point_reg,
+        .reg_addr_len = 1,
+        .data = p_data,
+        .len = 1,
+    };
+    for (uint8_t i = 0; i < CW221X_I2C_RETRY_COUNT; i++) {
+        if (bsp_i2c_write_byte(FUEL_GAUGE_I2C_ID, &i2c_data) == BSP_OK) {
+            return BSP_OK;
+        }
+    }
+    return BSP_ERROR;
+}
+
+int cw_read_nbyte(unsigned char point_reg, unsigned char *r_pdata, unsigned char len)
+{
+    if (r_pdata == NULL || len == 0) {
+        return BSP_ERROR;
+    }
+    i2c_master_data_t i2c_data = {
+        .dev_address = CW221X_I2C_ADDR,
+        .reg_addr = &point_reg,
+        .reg_addr_len = 1,
+        .data = r_pdata,
+        .len = len,
+    };
+    for (uint8_t i = 0; i < CW221X_I2C_RETRY_COUNT; i++) {
+        if (bsp_i2c_read_byte(FUEL_GAUGE_I2C_ID, &i2c_data) == BSP_OK) {
+            return BSP_OK;
+        }
+    }
+    return BSP_ERROR;
 }
 
 int cw221x_read_word(unsigned char point_reg, unsigned int *r_pdata)
@@ -95,14 +149,14 @@ int cw221x_read_word(unsigned char point_reg, unsigned int *r_pdata)
 	if(ret)
 		return CW221X_ERROR_IIC;
 	temp_val_buff = (reg_val[0] << 8) + reg_val[1];
-	cw_delay10us(100 * 4); /*sleep  >= 4 ms must*/
+	msleep(4); /*sleep  >= 4 ms must*/
 	ret = cw_read_nbyte(point_reg, reg_val, 2);
 	if(ret)
 		return CW221X_ERROR_IIC;
 	temp_val_second = (reg_val[0] << 8) + reg_val[1];
 	
 	if (temp_val_buff != temp_val_second){
-		cw_delay10us(100 * 4); /*sleep  >= 4 ms must*/
+		msleep(4); /*sleep  >= 4 ms must*/
 		ret = cw_read_nbyte(point_reg, reg_val, 2);
 		if(ret)
 			return CW221X_ERROR_IIC;
@@ -136,7 +190,11 @@ static int cw221x_get_state(void)
 	if(ret)
 		return CW221X_ERROR_IIC;
 	if (reg_val != CONFIG_MODE_ACTIVE)
-		return CW221X_NOT_ACTIVE;
+	{
+		LOG_PBUS("cw221x not active");
+		return BSP_ERROR;
+	}
+		
 	
 	ret = cw_read(REG_SOC_ALERT, &reg_val);
 	if (ret)
@@ -162,9 +220,11 @@ static int cw221x_write_profile(unsigned char const buf[])
 {
 	int ret;
 	int i;
+    unsigned char write_val = 0;
 
 	for (i = 0; i < SIZE_OF_PROFILE; i++) {
-		ret = cw_write(REG_BAT_PROFILE + i, &buf[i]);
+        write_val = buf[i];
+		ret = cw_write(REG_BAT_PROFILE + i, &write_val);
 		if (ret)
 			return CW221X_ERROR_IIC;
 	}
@@ -204,13 +264,13 @@ int cw221x_sleep()
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret)
 		return CW221X_ERROR_IIC;
-	cw_delay10us(2 * 1000); /* Here delay must >= 20 ms */
+		msleep(2); /* Here delay must >= 20 ms */
 
 	reg_val = CONFIG_MODE_SLEEP;
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret)
 		return CW221X_ERROR_IIC;
-	cw_delay10us(1 * 1000); 
+		msleep(1); 
 
 	return 0;
 }
@@ -223,13 +283,13 @@ static int cw221x_active()
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret)
 		return CW221X_ERROR_IIC;
-	cw_delay10us(2 * 1000); /* Here delay must >= 20 ms */
+		msleep(2); /* Here delay must >= 20 ms */
 
 	reg_val = CONFIG_MODE_ACTIVE;
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret < 0)
 		return CW221X_ERROR_IIC;
-	cw_delay10us(1 * 1000); 
+		msleep(1); 
 
 	return 0;
 }
@@ -244,42 +304,76 @@ static int cw221x_config_start_ic()
 
 	ret = cw221x_sleep();
 	if (ret < 0)
+	{
+		LOG_PBUS("cw221x sleep failed: %d", ret);
 		return ret;
+	}
 
 	/* update new battery info */
 	ret = cw221x_write_profile(config_profile_info);
 	if (ret < 0)
+	{
+		LOG_PBUS("cw221x write profile failed: %d", ret);
 		return ret;
+	}
 
 	/* set UPDATE_FLAG AND SOC INTTERRUP VALUE*/
 	reg_val = CONFIG_UPDATE_FLG | GPIO_SOC_IRQ_VALUE;   
 	ret = cw_write(REG_SOC_ALERT, &reg_val);
 	if (ret)
+	{
+		LOG_PBUS("cw221x write soc alert failed: %d", ret);	
 		return CW221X_ERROR_IIC;
+	}
 
 	/*close all interruptes*/
 	reg_val = 0; 
 	ret = cw_write(REG_GPIO_CONFIG, &reg_val); 
 	if (ret)
-		return CW221X_ERROR_IIC;
+	{
+		LOG_PBUS("cw221x write gpio config failed: %d", ret);
+		return ret;
+	}
 
 	ret = cw221x_active();
 	if (ret < 0) 
+	{
+		LOG_PBUS("cw221x active failed: %d", ret);
 		return ret;
+	}
 		
 	while(1){
-		cw_delay10us(10 * 1000);
+		msleep(10);
 		ret = cw_read(REG_IC_STATE, &reg_val);
 		if (IC_READY_MARK == (reg_val & IC_READY_MARK))
 			break;
 		count++;
 		if (count >= CW_SLEEP_COUNTS) {
 			cw221x_sleep();
+			LOG_PBUS("cw221x ic state not ready");
 			return -1;
 		}
 	}
 	
 	return 0;
+}
+void read_all_register(void)
+{
+	int ret;
+	unsigned char reg_val;
+	int i;
+	
+	
+	for(i = 0; i <= 0xF; i++){
+		cw_read(i, &reg_val);
+		/*Please add print if use*/
+		LOG_PBUS("0x%2x = 0x%2x", i, (int)reg_val);
+	}
+	for(i = 0xA0; i <= 0xAB; i++){
+		cw_read(i, &reg_val);
+		/*Please add print if use*/
+		LOG_PBUS("0x%2x = 0x%2x", i, (int)reg_val);
+	}
 }
 
 static int cw221x_init(void)
@@ -289,22 +383,29 @@ static int cw221x_init(void)
 
 	ret = cw221x_get_chip_id(&chip_id);
 	if(ret){
+		LOG_PBUS("cw221x get chip id failed: %d", ret);
 		return ret;
 	}
 	if(chip_id != IC_VCHIP_ID){
+		LOG_PBUS("cw221x chip id mismatch: %d, expected: %d", chip_id, IC_VCHIP_ID);
 		return CW221X_ERROR_CHIP_ID;
 	}
 
 	ret = cw221x_get_state();
-	if (ret < 0)
+	if (ret < 0){
+		LOG_PBUS("cw221x get state failed: %d", ret);
 		return ret;
+	}
 
 	if (ret != 0) {
 		ret = cw221x_config_start_ic();
-		if (ret < 0)
+		if (ret < 0){
+			read_all_register();
+			LOG_PBUS("cw221x config start ic failed: %d", ret);
 			return ret;
+		}
 	}
-
+	LOG_PBUS("cw221x init ok");
 	return 0;
 }
 
@@ -392,7 +493,7 @@ long get_complement_code(unsigned short raw_code)
 int cw221x_get_current(long *lp_current)
 {
 	int ret = 0;
-	unsigned short temp_val_buff = 0;
+    unsigned int temp_val_buff = 0;
 	long cw_current = 0;
 	unsigned char reg_val = 0;
 	unsigned char fw_version = 0;
@@ -455,6 +556,19 @@ int cw221x_get_soh(int *lp_soh)
 	return 0;
 }
 
+int cw221x_get_alert(unsigned int *lp_alert)
+{
+    unsigned char reg_val = 0;
+    if (lp_alert == NULL) {
+        return CW221X_ERROR_IIC;
+    }
+    if (cw_read(REG_SOC_ALERT, &reg_val) != BSP_OK) {
+        return CW221X_ERROR_IIC;
+    }
+    *lp_alert = reg_val;
+    return 0;
+}
+
 int cw221x_dump_register(void)
 {
 	int ret = 0;
@@ -478,7 +592,7 @@ int cw221x_bat_init(void)
 {
 	int ret;
 	int loop = 0;
-	
+	LOG_PBUS("cw221x bat init start");
 	ret = cw221x_init();
 	while((loop++ < 3) && (ret != 0))
 	{

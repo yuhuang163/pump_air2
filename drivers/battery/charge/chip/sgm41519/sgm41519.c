@@ -36,6 +36,7 @@
 */
 static uint16_t sgm41519_abn_cnt = 0;
 static int sgm41519_ic_ready = 0;
+static uint8_t sgm41519_ship_mode = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -165,24 +166,26 @@ static int sgm41519_charge_is_full(void)
 
 static int sgm41519_charge_status_poll(charge_chip_status_t *status)
 {
-    // uint8_t reg_data[12] = {0};
-    // int ret = sgm41519_read_nbyte(CHARGE_ADC_VBUS_L_REG, reg_data, 12);
-    // if (ret != BSP_OK) {
-    //     LOGE("charge adc poll failed, ret: %d", ret);
-    //     return ret;
-    // }
-    // uint8_t *data_ptr = reg_data;
-    // status->vbus = CHARGE_GET_10BIT_DATA(data_ptr) * CHARGE_INPUT_VOLTAGE_LIMIT_SCALE;
-    // data_ptr += 2;
-    // status->ibus = CHARGE_GET_10BIT_DATA(data_ptr) * CHARGE_ADC_CURRENT_LIMIT_SCALE;
-    // data_ptr += 2;
-    // status->vbat = CHARGE_GET_10BIT_DATA(data_ptr) * BATT_VOLTAGE_SCALE;
-    // data_ptr += 2;
-    // status->ibat = CHARGE_GET_10BIT_DATA(data_ptr) * BATT_ADC_CURRENT_LIMIT_SCALE;
-    // data_ptr += 2;
-    // status->ntc_resistance  = CHARGE_GET_10BIT_DATA(data_ptr) * NTC_VOLTAGE_SCALE / NTC_CURRENT_COEFF;
-    // status->status = ((reg_data[10] & 0xFFFF) << 8) | reg_data[11];
+    uint8_t reg_data = 0;
+    int ret = sgm41519_read_nbyte(SGM41519_INPUT_POWER_STATUS_REG, &reg_data, 1);
+    if (ret != BSP_OK || status == NULL) {
+        return BSP_ERROR;
+    }
+    status->status = reg_data;
+    status->charge_full = ((reg_data & 0x18) == 0x18) ? 1 : 0;
+    status->plug_in = ((reg_data & 0x07) != 0) ? 1 : 0;
     return BSP_OK;
+}
+
+static int sgm41519_update_bits(uint8_t reg, uint8_t mask, uint8_t value)
+{
+    uint8_t reg_data = 0;
+    int ret = sgm41519_read_nbyte(reg, &reg_data, 1);
+    if (ret != BSP_OK) {
+        return ret;
+    }
+    reg_data = (uint8_t)((reg_data & (~mask)) | (value & mask));
+    return sgm41519_write_nbyte(reg, &reg_data, 1);
 }
 
 static uint8_t sgm41519_ibat_ma_to_reg02(uint16_t current_ma)
@@ -275,5 +278,66 @@ void sgm41519_set_charge_current(uint16_t current_ma)
 POSSIBLY_UNUSED int sgm41519_ic_is_ready(void)
 {
     return sgm41519_ic_ready;
+}
+
+int sgm41519_set_charge_enable(uint8_t enable)
+{
+    return sgm41519_update_bits(SGM41519_ENABLE_CHARGE_REG, SGM41519_CHARGE_ENABLE_BIT,
+        enable ? SGM41519_CHARGE_ENABLE_BIT : 0);
+}
+
+int sgm41519_set_otg_boost_enable(uint8_t enable)
+{
+    return sgm41519_update_bits(SGM41519_ENABLE_CHARGE_REG, SGM41519_OTG_ENABLE_BIT,
+        enable ? SGM41519_OTG_ENABLE_BIT : 0);
+}
+
+int sgm41519_get_otg_boost_enable(void)
+{
+    uint8_t reg_data = 0;
+    if (sgm41519_read_nbyte(SGM41519_ENABLE_CHARGE_REG, &reg_data, 1) != BSP_OK) {
+        return 0;
+    }
+    return (reg_data & SGM41519_OTG_ENABLE_BIT) ? 1 : 0;
+}
+
+int sgm41519_enter_ship_mode(void)
+{
+    uint8_t reg_data = 0;
+    int ret = BSP_ERROR;
+    const uint8_t max_retry = 5;
+    for (uint8_t i = 0; i < max_retry; i++) {
+        ret = sgm41519_update_bits(SGM41519_DISABLE_BATFET_REG, SHIP_MODE_BIT, SHIP_MODE_BIT);
+        if (ret != BSP_OK) {
+            msleep(5);
+            continue;
+        }
+        ret = sgm41519_read_nbyte(SGM41519_DISABLE_BATFET_REG, &reg_data, 1);
+        if (ret == BSP_OK && (reg_data & SHIP_MODE_BIT)) {
+            sgm41519_ship_mode = 1;
+            return BSP_OK;
+        }
+        ret = BSP_ERROR;
+        msleep(5);
+    }
+    return ret;
+}
+
+int sgm41519_exit_ship_mode(void)
+{
+    int ret = sgm41519_update_bits(SGM41519_DISABLE_BATFET_REG, SHIP_MODE_BIT, 0);
+    if (ret == BSP_OK) {
+        sgm41519_ship_mode = 0;
+    }
+    return ret;
+}
+
+int sgm41519_get_ship_mode(void)
+{
+    uint8_t reg_data = 0;
+    if (sgm41519_read_nbyte(SGM41519_DISABLE_BATFET_REG, &reg_data, 1) == BSP_OK) {
+        sgm41519_ship_mode = (reg_data & SHIP_MODE_BIT) ? 1 : 0;
+    }
+    return sgm41519_ship_mode;
 }
 #endif  

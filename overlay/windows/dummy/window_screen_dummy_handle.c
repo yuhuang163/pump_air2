@@ -3,6 +3,7 @@
 *****************************************************************************************
 */
 #include "input_key_code.h"
+#include "project_support_overlay.h" // IWYU pragma: keep (IS_SUPPORT_GPIO_THREE_KEY_LAYOUT)
 #include "root_common_api.h" // IWYU pragma: keep
 #include "windows_manager.h" 
 #include "windows_map_define.h" // IWYU pragma: keep
@@ -48,7 +49,10 @@ static void system_power_off_cb(hdr_post_args_t *args)
     ui_proc_dummy_t *proc = (ui_proc_dummy_t *)args->user_data;
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pm);
-    WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_DUMMY);
+    if (proc->margic != UI_WINDOW_MARGIC_CODE || !proc->wm ||
+        !proc->wm->is_current_window(proc->wm, ID_WINDOW_DUMMY)) {
+        return;
+    }
     uint32_t current_time = platform_get_utc_time();
     if (current_time - proc->enter_dummy_time > DUMMY_IDLE_POWER_OFF_TIME) {
         LOG_WM("system power off");
@@ -62,10 +66,15 @@ static void system_power_off_cb(hdr_post_args_t *args)
 
 static int wakup_enter_new_window_policy(ui_proc_dummy_t *proc, int wakeup_reason)
 {
+    (void)wakeup_reason;
     tests_manager_context_t *tests = proc->tests;
     EXCEPTION_CHECK_INT(tests);
     EXCEPTION_CHECK_INT(proc->pm);
-    WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_DUMMY, 0);
+    EXCEPTION_CHECK_INT(proc->wm);
+    if (proc->margic != UI_WINDOW_MARGIC_CODE ||
+        !proc->wm->is_current_window(proc->wm, ID_WINDOW_DUMMY)) {
+        return 0;
+    }
     multi_func_msg_data_t msg = {0};
     if (tests->tests_manager_get_current_mode() != TST_NONE_TYPE) {
         msg.union_body.extra.window_id = ID_WINDOW_PRODUCT_TEST_MODE;
@@ -83,7 +92,10 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
 {
     ui_proc_dummy_t *proc = (ui_proc_dummy_t *)context;
     EXCEPTION_CHECK_VOID(proc);
-    WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_DUMMY);
+    if (proc->margic != UI_WINDOW_MARGIC_CODE || !proc->wm ||
+        !proc->wm->is_current_window(proc->wm, ID_WINDOW_DUMMY)) {
+        return;
+    }
     switch (id.code) {
         case ID_BROADCAST_PM_STATE_CHANGE:
             LOG_WM("received PM_STATE_CHANGE.");
@@ -103,10 +115,31 @@ static void on_dummy_window_receive(broadcast_mask_id_t id, void *context,
 
 static int on_dummy_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)
 {
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+    (void)user_data;
+    (void)keycode;
+    (void)keytype;
+    /// Power / knob CLICK handled in gpio_three_key_global_input_try_route (input_key_hook).
+    return 0;
+#else
     ui_proc_dummy_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc);
-    WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_DUMMY, 0);
-    return 0;
+    if (!(keytype & KEY_EVENT_CLICK)) {
+        return 0;
+    }
+    if ((keycode & KEY_CODE_POWER) == 0) {
+        return 0;
+    }
+    if (proc->margic != UI_WINDOW_MARGIC_CODE || !proc->wm || !proc->pm) {
+        return 0;
+    }
+    if (!proc->wm->is_current_window(proc->wm, ID_WINDOW_DUMMY)) {
+        return 0;
+    }
+    proc->pm->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER);
+    LOG_WM("dummy: power click -> exit to home");
+    return wakup_enter_new_window_policy(proc, PM_WAKEUP_REASON_KEY_POWER);
+#endif
 }
 
 static int entry_event_cb(window_lift_cycle_e new_state,

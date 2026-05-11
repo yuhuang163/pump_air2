@@ -43,10 +43,6 @@ int bsp_read_diff_pressure_status(void *args)
 
     memset(out_status, 0, sizeof(air_pressue_status_t) * DIFF_PRESSURE_NUM);
 
-#if SDP3X_LOG_DEBUG
-    uint32_t start_time = get_timestamp();
-#endif
-
     float pa = 0.0f;
     float temp_c = 0.0f;
     int ret = sdp3x_chip_measurement_read(&pa, &temp_c);
@@ -69,8 +65,7 @@ int bsp_read_diff_pressure_status(void *args)
     diff_pressure_flow_model_on_sample(pa);
 
 #if SDP3X_LOG_DEBUG
-    BSP_LOG_PASS("sdp3x rd time: %d, Pa: %f, T: %f\r\n",
-        get_timestamp_ms(start_time),
+    LOG_PBUS("sdp3x Pa: %f, T: %f",
         out_status[0].pressure,
         out_status[0].temp);
 #endif
