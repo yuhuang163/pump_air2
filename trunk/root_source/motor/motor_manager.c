@@ -30,8 +30,12 @@ static motor_manager_context_t *motor_obj = NULL;
 */
 static void update_play_interrupt_reason(const char *reason)
 {
+    const char *old_reason = motor_obj->priv.interrupt_play_reason;
     if (motor_obj->priv.interrupt_play_reason != reason) {
         motor_obj->priv.interrupt_play_reason = (char *)reason;
+        LOG_MOTOR("interrupt reason change: %s -> %s",
+            old_reason ? old_reason : "NULL",
+            reason ? reason : "NULL");
     }
 }
 
@@ -103,6 +107,12 @@ static int internal_start_motor(uint8_t action)
  
 static int internal_stop_motor(const char *reason)
 {
+    LOG_MOTOR("internal_stop_motor: reason=%s, state=%d, runtime_mode=%d, policy_idx=%d, user_stop=%d",
+        reason ? reason : "NULL",
+        motor_obj->priv.motor_state,
+        motor_obj->priv.runtime.breast_pump_mode,
+        motor_obj->priv.runtime.current_timed_policy_index,
+        motor_obj->priv.is_user_stoped);
     if (reason) {
         update_play_interrupt_reason(reason);
     } else {
@@ -147,7 +157,10 @@ static void on_motor_broadcast_receiver(broadcast_mask_id_t id, void *context, i
             }
             break;
         case ID_BROADCAST_REQ_PM_SUSPEND:
+#if 0
+            /* Reserved PM suspend interruption logic (temporarily disabled). */
             update_play_interrupt_reason("SUSPEND_BY_USER");
+#endif
             break;
         default:
             break;
@@ -196,6 +209,7 @@ static int stop_motor(void)
 {
     motor_obj->priv.is_user_stoped = 1;
     motor_obj->priv.user_debug_status = 0;
+    LOG_MOTOR("stop_motor called by client");
     return internal_stop_motor("user-stop");
 }
 
@@ -203,6 +217,7 @@ static int synchronous_stop_motor(void)
 {
     motor_obj->priv.is_user_stoped = 1;
     motor_obj->priv.user_debug_status = 0;
+    LOG_MOTOR("synchronous_stop_motor called by client");
     internal_stop_motor("synchronous-stop");
     uint32_t start_time = get_timestamp();
     while (is_on_motor_task_running(motor_obj)) {
@@ -225,7 +240,11 @@ static int get_motor_state(void)
 int motor_is_can_play_now(void)
 {
     if (motor_obj->priv.interrupt_play_reason) {
-        LOG_MOTOR("exit reason: %s", motor_obj->priv.interrupt_play_reason);
+        LOG_MOTOR("is_can_play_now=0, reason=%s, state=%d, mode=%d, policy_idx=%d",
+            motor_obj->priv.interrupt_play_reason,
+            motor_obj->priv.motor_state,
+            motor_obj->priv.runtime.breast_pump_mode,
+            motor_obj->priv.runtime.current_timed_policy_index);
         return 0;
     }
     

@@ -184,10 +184,16 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
                 #endif
                 #if PUMP_RUN_CHECK_INTERVAL
                     debug_count[pump_id]++;
-                    if (get_timestamp_ms(debug_start_time) >= 60000 && pump_id == 1) {
+                    if (get_timestamp_ms(debug_start_time) >= 60000 && pump_id == (BREAST_PUMP_NUM - 1)) {
+#if BREAST_PUMP_NUM > 1
                         LOG_MOTOR("no sleep time, debug count: %d/%d", debug_count[0], debug_count[1]);
+#else
+                        LOG_MOTOR("no sleep time, debug count: %d", debug_count[0]);
+#endif
                         debug_count[0] = 0;
+#if BREAST_PUMP_NUM > 1
                         debug_count[1] = 0;
+#endif
                         debug_start_time = get_timestamp();
                     }
                 #endif
@@ -218,10 +224,16 @@ int pump_policy_update(motor_policy_info_t *info, uint8_t pump_id)
             #endif
             #if PUMP_RUN_CHECK_INTERVAL
                 debug_count[pump_id]++;
-                if (get_timestamp_ms(debug_start_time) >= 60000 && pump_id == 1) {
+                if (get_timestamp_ms(debug_start_time) >= 60000 && pump_id == (BREAST_PUMP_NUM - 1)) {
+#if BREAST_PUMP_NUM > 1
                     LOG_MOTOR("-->debug count: %d/%d", debug_count[0], debug_count[1]);
+#else
+                    LOG_MOTOR("-->debug count: %d", debug_count[0]);
+#endif
                     debug_count[0] = 0;
+#if BREAST_PUMP_NUM > 1
                     debug_count[1] = 0;
+#endif
                     debug_start_time = get_timestamp();
                 }
             #endif

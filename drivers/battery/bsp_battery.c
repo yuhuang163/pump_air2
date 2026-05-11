@@ -409,7 +409,7 @@ static int battery_voltage_poll(void)
     uint16_t batt_voltage =0; 
     static uint16_t voltage = 0; 
     int ret = BSP_OK;
-    
+return BSP_ERROR;    
     if (s_battery_is_ready == false) {
         return BSP_ERROR;
     }
@@ -477,7 +477,7 @@ static int battery_dev_open(struct rt_device_node *dev)
     LOG_PBUS("battery init ok, health:%d%%, percent: %d%% voltage: %d",
         battery.health, battery.percent, battery.voltage); 
     s_batt_poll_time = 0;   
-    battery_voltage_poll();
+    // battery_voltage_poll();
 #endif
     if (node) {
         node->status = DEVICE_BUS_INIT;
@@ -492,24 +492,25 @@ static int battery_dev_close(struct rt_device_node *dev)
 
 static int battery_dev_read(struct rt_device_node *dev, void *buf, uint32_t n_bytes)
 {
-    int fg_soc = 100;
-    if (s_fg_is_ready && cw221x_get_capacity(&fg_soc) == 0) {
-        if (fg_soc < 0) {
-            fg_soc = 0;
-        } else if (fg_soc > 100) {
-            fg_soc = 100;
-        }
-    } else {
-#if IS_SUPPORT_BATTERY_POLL
-        fg_soc = battery_pencent_get();
-#else
-        fg_soc = 100;
-#endif
-    }
-    if (buf) {
-        memcpy(buf, &fg_soc, sizeof(int));
-    }
-    return fg_soc;
+//     int fg_soc = 100;
+//     if (s_fg_is_ready && cw221x_get_capacity(&fg_soc) == 0) {
+//         if (fg_soc < 0) {
+//             fg_soc = 0;
+//         } else if (fg_soc > 100) {
+//             fg_soc = 100;
+//         }
+//     } else {
+// #if IS_SUPPORT_BATTERY_POLL
+//         fg_soc = battery_pencent_get();
+// #else
+//         fg_soc = 100;
+// #endif
+//     }
+//     if (buf) {
+//         memcpy(buf, &fg_soc, sizeof(int));
+//     }
+    // return fg_soc;
+    return 100;
 }
 
 static int battery_dev_write(struct rt_device_node *dev, const void *buf, uint32_t n_bytes)
