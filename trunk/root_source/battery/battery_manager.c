@@ -118,6 +118,98 @@ static uint8_t local_is_adapter_mismatch(void)
     return thiz->priv.is_adapter_mismatch;
 }
 
+static int local_get_battery_voltage_mv(void)
+{
+    if (thiz == NULL || thiz->priv.battery == NULL) {
+        return -1;
+    }
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_FG_VOLTAGE_MV, ret);
+    return ret;
+}
+
+static int local_get_battery_current_ma(void)
+{
+    if (thiz == NULL || thiz->priv.battery == NULL) {
+        return -1;
+    }
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_FG_CURRENT_MA, ret);
+    return ret;
+}
+
+static int local_get_battery_temperature_c(void)
+{
+    if (thiz == NULL || thiz->priv.battery == NULL) {
+        return -1;
+    }
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_FG_TEMPERATURE_C, ret);
+    return ret;
+}
+
+static int local_get_battery_cycle_count(void)
+{
+    if (thiz == NULL || thiz->priv.battery == NULL) {
+        return -1;
+    }
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_FG_CYCLE_COUNT, ret);
+    return ret;
+}
+
+static int local_get_battery_soh(void)
+{
+    if (thiz == NULL || thiz->priv.battery == NULL) {
+        return -1;
+    }
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_FG_SOH, ret);
+    return ret;
+}
+
+static uint8_t local_get_battery_alert(void)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    EXCEPTION_CHECK_UINT(thiz->priv.battery);
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_FG_ALERT, ret);
+    return (ret > 0) ? (uint8_t)ret : 0;
+}
+
+static int local_set_ship_mode(uint8_t enable)
+{
+    if (thiz == NULL || thiz->priv.battery == NULL) {
+        return -1;
+    }
+    if (enable) {
+        DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_SHIP_MODE_ENTER, ret);
+        return ret;
+    }
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_SHIP_MODE_EXIT, ret);
+    return ret;
+}
+
+static uint8_t local_get_ship_mode(void)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    EXCEPTION_CHECK_UINT(thiz->priv.battery);
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_SHIP_MODE_STATUS, ret);
+    return ret > 0 ? 1 : 0;
+}
+
+static int local_set_boost_mode(uint8_t enable)
+{
+    uint32_t arg = enable ? 1 : 0;
+    if (thiz == NULL || thiz->priv.battery == NULL) {
+        return -1;
+    }
+    DEVICE_IOCTL_ARGS_HAS_RET(thiz->priv.battery, OP_CODE_BAT_BOOST_SET, &arg, ret);
+    return ret;
+}
+
+static uint8_t local_get_boost_mode(void)
+{
+    EXCEPTION_CHECK_UINT(thiz);
+    EXCEPTION_CHECK_UINT(thiz->priv.battery);
+    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_BOOST_GET, ret);
+    return ret > 0 ? 1 : 0;
+}
+
 static void polling_battery_status(void *user_data)
 {
     EXCEPTION_CHECK_VOID(thiz);
@@ -307,6 +399,16 @@ void *register_module_for_battery_manager_new(list_head_t *list_head)
     ptr->is_low_battery = local_is_low_battery;
     ptr->is_empty_battery = is_empty_battery;
     ptr->get_battery_percent = local_get_battery_percent;
+    ptr->get_battery_voltage_mv = local_get_battery_voltage_mv;
+    ptr->get_battery_current_ma = local_get_battery_current_ma;
+    ptr->get_battery_temperature_c = local_get_battery_temperature_c;
+    ptr->get_battery_cycle_count = local_get_battery_cycle_count;
+    ptr->get_battery_soh = local_get_battery_soh;
+    ptr->get_battery_alert = local_get_battery_alert;
+    ptr->set_ship_mode = local_set_ship_mode;
+    ptr->get_ship_mode = local_get_ship_mode;
+    ptr->set_boost_mode = local_set_boost_mode;
+    ptr->get_boost_mode = local_get_boost_mode;
     ptr->is_adapter_mismatch = local_is_adapter_mismatch;
     ptr->set_state_battery_listener = local_state_battery_listener;
     thiz = ptr;

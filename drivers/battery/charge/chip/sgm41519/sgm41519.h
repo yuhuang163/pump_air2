@@ -67,6 +67,12 @@ void sgm41519_chip_init(void);
 void sgm41519_set_charge_current(uint16_t current);
 int charge_status_poll(charge_chip_status_t *status);
 int sgm41519_ic_is_ready(void);
+int sgm41519_set_charge_enable(uint8_t enable);
+int sgm41519_set_otg_boost_enable(uint8_t enable);
+int sgm41519_get_otg_boost_enable(void);
+int sgm41519_enter_ship_mode(void);
+int sgm41519_exit_ship_mode(void);
+int sgm41519_get_ship_mode(void);
 #ifdef __cplusplus
 }
 #endif

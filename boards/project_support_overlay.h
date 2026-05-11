@@ -111,6 +111,8 @@ extern "C" {
 #define IS_SUPPORT_ALGO_SAMPLING                         (0)
 /// 支持充电
 #define IS_SUPPORT_DEVICE_CHARGE                         (1)
+/// 支持电量计
+#define IS_SUPPORT_DEVICE_FUEL_GAUGE                     (0)
 /// 支持泵占空比动态调整
 #define IS_SUPPORT_PUMP_DUTY_ADJUST                      (0)
 /// 支持插电自动开机

@@ -40,6 +40,17 @@ typedef enum {
     OP_CODE_BAT_PD_IS_MISMATCH = 11,
     OP_CODE_BAT_CHARGE_CURRENT_ADJUST = 12, /// 充电电流调节
     OP_CODE_BAT_GET_CHARGE_IBAT_MA = 13,    /// 读取充电芯片采样的电池端充电电流
+    OP_CODE_BAT_SHIP_MODE_ENTER = 14,       /// 进入船运模式
+    OP_CODE_BAT_SHIP_MODE_EXIT = 15,        /// 退出船运模式
+    OP_CODE_BAT_SHIP_MODE_STATUS = 16,      /// 查询船运模式状态
+    OP_CODE_BAT_BOOST_SET = 17,             /// 设置BOOST输出(0/1)
+    OP_CODE_BAT_BOOST_GET = 18,             /// 查询BOOST输出状态
+    OP_CODE_BAT_GET_FG_VOLTAGE_MV = 19,     /// 电量计电压(mV)
+    OP_CODE_BAT_GET_FG_CURRENT_MA = 20,     /// 电量计电流(mA)
+    OP_CODE_BAT_GET_FG_TEMPERATURE_C = 21,  /// 电量计温度(摄氏度)
+    OP_CODE_BAT_GET_FG_CYCLE_COUNT = 22,    /// 电量计循环次数
+    OP_CODE_BAT_GET_FG_SOH = 23,            /// 电量计SOH(0-100)
+    OP_CODE_BAT_GET_FG_ALERT = 24,          /// 电量计告警状态
     OP_CODE_BAT_END
 } batery_dev_op_code_e;
 

@@ -153,6 +153,25 @@ void app_old_comm_handle_sys_ctrl_req(uint8_t cal, uint8_t *cab)
         msg.union_body.extra.window_id = ID_WINDOW_FACTORY_RESET;
         msg.union_body.extra.arg1 = 0;
         wm->dispatch_new_window_args(wm, &msg);
+    } else if (ctrl_cmd == APP_OLD_COMM_SYS_SHIP_MODE_ENTER ||
+               ctrl_cmd == APP_OLD_COMM_SYS_SHIP_MODE_EXIT ||
+               ctrl_cmd == APP_OLD_COMM_SYS_BOOST_ON ||
+               ctrl_cmd == APP_OLD_COMM_SYS_BOOST_OFF) {
+        peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
+        EXCEPTION_CHECK_VOID(pbus);
+        struct rt_device_node *battery = pbus->find_device(ID_DEVICE_BATTERY);
+        EXCEPTION_CHECK_VOID(battery);
+        if (ctrl_cmd == APP_OLD_COMM_SYS_SHIP_MODE_ENTER) {
+            DEVICE_IOCTL_NO_RET(battery, OP_CODE_BAT_SHIP_MODE_ENTER);
+        } else if (ctrl_cmd == APP_OLD_COMM_SYS_SHIP_MODE_EXIT) {
+            DEVICE_IOCTL_NO_RET(battery, OP_CODE_BAT_SHIP_MODE_EXIT);
+        } else if (ctrl_cmd == APP_OLD_COMM_SYS_BOOST_ON) {
+            uint32_t enable = 1;
+            DEVICE_IOCTL_ARGS_NO_RET(battery, OP_CODE_BAT_BOOST_SET, &enable);
+        } else {
+            uint32_t disable = 0;
+            DEVICE_IOCTL_ARGS_NO_RET(battery, OP_CODE_BAT_BOOST_SET, &disable);
+        }
     }
     // TODO: Execute system control logic
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_SYS_CTRL, 1, &ctrl_cmd);
@@ -358,7 +377,7 @@ void app_old_comm_handle_dev_abnormal_app_req(uint8_t cal, uint8_t *cab)
     } else {
         percent = 100;
     }
-    uint8_t report_data[10] = {0};
+    uint8_t report_data[16] = {0};
     uint8_t data_len = 0;
     ///电量不足无法开始
     if (percent <= LOW_BAT_PERCENTAGE_RUN_ONCE_NOT_ALLOWED) {
@@ -390,6 +409,11 @@ void app_old_comm_handle_dev_abnormal_app_req(uint8_t cal, uint8_t *cab)
     else {
         report_data[data_len++] = OLD_PUBLISH_ABNORMAL_STATE_CLEARED;
     }
+    /* 扩展字段：CW 告警、SOH、Ship/Boost 运行态（兼容老客户端忽略尾部） */
+    report_data[data_len++] = batt_ctx->get_battery_alert ? batt_ctx->get_battery_alert() : 0;
+    report_data[data_len++] = batt_ctx->get_battery_soh ? (uint8_t)batt_ctx->get_battery_soh() : 0;
+    report_data[data_len++] = batt_ctx->get_ship_mode ? batt_ctx->get_ship_mode() : 0;
+    report_data[data_len++] = batt_ctx->get_boost_mode ? batt_ctx->get_boost_mode() : 0;
     app_old_protocol_hander_frame_builder_send(APP_OLD_COMM_CT_ACK, APP_OLD_COMM_CID_GET_ABNORMAL_INFOR, \
         data_len, report_data);
 }

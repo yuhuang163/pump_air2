@@ -3,10 +3,13 @@
 *****************************************************************************************
 */
 #include "bsp_common.h"
+#include "bsp_config.h"
+#include "bsp_i2c.h"
 #if IS_SUPPORT_PD_CHARGE
 #include "bsp_charge_pd.h"
 #endif
 #include "bsp_battery_internal.h"
+#include "fuel_gauge/chip/cw221x/cw221x.h"
 
 /*
 * DEFINES
@@ -129,6 +132,7 @@ static uint32_t s_batt_poll_time = 0;
 static RTC_DATA_ATTR battery_status_t battery;
 #endif
 static rt_device_node_t *node = NULL;
+static uint8_t s_fg_is_ready = 0;
 
 /*
 * GLOBAL VARIABLE DEFINITIONS
@@ -455,6 +459,12 @@ static int battery_voltage_poll(void)
 
 static int battery_dev_open(struct rt_device_node *dev)
 {
+#if IS_SUPPORT_DEVICE_FUEL_GAUGE
+    // bsp_fuel_gauge_init();
+    bsp_i2c_init(FUEL_GAUGE_I2C_ID);
+    s_fg_is_ready = (cw221x_bat_init() == 0) ? 1 : 0;  
+#endif
+
 #if IS_SUPPORT_DEVICE_CHARGE        
     bsp_charge_init();
 #endif
@@ -482,15 +492,24 @@ static int battery_dev_close(struct rt_device_node *dev)
 
 static int battery_dev_read(struct rt_device_node *dev, void *buf, uint32_t n_bytes)
 {
+    int fg_soc = 100;
+    if (s_fg_is_ready && cw221x_get_capacity(&fg_soc) == 0) {
+        if (fg_soc < 0) {
+            fg_soc = 0;
+        } else if (fg_soc > 100) {
+            fg_soc = 100;
+        }
+    } else {
 #if IS_SUPPORT_BATTERY_POLL
-    int val = battery_pencent_get();
+        fg_soc = battery_pencent_get();
 #else
-    int val = 100;
+        fg_soc = 100;
 #endif
-    if (buf) {
-        memcpy(buf, &val, sizeof(int));
     }
-    return val;
+    if (buf) {
+        memcpy(buf, &fg_soc, sizeof(int));
+    }
+    return fg_soc;
 }
 
 static int battery_dev_write(struct rt_device_node *dev, const void *buf, uint32_t n_bytes)
@@ -501,7 +520,12 @@ static int battery_dev_write(struct rt_device_node *dev, const void *buf, uint32
 static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void *args)
 {
     uint32_t *tmp = args;
+    unsigned int fg_u32 = 0;
+    long fg_i32 = 0;
+    int fg_int = 0;
     switch (op_code) {
+        case OP_CODE_BAT_GET_LEVEL:
+            return battery_dev_read(dev, NULL, 0);
 #if IS_SUPPORT_BATTERY_POLL
         case OP_CODE_BAT_GET_VOLTAGE:
             return battery_voltage_get();
@@ -549,7 +573,48 @@ static int battery_dev_ioctl(struct rt_device_node *dev, uint32_t op_code, void 
             int r = bsp_charge_get_ibat_ma(out_ma);
             return (r == BSP_OK) ? 0 : -1;
         }
+        case OP_CODE_BAT_SHIP_MODE_ENTER:
+            return charge_ship_mode_enter();
+        case OP_CODE_BAT_SHIP_MODE_EXIT:
+            return charge_ship_mode_exit();
+        case OP_CODE_BAT_SHIP_MODE_STATUS:
+            return charge_ship_mode_get();
+        case OP_CODE_BAT_BOOST_SET:
+            tmp = (uint32_t *)args;
+            return charge_boost_set(tmp ? ((uint8_t)tmp[0]) : 0);
+        case OP_CODE_BAT_BOOST_GET:
+            return charge_boost_get();
 #endif     
+        case OP_CODE_BAT_GET_FG_VOLTAGE_MV:
+            if (!s_fg_is_ready || cw221x_get_vol(&fg_u32) != 0) {
+                return -1;
+            }
+            return (int)fg_u32;
+        case OP_CODE_BAT_GET_FG_CURRENT_MA:
+            if (!s_fg_is_ready || cw221x_get_current(&fg_i32) != 0) {
+                return -1;
+            }
+            return (int)fg_i32;
+        case OP_CODE_BAT_GET_FG_TEMPERATURE_C:
+            if (!s_fg_is_ready || cw221x_get_temp(&fg_int) != 0) {
+                return -1;
+            }
+            return fg_int / 10;
+        case OP_CODE_BAT_GET_FG_CYCLE_COUNT:
+            if (!s_fg_is_ready || cw221x_get_cycle_count(&fg_int) != 0) {
+                return -1;
+            }
+            return fg_int;
+        case OP_CODE_BAT_GET_FG_SOH:
+            if (!s_fg_is_ready || cw221x_get_soh(&fg_int) != 0) {
+                return -1;
+            }
+            return fg_int;
+        case OP_CODE_BAT_GET_FG_ALERT:
+            if (!s_fg_is_ready || cw221x_get_alert(&fg_u32) != 0) {
+                return -1;
+            }
+            return (int)fg_u32;
         default:
             LOGE("bat err op_code: %lx", op_code);
             return -1;

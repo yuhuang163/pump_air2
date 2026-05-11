@@ -13,7 +13,20 @@ extern "C" {
 
 /**@brief Firmware information define*/
 
-/// 充电芯片状态
+/// TODO: 电量计与充电芯片尽量不要耦合
+/// 电量计状态（CW221x）
+typedef struct {
+    uint8_t ready;          /// 电量计数据是否有效
+    uint8_t soc;            /// SOC %
+    uint8_t soh;            /// SOH %
+    uint16_t voltage_mv;    /// 电池电压 mV
+    int32_t current_ma;     /// 电池电流 mA
+    int16_t temperature_c;  /// 温度 ℃
+    uint16_t cycle_count;   /// 循环次数
+    uint16_t alert;         /// 告警位
+} fuel_gauge_status_t;
+
+/// 充电状态（充电策略视角）
 typedef struct {
     uint16_t vbus; /// 总线电压 mV
     uint16_t ibus; /// 总线电流 mA
@@ -24,6 +37,7 @@ typedef struct {
     uint8_t charge_full; /// 满电状态
     uint8_t plug_in; /// 插拔状态
     int8_t temp; /// 温度℃
+    fuel_gauge_status_t fg; /// 电量计原始指标
 } charge_chip_status_t;
 
 /// 输入电流限制

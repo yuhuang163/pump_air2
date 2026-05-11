@@ -70,6 +70,84 @@ static const suction_parameters_t long_suction_table[SUCTION_LEVEL_MAX] = {
     {83, 857, 214}, /// 40KPA         
 };
 
+static const uint16_t long_suction_hold_time_table[SUCTION_LEVEL_MAX] = { 
+    0, /// 0KPA   
+    0, /// 6KPA     
+    0, /// 7KPA      
+    0, /// 8KPA   
+    0, /// 9KPA     
+    0, /// 10KPA   
+    0, /// 11KPA      
+    0, /// 12KPA   
+    0, /// 13KPA   
+    0, /// 14KPA      
+    0, /// 15KPA   
+170, /// 16KPA 
+160, /// 17KPA       
+150, /// 18KPA  
+    0, /// 19KPA   
+140, /// 20KPA     
+    0, /// 21KPA   
+130, /// 22KPA   
+120, /// 23.5KPA    
+    0, /// 24KPA   
+110, /// 25KPA   
+100, /// 26KPA      
+90, /// 27.5KPA  
+    0, /// 28KPA   
+80, /// 29.5KPA  
+    0, /// 30KPA  
+70, /// 31KPA    
+60, /// 32.5KPA   
+    0, /// 33KPA   
+60, /// 34KPA    
+    0, /// 35KPA   
+60, /// 36KPA   
+    0, /// 37KPA   
+100, /// 38KPA   
+    0, /// 39KPA
+    0, /// 40KPA 
+};
+
+static const uint16_t long_suction_sleep_time_table[SUCTION_LEVEL_MAX] = { 
+    0, /// 0KPA   
+    0, /// 6KPA     
+    0, /// 7KPA      
+    0, /// 8KPA   
+    0, /// 9KPA     
+    0, /// 10KPA   
+    0, /// 11KPA      
+    0, /// 12KPA   
+    0, /// 13KPA   
+    0, /// 14KPA      
+    0, /// 15KPA   
+80, /// 16KPA 
+80, /// 17KPA       
+80, /// 18KPA  
+    0, /// 19KPA   
+80, /// 20KPA     
+    0, /// 21KPA   
+60, /// 22KPA   
+60, /// 23.5KPA    
+    0, /// 24KPA   
+60, /// 25KPA   
+60, /// 26KPA      
+60, /// 27.5KPA  
+    0, /// 28KPA   
+60, /// 29.5KPA  
+    0, /// 30KPA  
+60, /// 31KPA    
+60, /// 32.5KPA   
+    0, /// 33KPA   
+60, /// 34KPA    
+    0, /// 35KPA   
+180, /// 36KPA   
+    0, /// 37KPA   
+120, /// 38KPA   
+    0, /// 39KPA
+    0, /// 40KPA 
+};
+
 /// 吸力参数表（单位kpa）//按摩力表
 static const suction_parameters_t short_suction_table[SUCTION_LEVEL_MAX] = { 
     {0,  60, 100}, /// 0KPA   
@@ -110,6 +188,82 @@ static const suction_parameters_t short_suction_table[SUCTION_LEVEL_MAX] = {
     {83, 857, 214}, /// 40KPA 
 };
 
+static const uint16_t short_suction_hold_time_table[SUCTION_LEVEL_MAX] = { 
+    0, /// 0KPA   
+    0, /// 6KPA     
+    0, /// 7KPA      
+    0, /// 8KPA   
+    0, /// 9KPA     
+    0, /// 10KPA   
+    0, /// 11KPA      
+    0, /// 12KPA   
+    0, /// 13KPA   
+    0, /// 14KPA      
+    0, /// 15KPA   
+170, /// 16KPA 
+160, /// 17KPA       
+150, /// 18KPA  
+    0, /// 19KPA   
+140, /// 20KPA     
+    0, /// 21KPA   
+130, /// 22KPA   
+120, /// 23.5KPA    
+    0, /// 24KPA   
+110, /// 25KPA   
+100, /// 26KPA      
+90, /// 27.5KPA  
+    0, /// 28KPA   
+80, /// 29.5KPA  
+    0, /// 30KPA  
+70, /// 31KPA    
+60, /// 32.5KPA   
+    0, /// 33KPA   
+60, /// 34KPA    
+    0, /// 35KPA   
+60, /// 36KPA   
+    0, /// 37KPA   
+100, /// 38KPA   
+    0, /// 39KPA
+    0, /// 40KPA 
+};
+static const uint16_t short_suction_sleep_time_table[SUCTION_LEVEL_MAX] = { 
+    0, /// 0KPA   
+    0, /// 6KPA     
+    0, /// 7KPA      
+    0, /// 8KPA   
+    0, /// 9KPA     
+    0, /// 10KPA   
+    0, /// 11KPA      
+    0, /// 12KPA   
+    0, /// 13KPA   
+    0, /// 14KPA      
+    0, /// 15KPA   
+80, /// 16KPA 
+80, /// 17KPA       
+80, /// 18KPA  
+    0, /// 19KPA   
+80, /// 20KPA     
+    0, /// 21KPA   
+60, /// 22KPA   
+60, /// 23.5KPA    
+    0, /// 24KPA   
+60, /// 25KPA   
+60, /// 26KPA      
+60, /// 27.5KPA  
+    0, /// 28KPA   
+60, /// 29.5KPA  
+    0, /// 30KPA  
+60, /// 31KPA    
+60, /// 32.5KPA   
+    0, /// 33KPA   
+60, /// 34KPA    
+    0, /// 35KPA   
+180, /// 36KPA   
+    0, /// 37KPA   
+120, /// 38KPA   
+    0, /// 39KPA
+    0, /// 40KPA 
+};
 /// 长吸泵频次表 (泵频次 1分/次)
 static const uint16_t long_pump_freq_table[BREAST_PUMP_LEVEL_MAX][SUCTION_SPEED_MAX] = {
     /// 低，中，高 

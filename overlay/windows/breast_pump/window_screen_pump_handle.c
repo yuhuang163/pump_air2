@@ -21,6 +21,18 @@
 #define PUMP_POWER_SINGLE_TASK_NAME         "pump_power_single"
 #define PUMP_POWER_DOUBLE_INTERVAL_MS       (300)
 
+/// REMOVE_ALL 会撤掉电源单击延迟任务，必须把 power_click_pending 一并清零，否则会误判下一次单击为「双击切模式」
+#define PUMP_CLEAR_POWER_CLICK_PENDING_SAFE() \
+do { \
+    void *__wp_ctx = GET_WINDOW_CONTEXT(); \
+    if (__wp_ctx) { \
+        ui_proc_pump_t *__wp = (ui_proc_pump_t *)(__wp_ctx); \
+        if (__wp->margic == UI_WINDOW_MARGIC_CODE) { \
+            __wp->power_click_pending = 0; \
+        } \
+    } \
+} while (0)
+
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
@@ -28,6 +40,7 @@ do { \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_STATE_CHANGE_TASK_NAME); \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_TASK_NAME); \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_POWER_SINGLE_TASK_NAME); \
+    PUMP_CLEAR_POWER_CLICK_PENDING_SAFE(); \
 } while (0)
 
 /*
@@ -45,18 +58,43 @@ INIT_WINDOW_CONTEXT();
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+/** 泵 UI 是否仍应对按键生效：只看 WM 栈与 margic（window_private 与 proc->w_ctx 在个别调度顺序下可能短暂不一致，不应单独挡按键） */
+static int pump_ui_wm_binding_ok(ui_proc_pump_t *proc)
+{
+    window_manager_context_t *wm;
+
+    if (!proc || proc->margic != UI_WINDOW_MARGIC_CODE) {
+        return 0;
+    }
+    wm = proc->wm;
+    if (!wm) {
+        return 0;
+    }
+    if (wm->get_current_window_id() != ID_WINDOW_PUMP &&
+        wm->get_overlay_window_id(wm) != ID_WINDOW_PUMP) {
+        return 0;
+    }
+    return 1;
+}
+
 static void on_breast_pump_result_cb(void *user_data, breast_pump_result_t *result)
 {
     ui_proc_pump_t *proc = (ui_proc_pump_t *)user_data;
     EXCEPTION_CHECK_VOID(proc);
-    WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_PUMP);
+    if (!pump_ui_wm_binding_ok(proc)) {
+        LOG_WM("pump wm binding lost (result cb).");
+        return;
+    }
 }
 
 static void pump_ui_common_cb(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_PUMP);
+    if (!pump_ui_wm_binding_ok(proc)) {
+        LOG_WM("pump wm binding lost (common cb).");
+        return;
+    }
     LOG_WM("pump_ui_common_cb, margic:%x, action:%d.", proc->margic, args->arg1);
     int action = args->arg1;
     switch (action) {
@@ -143,11 +181,14 @@ static void pump_power_single_click_confirm_cb(hdr_post_args_t *args)
 {
     ui_proc_pump_t *proc = args->user_data;
     EXCEPTION_CHECK_VOID(proc);
-    WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_PUMP);
     if (!proc->power_click_pending) {
         return;
     }
     proc->power_click_pending = 0;
+    if (!pump_ui_wm_binding_ok(proc)) {
+        LOG_WM("power single confirm skipped (wm binding).");
+        return;
+    }
     switch_pump_status_ui(proc);
 }
 
@@ -250,16 +291,10 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
     switch (keycode) {
         case KEY_CODE_POWER:
 #if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
-            /// 三键机：电源键采用“单击延迟确认 + 双击切模式”
-            if (proc->power_click_pending) {
-                proc->power_click_pending = 0;
-                REMOVE_TASK_HANDLER_DIRECTLY(PUMP_POWER_SINGLE_TASK_NAME);
-                pump_cycle_common_mode_by_power_double(proc, true);
-            } else {
-                proc->power_click_pending = 1;
-                POST_TASK_HANDLER_DELAYED_ARG2(pump_power_single_click_confirm_cb, PUMP_POWER_DOUBLE_INTERVAL_MS, 0,
-                    proc, PUMP_POWER_SINGLE_TASK_NAME);
-            }
+            /// 三键机：单击延迟确认启停；双击由 scan_key 上报 KEY_TYPE_DOUBLE（UP_AGAIN_YES→KEY_TYPE_DOUBLE）
+            proc->power_click_pending = 1;
+            POST_TASK_HANDLER_DELAYED_ARG2(pump_power_single_click_confirm_cb, PUMP_POWER_DOUBLE_INTERVAL_MS, 0,
+                proc, PUMP_POWER_SINGLE_TASK_NAME);
 #else
             pump_power_key_handler(proc);
 #endif
@@ -297,7 +332,9 @@ static int on_pump_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t k
 {
     ui_proc_pump_t *proc = user_data;
     EXCEPTION_CHECK_INT(proc && proc->pump && proc->key && proc->ui);
-    WINDOW_CONTEXT_GUARD_INT(proc, ID_WINDOW_PUMP, 0);
+    if (!pump_ui_wm_binding_ok(proc)) {
+        return 0;
+    }
     if (proc->goto_charge_ui_flag != 0) {
         LOG_WM("goto charge ui, ignore key event.");
         return 0;
@@ -336,7 +373,10 @@ static void on_pump_ui_broadcast_receive_cb(broadcast_mask_id_t id, void *contex
     ui_proc_pump_t *proc = (ui_proc_pump_t *)context;
     EXCEPTION_CHECK_VOID(proc);
     EXCEPTION_CHECK_VOID(proc->pump);
-    WINDOW_CONTEXT_GUARD_VOID(proc, ID_WINDOW_PUMP);
+    if (!pump_ui_wm_binding_ok(proc)) {
+        LOG_WM("pump broadcast ignored (wm binding).");
+        return;
+    }
     /// 获取泵奶状态.
     int pump_status = 0;
     READ_PUMP_WORK_STATUS(proc->pump, pump_status);

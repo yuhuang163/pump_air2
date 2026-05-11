@@ -5,6 +5,7 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "input_key_code.h"  // IWYU pragma: keep
 #include "key_input_manager.h" // IWYU pragma: keep
+#include "gpio_three_key_global_route.h"
 
 /*
 * DEFINES
@@ -27,6 +28,11 @@
 */
 static int input_keyevent_route(struct key_input_context *ctx, uint16_t keycode, uint16_t keytype, int flag)
 {
+    (void)ctx;
+    (void)flag;
+    if (gpio_three_key_global_input_try_route(keycode, keytype)) {
+        return 1;
+    }
 #if IS_SUPPORT_KEY_SOFT_RESET      
     if (keycode == SYS_SOFT_RESET_CODE && keytype == KEY_EVENT_LONG_5S) {
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);

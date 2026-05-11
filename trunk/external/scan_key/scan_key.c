@@ -65,6 +65,9 @@ static void scan_common_key_cb(scan_key_data_t* scan_key, uint8_t code_index)
         } else {
             LOG_KEY("key %d is not up, up_status: %d", keycode, scan_key->up_status);
         }
+    } else if (scan_key->event == DE_SK_EVENT_UP_AGAIN_YES && scan_key->status == DE_SK_STATUS_START) {
+        /// 双击第二次抬起；此前未上报，导致上层只能依赖两次 CLICK+ 软件定时器，与 REMOVE 任务竞态
+        bsp_post_key_event(keycode, KEY_TYPE_DOUBLE);
     } else if (scan_key->event == DE_SK_EVENT_DOWN_LONG_YES && scan_key->status == DE_SK_STATUS_DOWN_LONG) {
         long_press_count[keycode] = 0;
         bsp_post_key_event(keycode, KEY_TYPE_LONG_2S);

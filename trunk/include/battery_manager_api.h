@@ -58,6 +58,16 @@ typedef struct battery_manager_context {
     uint8_t (*is_low_battery)(void);
     uint8_t (*is_empty_battery)(void);
     uint8_t (*get_battery_percent)(void);
+    int (*get_battery_voltage_mv)(void);
+    int (*get_battery_current_ma)(void);
+    int (*get_battery_temperature_c)(void);
+    int (*get_battery_cycle_count)(void);
+    int (*get_battery_soh)(void);
+    uint8_t (*get_battery_alert)(void);
+    int (*set_ship_mode)(uint8_t enable);
+    uint8_t (*get_ship_mode)(void);
+    int (*set_boost_mode)(uint8_t enable);
+    uint8_t (*get_boost_mode)(void);
     uint8_t (*is_adapter_mismatch)(void); /// 适配器不匹配.
     void (*set_state_battery_listener)(on_battery_state_change_fptr cb);
 /// private:

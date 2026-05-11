@@ -349,7 +349,9 @@ DRIVERS_BASE_INC_FLAGS := \
 # 电池驱动头文件
 DRIVERS_BATTERY_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/drivers/battery \
-	-I$(PROJECT_ROOT)/drivers/battery/charge
+	-I$(PROJECT_ROOT)/drivers/battery/charge \
+	-I$(PROJECT_ROOT)/drivers/battery/fuel_gauge \
+	-I$(PROJECT_ROOT)/drivers/battery/fuel_gauge/chip/cw221x
 
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_BATTERY_INC_FLAGS += -I$(PROJECT_ROOT)/drivers/battery/charge_pd
@@ -898,6 +900,7 @@ DRIVERS_BATTERY_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/charge/chip/*/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/battery/fuel_gauge/chip/*/*.c) \
 	$(wildcard $(PROJECT_ROOT)/drivers/battery/adc/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
 DRIVERS_BATTERY_SRCS += $(wildcard $(PROJECT_ROOT)/drivers/battery/charge_pd/*.c)

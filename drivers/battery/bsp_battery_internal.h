@@ -120,8 +120,12 @@ typedef struct {
     uint8_t  charge;
     uint8_t  percent;
     uint8_t  type;
+    uint8_t  fg_alert;
     int8_t   temperature;
     uint16_t voltage;
+    int32_t  current_ma;
+    uint16_t cycle_count;
+    uint8_t  soh;
 } battery_status_t;
 
 /// 电池曲线
@@ -166,6 +170,11 @@ int battery_adc_single_conversion(uint16_t *batt_voltage);
 int bsp_charge_is_ready(void);
 void charge_current_adjust(uint16_t current);
 int bsp_charge_get_ibat_ma(uint16_t *ibat_ma);
+int charge_ship_mode_enter(void);
+int charge_ship_mode_exit(void);
+int charge_ship_mode_get(void);
+int charge_boost_set(uint8_t enable);
+int charge_boost_get(void);
 
 #ifdef __cplusplus
 }
