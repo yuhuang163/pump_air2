@@ -5,6 +5,8 @@
 #include "root_common_api.h"
 #include "breast_pump_mode.h"
 #include "breast_pump_manager.h" // IWYU pragma: keep
+#include "project_support_overlay.h" // IWYU pragma: keep
+#include "hal_led.h" // IWYU pragma: keep (PUMP_LED_ALL_ID, LED_*)
 
 /*
 * DEFINES
@@ -32,6 +34,29 @@ static void set_breast_pump_status(int status, int is_report);
 static int get_breast_pump_status(void);
 static pump_result_info_t * get_breast_pump_result(breast_pump_result_id_e result_id);
 static const char *get_breast_pump_mode_name(uint8_t mode);
+static void sync_three_key_pump_led_with_status(int status);
+
+static void sync_three_key_pump_led_with_status(int status)
+{
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+    led_manager_context_t *led = (led_manager_context_t *)find_module(ID_MODULE_LED);
+    if (!led) {
+        LOG_PMP("gpio3 led sync skip: led module missing, status=%d", status);
+        return;
+    }
+    if (status == BREAST_PUMP_START || status == BREAST_PUMP_CONTINUE || status == BREAST_PUMP_FACTORY) {
+        led->set_led_level(PUMP_LED_ALL_ID, LED_LEVEL_MAX);
+        LOG_PMP("gpio3 led sync: RUN status=%d -> LED_ALL MAX", status);
+    } else if (status == BREAST_PUMP_IDLE || status == BREAST_PUMP_PAUSE ||
+               status == BREAST_PUMP_FINISH || status == BREAST_PUMP_RESET ||
+               status == BREAST_PUMP_ERROR) {
+        led->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);
+        LOG_PMP("gpio3 led sync: STOP status=%d -> LED_ALL OFF", status);
+    }
+#else
+    (void)status;
+#endif
+}
 
 static void on_motor_error_check_callback(uint8_t pump_id, motor_dev_status_e status)
 {
@@ -360,6 +385,7 @@ static void set_breast_pump_status(int status, int is_report)
                     motor_ctx->set_runtime_policy_index(MOTOR_TIME_POLICY, 0);
                     break;
             }
+            sync_three_key_pump_led_with_status(status);
             SEND_BROADCAST_ARGS2(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_STATE_CHANGE, status);
         }
     }
@@ -734,19 +760,31 @@ static void make_progress(void)
     static uint32_t notify_time = 0;
     int notify_id = -1;
     struct __breast_pump_hook *hook = breast_pump_obj->hook;
+    pump_result_info_t *ri = &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING];
+    int current_status = breast_pump_obj->priv.m_info.status;
+    int current_mode = breast_pump_obj->priv.m_info.mode;
     if (hook && hook->make_progress_route) {
-        notify_id = hook->make_progress_route(breast_pump_obj, &breast_pump_obj->priv.result_info[BREAST_PUMP_RESULT_PUMPING]);
+        notify_id = hook->make_progress_route(breast_pump_obj, ri);
         if (notify_id == RESULT_PUMP_FINISH || notify_id == RESULT_PUMP_LOW_POWER) {
+            LOG_PMP("make_progress stop: notify=%d, status=%d, mode=%d, work=%lu/%lu, setting=%lu, mode_work=%lu",
+                notify_id, current_status, current_mode, ri->work_valid_time, ri->target_valid_time,
+                ri->setting_time, ri->current_mode_work_time);
+            /// 必须先落盘状态到 FINISH：无屏/非泵窗口场景下不能依赖 UI 回调再去收尾。
+            WRITE_PUMP_WORK_STATUS(breast_pump_obj, BREAST_PUMP_FINISH, 1);
             if (get_timestamp_ms(notify_time) > 5000) {
                 notify_time = get_timestamp();
                 SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_COMPLETED);
             }
         } else if (notify_id == RESULT_PUMP_WILL_FINISH) {
+            LOG_PMP("make_progress will_finish: status=%d, mode=%d, work=%lu/%lu(+3s)",
+                current_status, current_mode, ri->work_valid_time, ri->target_valid_time);
             if (get_timestamp_ms(notify_time) > 5000) {
                 notify_time = get_timestamp();
                 SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_PUMP_WILL_FINISH);
             }
         } else if (notify_id == RESULT_PUMP_AUTO_PAUSE) {
+            LOG_PMP("make_progress auto_pause: status=%d, mode=%d, work=%lu, auto_pause_onoff=%d",
+                current_status, current_mode, ri->work_valid_time, breast_pump_obj->priv.m_info.auto_pause_onoff);
             WRITE_PUMP_WORK_STATUS(breast_pump_obj, BREAST_PUMP_PAUSE, 1);
             SEND_BROADCAST_ARGS1(ID_BROADCAST_BREAST_PUMP_STATE_CHANGE, BREAST_PUMP_BROADCAST_AUTO_PAUSE_REQUEST);
         }

@@ -348,8 +348,11 @@ static void pump_algo_compensation_callback(void *user_data, algo_breast_pump_da
     motor_manager_context_t *thiz = (motor_manager_context_t *)user_data;
     EXCEPTION_CHECK_VOID(thiz);
     motor_policy_runtime_t *runtime = &thiz->priv.runtime;
-    if (runtime->compensation_delta_pwm[0] == result->wear_detection.compensation_delta_pwm[0] &&
-        runtime->compensation_delta_pwm[1] == result->wear_detection.compensation_delta_pwm[1]) {
+    if (runtime->compensation_delta_pwm[0] == result->wear_detection.compensation_delta_pwm[0]
+#if BREAST_PUMP_NUM > 1
+        && runtime->compensation_delta_pwm[1] == result->wear_detection.compensation_delta_pwm[1]
+#endif
+    ) {
         return;
     }
     // LOG_MOTOR("compensation status %d/%d; %d/%d", 
@@ -358,7 +361,9 @@ static void pump_algo_compensation_callback(void *user_data, algo_breast_pump_da
     motor_timer_event_msg_t msg = {
         .msg_type = MOTOR_PUMP_LEVEL_ADJUST_MSG,
         .un.pulse_width[0] = result->wear_detection.compensation_delta_pwm[0],
+#if BREAST_PUMP_NUM > 1
         .un.pulse_width[1] = result->wear_detection.compensation_delta_pwm[1],
+#endif
         .pump_id = 0,
     };
     MSG_QUEUE_SEND(policy_work_msg_id, &msg, 0);

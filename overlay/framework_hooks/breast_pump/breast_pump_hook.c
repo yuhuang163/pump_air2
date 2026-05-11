@@ -4,6 +4,7 @@
 */
 #include "root_common_api.h" // IWYU pragma: keep
 #include "breast_pump_manager.h" // IWYU pragma: keep
+#include "project_support_overlay.h" // IWYU pragma: keep
 
 /*
 * DEFINES
@@ -71,6 +72,10 @@ static void breast_pump_mode_update(breast_pump_manager_context_t *ctx, pump_res
             result_info->target_valid_time, result_info->work_valid_time, result_info->setting_time);
         result_info->target_valid_time = SETTING_PUMP_TIME_MAX;
     }
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+    /// 三键无屏机型：工作时长由用户手动控制，不按模式总时长自动结束（仍受 SINGLE_PUMP_TIME_MAX 硬上限保护）
+    result_info->target_valid_time = 0;
+#endif
 
     if (PUMP_IS_COMMON_MODE(m_info->mode)) {
         m_info->common_mode = m_info->mode;
@@ -106,6 +111,10 @@ static void breast_pump_mode_update(breast_pump_manager_context_t *ctx, pump_res
         result_info->setting_time = SETTING_PUMP_TIME_MAX;
     }
     result_info->target_valid_time = result_info->setting_time;
+#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
+    /// 三键无屏机型：工作时长由用户手动控制，不按模式总时长自动结束（仍受 SINGLE_PUMP_TIME_MAX 硬上限保护）
+    result_info->target_valid_time = 0;
+#endif
     if (PUMP_IS_COMMON_MODE(m_info->mode)) {
         m_info->common_mode = m_info->mode;
         ctx->priv.st->put_store_ram_val(STORE_ID_BREAST_PUMP_MODE_WITH_TYPE,
@@ -138,31 +147,37 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     static uint8_t log_timer = 0;
     int ret = RESULT_PUMP_NORMAL;
     log_timer++;
+#if 0
+    /* Reserved timeout-finish logic (disabled for current product requirement). */
 #if IS_SUPPORT_MODE_WORK_TIME_ACCUMULATE
-    if ((result_info->work_valid_time >= result_info->target_valid_time  || 
-        result_info->work_valid_time >= SINGLE_PUMP_TIME_MAX)  && 
-        result_info->target_valid_time != 0) {
-        LOG_PMP("finish, work_time=%d/%d, mode_time=%d", 
+    if ((result_info->target_valid_time != 0 &&
+         result_info->work_valid_time >= result_info->target_valid_time) ||
+        result_info->work_valid_time >= SINGLE_PUMP_TIME_MAX) {
+        LOG_PMP("finish, work_time=%d/%d, mode_time=%d",
             PUMP_TIME_TO_SECOND(result_info->work_valid_time), PUMP_TIME_TO_SECOND(result_info->target_valid_time),
-            result_info->current_mode_work_time);   
+            result_info->current_mode_work_time);
         log_timer = 0;
         return RESULT_PUMP_FINISH;
     }
 #else
     if ((result_info->work_valid_time >= result_info->target_valid_time && result_info->target_valid_time != 0)) {
-        LOG_PMP("finish, work_time=%d/%d, mode_time=%d", 
+        LOG_PMP("finish, work_time=%d/%d, mode_time=%d",
             PUMP_TIME_TO_SECOND(result_info->work_valid_time), PUMP_TIME_TO_SECOND(result_info->target_valid_time),
-            result_info->current_mode_work_time);   
+            result_info->current_mode_work_time);
         log_timer = 0;
         return RESULT_PUMP_FINISH;
     }
 #endif
+#endif
 
+#if 0
+    /* Reserved low-battery auto-stop logic (temporarily disabled). */
 #if IS_SUPPORT_LOW_POWER_AUTO_STOP_PUMP
     if (ctx->priv.battery && ctx->priv.battery->get_battery_percent() < 10) {
         LOG_PMP("low power, auto stop pump");
         return RESULT_PUMP_LOW_POWER;
     }
+#endif
 #endif
     /// 更新模式和力度.
     if (result_info->mode != ctx->priv.m_info.mode) {
@@ -191,16 +206,22 @@ static int local_breast_pump_process(breast_pump_manager_context_t *ctx, pump_re
     result_info->current_mode_work_time += poll_time;       
 #endif
     /// 判断是否需要自动暂停
+#if 0
+    /* Reserved auto-pause logic (temporarily disabled). */
     if (ctx->priv.m_info.auto_pause_onoff && result_info->work_valid_time >= PUMP_AUTO_PAUSE_TIME_MS) {
         ctx->priv.m_info.auto_pause_onoff = false;
         if (PUMP_IS_COMMON_MODE(ctx->priv.m_info.mode)) {
             ret = RESULT_PUMP_AUTO_PAUSE;
         }
     }
-    /// 判断是否即将结束
-    if ((result_info->work_valid_time + PUMP_WILL_FINISH_TIME_MS) >= result_info->target_valid_time) {
+#endif
+#if 0
+    /* Reserved pre-finish prompt logic (disabled with timeout-finish). */
+    if (result_info->target_valid_time != 0 &&
+        (result_info->work_valid_time + PUMP_WILL_FINISH_TIME_MS) >= result_info->target_valid_time) {
         ret = RESULT_PUMP_WILL_FINISH;
     }
+#endif
     /// 状态输出
     if (log_timer > PUMP_INFO_LOG_INTERVAL) {
         int time_index = 0;

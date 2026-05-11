@@ -112,6 +112,8 @@ static int generate_motor_para(struct motor_manager_context *ctx, int mode, void
     int ret = -1;
     /// 替换新参数前检测当前模式参数是否正在使用
     if (ctx->priv.runtime.breast_pump_mode == mode && ctx->priv.motor_state != MOTOR_POLICY_IDLE) {
+        LOG_MOTOR("generate_motor_para: stop before replace, runtime_mode=%d req_mode=%d state=%d",
+            ctx->priv.runtime.breast_pump_mode, mode, ctx->priv.motor_state);
         ctx->synchronous_stop_motor();
         stop_flag = 1;
     }
@@ -138,6 +140,7 @@ static void motor_debug_finish_cb(hdr_post_args_t *args)
 {
     motor_manager_context_t *ctx = (motor_manager_context_t *)args->user_data;
     EXCEPTION_CHECK_VOID(ctx);
+    LOG_MOTOR("motor_debug_finish_cb: stop motor by timer");
     ctx->stop_motor();
     ctx->priv.user_debug_status = 0;
 }
@@ -153,6 +156,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
     }
     EXCEPTION_CHECK_VOID(ctx);
     if (id == MOTOR_USER_DEBUG_PUMP_OFF || id == MOTOR_USER_DEBUG_VALVE_OFF) {
+        LOG_MOTOR("motor_debug_with_user_para: stop by debug cmd id=%d", id);
         ctx->stop_motor();
         ctx->priv.user_debug_status = 0;
         REMOVE_TASK_HANDLER_DIRECTLY(MOTOR_DEBUG_TASK_NAME);
@@ -160,6 +164,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         return;
     }
     if (ctx->priv.user_debug_status) {
+        LOG_MOTOR("motor_debug_with_user_para: stop previous debug policy, id=%d", id);
         ctx->stop_motor();
         REMOVE_TASK_HANDLER_DIRECTLY(MOTOR_DEBUG_TASK_NAME);
     }
@@ -167,6 +172,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
     if (id == MOTOR_USER_DEBUG_POLICY) {
         EXCEPTION_CHECK_VOID(user_data);
         motor_policy_original_para_t *para = (motor_policy_original_para_t *)user_data;
+        LOG_MOTOR("motor_debug_with_user_para: sync stop before MOTOR_USER_DEBUG_POLICY");
         ctx->synchronous_stop_motor();
         ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
@@ -196,6 +202,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_STIMULATION_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        LOG_MOTOR("motor_debug_with_user_para: sync stop before taste stimulation policy");
         ctx->synchronous_stop_motor();
         ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
@@ -211,6 +218,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_PUMP_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        LOG_MOTOR("motor_debug_with_user_para: sync stop before taste pump policy");
         ctx->synchronous_stop_motor();
         ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
@@ -226,6 +234,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_MIX1_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        LOG_MOTOR("motor_debug_with_user_para: sync stop before taste mix1 policy");
         ctx->synchronous_stop_motor();
         ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
@@ -241,6 +250,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
         EXCEPTION_CHECK_VOID(user_data);
         LOG_MOTOR("MOTOR_USER_TASTE_MIX2_POLICY");
         motor_multiple_policy_cfg_t *para = (motor_multiple_policy_cfg_t *)user_data;
+        LOG_MOTOR("motor_debug_with_user_para: sync stop before taste mix2 policy");
         ctx->synchronous_stop_motor();
         ctx->priv.user_debug_status = 1;
         /// 释放旧的策略
@@ -254,6 +264,7 @@ static void motor_debug_with_user_para(motor_manager_context_t *ctx, uint8_t id,
     }
     else if (id == MOTOR_USER_TASTE_POLICY_STOP || id == MOTOR_USER_TASTE_POLICY_EXIT) {
         ctx->priv.user_debug_status = 0;
+        LOG_MOTOR("motor_debug_with_user_para: sync stop by taste stop/exit id=%d", id);
         ctx->synchronous_stop_motor();
         /// 清理用户调试策略
         if (ctx->priv.user_debug_policy != NULL) {

@@ -34,38 +34,41 @@ static bool check_if_low_battery(void)
 {
     EXCEPTION_CHECK_BOOL(thiz);
     EXCEPTION_CHECK_BOOL(thiz->priv.battery);
-    int percent = DEVICE_READ(thiz->priv.battery);
-    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_CHARGE_STATUS, ret);
-    LOG_MISC("percent: %d, ret: %d", percent, ret);
-    if (ret == CHARGE_STATE_CHARGING || ret == CHARGE_STATE_FULL) {
-        return 0;
-    }
-    return percent <= LOW_BAT_PERCENTAGE ? 1 : 0;
+    // int percent = DEVICE_READ(thiz->priv.battery);
+    // DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_GET_CHARGE_STATUS, ret);
+    // LOG_MISC("percent: %d, ret: %d", percent, ret);
+    // if (ret == CHARGE_STATE_CHARGING || ret == CHARGE_STATE_FULL) {
+    //     return 0;
+    // }
+    // return percent <= LOW_BAT_PERCENTAGE ? 1 : 0;
+    return 0;
 }
 
 static uint8_t local_is_vbus_plug_in(void)
 {
     EXCEPTION_CHECK_UINT(thiz);
-    if (thiz->priv.battery == NULL) {
-        return 0;
-    }
-    DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_VBUS_IS_PLUG_IN, ret);
-    return ret > 0 ? 1 : 0;
+    // if (thiz->priv.battery == NULL) {
+    //     return 0;
+    // }
+    // DEVICE_IOCTL_HAS_RET(thiz->priv.battery, OP_CODE_BAT_VBUS_IS_PLUG_IN, ret);
+    // return ret > 0 ? 1 : 0;
+    return 0;
 }
 
 static uint8_t local_get_battery_percent(void)
 {
     EXCEPTION_CHECK_UINT(thiz);
-    if (thiz->priv.battery == NULL) {
-        return 100;
-    }
-    uint8_t val = 0;
-    if (thiz->priv.battery) {   
-        val = DEVICE_READ(thiz->priv.battery);
-    } else {
-        val = 100;
-    }
-    return (val > 100) ? 100 : val;
+    // if (thiz->priv.battery == NULL) {
+    //     return 100;
+    // }
+    // uint8_t val = 0;
+    // if (thiz->priv.battery) {   
+    //     val = DEVICE_READ(thiz->priv.battery);
+    // } else {
+    //     val = 100;
+    // }
+    // return (val > 100) ? 100 : val;
+    return 100;
 }
 
 static void local_state_change_listener(on_charge_state_change_fptr cb)
@@ -216,6 +219,7 @@ static void polling_battery_status(void *user_data)
     if (thiz->priv.battery == NULL) {
         return;
     }
+    return; 
     power_manager_context_t *pm = (power_manager_context_t *)find_module(ID_MODULE_POWER);
     EXCEPTION_CHECK_VOID(pm);
     uint8_t bat_tmp = check_if_low_battery();
