@@ -119,10 +119,18 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
             runtime->timed_policy = runtime->timed_policy->next;
             runtime->time_policy_running_time = 0;
         } else {
+#if 0
             runtime->current_timed_policy_index = 0;
             runtime->timed_policy = &runtime->manager->head;
             runtime->time_policy_running_time = 0;
             runtime->all_timed_policy_finish_flag = 1;
+#else
+            /* Keep running: loop head policy without marking timed-policy completed. */
+            runtime->current_timed_policy_index = 0;
+            runtime->timed_policy = &runtime->manager->head;
+            runtime->time_policy_running_time = 0;
+            runtime->all_timed_policy_finish_flag = 0;
+#endif
         }
         runtime->time_policy_remaining_time = runtime->timed_policy->duration_seconds;
         /// 更新模式类型
