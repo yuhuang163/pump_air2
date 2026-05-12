@@ -177,7 +177,26 @@ int pump_time_policy_update(struct motor_manager_context *thiz, motor_policy_run
             }
         }
         else {
+#if 0
+            /* Reserved original behavior: mark all timed policies completed. */
             runtime->all_timed_policy_finish_flag = 1; /// 所有定时策略执行完毕
+#else
+            /*
+             * Keep running in normal mode: when the last timed policy reaches duration,
+             * reload the same policy and continue instead of finishing at mode total time.
+             */
+            runtime->all_timed_policy_finish_flag = 0;
+            runtime->time_policy_target_time += runtime->timed_policy->duration_seconds;
+            runtime->time_policy_remaining_time = runtime->time_policy_target_time - runtime->policy_running_time_ms / 1000;
+            runtime->current_mode_type = pump_policy_type_get(runtime->timed_policy->policy);
+            runtime->current_policy_mode_type = pump_policy_mode_type_get(runtime->timed_policy->policy);
+            runtime->next_mode_type = runtime->current_mode_type;
+            for (uint8_t i = 0; i < BREAST_PUMP_NUM; i++) {
+                memcpy(&runtime->policy[i], &runtime->timed_policy->policy, sizeof(motor_policy_node_t));
+                pump_policy_info_reset(thiz, runtime, i);
+            }
+            LOG_MOTOR("timed policy tail reached, keep running by looping current timed policy");
+#endif
         }
         if (runtime->timed_policy->policy.core.type == MOTOR_PARAM_TABLE) {
             suction_strategy_mapping_t *mapping = &runtime->timed_policy->policy.core.un.mapping;
