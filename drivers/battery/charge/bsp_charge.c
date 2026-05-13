@@ -2,6 +2,7 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "pmu.h"
 #include "bsp_common.h" // IWYU pragma: keep
 #include "bsp_config.h"
 #include "bsp_i2c.h" // IWYU pragma: keep
@@ -61,6 +62,10 @@ static const char *charge_status_arr[] = {
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+static void app_battery_charger_handler(enum PMU_CHARGER_STATUS_T status)
+{
+    LOG_PBUS("DCIN status=%d", status);
+}
 
 static void charge_enable_gpio_init(void)
 {
@@ -233,37 +238,37 @@ static void charge_device_thread(void *arg)
     uint8_t last_temp_abnormal = 0;
     while (1) {
         MSG_QUEUE_RECV(s_charge_device_thd.msg_id, &msg, OS_WAIT_FOREVER);
-#if IS_SUPPORT_PD_CHARGE
-        charge_pd_status_poll();
-#endif
-#if IS_SUPPORT_DEVICE_CHARGE
-        charge_status_poll_by_fg(&s_charge_status);
-        s_charge_status.charge_full = (s_charge_status.status & CHARGE_STATUS_BAT_FULL_MSK) > 0 ? true : false;        
-        if (s_charge_status.plug_in != last_plug_in) {
-            last_plug_in = s_charge_status.plug_in;
-            charge_event_internal_cb(last_plug_in ? CHARGE_EVENT_PLUG_IN : CHARGE_EVENT_PLUG_OUT);
-        }
-        if (s_charge_status.charge_full && !last_full) {
-            charge_event_internal_cb(CHARGE_EVENT_FULL);
-        } else if (!s_charge_status.charge_full && last_full) {
-            charge_event_internal_cb(CHARGE_EVENT_UNCHARGE);
-        }
-        last_full = s_charge_status.charge_full ? 1 : 0;
-#if IS_SUPPORT_CHARGE_CURRENT_ADJUST
-        charging_temp_policy_handler(s_charge_status.temp);
-#endif
-        uint8_t temp_abnormal = (s_charge_temp_status == CHARGE_TEMP_DISABLE) ? 1 : 0;
-        if (temp_abnormal != last_temp_abnormal) {
-            last_temp_abnormal = temp_abnormal;
-            charge_event_internal_cb(temp_abnormal ? CHARGE_EVENT_TEMPERATURE_ERROR : CHARGE_EVENT_UNCHARGE);
-        }
-        if (get_timestamp_ms(log_timer) > 2000) {
-            log_timer = get_timestamp();
-            BSP_LOG("charge status", "vbus:%d mV, ibus:%d mA, vbat:%d mV, ibat:%d mA, ntc:%.2f KOhm, temp:%d C, status:0x%04X", 
-                     s_charge_status.vbus, s_charge_status.ibus, s_charge_status.vbat, s_charge_status.ibat, 
-                     s_charge_status.ntc_resistance, s_charge_status.temp, s_charge_status.status);
-        }
-#endif
+// #if IS_SUPPORT_PD_CHARGE
+//         charge_pd_status_poll();
+// #endif
+// #if IS_SUPPORT_DEVICE_CHARGE
+//         charge_status_poll_by_fg(&s_charge_status);
+//         s_charge_status.charge_full = (s_charge_status.status & CHARGE_STATUS_BAT_FULL_MSK) > 0 ? true : false;        
+//         if (s_charge_status.plug_in != last_plug_in) {
+//             last_plug_in = s_charge_status.plug_in;
+//             charge_event_internal_cb(last_plug_in ? CHARGE_EVENT_PLUG_IN : CHARGE_EVENT_PLUG_OUT);
+//         }
+//         if (s_charge_status.charge_full && !last_full) {
+//             charge_event_internal_cb(CHARGE_EVENT_FULL);
+//         } else if (!s_charge_status.charge_full && last_full) {
+//             charge_event_internal_cb(CHARGE_EVENT_UNCHARGE);
+//         }
+//         last_full = s_charge_status.charge_full ? 1 : 0;
+// #if IS_SUPPORT_CHARGE_CURRENT_ADJUST
+//         charging_temp_policy_handler(s_charge_status.temp);
+// #endif
+//         uint8_t temp_abnormal = (s_charge_temp_status == CHARGE_TEMP_DISABLE) ? 1 : 0;
+//         if (temp_abnormal != last_temp_abnormal) {
+//             last_temp_abnormal = temp_abnormal;
+//             charge_event_internal_cb(temp_abnormal ? CHARGE_EVENT_TEMPERATURE_ERROR : CHARGE_EVENT_UNCHARGE);
+//         }
+//         if (get_timestamp_ms(log_timer) > 2000) {
+//             log_timer = get_timestamp();
+//             BSP_LOG("charge status", "vbus:%d mV, ibus:%d mA, vbat:%d mV, ibat:%d mA, ntc:%.2f KOhm, temp:%d C, status:0x%04X", 
+//                      s_charge_status.vbus, s_charge_status.ibus, s_charge_status.vbat, s_charge_status.ibat, 
+//                      s_charge_status.ntc_resistance, s_charge_status.temp, s_charge_status.status);
+//         }
+// #endif
     }
 }
 
@@ -344,6 +349,9 @@ int get_charge_full_debounce(void)
 
 int bsp_charge_init(void)
 {
+    // pmu_charger_init();
+    // pmu_charger_set_irq_handler(app_battery_charger_handler);
+
 #if IS_SUPPORT_PD_CHARGE
     bsp_charge_pd_init();
 #endif

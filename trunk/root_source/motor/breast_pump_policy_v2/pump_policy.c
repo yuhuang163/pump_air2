@@ -204,7 +204,7 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
         //     info->original.sleep_time = PUMP_SLEEP_TIME_MIN;
         //     LOG_MOTOR("work period error");
         // }
-        LOG_MOTOR("-->short suction: Level:%d, speed:%d, pump_time:%d, hold_time:%d, value_time:%d, sleep_time:%d,  %d,%d",
+        LOG_PBUS("-->short suction: Level:%d, speed:%d, pump_time:%d, hold_time:%d, value_time:%d, sleep_time:%d,  %d,%d",
             level, speed, 
             info->original.pumping_time, info->original.hold_time, info->original.valve_on_time, info->original.sleep_time,
             map_para.level, map_para.speed);
@@ -230,7 +230,7 @@ void pump_policy_info_reset(struct motor_manager_context *thiz, motor_policy_run
         //     info->original.sleep_time = PUMP_SLEEP_TIME_MIN;
         //     LOG_MOTOR("work period error");
         // } 
-        LOG_MOTOR("-->long suction: Level:%d, speed:%d, freq:%d, pump_time:%d, hold_time:%d, value_time:%d, sleep_time:%d,  %d,%d",
+        LOG_PBUS("-->long suction: Level:%d, speed:%d, freq:%d, pump_time:%d, hold_time:%d, value_time:%d, sleep_time:%d,  %d,%d",
             level, speed, 
             info->original.pumping_time, info->original.hold_time, info->original.valve_on_time, info->original.sleep_time,
             map_para.level, map_para.speed);

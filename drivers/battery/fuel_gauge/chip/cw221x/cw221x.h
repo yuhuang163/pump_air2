@@ -12,6 +12,7 @@ int cw221x_get_soh(int *lp_soh);
 int cw221x_get_alert(unsigned int *lp_alert);
 int cw221x_dump_register(void);
 int cw221x_bat_init(void);
+int get_cw221x_state(void);
 #endif
 
 

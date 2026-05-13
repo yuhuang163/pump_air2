@@ -2,9 +2,11 @@
 * INCLUDE FILES
 *****************************************************************************************
 */
+#include "project_support_overlay.h"
 #include "bsp_common.h"
 #include "bsp_config.h"
 #include "bsp_i2c.h"
+#include "cmsis_os_api.h"
 #if IS_SUPPORT_PD_CHARGE
 #include "bsp_charge_pd.h"
 #endif
@@ -77,7 +79,7 @@ static const battery_float_voltage_t sc_charging_float_tables[] = {
     {SG_FLOAT_VOLTAGE_RATE_1, SG_FLOAT_VOLTAGE_THRESHOLD_2}, 
     {SG_FLOAT_VOLTAGE_RATE_2, SG_FLOAT_VOLTAGE_THRESHOLD_3}, 
 };
-#else
+// #else
 static const capacity_data_t sc_batt_tables[] = {
     {0,  9587, 9693}, 
     {1,  9694, 9791}, 
@@ -133,16 +135,29 @@ static RTC_DATA_ATTR battery_status_t battery;
 #endif
 static rt_device_node_t *node = NULL;
 static uint8_t s_fg_is_ready = 0;
+#if IS_SUPPORT_DEVICE_FUEL_GAUGE
+/** 与 cw221x.c 中 IC_VCHIP_ID 一致，用于首次上电轮询阶段轻量探测。 */
+#define CW221X_IC_VCHIP_ID                (0xA0)
+/** 首次上电：周期性探测节拍（ms）。 */
+#define FG_PWRUP_POLL_MS                  (3000u)
+/** 手册要求约 3s 稳定后再配置；此前只探测、不执行完整 init。 */
+#define FG_PWRUP_MAX_WAIT_MS              (10000u)   ///增加阈值
 
-/*
-* GLOBAL VARIABLE DEFINITIONS
-*****************************************************************************************
-*/
+static uint32_t s_fg_pwrup_start_ts_ms = 0;
+static uint32_t s_fg_state_poll_last_ts_ms = 0;
+
+/** 已成功完成过一次上电后初始化；掉电丢失后才会再走首次延时轮询。休眠唤醒不清此标志。 */
+static RTC_DATA_ATTR uint8_t s_fg_cell_pwrup_delay_done = 0;
+#endif
 
 /*
 * LOCAL FUNCTION DEFINITIONS
 *****************************************************************************************
 */
+#if IS_SUPPORT_DEVICE_FUEL_GAUGE
+static void fg_pwrup_poll_handle(void);
+#endif
+
 #if IS_SUPPORT_BATTERY_POLL
 static void battery_health_update(void) 
 {
@@ -167,67 +182,17 @@ static int battery_voltage_get(void)
 
 static void battery_percent_handler(uint16_t current_voltage)
 {
-    uint8_t i = 0, table_size = 0, battery_percent = 0, health = 0;
-    uint16_t percent_offset = 0, curr_offset = 0, cmp_val[2] = {0};
-    table_size = LENGTH_OF_ARRAY(sc_batt_tables);
 
-    if (battery.health > BATT_HEALTH_COEFF_MIN && battery.health < BATT_HEALTH_COEFF_MAX) {
-        health = battery.health;
-    } else {
-        health = BATT_HEALTH_COEFF_MAX;
-    }
-
-    cmp_val[0] = (sc_batt_tables[0].vol_min * health) / BATT_HEALTH_COEFF_MAX;
-    if (current_voltage < cmp_val[0]) {
-        current_voltage = cmp_val[0];
-        battery.percent = 0;
-        return;
-    }
-
-    cmp_val[0] = (sc_batt_tables[table_size - 1].vol_max * health) / BATT_HEALTH_COEFF_MAX;
-    if (current_voltage >= cmp_val[0]) {
-        current_voltage = cmp_val[0];
-        battery.percent = 100;
-        return;
-    }
-
-    for (i = 0; i < table_size; i++) {
-        cmp_val[0] = (sc_batt_tables[i].vol_min * health) / BATT_HEALTH_COEFF_MAX;
-        cmp_val[1] = (sc_batt_tables[i].vol_max * health) / BATT_HEALTH_COEFF_MAX;
-        if (current_voltage >= cmp_val[0] && current_voltage <= cmp_val[1]) {
-            /// 取粗略百分比
-            battery_percent = sc_batt_tables[i].percent;
-            /// 取电压范围差值
-            if ((i + 1) < table_size) {
-                percent_offset = sc_batt_tables[i + 1].percent - sc_batt_tables[i].percent; 
-            } else {
-                percent_offset = 100 - sc_batt_tables[i].percent; 
-            }
-            /// 取细化百分比值，（当前电压-最小值）/（最大值-最小值） * 范围百分比
-            if (percent_offset > 1) {
-                curr_offset = (current_voltage - cmp_val[0]) * percent_offset / (cmp_val[1] - cmp_val[0]);
-                if (curr_offset <= percent_offset) {             
-                    battery.percent = battery_percent + curr_offset;
-                }
-            } else {
-                battery.percent = battery_percent;
-            }
-            break;
-        }
-    }
-    
-    if (i == table_size) {
-        LOGE("voltage table lookup error");     
-    }
 }
 
 static uint16_t battery_charging_compensation(uint16_t voltage)
 {
-    for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charging_float_tables); i++) {
-        if (voltage > sc_charging_float_tables[i].threshold) {
-            return voltage - sc_charging_float_tables[i].voltage;
-        }
-    }
+    // for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charging_float_tables); i++) {
+    //     if (voltage > sc_charging_float_tables[i].threshold) {
+    //         return voltage - sc_charging_float_tables[i].voltage;
+    //     }
+    // }
+    // return voltage;
     return voltage;
 }
 
@@ -255,36 +220,36 @@ static void uncharge_voltage_handler(uint16_t voltage)
     offset = battery.voltage - voltage;
 
     /// 过滤旋律抖动
-    if (is_full_load_running()) {
-        for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_full_load_tables); i++) {
-            if (offset > sc_full_load_tables[i].dropout_voltage) {
-                vref += (i == 0) ? (offset / sc_full_load_tables[i].rate) : sc_full_load_tables[i].rate;
-                vref_flag = 1;
-                break;
-            }
-        }
-        goto CALC_EXIT;
-    }
+    // if (is_full_load_running()) {
+    //     for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_full_load_tables); i++) {
+    //         if (offset > sc_full_load_tables[i].dropout_voltage) {
+    //             vref += (i == 0) ? (offset / sc_full_load_tables[i].rate) : sc_full_load_tables[i].rate;
+    //             vref_flag = 1;
+    //             break;
+    //         }
+    //     }
+    //     goto CALC_EXIT;
+    // }
 
-    /// 大偏差补偿
-    for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charge_tables); i++) {
-        if (offset > sc_charge_tables[i].dropout_voltage) {
-            if (i == 0) {
-                vref = 0;
-                comp_count++; 
-                if (comp_count > BATT_FORCE_UPDATE_DEBOUNCE) { 
-                    battery.voltage = battery.voltage + (offset / 10);
-                    comp_count = 0;
-                    LOG_PBUS("charge compensation offset:%d", offset);
-                }
-            } else{
-                comp_count = 0;
-                vref += (i == 1) ? sc_charge_tables[i].rate : (offset / sc_charge_tables[i].rate);
-            }
-            vref_flag = 1;
-            break;
-        }
-    }
+    // /// 大偏差补偿
+    // for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charge_tables); i++) {
+    //     if (offset > sc_charge_tables[i].dropout_voltage) {
+    //         if (i == 0) {
+    //             vref = 0;
+    //             comp_count++; 
+    //             if (comp_count > BATT_FORCE_UPDATE_DEBOUNCE) { 
+    //                 battery.voltage = battery.voltage + (offset / 10);
+    //                 comp_count = 0;
+    //                 LOG_PBUS("charge compensation offset:%d", offset);
+    //             }
+    //         } else{
+    //             comp_count = 0;
+    //             vref += (i == 1) ? sc_charge_tables[i].rate : (offset / sc_charge_tables[i].rate);
+    //         }
+    //         vref_flag = 1;
+    //         break;
+    //     }
+    // }
 
 CALC_EXIT:
     if (vref_flag == 0) {
@@ -333,11 +298,11 @@ return;
     s_charing_time_out_count++;
     if (s_charing_time_out_count > BATT_CHARGING_TIME_OUT) {
         s_charing_time_out_count = 0;
-        table_size = LENGTH_OF_ARRAY(sc_batt_tables);
-        health_coeff = ((s_batt_voltage_max * 100) / sc_batt_tables[table_size - 1].vol_max) - 1;
-        if ((battery.percent < 100) || (health_coeff > (battery.health + 1))) {
-            battery_health_set(health_coeff);
-        }
+        // table_size = LENGTH_OF_ARRAY(sc_batt_tables);
+        // health_coeff = ((s_batt_voltage_max * 100) / sc_batt_tables[table_size - 1].vol_max) - 1;
+        // if ((battery.percent < 100) || (health_coeff > (battery.health + 1))) {
+        //     battery_health_set(health_coeff);
+        // }
         LOG_PBUS("charging cali, health:%d%%, %d%%, percent:%d%%", health_coeff, battery.health,
                   battery.percent);
     }
@@ -352,17 +317,17 @@ return;
     }
     
     /// 充电偏差计算
-    for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charging_tables); i++) {
-        if (offset > sc_charging_tables[i].dropout_voltage) {
-            if (i == 0) {
-                vref = offset / 2.0;
-                LOG_PBUS("charging compensation offset:%d", offset);
-            } else {
-                vref += (i == 1) ? (offset / sc_charging_tables[i].rate) : sc_charging_tables[i].rate;
-            }
-            vref_flag = 1;
-        }
-    }
+    // for (uint8_t i = 0; i < LENGTH_OF_ARRAY(sc_charging_tables); i++) {
+        // if (offset > sc_charging_tables[i].dropout_voltage) {
+        //     if (i == 0) {
+        //         vref = offset / 2.0;
+        //         LOG_PBUS("charging compensation offset:%d", offset);
+        //     } else {
+        //         vref += (i == 1) ? (offset / sc_charging_tables[i].rate) : sc_charging_tables[i].rate;
+        //     }
+        //     vref_flag = 1;
+        // }
+    // }
 
     if (vref_flag == 0) {
         vref = 0;
@@ -388,52 +353,50 @@ CALC_EXIT:
 static void charge_full_voltage_handler(uint16_t voltage)
 {
     uint8_t health_coeff = 0, table_size = 0;
-    if (battery.voltage < voltage) {
-        battery.voltage = voltage;
-        table_size = LENGTH_OF_ARRAY(sc_batt_tables);
-        health_coeff = ((voltage * 100) / sc_batt_tables[table_size - 1].vol_max) - 1;
-        if ((health_coeff != battery.health)) {
-            battery_health_set(health_coeff);
-        }
-    }
+    // if (battery.voltage < voltage) {
+    //     battery.voltage = voltage;
+    //     table_size = LENGTH_OF_ARRAY(sc_batt_tables);
+    //     health_coeff = ((voltage * 100) / sc_batt_tables[table_size - 1].vol_max) - 1;
+    //     if ((health_coeff != battery.health)) {
+    //         battery_health_set(health_coeff);
+    //     }
+    // }
 
-    if (log_timer > 20) {
-        BSP_LOG("charge full", "type:%d, health:%d%%, percent:%d%%, batt:%dmv, adc:%dmv", 
-                battery.type, battery.health, battery.percent, battery.voltage, voltage);
-    }
-    battery_percent_handler(battery.voltage);
+    // if (log_timer > 20) {
+    //     BSP_LOG("charge full", "type:%d, health:%d%%, percent:%d%%, batt:%dmv, adc:%dmv", 
+    //             battery.type, battery.health, battery.percent, battery.voltage, voltage);
+    // }
+    // battery_percent_handler(battery.voltage);
 }
 
 static int battery_voltage_poll(void)
 {
     uint16_t batt_voltage =0; 
-    static uint16_t voltage = 0; 
+    static uint32_t voltage = 0; 
     int ret = BSP_OK;
-return BSP_ERROR;    
+
     if (s_battery_is_ready == false) {
         return BSP_ERROR;
     }
 
+#if IS_SUPPORT_DEVICE_FUEL_GAUGE
+    fg_pwrup_poll_handle();
+#else
+    return BSP_ERROR;
+#endif
+
     uint32_t poll_interval = get_timestamp_ms(s_batt_poll_time);
-    
+
     /// 避免过快调度
     if (poll_interval < 80) {
-        /// LOGE("battery poll error:%ld", poll_interval);
         return BSP_ERROR;
     }
     
     s_batt_poll_time = get_timestamp();
     log_timer++;
-#if IS_SUPPORT_BATTERY_DIRECT_SAMPLING
-    ret = battery_adc_single_conversion(&voltage);
-    if ( ret != BSP_OK) {
-        // LOGE("get batt voltage failed");
-        return ret;
-    }
-#else
-    // voltage = get_charge_battery_voltage();
-    voltage = 3600;
-#endif  
+
+    cw221x_get_vol(&voltage);
+
 #if IS_SUPPORT_DEVICE_CHARGE  
     battery.charge = get_charge_state();
     battery.temperature = get_charging_temperature();
@@ -457,12 +420,41 @@ return BSP_ERROR;
 }
 #endif
 
+#if IS_SUPPORT_DEVICE_FUEL_GAUGE
+static void fg_pwrup_poll_handle(void)
+{
+    uint32_t elapsed_ms;
+    int fg_state;
+
+    if (s_fg_is_ready) {
+        return;
+    }
+
+    if (get_timestamp_ms(s_fg_state_poll_last_ts_ms) < FG_PWRUP_POLL_MS) {
+        return;
+    }
+    s_fg_state_poll_last_ts_ms = get_timestamp();
+    fg_state = get_cw221x_state();
+
+    elapsed_ms = get_timestamp_ms(s_fg_pwrup_start_ts_ms);
+
+    if ((elapsed_ms >= FG_PWRUP_MAX_WAIT_MS) || (fg_state == 0)) {
+        s_fg_is_ready = (cw221x_bat_init() == 0) ? 1u : 0u;
+        LOG_PBUS("cw221x init after %lums", (unsigned long)elapsed_ms);
+    }
+}
+#endif
+
 static int battery_dev_open(struct rt_device_node *dev)
 {
 #if IS_SUPPORT_DEVICE_FUEL_GAUGE
-    // bsp_fuel_gauge_init();
     bsp_i2c_init(FUEL_GAUGE_I2C_ID);
-    s_fg_is_ready = (cw221x_bat_init() == 0) ? 1 : 0;  
+    s_fg_pwrup_start_ts_ms = get_timestamp();
+    s_fg_state_poll_last_ts_ms = 0;
+    if (get_cw221x_state() == 0) {
+        s_fg_is_ready = (cw221x_bat_init() == 0) ? 1u : 0u;
+        LOG_PBUS("cw221x first init, ready: %u", (unsigned)s_fg_is_ready);
+    }
 #endif
 
 #if IS_SUPPORT_DEVICE_CHARGE        
@@ -474,10 +466,10 @@ static int battery_dev_open(struct rt_device_node *dev)
 #endif
     battery_health_update();
     s_battery_is_ready = true;
-    LOG_PBUS("battery init ok, health:%d%%, percent: %d%% voltage: %d",
+    LOG_PBUS("battery init ok (charger/adc path), health:%d%%, percent: %d%% voltage: %d",
         battery.health, battery.percent, battery.voltage); 
-    s_batt_poll_time = 0;   
-    // battery_voltage_poll();
+    s_batt_poll_time = 0;
+    battery_voltage_poll();
 #endif
     if (node) {
         node->status = DEVICE_BUS_INIT;
@@ -487,6 +479,7 @@ static int battery_dev_open(struct rt_device_node *dev)
 
 static int battery_dev_close(struct rt_device_node *dev)
 {
+    (void)dev;
     return 0;
 }
 
@@ -649,6 +642,13 @@ static int battery_dev_resume(struct rt_device_node *dev)
 #endif
     battery_health_update();
     s_batt_poll_time = 0;
+#endif
+#if IS_SUPPORT_DEVICE_FUEL_GAUGE
+    /* 休眠唤醒不是电芯首次上电，不重新等 3s；若 suspend 打断了首次定时器，此处直接尝试 init。 */
+    if (!s_fg_is_ready) {
+        s_fg_is_ready = (cw221x_bat_init() == 0) ? 1u : 0u;
+        LOG_PBUS("cw221x init on resume (no cell pwrup delay), ready:%u", (unsigned)s_fg_is_ready);
+    }
 #endif
     if (node) {
         node->status = DEVICE_BUS_RESUME;
