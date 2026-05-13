@@ -65,9 +65,11 @@ int bsp_read_diff_pressure_status(void *args)
     diff_pressure_flow_model_on_sample(pa);
 
 #if SDP3X_LOG_DEBUG
-    LOG_PBUS("sdp3x Pa: %f, T: %f",
-        out_status[0].pressure,
-        out_status[0].temp);
+    // LOG_PBUS("sdp3x Pa: %f, T: %f",
+    //     out_status[0].pressure,  
+    //     out_status[0].temp);
+LOG_PASS("[%d][%d] Pa: %f,T: %f", platform_get_utc_time(), get_timestamp_ms(0), out_status[0].pressure, out_status[0].temp);
+LOG_PASS("\r\n");
 #endif
     return BSP_OK;
 }

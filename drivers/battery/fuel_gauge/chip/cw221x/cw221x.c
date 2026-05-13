@@ -73,6 +73,7 @@ static unsigned char config_profile_info[SIZE_OF_PROFILE] = {
 	0x00,0x00,0x64,0x10,0x91,0xAE,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0A,
 };
+static uint8_t s_get_cw221x_chip_id_ready = 0;
 
 int cw_read(unsigned char PointReg,unsigned char *pData);
 int cw_write(unsigned char PointReg,unsigned char *pData);
@@ -376,24 +377,52 @@ void read_all_register(void)
 	}
 }
 
-static int cw221x_init(void)
+int get_cw221x_state(void)
 {
 	int ret;
 	int chip_id;
 
 	ret = cw221x_get_chip_id(&chip_id);
 	if(ret){
-		LOG_PBUS("cw221x get chip id failed: %d", ret);
+		LOGE("cw221x get chip id failed: %d", ret);
 		return ret;
 	}
 	if(chip_id != IC_VCHIP_ID){
-		LOG_PBUS("cw221x chip id mismatch: %d, expected: %d", chip_id, IC_VCHIP_ID);
+		LOGE("cw221x chip id mismatch: %d, expected: %d", chip_id, IC_VCHIP_ID);
 		return CW221X_ERROR_CHIP_ID;
 	}
+	LOG_PBUS("cw221x get chip id ok");
+	s_get_cw221x_chip_id_ready = 1;
 
 	ret = cw221x_get_state();
 	if (ret < 0){
-		LOG_PBUS("cw221x get state failed: %d", ret);
+		LOGE("cw221x get state failed: %d", ret);
+		return ret;
+	}
+	return ret;
+}
+
+static int cw221x_init(void)
+{
+	int ret;
+	int chip_id;
+
+	if (s_get_cw221x_chip_id_ready == 0) {
+		ret = cw221x_get_chip_id(&chip_id);
+		if(ret){
+			LOGE("cw221x get chip id failed: %d", ret);
+			return ret;
+		}
+		if(chip_id != IC_VCHIP_ID){
+			LOGE("cw221x chip id mismatch: %d, expected: %d", chip_id, IC_VCHIP_ID);
+			return CW221X_ERROR_CHIP_ID;
+		}
+		s_get_cw221x_chip_id_ready = 1;
+	}
+	
+	ret = cw221x_get_state();
+	if (ret < 0){
+		LOGE("cw221x get state failed: %d", ret);
 		return ret;
 	}
 
@@ -592,7 +621,6 @@ int cw221x_bat_init(void)
 {
 	int ret;
 	int loop = 0;
-	LOG_PBUS("cw221x bat init start");
 	ret = cw221x_init();
 	while((loop++ < 3) && (ret != 0))
 	{
