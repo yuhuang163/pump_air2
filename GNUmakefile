@@ -391,7 +391,14 @@ DRIVERS_I2C_INC_FLAGS := \
 
 # IMU 驱动头文件
 DRIVERS_IMU_INC_FLAGS := \
-	-I$(PROJECT_ROOT)/drivers/imu
+	-I$(PROJECT_ROOT)/drivers/imu \
+	-I$(PROJECT_ROOT)/drivers/imu/chip/icm_42670p/drivers \
+	-I$(PROJECT_ROOT)/drivers/imu/chip/icm_42670p/common
+
+# 接近/佩戴传感器驱动头文件
+DRIVERS_PROXIMITY_INC_FLAGS := \
+	-I$(PROJECT_ROOT)/drivers/proximity_sensor \
+	-I$(PROJECT_ROOT)/drivers/proximity_sensor/chip/stk33562
 
 DRIVERS_KEY_INC_FLAGS := -I$(PROJECT_ROOT)/drivers/key
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V4)),)
@@ -453,6 +460,7 @@ DRIVERS_INC_FLAGS := \
 	$(DRIVERS_FORCE_SENSOR_INC_FLAGS) \
 	$(DRIVERS_I2C_INC_FLAGS) \
 	$(DRIVERS_IMU_INC_FLAGS) \
+	$(DRIVERS_PROXIMITY_INC_FLAGS) \
 	$(DRIVERS_KEY_INC_FLAGS) \
 	$(DRIVERS_LCD_INC_FLAGS) \
 	$(DRIVERS_LED_INC_FLAGS) \
@@ -522,6 +530,7 @@ SENSOR_INC_FLAGS := \
 	-I$(PROJECT_ROOT)/overlay/sensor/force_sensor \
 	-I$(PROJECT_ROOT)/overlay/sensor/air_pressure \
 	-I$(PROJECT_ROOT)/overlay/sensor/diff_pressure \
+	-I$(PROJECT_ROOT)/overlay/sensor/proximity_sensor \
 	-I$(PROJECT_ROOT)/overlay/framework_hooks/sensor \
 	-I$(PROJECT_ROOT)/trunk/root_source/sensor
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)
@@ -949,7 +958,18 @@ DRIVERS_I2C_SRCS := \
 
 # IMU 驱动源码
 DRIVERS_IMU_SRCS := \
-	$(wildcard $(PROJECT_ROOT)/drivers/imu/*.c)
+	$(wildcard $(PROJECT_ROOT)/drivers/imu/*.c) \
+	$(PROJECT_ROOT)/drivers/imu/chip/icm_42670p/inv_imu_port.c \
+	$(PROJECT_ROOT)/drivers/imu/chip/icm_42670p/icm42670p.c \
+	$(PROJECT_ROOT)/drivers/imu/chip/icm_42670p/drivers/imu/inv_imu_driver.c \
+	$(PROJECT_ROOT)/drivers/imu/chip/icm_42670p/drivers/imu/inv_imu_transport.c
+
+EXTRA_CFLAGS += -DICM42670P
+
+# 接近/佩戴传感器驱动源码
+DRIVERS_PROXIMITY_SRCS := \
+	$(wildcard $(PROJECT_ROOT)/drivers/proximity_sensor/*.c) \
+	$(wildcard $(PROJECT_ROOT)/drivers/proximity_sensor/chip/stk33562/*.c)
 
 # 按键驱动源码（触摸芯片二选一）
 DRIVERS_KEY_SRCS := $(wildcard $(PROJECT_ROOT)/drivers/key/*.c)
@@ -1022,6 +1042,7 @@ DRIVERS_SRCS := \
 	$(DRIVERS_FORCE_SENSOR_SRCS) \
 	$(DRIVERS_I2C_SRCS) \
 	$(DRIVERS_IMU_SRCS) \
+	$(DRIVERS_PROXIMITY_SRCS) \
 	$(DRIVERS_KEY_SRCS) \
 	$(DRIVERS_LCD_SRCS) \
 	$(DRIVERS_LED_SRCS) \
@@ -1101,6 +1122,7 @@ SENSOR_MODULE_SRCS := \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/force_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/air_pressure/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/sensor/diff_pressure/*.c) \
+	$(wildcard $(PROJECT_ROOT)/overlay/sensor/proximity_sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/overlay/framework_hooks/sensor/*.c) \
 	$(wildcard $(PROJECT_ROOT)/trunk/root_source/sensor/*.c)
 ifneq ($(filter $(V3_HARDWARE_VERSION),$(V3_2710IMC_HARDWARE_V1) $(V3_2710IMC_HARDWARE_V2) $(V3_2710IMC_HARDWARE_V3) $(V3_2710IMC_HARDWARE_V4)),)

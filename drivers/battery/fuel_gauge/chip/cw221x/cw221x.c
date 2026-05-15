@@ -73,8 +73,8 @@ static unsigned char config_profile_info[SIZE_OF_PROFILE] = {
 	0x00,0x00,0x64,0x10,0x91,0xAE,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0A,
 };
-static uint8_t s_get_cw221x_chip_id_ready = 0;
-
+static uint8_t s_cw221x_chip_id_is_ready = 0;
+static uint8_t s_cw221x_chip_is_ready = 0;
 int cw_read(unsigned char PointReg,unsigned char *pData);
 int cw_write(unsigned char PointReg,unsigned char *pData);
 int cw_read_nbyte(unsigned char point_reg,unsigned char *r_pdata, unsigned char len);
@@ -193,9 +193,8 @@ static int cw221x_get_state(void)
 	if (reg_val != CONFIG_MODE_ACTIVE)
 	{
 		LOG_PBUS("cw221x not active");
-		return BSP_ERROR;
+		return CW221X_NOT_ACTIVE;
 	}
-		
 	
 	ret = cw_read(REG_SOC_ALERT, &reg_val);
 	if (ret)
@@ -265,13 +264,13 @@ int cw221x_sleep()
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret)
 		return CW221X_ERROR_IIC;
-		msleep(2); /* Here delay must >= 20 ms */
+	msleep(20); /* Here delay must >= 20 ms */
 
 	reg_val = CONFIG_MODE_SLEEP;
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret)
 		return CW221X_ERROR_IIC;
-		msleep(1); 
+	msleep(10); 
 
 	return 0;
 }
@@ -284,13 +283,13 @@ static int cw221x_active()
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret)
 		return CW221X_ERROR_IIC;
-		msleep(2); /* Here delay must >= 20 ms */
+	msleep(20); /* Here delay must >= 20 ms */
 
 	reg_val = CONFIG_MODE_ACTIVE;
 	ret = cw_write(REG_MODE_CONFIG, &reg_val);
 	if (ret < 0)
 		return CW221X_ERROR_IIC;
-		msleep(1); 
+	msleep(10); 
 
 	return 0;
 }
@@ -344,7 +343,7 @@ static int cw221x_config_start_ic()
 	}
 		
 	while(1){
-		msleep(10);
+		msleep(100);
 		ret = cw_read(REG_IC_STATE, &reg_val);
 		if (IC_READY_MARK == (reg_val & IC_READY_MARK))
 			break;
@@ -368,46 +367,57 @@ void read_all_register(void)
 	for(i = 0; i <= 0xF; i++){
 		cw_read(i, &reg_val);
 		/*Please add print if use*/
-		LOG_PBUS("0x%2x = 0x%2x", i, (int)reg_val);
+		LOG_PBUS("reg[0x%02x] = 0x%02x", i, reg_val);
 	}
 	for(i = 0xA0; i <= 0xAB; i++){
 		cw_read(i, &reg_val);
 		/*Please add print if use*/
-		LOG_PBUS("0x%2x = 0x%2x", i, (int)reg_val);
+		LOG_PBUS("reg[0x%02x] = 0x%02x", i, reg_val);
 	}
 }
 
-int get_cw221x_state(void)
-{
-	int ret;
-	int chip_id;
+// int get_cw221x_state(void)
+// {
+// 	int ret;
+// 	int chip_id;
 
-	ret = cw221x_get_chip_id(&chip_id);
-	if(ret){
-		LOGE("cw221x get chip id failed: %d", ret);
-		return ret;
-	}
-	if(chip_id != IC_VCHIP_ID){
-		LOGE("cw221x chip id mismatch: %d, expected: %d", chip_id, IC_VCHIP_ID);
-		return CW221X_ERROR_CHIP_ID;
-	}
-	LOG_PBUS("cw221x get chip id ok");
-	s_get_cw221x_chip_id_ready = 1;
+// 	if (s_cw221x_chip_id_is_ready == 0) {
+// 		ret = cw221x_get_chip_id(&chip_id);
+// 		if(ret){
+// 			LOGE("cw221x get chip id failed: %d", ret);
+// 			return ret;
+// 		}
+// 		if(chip_id != IC_VCHIP_ID){
+// 			LOGE("cw221x chip id mismatch: %d, expected: %d", chip_id, IC_VCHIP_ID);
+// 			return CW221X_ERROR_CHIP_ID;
+// 		}
+// 		LOG_PBUS("cw221x get chip id ok");
+// 		s_cw221x_chip_id_is_ready = 1;
+// 	}
 
-	ret = cw221x_get_state();
-	if (ret < 0){
-		LOGE("cw221x get state failed: %d", ret);
-		return ret;
-	}
-	return ret;
-}
+// 	// ret = cw221x_active();
+// 	// if (ret < 0) 
+// 	// {
+// 	// 	LOG_PBUS("cw221x active failed: %d", ret);
+// 	// 	return ret;
+// 	// }
+	
+// 	ret = cw221x_get_state();
+// 	if (ret < 0){
+// 		LOGE("cw221x get state failed: %d", ret);
+// 		return ret;
+// 	}
+// 	return ret;
+// }
 
 static int cw221x_init(void)
 {
 	int ret;
 	int chip_id;
-
-	if (s_get_cw221x_chip_id_ready == 0) {
+	
+	s_cw221x_chip_is_ready = 0;
+	// if (s_cw221x_chip_id_is_ready == 0) 
+	{
 		ret = cw221x_get_chip_id(&chip_id);
 		if(ret){
 			LOGE("cw221x get chip id failed: %d", ret);
@@ -417,7 +427,8 @@ static int cw221x_init(void)
 			LOGE("cw221x chip id mismatch: %d, expected: %d", chip_id, IC_VCHIP_ID);
 			return CW221X_ERROR_CHIP_ID;
 		}
-		s_get_cw221x_chip_id_ready = 1;
+		LOGE("cw221x get chipid ok");
+		s_cw221x_chip_id_is_ready = 1;
 	}
 	
 	ret = cw221x_get_state();
@@ -434,6 +445,7 @@ static int cw221x_init(void)
 			return ret;
 		}
 	}
+	s_cw221x_chip_is_ready = 1;
 	LOG_PBUS("cw221x init ok");
 	return 0;
 }
@@ -617,6 +629,11 @@ int cw221x_dump_register(void)
 	return 0;
 }
 
+uint8_t cw221x_is_ready(void)
+{
+	return s_cw221x_chip_is_ready;
+}
+
 int cw221x_bat_init(void)
 {
 	int ret;
@@ -626,7 +643,17 @@ int cw221x_bat_init(void)
 	{
 		ret = cw221x_init();
 	}
-	
 	return ret;
 }
 
+
+int get_charging_temperature(void) 
+{
+    int temp = 0;
+    int ret = cw221x_get_temp(&temp);
+	if (ret < 0) {
+		LOGE("cw221x get temp failed: %d", ret);
+		return 26;
+	}
+    return temp;
+}

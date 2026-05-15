@@ -135,8 +135,14 @@ static void imu_polling_handler(void *user_data)
     }
 #else
     if (thiz->priv.dev) {
+        int read_len;
+
         thiz->priv.polling_cnt++;
-        DEVICE_READ_ARGS(thiz->priv.dev, &sensor_data->imu_data.un.raw, 12);
+        read_len = DEVICE_READ_ARGS(thiz->priv.dev, &sensor_data->imu_data.un.raw, sizeof(imu_raw_data_t));
+        if (read_len > 0) {
+            sensor_data->imu_serial_num++;
+            sensor_data->sensor_mask |= SENSOR_MASK_IMU;
+        }
     }
 #endif
     log_time++;

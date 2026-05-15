@@ -68,15 +68,16 @@ extern "C" {
 #define AIR_PRESSURE_I2C_ID2            I2C_MASTER_ID_2 /// no use
 #define DIFF_PRESSURE_I2C_ID            I2C_MASTER_ID_2
 #define PRESSURE_SENSOR_I2C_ID          I2C_MASTER_ID_2
+#define P_SENSOR_I2C_ID                 I2C_MASTER_ID_2
 
 /// 充电芯片相关定义
 #define CHARGE_POWER_PIN                HAL_GPIO_PIN_P3_4
 #define CHARGE_STATUS_PIN               HAL_GPIO_PIN_P3_3
 /// 中断引脚
-#define P_SENSOR1_INT_PIN               HAL_GPIO_PIN_P0_4
+#define IR_SENSOR_INT_PIN               HAL_GPIO_PIN_P0_4   /// 红外sensor中断，佩戴检测
 #define FUEL_GAUGE_INT_PIN              HAL_GPIO_PIN_P2_5   /// 电量计中断
 #define IMU_INT_PIN                     HAL_GPIO_PIN_P2_4   /// IMU中断
-#define P_SENSOR2_INT_PIN               HAL_GPIO_PIN_P1_6   /// 奶阵奶量sensor中断
+#define P_SENSOR_INT_PIN                HAL_GPIO_PIN_P1_6   /// 奶阵奶量sensor中断
 #define CAP_SENSOR_INT_PIN              HAL_GPIO_PIN_P1_7   /// 佩戴检测中断
 #define CHARGE_INT_PIN                  HAL_GPIO_PIN_P3_5   /// 充电状态中断
 

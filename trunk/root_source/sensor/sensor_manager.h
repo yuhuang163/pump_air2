@@ -39,6 +39,7 @@ void *register_module_for_force_sensor_new(list_head_t *list_head);
 void *register_module_for_air_pressure_new(list_head_t *list_head);
 void *register_module_for_diff_pressure_new(list_head_t *list_head);
 void *register_module_for_light_sensor_new(list_head_t *list_head);
+void *register_module_for_proximity_sensor_new(list_head_t *list_head);
 
 #ifdef __cplusplus
 }

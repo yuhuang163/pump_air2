@@ -97,6 +97,7 @@ typedef enum {
     SENSOR_MASK_FSENSOR = 1 << 1,
     SENSOR_MASK_AIR_PRESSURE = 1 << 2,
     SENSOR_MASK_DIFF_PRESSURE = 1 << 3,
+    SENSOR_MASK_PROXIMITY = 1 << 4,
 } sensor_wrapper_data_mask_e;
 
 /// sensor数据集
@@ -120,6 +121,10 @@ typedef struct {
     #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
     uint16_t light_sensor_serial_num;
     light_sensor_data_t light_sensor_data;
+    #endif
+    #if IS_SUPPORT_DEVICE_PROXIMITY_SENSOR
+    uint16_t proximity_serial_num;
+    proximity_status_t proximity_data;
     #endif
     uint32_t sensor_mask; /// 传感器掩码，用于记录传感器数据是否有效
 } sensor_wrapper_data_t;

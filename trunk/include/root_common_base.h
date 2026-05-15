@@ -48,6 +48,9 @@ extern "C" {
 #include "hal_diff_pressure.h" // IWYU pragma: keep
 #endif
 #include "hal_light_sensor.h" // IWYU pragma: keep
+#if IS_SUPPORT_DEVICE_PROXIMITY_SENSOR
+#include "hal_proximity_sensor.h" // IWYU pragma: keep
+#endif
 
 /// 内存申请宏定义.
 #define MALLOC_FOR_PTR(ptr, __struct_type) \

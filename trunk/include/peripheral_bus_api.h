@@ -40,6 +40,7 @@ typedef enum {
     ID_DEVICE_MOTOR,
     ID_DEVICE_AUDIO,
     ID_DEVICE_CAP_SENSOR,
+    ID_DEVICE_PROXIMITY_SENSOR,
     ID_DEVICE_MAX
 } device_desc_id_e;
 
@@ -77,7 +78,7 @@ typedef struct rt_device_node {
     ((rt_device_node_t *)(dev))->read((dev), (NULL), (0))
 
 #define DEVICE_READ_ARGS(dev0, buf, n_bytes) \
-        ((rt_device_node_t *)(dev0))->read((dev0), (buf), (n_bytes)); 
+        ((rt_device_node_t *)(dev0))->read((dev0), (buf), (n_bytes))
 
 #define DEVICE_READ_NO_RET(dev0, buf, n_bytes) \
 do { \

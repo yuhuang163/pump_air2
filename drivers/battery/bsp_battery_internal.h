@@ -125,7 +125,7 @@ typedef struct {
     uint16_t voltage;
     int32_t  current_ma;
     uint16_t cycle_count;
-    uint8_t  soh;
+    uint16_t  soh;
 } battery_status_t;
 
 /// 电池曲线
@@ -158,7 +158,6 @@ int bsp_charge_resume(void);
 int bsp_charge_suspend(void);
 int get_charge_state(void);
 int get_charging_temperature(void);
-int get_charge_battery_voltage(void);
 int get_charge_full_debounce(void);
 void add_charge_event_callback(charge_event_cb cb);
 void charge_event_internal_cb(charge_event_e event);
