@@ -231,6 +231,11 @@ static void sgm41519_device_init(void)
     // sgm41519_read_nbyte_no_retry(SGM41519_ENABLE_CHARGE_REG, &reg_data, 1);
     // LOG_PBUS("charge scan reg0x01:0x%X", reg_data);
 
+    reg_data = 0x71;
+    sgm41519_write_nbyte(SGM41519_CHARGE_CTRL_REG04, &reg_data, 1); // 充电电压上限 4.3V
+    // sgm41519_read_nbyte_no_retry(SGM41519_CHARGE_CTRL_REG04, &reg_data, 1);
+    // LOG_PBUS("charge scan reg0x04:0x%X", reg_data);
+
     reg_data = SGM41519_BOOST_MODE_VOL_REG_VAL;
     sgm41519_write_nbyte(SGM41519_BOOST_MODE_VOL_REG, &reg_data, 1); // 预设 OTG/Boost 输出电压5V
     // sgm41519_read_nbyte_no_retry(SGM41519_BOOST_MODE_VOL_REG, &reg_data, 1);

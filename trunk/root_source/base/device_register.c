@@ -69,6 +69,9 @@ static const device_register_fptr s_device_register[] = {
     #if IS_SUPPORT_DEVICE_CAP_SENSOR
     register_device_for_cap_sensor,
     #endif
+    #if IS_SUPPORT_DEVICE_PROXIMITY_SENSOR
+    register_device_for_proximity_sensor,
+    #endif
     #if IS_SUPPORT_DEVICE_AIR_PRESSURE
     register_device_for_air_pressure,
     #endif

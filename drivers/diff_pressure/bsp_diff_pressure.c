@@ -35,6 +35,8 @@ int bsp_diff_pressure_deinit(void)
 
 int bsp_read_diff_pressure_status(void *args)
 {
+    static uint32_t read_times = 0;
+
     air_pressue_status_t *out_status = (air_pressue_status_t *)args;
 
     if (out_status == NULL) {
@@ -68,7 +70,8 @@ int bsp_read_diff_pressure_status(void *args)
     // LOG_PBUS("sdp3x Pa: %f, T: %f",
     //     out_status[0].pressure,  
     //     out_status[0].temp);
-LOG_PASS("[%d][%d] Pa: %f,T: %f", platform_get_utc_time(), get_timestamp_ms(0), out_status[0].pressure, out_status[0].temp);
+    read_times++;
+LOG_PASS("[%d][%d] Pa: %f,T: %f,times: %d", platform_get_utc_time(), get_timestamp_ms(0), out_status[0].pressure, out_status[0].temp, read_times);
 LOG_PASS("\r\n");
 #endif
     return BSP_OK;

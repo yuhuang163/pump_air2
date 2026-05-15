@@ -1,6 +1,8 @@
 #ifndef _Cellwise_CW221X_Driver_h_
 #define _Cellwise_CW221X_Driver_h_
 
+#include <stdint.h>
+
 int cw221x_get_chip_id(int *chip_id);
 int cw221x_sleep();
 int cw221x_get_vol(unsigned int *lp_vol);
@@ -13,6 +15,7 @@ int cw221x_get_alert(unsigned int *lp_alert);
 int cw221x_dump_register(void);
 int cw221x_bat_init(void);
 int get_cw221x_state(void);
+uint8_t cw221x_is_ready(void);
 #endif
 
 

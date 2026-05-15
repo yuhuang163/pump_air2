@@ -25,6 +25,7 @@ DECLARE_DEVICE_REGISTER(register_device_for_battery);
 DECLARE_DEVICE_REGISTER(register_device_for_imu);
 DECLARE_DEVICE_REGISTER(register_device_for_force_sensor);
 DECLARE_DEVICE_REGISTER(register_device_for_cap_sensor);
+DECLARE_DEVICE_REGISTER(register_device_for_proximity_sensor);
 DECLARE_DEVICE_REGISTER(register_device_for_light_sensor);
 DECLARE_DEVICE_REGISTER(register_device_for_air_pressure);
 DECLARE_DEVICE_REGISTER(register_device_for_diff_pressure);
