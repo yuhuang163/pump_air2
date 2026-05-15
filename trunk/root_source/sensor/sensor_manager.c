@@ -32,6 +32,9 @@ static const sensor_register_fptr s_sensor_register[] = {
     #if IS_SUPPORT_DEVICE_LIGHT_SENSOR
         register_module_for_light_sensor_new,
     #endif
+    #if IS_SUPPORT_DEVICE_PROXIMITY_SENSOR
+        register_module_for_proximity_sensor_new,
+    #endif
 };
 
 /*
