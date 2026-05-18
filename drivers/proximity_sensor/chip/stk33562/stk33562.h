@@ -12,7 +12,7 @@ extern "C" {
 #define STK33562_I2C_ADDR_7BIT          0x46u
 #define STK33562_PRODUCT_ID_REG         0x3Eu
 #define STK33562_SW_RESET_REG           0x80u
-#define STK33562_SW_RESET_VAL           0x99u
+#define STK33562_SW_RESET_VAL           0xB6u
 
 typedef struct {
     uint8_t address;

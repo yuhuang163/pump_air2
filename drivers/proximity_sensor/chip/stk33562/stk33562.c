@@ -5,6 +5,8 @@
 #include "bsp_i2c.h"
 #include "hal_gpio.h"
 #include "cmsis_os_api.h"
+#include "hal_timer.h"
+#include "hwtimer_list.h"
 
 #define STK33562_PS_FAR_THD_RATIO_DEFAULT   65u
 #define STK33562_FACTORY_PS_DIFF_MIN        150u
@@ -55,7 +57,7 @@ static const stk33562_reg_table_t s_default_regs[] = {
     { 0x81, 0x63, 0xFF },
     { 0x45, 0x20, 0xFF },
 };
-
+static HWTIMER_ID stk33562_timer_id = NULL;
 static bool s_dev_ready;
 static bool s_worker_inited;
 static uint16_t s_near_threshold;
@@ -66,6 +68,80 @@ static bool s_cache_valid;
 static stk33562_notify_fptr s_notify_cb;
 static thread_context_t s_worker_thd;
 static volatile uint8_t s_irq_msg_pending;
+
+
+
+
+
+#define STK33562_POLL_INTERVAL_MS 2000
+static os_timer_id stk33562_poll_timer = NULL;
+static thread_context_t stk33562_poll_thd = {0};
+
+
+static int stk33562_fetch_status(proximity_status_t *status);
+static void stk33562_poll_timer_handler(void *param);
+void dump_reg(void);
+
+static void stk33562_poll_worker_thread(void *arg)
+{
+    uint8_t msg = 0;
+    proximity_status_t status;
+    (void)arg;
+    while (1) {
+        MSG_QUEUE_RECV(stk33562_poll_thd.msg_id, (void *)&msg, OS_WAIT_FOREVER);
+        
+        // dump_reg();
+    
+        if (stk33562_fetch_status(&status) != BSP_OK) {
+            return;
+        }
+    }
+}
+
+static void stk33562_poll_timer_handler(void *param)
+{
+	(void)param;
+    uint8_t msg = 0x5A;
+    if (stk33562_poll_thd.msg_id != NULL) {
+        (void)MSG_QUEUE_SEND(stk33562_poll_thd.msg_id, (void *)&msg, 0);
+    }
+}
+
+static bool stk33562_poll_worker_init(void)
+{
+    CREATE_MSG_TYPE_QUEUE(&stk33562_poll_thd.msg_id, 4, 1);
+    if (stk33562_poll_thd.msg_id == NULL) {
+        LOGE("stk33562 poll queue create fail");
+        return false;
+    }
+    if (RUN_NEW_THREAD(&stk33562_poll_thd, "ir_poll", stk33562_poll_worker_thread,
+                       RT_PRIO_SENSOR_INPUT_DISPATCH_THREAD, INPUT_SENSOR_THREAD_STACKSIZE) != 0) {
+        LOGE("stk33562 poll thread create fail");
+        return false;
+    }
+    CREATE_TIMER(&stk33562_poll_timer, "hx90xx_poll", NULL, OS_TIMER_PERIODIC, stk33562_poll_timer_handler);
+    if (stk33562_poll_timer == NULL) {
+        LOGE("stk33562 poll timer create fail");
+        return false;
+    }
+    return true;
+}
+
+// 启动定时器轮询， uint8_t hx90xx_report_diff_prox_status(void)
+void stk33562_timer_start(void)
+{
+	if (!stk33562_poll_worker_init())
+	{
+        LOGE("stk33562 timer init fail\r\n");
+		return;
+	}
+	(void)STOP_TIMER(stk33562_poll_timer);
+	if (START_TIMER(stk33562_poll_timer, STK33562_POLL_INTERVAL_MS) != osOK)
+	{
+		LOGE("stk33562 timer start fail\r\n");
+		return;
+	}
+}
 
 static int stk33562_write_reg(uint8_t reg, uint8_t val)
 {
@@ -81,7 +157,7 @@ static int stk33562_write_reg(uint8_t reg, uint8_t val)
         if (bsp_i2c_write_byte(P_SENSOR_I2C_ID, &i2c_data) == BSP_OK) {
             return BSP_OK;
         }
-        msleep(2);
+        msleep(10);
     }
     return BSP_ERROR;
 }
@@ -100,14 +176,14 @@ static int stk33562_read_reg(uint8_t reg, uint8_t *data, uint16_t len)
         if (bsp_i2c_read_byte(P_SENSOR_I2C_ID, &i2c_data) == BSP_OK) {
             return BSP_OK;
         }
-        msleep(2);
+        msleep(10);
     }
     return BSP_ERROR;
 }
 
 static void stk33562_sw_reset(void)
 {
-    (void)stk33562_write_reg(STK33562_SW_RESET_REG, STK33562_SW_RESET_VAL);
+    stk33562_write_reg(STK33562_SW_RESET_REG, STK33562_SW_RESET_VAL);
 }
 
 static int stk33562_reg_init(void)
@@ -186,7 +262,7 @@ static void stk33562_clear_interrupt(void)
     if (stk33562_read_reg(STK_FLAG_REG, &flag, 1) != BSP_OK) {
         return;
     }
-    (void)stk33562_write_reg(STK_FLAG_REG, (uint8_t)(flag & (uint8_t)(~STK_FLG_PSINT_MASK)));
+    stk33562_write_reg(STK_FLAG_REG, (uint8_t)(flag & (uint8_t)(~STK_FLG_PSINT_MASK)));
 }
 
 static int stk33562_fetch_status(proximity_status_t *status)
@@ -212,6 +288,57 @@ static int stk33562_fetch_status(proximity_status_t *status)
     return BSP_OK;
 }
 
+void dump_reg(void)
+{
+	uint8_t RegCount, RegIndex;
+    uint8_t Addr, Data;
+    uint8_t stk3a5x_reg_map[] =
+    {
+        0x00, 0x01, 0x02, 0x03, 0x04,
+        0x05, 0x06, 0x07, 0x08, 0x09, 
+		0x10, 0x4E, 0xA0, 0xA1, 0xA8, 
+		0xA9, 0xAA, 0xDB, 0x3E
+    };
+	RegCount = sizeof(stk3a5x_reg_map) / sizeof(uint8_t);
+    for (RegIndex = 0; RegIndex < RegCount; RegIndex++)
+    {
+        Addr = stk3a5x_reg_map[RegIndex];
+        Data = 0x00;
+        stk33562_read_reg(Addr, &Data, 1);
+        LOG_PBUS("[APP_STK_PS] reg[0x%02x]=0x%02x", Addr, Data);
+        msleep(1);
+    }
+}
+
+// static void stk33562_timer_start(uint32_t period)
+// {
+//     uint32_t period_ticks = US_TO_TICKS(period);
+//     hwtimer_start(stk33562_timer_id, period_ticks);
+// }
+
+// static void stk33562_timeout_handler(void *param)
+// {
+//     dump_reg();
+//     stk33562_timer_start(3000);
+// }
+
+// static void stk33562_timer_init(void)
+// {
+//     if (stk33562_timer_id == NULL) {
+//         stk33562_timer_id = hwtimer_alloc(stk33562_timeout_handler, 0);
+//         if (stk33562_timer_id == NULL) {
+//             LOGE("Oops! hwtimer_alloc(led): fail");
+//         }
+//         else {
+//             stk33562_timer_start(5000);
+//             LOG_PBUS("stk33562_timer_init ok");
+//         }
+//     }
+// }
+
+
+
+
 static void stk33562_irq_work_in_thread(void)
 {
     proximity_status_t status;
@@ -228,7 +355,7 @@ static void stk33562_irq_work_in_thread(void)
     s_cached_status = status;
     s_cache_valid = true;
     stk33562_clear_interrupt();
-    (void)stk33562_enable_irq();
+    stk33562_enable_irq();
 
     if (s_notify_cb) {
         s_notify_cb();
@@ -264,6 +391,7 @@ static bool stk33562_worker_start(void)
         LOGE("stk33562 worker thread create fail");
         return false;
     }
+    
     s_worker_inited = true;
     return true;
 }
@@ -275,14 +403,14 @@ static void stk33562_post_irq_msg(void)
     if (s_worker_thd.msg_id == NULL) {
         return;
     }
-    (void)MSG_QUEUE_SEND(s_worker_thd.msg_id, &msg, 0);
+    MSG_QUEUE_SEND(s_worker_thd.msg_id, &msg, 0);
 }
 
 static void stk33562_gpio_irq_handler(enum HAL_GPIO_PIN_T pin)
 {
     (void)pin;
     /* 中断里禁止 I2C：仅关 GPIO 中断并通知 worker 线程 */
-    (void)stk33562_disable_irq();
+    stk33562_disable_irq();
     if (!s_irq_msg_pending) {
         s_irq_msg_pending = 1;
         stk33562_post_irq_msg();
@@ -380,16 +508,22 @@ int stk33562_init(const proximity_cali_data_t *cali)
     // if (stk33562_fetch_status(&s_cached_status) == BSP_OK) {
     //     s_cache_valid = true;
     // }
+    // msleep(10);
+    // dump_reg();
+    // msleep(10);
+    // stk33562_timer_init();
 
+    stk33562_timer_start();
     s_dev_ready = true;
+
     LOG_PBUS("stk33562 init ok, chip_id=0x%02x", chip_id);
     return BSP_OK;
 }
 
 int stk33562_deinit(void)
 {
-    (void)stk33562_disable_irq();
-    (void)stk33562_disable_ps();
+    stk33562_disable_irq();
+    stk33562_disable_ps();
     s_dev_ready = false;
     s_cache_valid = false;
     s_notify_cb = NULL;

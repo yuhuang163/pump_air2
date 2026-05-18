@@ -73,11 +73,11 @@ uint16_t g_HX90XXThresArray[] =
 #define CS3 3 
 #define CS4 4
 #define NA  10
-//
+// 与硬件通道不同，非对应关系
 #define CH0_POS CS0
-#define CH0_NEG CS1
-#define CH1_POS NA
-#define CH1_NEG NA
+#define CH0_NEG NA
+#define CH1_POS CS1
+#define CH1_NEG CS0
 #define CH2_POS NA
 #define CH2_NEG NA
 #define CH3_POS NA
@@ -516,7 +516,7 @@ void hx90xx_config_low_thres(uint8_t chx,uint8_t low_flag)
 bool hx90xx_reg_init(void)
 {
   bool write_ok = true;
-	uint8_t RA_ch_num_cfg = 0x0f;  //  1=ch0, 3= ch0+ch1  7=ch0+ch1+ch2, 0x1f= ch0+ch1+ch2+ch3+ch4+ch5
+	uint8_t RA_ch_num_cfg = 0x03;  //  1=ch0, 3= ch0+ch1  7=ch0+ch1+ch2, 0x1f= ch0+ch1+ch2+ch3+ch4+ch5
 	uint8_t RA_prf_cfg = 0x07;  //  odr_base 6=14ms;  7= 18ms; 8=22ms
 	uint8_t RA_scan_factor_ch0 = 0;  // odr = odr_base * scan_factor:  0=1; 1=2; 2=4;3=8, 4= 16,5=32,6=64,7=128;
 	uint8_t RA_scan_factor_ch1 = 0;
@@ -568,8 +568,8 @@ bool hx90xx_reg_init(void)
 	hx9033s_write_reg(RW_53_TC_AVG_CFG1,               0x11);
 	hx9033s_write_reg(RW_54_TC_AVG_CFG2,               0x00);
 
-	hx9033s_write_reg(RW_78_RANGE_7_0  ,               0x11); // 0=1.25pf; 1= 2.5pf;2 = 3.75pf  3= 5pf, 4 = 6.25pf
-	hx9033s_write_reg(RW_79_RANGE_9_8  ,               0x11); // modify wear ch, the one_offset_code must be modify
+	hx9033s_write_reg(RW_78_RANGE_7_0  ,               0x22); // 0=1.25pf; 1= 2.5pf;2 = 3.75pf  3= 5pf, 4 = 6.25pf
+	hx9033s_write_reg(RW_79_RANGE_9_8  ,               0x22); // modify wear ch, the one_offset_code must be modify
 	hx9033s_write_reg(RW_7A_RANGE_18_16,               0x00);
 	
 	hx9033s_write_reg(RW_ED_DSP_CONFIG_CTRL1,				 0x80); //close rd_lock
@@ -593,9 +593,9 @@ bool hx90xx_reg_init(void)
 	hx9033s_write_reg(RW_B7_LP_ALP_4_CFG ,               RA_lp_alpha_ch4);
 	
 	hx9033s_write_reg(RW_07_MOD_RST_CFG,		 0x4F); // settle rst
-	hx9033s_write_reg(RW_E2_SAMPLE_NUM_7_0,				 	 0x08);
-	hx9033s_write_reg(RW_E4_INTEGRATION_NUM_7_0,		 0x08);
-	//hx9033s_write_reg(RW_7D_REG_TO_ANA2,				     0x01); //CS0 pull dn
+	hx9033s_write_reg(RW_E2_SAMPLE_NUM_7_0,				 	 0x10);
+	hx9033s_write_reg(RW_E4_INTEGRATION_NUM_7_0,		 0x10);
+	hx9033s_write_reg(RW_7D_REG_TO_ANA2,				     0x04); //CS0 pull dn
 	//hx9033s_write_reg(RW_7E_REG_TO_ANA3,				     0x01); //CS4 pull dn
 	hx9033s_write_reg(RW_7C_DAC_SWAP_CFG,		 nv_dac_swap); // dac_swap ch3:0x08, ch1: 0x02
 
@@ -1065,7 +1065,7 @@ uint8_t hx90xx_report_diff_prox_status(void)
 		}
 		LOG_PBUS("raw:%d, glp:%d, diff:%d\r\n", raw[0], glp[0], diff[0]); 
 		
-		LOG_PBUS("0x6b: 0x%.2x, 0x%x\r\n", prox_status, wear_status); 
+		// LOG_PBUS("0x6b: 0x%.2x, 0x%x\r\n", prox_status, wear_status); 
 		
 		if (diff[0] > wear0_high_diff)
 		{
@@ -1152,7 +1152,7 @@ uint8_t hx90xx_report_diff_prox_status(void)
 				LOG_PBUS(">>>ear ch unWear\r\n");
 			}
 		}
-		
+		hx90xx_update_temp_follow(glp,diff);
 	}	
 	
 	if (is_reset_check)
@@ -1166,7 +1166,7 @@ uint8_t hx90xx_report_diff_prox_status(void)
 		if (reoffset_flag == 0) // 定时器时间159ms
 		{
 			uint8_t RA_scan_factor_ch0 = 4;  // odr = odr_base * scan_factor:  0=1; 1=2; 2=4;3=8, 4= 16,5=32,6=64,7=128;
-			uint8_t RA_scan_factor_ch1 = 3;
+			uint8_t RA_scan_factor_ch1 = 3; /// 8倍ODR,
 			uint8_t RA_scan_factor_ch2 = 4; // 6: 6=64;  ref
 			uint8_t RA_scan_factor_ch3 = 3;
 			
@@ -1189,13 +1189,13 @@ uint8_t hx90xx_report_diff_prox_status(void)
 	}
 
 	
-	if (timer_debug ==1)
+	// if (timer_debug ==1)
 	{
 		hx90xx_timer_report_data();
 	}
 	
 	hx90xx_update_min_nv_data(glp);
-	hx90xx_update_temp_follow(glp,diff);
+	// hx90xx_update_temp_follow(glp,diff);
 	pre_wear_status = wear_status;
 	prox_status_pre = prox_status;
 	pre_wear_s[0] = wear_s[0];
@@ -1228,10 +1228,10 @@ uint8_t hx90xx_get_touch_status(void)
 
 void hx90xx_update_temp_follow(int16_t *lp_data,int32_t *diff)
 {
-	uint16_t alpha = 256;
+	uint16_t alpha = 128;
 	if (start_updata_nv == 1)
 	{
-		if (diff[0] < 200)
+		if (diff[0] < 300)
 		{
 			if(is_offset_manual == 1){
 				if (lp_data[0] > nv_base_data[0]+20){
@@ -1239,14 +1239,14 @@ void hx90xx_update_temp_follow(int16_t *lp_data,int32_t *diff)
 					min_glp[0] = nv_base_data[0];
 				}
 			}else{
-				if (lp_data[0] > nv_base_data[0]+20)
+				if (lp_data[0] > min_glp[0]+20)
 				{
 					min_glp[0] = ((int32_t)min_glp[0]*128*(alpha-1)/alpha + (int32_t)lp_data[0]*128*1/alpha)/128;
 				}
 			}
 		}
 		
-		if (diff[1] < 200)
+		if (diff[1] < 300)
 		{
 			if(is_offset_manual == 1){
 				if (lp_data[1] > nv_base_data[1]+20)
@@ -1255,7 +1255,10 @@ void hx90xx_update_temp_follow(int16_t *lp_data,int32_t *diff)
 					min_glp[1] = nv_base_data[1];
 				}
 			}else{
-					min_glp[1] = ((int32_t)min_glp[1]*128*(alpha-1)/alpha + (int32_t)lp_data[1]*128*1/alpha)/128;
+					if (lp_data[1] > min_glp[1]+20)
+					{
+						min_glp[1] = ((int32_t)min_glp[1]*128*(alpha-1)/alpha + (int32_t)lp_data[1]*128*1/alpha)/128;
+					}
 			}
 		}
 		
@@ -1305,23 +1308,31 @@ void hx90xx_update_min_nv_data(int16_t *lp_data)
 		}
 	}
 }
+#if 0
 
 //拿出耳机关盖后调用一次
 void hx90xx_update_nv_data(void)
+{
+		hx90xx_timer_stop();
+		hx90xx_update_self_learning();
+		hx90xx_init();
+}
+
+int8_t hx90xx_update_self_learning(void)
 {
   int16_t lp[3] = {0};
 	int16_t  bl[3] = {0};	
 	uint16_t offset[2] = {0};
 	int16_t offset_adjust = 0;
-	uint16_t base_data0 = 4000;
-	uint16_t base_data1 = 4000;
+	uint16_t base_data0 = 2000;
+	uint16_t base_data1 = 2000;
 	uint8_t  is_cover_in = 1;
 	uint8_t nv_change_flag = 0;
+	uint8_t ret = 0;
 
-	hx90xx_timer_stop();
 	if (hx90xx_chip_id != DEVICE_ID_REV2 || is_factory_mode == 1)
 	{
-		return;
+		return -1;
 	}
 	
 	// 耳机在盖里面， 更新信号量
@@ -1337,8 +1348,8 @@ void hx90xx_update_nv_data(void)
 			lp[1] = hx90xx_read_diff_lp(WEAR1);
 			bl[0] = hx90xx_read_raw_bl(WEAR0);
 			bl[1] = hx90xx_read_raw_bl(WEAR1);
-			nv_base_data[0] = hx_min(bl[0],lp[0]);
-			nv_base_data[1] = hx_min(bl[1],lp[1]);
+			nv_base_data[0] = hx_min(min_glp[0],lp[0]);
+			nv_base_data[1] = hx_min(min_glp[1],lp[1]);
 			nv_base_data_backup[0] = nv_base_data[0];
 			nv_base_data_backup[1] = nv_base_data[1];
 			// 防止基准信号太小， 阈值设定出现小于0
@@ -1356,7 +1367,7 @@ void hx90xx_update_nv_data(void)
 					nv_base_data_backup[0] = nv_base_data[0];
 					
 				}
-				LOG_PBUS("90XX offset_adjust1: %d \r\n", offset_adjust);
+				DEBUG_PRINTF("90XX offset_adjust1: %d \r\n", offset_adjust);
 
 			}
 
@@ -1376,18 +1387,18 @@ void hx90xx_update_nv_data(void)
 					nv_base_data_backup[1] = nv_base_data[1];
 				}
 			
-				LOG_PBUS("90XX offset_adjust2: %d \r\n", offset_adjust);
+				DEBUG_PRINTF("90XX offset_adjust2: %d \r\n", offset_adjust);
 
 			}
 
-			LOG_PBUS("90XX is_offset_manual = 0  offset0: %d, offset1: %d,data0: %d, data1: %d,data_backup0: %d, data_backup1: %d\r\n", nv_wear_offset[0], nv_wear_offset[1], 
+			DEBUG_PRINTF("90XX is_offset_manual = 0  offset0: %d, offset1: %d,data0: %d, data1: %d,data_backup0: %d, data_backup1: %d\r\n", nv_wear_offset[0], nv_wear_offset[1], 
 			nv_base_data[0],nv_base_data[1],nv_base_data_backup[0],nv_base_data_backup[1]);
 			if (nv_wear_offset[0] >=0&&nv_wear_offset[0]<128&&nv_wear_offset[1]>=0&&nv_wear_offset[1]<128)
 			{
 				hx90xx_write_nv(nv_wear_offset[0], nv_wear_offset[1], nv_base_data[0], nv_base_data[1],nv_dac_swap);
-				hx90xx_init(); // 复位
+				//hx90xx_init(); // 复位
 			}
-			return;
+			return ret;
 		}
 
 		if (is_offset_manual == 1&&start_updata_nv == 1)
@@ -1397,9 +1408,9 @@ void hx90xx_update_nv_data(void)
 			offset[1] = hx90xx_read_offset(WEAR1);
 			if (offset[0] != nv_wear_offset[0] || offset[1] != nv_wear_offset[1])
 			{
-				LOG_PBUS("90XX error offset[0]:%d  nv_wear_offset[0]: %d ,offset[1]:%d  nv_wear_offset[1]: %d \r\n", offset[0], nv_wear_offset[0],offset[1], nv_wear_offset[1]);
-				hx90xx_init(); // 复位
-				return;
+				DEBUG_PRINTF("90XX error offset[0]:%d  nv_wear_offset[0]: %d ,offset[1]:%d  nv_wear_offset[1]: %d \r\n", offset[0], nv_wear_offset[0],offset[1], nv_wear_offset[1]);
+				//hx90xx_init(); // 复位
+				return -2;
 			}
 			
 			lp[0] = hx90xx_read_diff_lp(WEAR0);
@@ -1408,24 +1419,24 @@ void hx90xx_update_nv_data(void)
 			if (lp[0] < -16384 ||lp[0] > 20000 || lp[1] < -16384 ||lp[1] > 20000)
 			{
 				// 数据导常， 转为相对值模式
-				LOG_PBUS("90XX data error: reset to is_offset_manual == 0\r\n");
+				DEBUG_PRINTF("90XX data error: reset to is_offset_manual == 0\r\n");
 				nv_wear_offset[0] = 0xFFFF;
 				nv_wear_offset[1] = 0xFFFF;
 				hx90xx_write_nv(nv_wear_offset[0], nv_wear_offset[1], nv_base_data[0], nv_base_data[1],nv_dac_swap);
-				hx90xx_init(); // 复位
-				return;
+				//hx90xx_init(); // 复位
+				return -3;
 			}	
 
 			nv_wear_offset[0] = offset[0];
 			nv_wear_offset[1] = offset[1];
 
 
-			LOG_PBUS("90XX reset first offset0: %d, offset1: %d,data0: %d, data1: %d,data_backup0: %d, data_backup1: %d\r\n", nv_wear_offset[0], nv_wear_offset[1], 
+			DEBUG_PRINTF("90XX reset first offset0: %d, offset1: %d,data0: %d, data1: %d,data_backup0: %d, data_backup1: %d\r\n", nv_wear_offset[0], nv_wear_offset[1], 
 			nv_base_data[0],nv_base_data[1],nv_base_data_backup[0],nv_base_data_backup[1]);
 
 			// 取得最小信号量值
-			nv_base_data[0] = hx_min(min_glp[0],lp[0]);
-			nv_base_data[1] = hx_min(min_glp[1],lp[1]);
+			nv_base_data[0] = min_glp[0]; //hx_min(min_glp[0],lp[0]);
+			nv_base_data[1] = min_glp[1]; //hx_min(min_glp[1],lp[1]);
 			
 			// íùé?μ÷
 			if ((hx_abs(nv_base_data_backup[0] - nv_base_data[0]))> 50 || (hx_abs(nv_base_data_backup[1] - nv_base_data[1])> 50))
@@ -1438,50 +1449,56 @@ void hx90xx_update_nv_data(void)
 			}
 			
 
-			LOG_PBUS("90XX nv_change_flag : %d, nv_base_data_backup[0]: %d,nv_base_data_backup[1]: %d\r\n", nv_change_flag, nv_base_data_backup[0], nv_base_data_backup[1]);
+			DEBUG_PRINTF("90XX nv_change_flag : %d, nv_base_data_backup[0]: %d,nv_base_data_backup[1]: %d\r\n", nv_change_flag, nv_base_data_backup[0], nv_base_data_backup[1]);
 			if (nv_change_flag == 1)
 			{
 				if (nv_base_data[0] > nv_base_data_backup[0] + 100)
 				{
-					nv_base_data[0] = nv_base_data_backup[0] + (nv_base_data[0] - nv_base_data_backup[0])/2;
+					nv_base_data[0] = nv_base_data_backup[0]*2/3 + nv_base_data[0]*1/3;
 					
-					//LOG_PBUS("nv_base_data_backup[0] > nv_base_data[0] \r\n");
+					//DEBUG_PRINTF("nv_base_data_backup[0] > nv_base_data[0] \r\n");
+				}else
+				{
+					nv_base_data[0] = nv_base_data_backup[0]*2/3 + nv_base_data[0]*1/3;
 				}
 				if (nv_base_data[1] > nv_base_data_backup[1] + 100)
 				{
-					nv_base_data[1] = nv_base_data_backup[1] + (nv_base_data[1] - nv_base_data_backup[1])/2;
-					//LOG_PBUS("nv_base_data_backup[1] > nv_base_data[1] \r\n");
+					nv_base_data[1] = nv_base_data_backup[1]*2/3 + nv_base_data[1]*1/3;;
+					//DEBUG_PRINTF("nv_base_data_backup[1] > nv_base_data[1] \r\n");
+				}else
+				{
+					nv_base_data[1] = nv_base_data_backup[1]*2/3 + nv_base_data[1]*1/3;
 				}
 				
 					
 				// 防止基准信号太小， 阈值设定出现小于0
-				if (nv_base_data[0]  < base_data0/3)
-				{
-					offset_adjust = (base_data0-nv_base_data[0])/one_offset_code +1;
-					if (nv_wear_offset[0] -offset_adjust >=0)
-					{
-						nv_wear_offset[0] = nv_wear_offset[0] -offset_adjust;
-						nv_base_data[0] = nv_base_data[0] + one_offset_code*offset_adjust;
-						nv_base_data_backup[0] = nv_base_data[0];
-						
-					}
-					LOG_PBUS("90XX offset_adjust1: %d \r\n", offset_adjust);
+//				if (nv_base_data[0]  < base_data0/3)
+//				{
+//					offset_adjust = (base_data0-nv_base_data[0])/one_offset_code +1;
+//					if (nv_wear_offset[0] -offset_adjust >=0)
+//					{
+//						nv_wear_offset[0] = nv_wear_offset[0] -offset_adjust;
+//						nv_base_data[0] = nv_base_data[0] + one_offset_code*offset_adjust;
+//						nv_base_data_backup[0] = nv_base_data[0];
+//						
+//					}
+//					DEBUG_PRINTF("90XX offset_adjust1: %d \r\n", offset_adjust);
 
-				}
+//				}
 
-				if (nv_base_data[1]< base_data1/3)
-				{
-					offset_adjust = (base_data1-nv_base_data[1])/one_offset_code +1;
-					if (nv_wear_offset[1] -offset_adjust >=0)
-					{
-						nv_wear_offset[1] = nv_wear_offset[1] -offset_adjust;
-						nv_base_data[1] = nv_base_data[1] + one_offset_code*offset_adjust;
-						nv_base_data_backup[1] = nv_base_data[1];
-					}
-				
-					LOG_PBUS("90XX offset_adjust2: %d \r\n", offset_adjust);
+//				if (nv_base_data[1]< base_data1/3)
+//				{
+//					offset_adjust = (base_data1-nv_base_data[1])/one_offset_code +1;
+//					if (nv_wear_offset[1] -offset_adjust >=0)
+//					{
+//						nv_wear_offset[1] = nv_wear_offset[1] -offset_adjust;
+//						nv_base_data[1] = nv_base_data[1] + one_offset_code*offset_adjust;
+//						nv_base_data_backup[1] = nv_base_data[1];
+//					}
+//				
+//					DEBUG_PRINTF("90XX offset_adjust2: %d \r\n", offset_adjust);
 
-				}
+//				}
 //				// 这段代码根据整机加上
 //				if (lp[0] - nv_base_data[0] >2000)
 //				{
@@ -1492,7 +1509,7 @@ void hx90xx_update_nv_data(void)
 //					nv_base_data[1] = lp[1] - 1000; // 盒内信号量的80%
 //				}
 				
-				LOG_PBUS("90XX reset after  nv_change:%d,offset0: %d, offset1: %d,data0: %d, data1: %d,data_backup0: %d, data_backup1: %d\r\n",nv_change_flag, nv_wear_offset[0], nv_wear_offset[1], 
+				DEBUG_PRINTF("90XX reset after  nv_change:%d,offset0: %d, offset1: %d,data0: %d, data1: %d,data_backup0: %d, data_backup1: %d\r\n",nv_change_flag, nv_wear_offset[0], nv_wear_offset[1], 
 				nv_base_data[0],nv_base_data[1],nv_base_data_backup[0],nv_base_data_backup[1],nv_dac_swap);
 					
 
@@ -1500,14 +1517,14 @@ void hx90xx_update_nv_data(void)
 				//hx90xx_config_thres(CH0,ch0_high_diff, ch0_low_diff,nv_base_data[0]); // wear0
 				//hx90xx_config_thres(CH1,ch1_high_diff, ch1_low_diff,nv_base_data[1]); // wear1
 				hx90xx_write_nv(nv_wear_offset[0], nv_wear_offset[1], nv_base_data[0], nv_base_data[1],nv_dac_swap);
-				hx90xx_init(); // 复位
+				//hx90xx_init(); // 复位
 			}
 		}
+		return ret;
 	}
 	
 }
-
-
+#endif
 
 //spp 或是串口打印调用， 可设定1s或是500ms打印一次
 void hx90xx_timer_report_data(void)
@@ -1701,14 +1718,14 @@ void hx90xx_factory_cali_unwear_init(void)
 	delay_ms(300);
 	offset0 = hx90xx_read_offset(WEAR0);
 	offset1 = hx90xx_read_offset(WEAR1);
-	offset_adust = 6;
+	offset_adust = 4;
 	if (offset_adust > offset0)
 	{
 		offset_adust = offset0;
 	}
 	nv_wear_offset[0] = offset0 - offset_adust;
 	
-	offset_adust = 6;
+	offset_adust = 4;
 	if (offset_adust > offset1)
 	{
 		offset_adust = offset1;
