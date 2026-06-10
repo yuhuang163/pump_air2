@@ -71,6 +71,8 @@ typedef struct power_manager_context {
         bool is_power_on_timeout_detect;
         bool allow_shutdown_or_standby;
         bool is_goto_sys_standby;
+        bool power_long_press_handled;
+        bool power_on_start_pump_pending;
     } priv;
 
 /// public:

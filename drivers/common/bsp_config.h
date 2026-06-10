@@ -21,10 +21,10 @@ extern "C" {
 
 /// ADC相关定义
 #define BATT_ADC_CHANNEL                HAL_GPADC_CHAN_4
-#define PUMP1_ADC_CHANNEL               HAL_GPADC_CHAN_2
-#define PUMP2_ADC_CHANNEL               HAL_GPADC_CHAN_2    /// no used
+#define PUMP1_ADC_CHANNEL               HAL_GPADC_CHAN_3
+#define PUMP2_ADC_CHANNEL               HAL_GPADC_CHAN_3    /// no used
 #define LIGHT_ADC_CHANNEL               HAL_GPADC_CHAN_4    /// no used
-#define HARD_VERSION_CHANNEL            HAL_GPADC_CHAN_3    /// 版本识别定义
+#define HARD_VERSION_CHANNEL            HAL_GPADC_CHAN_2    /// 版本识别定义
 
 
 /// 泵阀相关定义

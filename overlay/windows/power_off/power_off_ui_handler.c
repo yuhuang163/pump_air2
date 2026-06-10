@@ -103,6 +103,13 @@ static void power_off_cb(hdr_post_args_t *args)
     EXCEPTION_CHECK_VOID(ble);
     ble->disconnect_bt_by_user();
     LOGW("==========POWER_OFF==========");
+    battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+    if (battery && battery->set_ship_mode) {
+        int ret = battery->set_ship_mode(1);
+        LOGW("set ship mode before power off, ret: %d", ret);
+    } else {
+        LOGW("battery or set_ship_mode is null, skip ship mode");
+    }
     peripheral_bus_context_t *pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     EXCEPTION_CHECK_VOID(pbus);
     rt_device_node_t *power_dev = pbus->find_device(ID_DEVICE_POWER);

@@ -5,6 +5,8 @@
 #include "root_common_api.h" // IWYU pragma: keep
 #include "breast_pump_manager.h" // IWYU pragma: keep
 #include "led_manager.h" // IWYU pragma: keep
+#include "battery_manager_api.h" // IWYU pragma: keep
+#include "handler_post.h" // IWYU pragma: keep
 #if IS_SUPPORT_ADAPTIVE_DIMMING
 #include "adaptive_dimming.h" // IWYU pragma: keep
 #endif
@@ -20,6 +22,29 @@
 #define NIGHT_LIGHT_ADAPTIVE_SWITCH_LEVEL             5
 
 #define KEY_LIGHT_DEFAULT_LEVEL                       5
+
+/// 低电告警：三颗按键灯 300ms 间隔闪烁，持续 9s 后关机（无屏等效原 5% 弹窗+8s 关机）
+#define LOW_BAT_LED_BLINK_PERIOD_MS                   (150)
+#define LOW_BAT_LED_WARN_DURATION_MS                  (9000)
+#define LOW_BAT_SHUTDOWN_TASK_NAME                    "low_bat_led_shutdown"
+#define CHARGE_LED_BLINK_PERIOD_MS                    (500)
+#define CHARGE_FULL_HOLD_MS                           (10000)
+#define CHARGE_FULL_DELAY_TASK_NAME                   "charge_full_delay"
+#define CHARGE_LED_MODE_NONE                          (0)
+#define CHARGE_LED_MODE_BLINK                         (1)
+#define CHARGE_LED_MODE_FULL_ON                       (2)
+
+static const uint8_t s_low_bat_pump_leds[] = {
+    PUMP_START_BL,
+    PUMP_MODE_BL,
+    PUMP_FREQ_SET_BL,
+};
+
+static uint8_t s_low_bat_warn_active = 0;
+static uint8_t s_charge_led_active = 0;
+static uint32_t s_charge_plug_in_ts = 0;
+static uint8_t s_charge_led_mode = CHARGE_LED_MODE_NONE;
+
 /*
 * LOCAL VARIABLE DEFINITIONS
 *****************************************************************************************
@@ -362,14 +387,164 @@ static int get_key_light_onoff(led_manager_context_t *thiz)
 }
 #endif
 
+static void low_bat_warn_stop_led(led_manager_context_t *thiz)
+{
+    uint8_t i;
+    EXCEPTION_CHECK_VOID(thiz);
+    for (i = 0; i < LENGTH_OF_ARRAY(s_low_bat_pump_leds); i++) {
+        thiz->set_led_onoff(s_low_bat_pump_leds[i], LED_STATUS_OFF);
+    }
+}
+
+static void low_bat_warn_cancel(led_manager_context_t *thiz)
+{
+    if (!s_low_bat_warn_active) {
+        return;
+    }
+    s_low_bat_warn_active = 0;
+    REMOVE_TASK_HANDLER_DIRECTLY(LOW_BAT_SHUTDOWN_TASK_NAME);
+    low_bat_warn_stop_led(thiz);
+    LOG_MISC("low battery led warn cancelled");
+}
+
+static void low_bat_shutdown_cb(hdr_post_args_t *args)
+{
+    led_manager_context_t *thiz = (led_manager_context_t *)args->user_data;
+    power_manager_context_t *pm;
+    EXCEPTION_CHECK_VOID(thiz);
+    if (!s_low_bat_warn_active) {
+        return;
+    }
+    s_low_bat_warn_active = 0;
+    low_bat_warn_stop_led(thiz);
+    LOG_MISC("low battery warn timeout, system shutdown");
+    pm = thiz->priv.power;
+    if (pm) {
+        pm->system_power_control(false);
+    }
+}
+
+static void low_bat_warn_start(led_manager_context_t *thiz)
+{
+    uint8_t i;
+    EXCEPTION_CHECK_VOID(thiz);
+    if (s_low_bat_warn_active) {
+        return;
+    }
+    s_low_bat_warn_active = 1;
+    REMOVE_TASK_HANDLER_DIRECTLY(LOW_BAT_SHUTDOWN_TASK_NAME);
+    for (i = 0; i < LENGTH_OF_ARRAY(s_low_bat_pump_leds); i++) {
+        thiz->set_led_blink(s_low_bat_pump_leds[i], LOW_BAT_LED_BLINK_PERIOD_MS, 0, LED_STATUS_OFF);
+    }
+    POST_TASK_HANDLER_DELAYED_ARG1(low_bat_shutdown_cb, LOW_BAT_LED_WARN_DURATION_MS, thiz,
+        LOW_BAT_SHUTDOWN_TASK_NAME);
+    LOG_MISC("low battery led warn start: 3 leds blink %dms, shutdown in %dms",
+        LOW_BAT_LED_BLINK_PERIOD_MS, LOW_BAT_LED_WARN_DURATION_MS);
+}
+
+static void charge_led_stop(led_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    s_charge_led_active = 0;
+    s_charge_led_mode = CHARGE_LED_MODE_NONE;
+    REMOVE_TASK_HANDLER_DIRECTLY(CHARGE_FULL_DELAY_TASK_NAME);
+    thiz->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);
+}
+
+static void charge_led_set_blink(led_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    if (s_charge_led_mode == CHARGE_LED_MODE_BLINK) {
+        return;
+    }
+    s_charge_led_mode = CHARGE_LED_MODE_BLINK;
+    LOG_MISC("charge led -> blink period=%d", CHARGE_LED_BLINK_PERIOD_MS);
+    thiz->set_led_blink(PUMP_LED_ALL_ID, CHARGE_LED_BLINK_PERIOD_MS, 0, LED_STATUS_OFF);
+}
+
+static void charge_led_set_full_on(led_manager_context_t *thiz)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    if (s_charge_led_mode == CHARGE_LED_MODE_FULL_ON) {
+        return;
+    }
+    s_charge_led_mode = CHARGE_LED_MODE_FULL_ON;
+    LOG_MISC("charge led -> full on");
+    thiz->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_ON);
+}
+
+static bool charge_led_can_show_full(led_manager_context_t *thiz)
+{
+    battery_manager_context_t *battery;
+    EXCEPTION_CHECK_BOOL(thiz);
+    if (s_charge_led_active == 0) {
+        return false;
+    }
+    battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+    if (battery == NULL || battery->is_vbus_plug_in == NULL || battery->get_charge_status == NULL) {
+        return false;
+    }
+    if (!USB_IS_PLUGIN(battery->is_vbus_plug_in())) {
+        return false;
+    }
+    if (battery->get_charge_status() != CHARGE_STATE_FULL) {
+        return false;
+    }
+    return get_timestamp_ms(s_charge_plug_in_ts) >= CHARGE_FULL_HOLD_MS;
+}
+
+static void charge_led_apply(led_manager_context_t *thiz)
+{
+    uint32_t elapsed_ms = get_timestamp_ms(s_charge_plug_in_ts);
+    EXCEPTION_CHECK_VOID(thiz);
+    if (s_low_bat_warn_active) {
+        LOG_MISC("charge led skip: low-bat active");
+        return;
+    }
+    // LOG_PBUS("charge led apply: active=%d elapsed=%lums", s_charge_led_active, (unsigned long)elapsed_ms);
+    if (charge_led_can_show_full(thiz)) {
+        charge_led_set_full_on(thiz);
+    } else if (s_charge_led_active) {
+        charge_led_set_blink(thiz);
+    }
+}
+
+static void charge_full_delay_cb(hdr_post_args_t *args)
+{
+    led_manager_context_t *thiz = (led_manager_context_t *)args->user_data;
+    EXCEPTION_CHECK_VOID(thiz);
+    charge_led_apply(thiz);
+}
+
+static void charge_led_on_plug_change(led_manager_context_t *thiz, uint8_t is_plug_in)
+{
+    EXCEPTION_CHECK_VOID(thiz);
+    LOG_MISC("charge led plug change: is_plug_in=%d", is_plug_in);
+    if (is_plug_in) {
+        /* Charging indicator takes over when USB is plugged in.
+         * low_battery is judged as false while charging, so cancel any stale low-bat warning now.
+         */
+        low_bat_warn_cancel(thiz);
+        s_charge_led_active = 1;
+        s_charge_plug_in_ts = get_timestamp();
+        REMOVE_TASK_HANDLER_DIRECTLY(CHARGE_FULL_DELAY_TASK_NAME);
+        POST_TASK_HANDLER_DELAYED_ARG1(charge_full_delay_cb, CHARGE_FULL_HOLD_MS, thiz,
+            CHARGE_FULL_DELAY_TASK_NAME);
+        charge_led_apply(thiz);
+    } else {
+        charge_led_stop(thiz);
+    }
+}
+
 static int on_broadcast_receiver_route(broadcast_mask_id_t id, void *context, int arg1, int arg2, broadcast_priv_data_t *pdata)
 {
     led_manager_context_t *thiz = context;
-    window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
     EXCEPTION_CHECK_INT(thiz);
     switch (id.code) {
         case ID_BROADCAST_SYS_STATE_CHANGE:
             if (arg1 == SYSTEM_BROADCAST_POWER_OFF) {
+                low_bat_warn_cancel(thiz);
+                charge_led_stop(thiz);
                 thiz->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);
             } else if (arg1 == SYSTEM_BROADCAST_POWER_ON) {
                 night_light_resume_after_power_on(thiz);
@@ -377,7 +552,29 @@ static int on_broadcast_receiver_route(broadcast_mask_id_t id, void *context, in
             break;
         case ID_BROADCAST_PM_STATE_CHANGE: 
             if (arg1 == PM_BROADCAST_SYS_SUSPEND) {
+                low_bat_warn_cancel(thiz);
+                charge_led_stop(thiz);
                 thiz->set_led_onoff(PUMP_LED_ALL_ID, LED_STATUS_OFF);
+            }
+            break;
+        case ID_BROADCAST_BATTERY_STATE_CHANGE:
+            LOG_MISC("battery broadcast recv: arg1=%d arg2=%d low_bat=%d charge_active=%d",
+                arg1, arg2, s_low_bat_warn_active, s_charge_led_active);
+            if (arg1 == BATTERY_BROADCAST_LOW_BATTERY) {
+                charge_led_stop(thiz);
+                low_bat_warn_start(thiz);
+            } else if (arg1 == BATTERY_BROADCAST_CAPACITY_CHANGE &&
+                arg2 > LOW_BAT_PERCENTAGE) {
+                low_bat_warn_cancel(thiz);
+                charge_led_apply(thiz);
+            } else if (arg1 == BATTERY_BROADCAST_CHARGE_STATE_CHANGE) {
+                charge_led_on_plug_change(thiz, USB_IS_PLUGIN(arg2));
+            } else if (arg1 == BATTERY_BROADCAST_CHARGE_PLUG_IN) {
+                charge_led_on_plug_change(thiz, 1);
+            } else if (arg1 == BATTERY_BROADCAST_CHARGE_PLUG_OUT) {
+                charge_led_on_plug_change(thiz, 0);
+            } else if (arg1 == BATTERY_BROADCAST_CAPACITY_CHANGE) {
+                charge_led_apply(thiz);
             }
             break;
         default:
