@@ -50,6 +50,7 @@ static bool is_prohibit_pm_suspend(struct power_manager_context *ctx)
         return true; /// 充电状态下禁止进入待机状态.
     }
     /// 泵窗口在前台或作为 overlay 底层时禁止待机：否则会 dispatch DUMMY 销毁泵页，按键分发仍在但泵回调已卸载
+    /// 注意：长按电源关机不走此拦截（关机优先级更高），这里只用于待机路径。
     if (wm->is_current_window(wm, ID_WINDOW_PUMP) || wm->get_overlay_window_id(wm) == ID_WINDOW_PUMP) {
         return true;
     }
@@ -87,6 +88,8 @@ static void system_power_event_cb(hdr_post_args_t *args)
                 }
 #endif
             } else {
+                /// 上电检测窗口内，仍检测到电源键按下，视为长按开机；开机后需要自动启动泵。
+                pm->priv.power_on_start_pump_pending = true;
                 pm->system_power_control(true);
                 SEND_BROADCAST_ARGS1(ID_BROADCAST_SYS_STATE_CHANGE, SYSTEM_BROADCAST_POWER_ON);
             }
@@ -100,12 +103,14 @@ static void system_power_event_cb(hdr_post_args_t *args)
         case HDR_ACTION_POWER_ON_INVALID: 
             LOG_PM("%s action:%d", args->name, action);
             pm->priv.is_power_on_timeout_detect = 0;
+            pm->priv.power_on_start_pump_pending = false;
             pm->system_power_control(false);
             break;
         case HDR_ACTION_POWER_OFF: 
             LOG_PM("%s action:%d", args->name, action);
             pm->priv.is_power_on_timeout_detect = 0;
             pm->priv.allow_shutdown_or_standby = 0;
+            pm->priv.power_on_start_pump_pending = false;
             pm->system_power_control(false);
             break;
         case HDR_ACTION_SYS_STANDBY: 
@@ -125,8 +130,18 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     if (keycode != KEY_CODE_POWER) {
         return 0;
     }
-    /// 装机固件先屏蔽长按开关机功能，后续再开放.
-    #if 0
+    if (keytype == KEY_EVENT_UP) {
+        ctx->priv.power_long_press_handled = false;
+    }
+    if (keytype == KEY_EVENT_LONG_3S) {
+        if (ctx->priv.power_long_press_handled) {
+            LOG_PM("power long press already handled, ignore repeated event");
+            return 0;
+        }
+        ctx->priv.power_long_press_handled = true;
+    }
+    /// 恢复电源键长按开关机逻辑：单击业务行为已下线，长按优先处理开关机。
+    #if 1
     /// 待机状态下长按3s退出待机状态.
     if (ctx->priv.is_enter_suspend == true  && keytype == KEY_EVENT_LONG_3S) {
         ctx->pm_wakeup(PM_WAKEUP_REASON_KEY_POWER); /// 唤醒电源管理器.
@@ -151,6 +166,7 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     /// 开机检测窗口内收到3s长按, 立即确认开机成功, 避免后续抬键触发invalid关机.
     if (keytype == KEY_EVENT_LONG_3S && ctx->priv.is_power_on_timeout_detect == 1) {
         ctx->priv.is_power_on_timeout_detect = 0;
+        ctx->priv.power_on_start_pump_pending = true;
         if (!ctx->is_system_power_on()) {
             POST_TASK_HANDLER_NO_DELAY_ARG1(system_power_event_cb, ctx, HDR_ACTION_POWER_ON,
                 POWER_ONOFF_AND_STANDBY_TASK_NAME);
@@ -169,13 +185,22 @@ static int on_key_event_route(struct power_manager_context *ctx, uint16_t keycod
     /// 进入关机状态. 不在工厂重置界面时才允许进入关机状态.(按键冲突)
     if (keytype == KEY_EVENT_LONG_3S && ctx->priv.allow_shutdown_or_standby == 1) {
         window_manager_context_t *wm = (window_manager_context_t *)find_module(ID_MODULE_WM);
-#if (ROOT_PRODUCT_ID == ROOT_PRODUCT_V3PRO_ID)
-        if (wm && wm->is_current_window(wm, ID_WINDOW_FACTORY_RESET) == 0) {
-            if (is_prohibit_pm_suspend(ctx)) {
-                return 0;
+        battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
+        if (battery && battery->is_vbus_plug_in() > 0) {
+            /// TODO: 后续实现关机充电场景；当前策略：充电时长按电源不允许关机.
+            LOG_PM("vbus plug in, long press power off is not allowed now");
+            return 0;
+        }
+        breast_pump_manager_context_t *pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);
+        /// 关机优先级最高；若泵在运行，先停泵再关机。
+        if (pump) {
+            uint8_t is_working = 0;
+            READ_PUMP_IS_WORKING(pump, is_working);
+            if (is_working) {
+                WRITE_PUMP_WORK_STATUS(pump, BREAST_PUMP_PAUSE, 1);
+                LOG_PM("pump is working, pause before power off");
             }
         }
-#endif
         /// 不在工厂重置界面时才允许进入关机状态.(按键冲突)
         if (wm && wm->is_current_window(wm, ID_WINDOW_FACTORY_RESET) == 0) {
 #if IS_SUPPORT_SLEEP_POWER_OFF
@@ -403,6 +428,8 @@ static int on_power_broadcast_receive_route(broadcast_mask_id_t id, void *contex
 static int on_post_power_init_route(struct power_manager_context *ctx)
 {
     EXCEPTION_CHECK_INT(ctx);
+    ctx->priv.power_long_press_handled = false;
+    ctx->priv.power_on_start_pump_pending = false;
     ctx->priv.pbus = (peripheral_bus_context_t *)find_module(ID_MODULE_DEVICE_BUS);
     battery_manager_context_t *battery = (battery_manager_context_t *)find_module(ID_MODULE_BATTERY);
 #if IS_SUPPORT_POWER_KEY_ON_BOOT
@@ -439,9 +466,7 @@ static int on_post_power_init_route(struct power_manager_context *ctx)
         timeout_ms = POWER_ON_TIMEOUT_MS_DEFAULT;
     }
     ctx->priv.is_power_on_timeout_detect = 1;
-    // POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, timeout_ms, HDR_ACTION_POWER_ON_DETECT,
-    //     ctx, POWER_ONOFF_AND_STANDBY_TASK_NAME);
-    POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, 100, HDR_ACTION_POWER_ON,
+    POST_TASK_HANDLER_DELAYED_ARG2(system_power_event_cb, timeout_ms, HDR_ACTION_POWER_ON_DETECT,
         ctx, POWER_ONOFF_AND_STANDBY_TASK_NAME);
     return 0;
 }

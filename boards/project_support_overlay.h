@@ -46,10 +46,10 @@ extern "C" {
 #define IS_SUPPORT_DEVICE_PMU                            (1)
 #define IS_SUPPORT_DEVICE_IMU                            (0)
 #define IS_SUPPORT_DEVICE_FSENSOR                        (0)
-#define IS_SUPPORT_DEVICE_CAP_SENSOR                     (1)
-#define IS_SUPPORT_DEVICE_PROXIMITY_SENSOR               (1)
+#define IS_SUPPORT_DEVICE_CAP_SENSOR                     (0)
+#define IS_SUPPORT_DEVICE_PROXIMITY_SENSOR               (0)
 #define IS_SUPPORT_DEVICE_PRESSURE_KEY                   (0)
-#define IS_SUPPORT_DEVICE_AIR_PRESSURE                   (1)
+#define IS_SUPPORT_DEVICE_AIR_PRESSURE                   (0)
 /// 差压（如 SDP3x）
 #define IS_SUPPORT_DEVICE_DIFF_PRESSURE                  (1)
 #define IS_SUPPORT_DEVICE_MOTOR                          (1)
@@ -111,9 +111,9 @@ extern "C" {
 /// 支持算法采集
 #define IS_SUPPORT_ALGO_SAMPLING                         (0)
 /// 支持充电
-#define IS_SUPPORT_DEVICE_CHARGE                         (0)
+#define IS_SUPPORT_DEVICE_CHARGE                         (1)
 /// 支持电量计
-#define IS_SUPPORT_DEVICE_FUEL_GAUGE                     (0)
+#define IS_SUPPORT_DEVICE_FUEL_GAUGE                     (1)
 /// 支持泵占空比动态调整
 #define IS_SUPPORT_PUMP_DUTY_ADJUST                      (0)
 /// 支持插电自动开机

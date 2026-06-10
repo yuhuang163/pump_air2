@@ -18,29 +18,12 @@
 #define PUMP_START_TASK_NAME                "pump_start"
 #define PUMP_STATE_CHANGE_TASK_NAME         "pump_state_change"
 #define PUMP_COMPLETE_TASK_NAME             "pump_complete"
-#define PUMP_POWER_SINGLE_TASK_NAME         "pump_power_single"
-#define PUMP_POWER_DOUBLE_INTERVAL_MS       (300)
-
-/// REMOVE_ALL 会撤掉电源单击延迟任务，必须把 power_click_pending 一并清零，否则会误判下一次单击为「双击切模式」
-#define PUMP_CLEAR_POWER_CLICK_PENDING_SAFE() \
-do { \
-    void *__wp_ctx = GET_WINDOW_CONTEXT(); \
-    if (__wp_ctx) { \
-        ui_proc_pump_t *__wp = (ui_proc_pump_t *)(__wp_ctx); \
-        if (__wp->margic == UI_WINDOW_MARGIC_CODE) { \
-            __wp->power_click_pending = 0; \
-        } \
-    } \
-} while (0)
-
 #define REMOVE_ALL_HANDER_TASK() \
 do { \
     LOG_WM("==>REMOVE_ALL_HANDER_TASK"); \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_START_TASK_NAME); \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_STATE_CHANGE_TASK_NAME); \
     REMOVE_TASK_HANDLER_DIRECTLY(PUMP_COMPLETE_TASK_NAME); \
-    REMOVE_TASK_HANDLER_DIRECTLY(PUMP_POWER_SINGLE_TASK_NAME); \
-    PUMP_CLEAR_POWER_CLICK_PENDING_SAFE(); \
 } while (0)
 
 /*
@@ -177,21 +160,6 @@ static void pump_cycle_common_mode_by_power_double(ui_proc_pump_t *proc, bool is
     WRITE_PUMP_WORK_MODE(proc->pump, new_mode, true, 1);
 }
 
-static void pump_power_single_click_confirm_cb(hdr_post_args_t *args)
-{
-    ui_proc_pump_t *proc = args->user_data;
-    EXCEPTION_CHECK_VOID(proc);
-    if (!proc->power_click_pending) {
-        return;
-    }
-    proc->power_click_pending = 0;
-    if (!pump_ui_wm_binding_ok(proc)) {
-        LOG_WM("power single confirm skipped (wm binding).");
-        return;
-    }
-    switch_pump_status_ui(proc);
-}
-
 static void pump_knob_event_cb(ui_proc_pump_t *proc, uint8_t is_left)
 {
     if (proc->popup_ui_type == ID_POPUP_UI_PUMP_FINISH_TIMEOUT) {
@@ -246,9 +214,7 @@ static void pump_double_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
     switch (keycode) {
         case KEY_CODE_POWER:
 #if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
-            /// 三键机：电源双击按原 UP/DOWN 逻辑切换模式（按“递增”方向循环）
-            proc->power_click_pending = 0;
-            REMOVE_TASK_HANDLER_DIRECTLY(PUMP_POWER_SINGLE_TASK_NAME);
+            /// 三键机：电源双击切模式（单击已改为由长按统一处理开关机）
             pump_cycle_common_mode_by_power_double(proc, true);
 #else
             LOG_WM("keycode %d double click is not used in this layout.", keycode);
@@ -291,10 +257,8 @@ static void pump_click_event_cb(ui_proc_pump_t *proc, uint16_t keycode)
     switch (keycode) {
         case KEY_CODE_POWER:
 #if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
-            /// 三键机：单击延迟确认启停；双击由 scan_key 上报 KEY_TYPE_DOUBLE（UP_AGAIN_YES→KEY_TYPE_DOUBLE）
-            proc->power_click_pending = 1;
-            POST_TASK_HANDLER_DELAYED_ARG2(pump_power_single_click_confirm_cb, PUMP_POWER_DOUBLE_INTERVAL_MS, 0,
-                proc, PUMP_POWER_SINGLE_TASK_NAME);
+            /// 三键机：电源单击启停已下线，统一由长按处理开关机；保留双击切模式.
+            LOG_WM("power single click ignored in three-key layout.");
 #else
             pump_power_key_handler(proc);
 #endif
@@ -468,6 +432,10 @@ static int entry_event_cb(window_lift_cycle_e new_state,
         }
 #if !IS_SUPPORT_LVGL
         pump_ui_on_window_create_idle_home(proc);
+        if (proc->start_ui_type == KEY_CODE_POWER) {
+            /// 电源长按开机路径：切到泵窗后由泵窗口统一执行启动.
+            switch_pump_status_ui(proc);
+        }
 #else
         switch_pump_status_ui(proc);
 #endif
@@ -537,6 +505,7 @@ window_enter_result_e PAGE_HANDLE_NAME(PAGE_STATIC_NAME)(window_manager_context_
     window_entry_extra_t *extra = (window_entry_extra_t *)wm->get_window_entry_extra(wm);
     proc->margic = UI_WINDOW_MARGIC_CODE;
     LOG_WM("window entry extra arg1: %d.", extra->arg1);
+    proc->start_ui_type = extra->arg1;
     proc->wm = wm;
     proc->ui = (ui_manager_context_t *)find_module(ID_MODULE_UI);
     proc->pump = (breast_pump_manager_context_t *)find_module(ID_MODULE_BREAST_PUMP);

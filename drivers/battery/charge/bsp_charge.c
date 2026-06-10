@@ -67,7 +67,7 @@ static void app_battery_charger_handler(enum PMU_CHARGER_STATUS_T status)
     LOG_PBUS("DCIN status=%d", status);
 
     if (status == PMU_CHARGER_PLUGIN) {
-        s_charge_status.plug_in = true; 
+        s_charge_status.plug_in = true;
     } else if (status == PMU_CHARGER_PLUGOUT) {
         s_charge_status.plug_in = false;
     }
@@ -269,6 +269,13 @@ static void charge_device_thread(void *arg)
         if (s_charge_status.plug_in != last_plug_in) {
             last_plug_in = s_charge_status.plug_in;
             charge_event_internal_cb(last_plug_in ? CHARGE_EVENT_PLUG_IN : CHARGE_EVENT_PLUG_OUT);
+            if (s_charge_status.plug_in == true) {
+                if (charge_boost_set(1) != 0) {
+                    LOG_PBUS("boost enable failed");
+                } else {
+                    LOG_PBUS("boost enable success");
+                }
+            }
         }
 
         check_charge_status();

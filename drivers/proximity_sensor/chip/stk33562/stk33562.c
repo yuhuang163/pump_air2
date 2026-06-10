@@ -16,6 +16,7 @@
 #define STK_STATE_REG                       0x00u
 #define STK_PSCTRL_REG                      0x01u
 #define STK_LEDCTRL_REG                     0x03u
+#define STK_INTCTRL1_REG                    0x04u
 #define STK_WAIT_REG                        0x05u
 #define STK_THDH1_PS_REG                    0x06u
 #define STK_THDH2_PS_REG                    0x07u
@@ -46,6 +47,7 @@
 static const stk33562_reg_table_t s_default_regs[] = {
     { STK_PSCTRL_REG, ((STK_PS_PRS1 << STK_PS_PRST_SHIFT) | (STK_PS_GAIN8 << STK_PS_GAIN_SHIFT) | (STK_PS_IT200 << STK_PS_IT_SHIFT)), 0xFF },
     { STK_LEDCTRL_REG, (STK_IRDR_LED_100mA << STK_LED_IRDR_SHIFT), 0xFF },
+    { STK_INTCTRL1_REG, 0x01, 0xFF },
     { STK_WAIT_REG, STK_WAIT_100, 0xFF },
     { STK_GAINCTRL_REG, 0x00, 0x01 },
     { STK_AGCTRL_REG, 0x01, 0x03 },
@@ -73,7 +75,7 @@ static volatile uint8_t s_irq_msg_pending;
 
 
 
-#define STK33562_POLL_INTERVAL_MS 2000
+#define STK33562_POLL_INTERVAL_MS 1000
 static os_timer_id stk33562_poll_timer = NULL;
 static thread_context_t stk33562_poll_thd = {0};
 
@@ -291,22 +293,28 @@ static int stk33562_fetch_status(proximity_status_t *status)
 void dump_reg(void)
 {
 	uint8_t RegCount, RegIndex;
-    uint8_t Addr, Data;
+    uint8_t Addr, Data, Value;
     uint8_t stk3a5x_reg_map[] =
     {
         0x00, 0x01, 0x02, 0x03, 0x04,
         0x05, 0x06, 0x07, 0x08, 0x09, 
 		0x10, 0x4E, 0xA0, 0xA1, 0xA8, 
-		0xA9, 0xAA, 0xDB, 0x3E
+		0xA9, 0xAA, 0xDB, 0x3E, 0x11,
     };
 	RegCount = sizeof(stk3a5x_reg_map) / sizeof(uint8_t);
     for (RegIndex = 0; RegIndex < RegCount; RegIndex++)
     {
         Addr = stk3a5x_reg_map[RegIndex];
         Data = 0x00;
-        stk33562_read_reg(Addr, &Data, 1);
-        LOG_PBUS("[APP_STK_PS] reg[0x%02x]=0x%02x", Addr, Data);
-        msleep(1);
+        Value = 0x00;
+        if (Addr == 0x11) {
+            stk33562_read_reg(0x11, &Data, 1);
+            stk33562_read_reg(0x12, &Value, 1);
+            LOG_PBUS("[APP_STK_PS] reg[0x%02x]=%d \r\n", Addr, (Data << 8 | Value));
+        } else {
+            stk33562_read_reg(Addr, &Data, 1);
+            LOG_PBUS("[APP_STK_PS] reg[0x%02x]=0x%02x", Addr, Data);
+        }
     }
 }
 

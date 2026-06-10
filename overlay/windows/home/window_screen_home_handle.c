@@ -151,21 +151,9 @@ static void home_knob_right_event_cb(ui_proc_home_t *proc)
 
 static void home_power_key_event_cb(ui_proc_home_t *proc)
 {
-    if (proc->current_ui_type == HOME_UI_TYPE_NORMAL_MODE_SELECT || 
-        proc->current_ui_type == HOME_UI_TYPE_BF_MODE_SELECT) {
-        POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
-    } else if (proc->current_ui_type == HOME_UI_TYPE_HOME) {
-#if IS_SUPPORT_GPIO_THREE_KEY_LAYOUT
-        /// 无屏三键机：电源短按等同原「启动」键，从主页进入泵窗口（否则一直停在 HOME，泵按键回调未注册）
-        POST_TASK_HANDLER_NO_DELAY(home_start_key_event_ui_cb, proc, HOME_START_KEY_EVENT_TASK_NAME);
-#elif IS_SUPPORT_NIGHT_LIGHT
-        if (proc->led && proc->led->hook && proc->led->hook->toggle_night_light) {
-            proc->led->hook->toggle_night_light(proc->led);
-        }
-#endif
-    } else {
-        LOG_WM("ignore key event.");
-    }
+    (void)proc;
+    /// 电源键单击功能已下线：统一由长按处理开关机及开机后泵启动.
+    LOG_WM("home power single click ignored.");
 }
 
 static int on_home_ui_keyevent_hdr(void *user_data, uint16_t keycode, uint16_t keytype)

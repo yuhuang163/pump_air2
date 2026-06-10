@@ -70,6 +70,7 @@ static void logo_apply_post_logo_navigation(ui_proc_logo_t *proc)
     msg.union_body.extra.window_id = ID_WINDOW_HOME;
     proc->wm->dispatch_new_window_args(proc->wm, &msg);
 #else
+    bool auto_start_pump = (proc->pm && proc->pm->priv.power_on_start_pump_pending);
     if (proc->airplane && proc->airplane->is_on_airplane_mode()) {
         LOG_WM("goto airplane mode screen");
         msg.union_body.extra.window_id = ID_WINDOW_AIRPLANE_MODE;
@@ -78,6 +79,11 @@ static void logo_apply_post_logo_navigation(ui_proc_logo_t *proc)
     }
     LOG_WM("goto pump screen");
     msg.union_body.extra.window_id = ID_WINDOW_PUMP;
+    if (auto_start_pump) {
+        msg.union_body.extra.arg1 = KEY_CODE_POWER;
+        proc->pm->priv.power_on_start_pump_pending = false;
+        LOG_WM("boot by power long press, pass auto-start flag to pump");
+    }
     proc->wm->dispatch_new_window_args(proc->wm, &msg);
 #endif
 }

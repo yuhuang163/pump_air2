@@ -13,6 +13,9 @@
 #include "sdp3x_chip_api.h"
 #include "diff_pressure_flow_model.h"
 
+/// 临时方案，用于获取泵电机最新ADC电压
+extern uint16_t pump_motor_get_latest_adc_mv(void);
+
 /*
 * DEFINES
 *****************************************************************************************
@@ -71,7 +74,7 @@ int bsp_read_diff_pressure_status(void *args)
     //     out_status[0].pressure,  
     //     out_status[0].temp);
     read_times++;
-LOG_PASS("[%d][%d] Pa: %f,T: %f,times: %d", platform_get_utc_time(), get_timestamp_ms(0), out_status[0].pressure, out_status[0].temp, read_times);
+LOG_PASS("[%d][%d] Pa: %f,T: %f,adc: %d,times: %d", platform_get_utc_time(), get_timestamp_ms(0), out_status[0].pressure, out_status[0].temp, pump_motor_get_latest_adc_mv(), read_times);
 LOG_PASS("\r\n");
 #endif
     return BSP_OK;

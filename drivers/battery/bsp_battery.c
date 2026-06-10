@@ -503,25 +503,24 @@ static int battery_dev_close(struct rt_device_node *dev)
 
 static int battery_dev_read(struct rt_device_node *dev, void *buf, uint32_t n_bytes)
 {
-//     int fg_soc = 100;
-//     if (s_fg_is_ready && cw221x_get_capacity(&fg_soc) == 0) {
-//         if (fg_soc < 0) {
-//             fg_soc = 0;
-//         } else if (fg_soc > 100) {
-//             fg_soc = 100;
-//         }
-//     } else {
-// #if IS_SUPPORT_BATTERY_POLL
-//         fg_soc = battery_pencent_get();
-// #else
-//         fg_soc = 100;
-// #endif
-//     }
-//     if (buf) {
-//         memcpy(buf, &fg_soc, sizeof(int));
-//     }
-    // return fg_soc;
-    return 100;
+    int fg_soc = 100;
+    if (cw221x_is_ready() && cw221x_get_capacity(&fg_soc) == 0) {
+        if (fg_soc < 0) {
+            fg_soc = 0;
+        } else if (fg_soc > 100) {
+            fg_soc = 100;
+        }
+    } else {
+#if IS_SUPPORT_BATTERY_POLL
+        fg_soc = battery_pencent_get();
+#else
+        fg_soc = 100;
+#endif
+    }
+    if (buf) {
+        memcpy(buf, &fg_soc, sizeof(int));
+    }
+    return fg_soc;
 }
 
 static int battery_dev_write(struct rt_device_node *dev, const void *buf, uint32_t n_bytes)

@@ -14,7 +14,7 @@
 *****************************************************************************************
 */
 #define LIMS_I2C_ADDR                  0x6C
-#define LIMS_LOG_DEBUG                 0
+#define LIMS_LOG_DEBUG                 1
 #define LIMS_ABNORMAL_MAX_COUNT        10
 #define LIMS_LOG_COUNT_INTERVAL        100
 
@@ -337,7 +337,7 @@ int bsp_read_air_pressure_status(void *args)
     }
     start_air_pressure_conversion(LIMS_PRESSURE_DATA);
 #if LIMS_LOG_DEBUG
-    BSP_LOG_PASS("4 time: %d, pressure: %f, raw: %d\r\n",
+    BSP_LOG_PASS("limscg04pcns5 time: %d, pressure: %f, raw: %d\r\n",
         get_timestamp_ms(start_time), out_status[0].pressure,
         out_status[0].raw_data);
 #endif
